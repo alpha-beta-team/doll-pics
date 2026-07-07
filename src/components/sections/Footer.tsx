@@ -62,15 +62,21 @@ export function Footer() {
 
         {/* Contact bar */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-8 border-t border-white/5">
-          <a href="#" data-cursor="hover" className="flex items-center gap-3 text-ink-200/60 hover:text-gold-400 transition-colors">
-            <Mail className="w-5 h-5" /> hello@lumiere.studio
+          <a href="mailto:dollpictures2025@gmail.com" data-cursor="hover" className="flex items-center gap-3 text-ink-200/60 hover:text-gold-400 transition-colors">
+            <Mail className="w-5 h-5" /> dollpictures2025@gmail.com
           </a>
-          <a href="#" data-cursor="hover" className="flex items-center gap-3 text-ink-200/60 hover:text-gold-400 transition-colors">
-            <Phone className="w-5 h-5" /> +1 (555) 012-3456
+          <a href="tel:+919597562337" data-cursor="hover" className="flex items-center gap-3 text-ink-200/60 hover:text-gold-400 transition-colors">
+            <Phone className="w-5 h-5" /> +91 95975 62337
           </a>
-          <div className="flex items-center gap-3 text-ink-200/60">
-            <MapPin className="w-5 h-5" /> Studio 7, Arts District, NYC
-          </div>
+          <a
+            href="https://www.google.com/maps/search/?api=1&query=URT%20TOWERS%2C%20139%2F4-D%2C%20Perundurai%20Rd%2C%20Teachers%20Colony%2C%20Palayapalayam%2C%20Erode%2C%20Tamil%20Nadu%20638011"
+            data-cursor="hover"
+            className="flex items-center gap-3 text-ink-200/60 hover:text-gold-400 transition-colors"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <MapPin className="w-5 h-5" /> URT TOWERS, 139/4-D, Perundurai Rd, Teachers Colony, Palayapalayam, Erode, Tamil Nadu 638011
+          </a>
         </div>
 
         {/* Bottom */}
