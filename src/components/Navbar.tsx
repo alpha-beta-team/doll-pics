@@ -40,10 +40,8 @@ export function Navbar() {
               <div className="transition-transform duration-700 group-hover:rotate-180">
                 <Aperture className="w-7 h-7 text-gold-400" strokeWidth={1.5} />
               </div>
-              <span className="font-display text-2xl font-medium tracking-wide text-ink-50">
-                <a href="#" className="font-['Playfair_Display'] text-xl font-semibold tracking-widest text-white">
-          DOLL PICTURES<span className="text-[#C9A96E]">.</span>
-        </a>
+              <span className="font-display text-xl font-semibold tracking-[0.3em] text-ink-50">
+                DOLL PICTURES
               </span>
             </button>
 

@@ -17,8 +17,8 @@ export function Footer() {
           <div className="lg:col-span-2">
             <div className="flex items-center gap-2.5 mb-6">
               <Aperture className="w-7 h-7 text-gold-400" strokeWidth={1.5} />
-              <span className="font-display text-2xl font-medium text-ink-50">
-                Lumi<span className="text-gold-400">è</span>re
+              <span className="font-display text-xl font-semibold tracking-[0.3em] text-ink-50">
+                DOLL PICTURES
               </span>
             </div>
             <p className="text-ink-200/60 max-w-sm leading-relaxed mb-6">
@@ -76,7 +76,7 @@ export function Footer() {
         {/* Bottom */}
         <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-xs text-ink-300/40 tracking-wide">
-            © 2024 Lumière Studio. All rights reserved. Crafted with devotion.
+            © 2026 DOLL PICTURES. All rights reserved. Crafted with devotion.
           </p>
           <div className="flex gap-6 text-xs text-ink-300/40">
             <a href="#" data-cursor="hover" className="hover:text-ink-200 transition-colors">Privacy</a>

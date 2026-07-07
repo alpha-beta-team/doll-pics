@@ -62,7 +62,7 @@ export function Hero() {
           className="section-label mb-6"
           style={{ animation: 'fadeInUp 1s 0.3s ease-out both' }}
         >
-          {heroSlides[active].label} Collection 2024
+          {heroSlides[active].label} Collection 2026
         </div>
 
         <h1
