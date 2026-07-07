@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Menu, X, Aperture } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { scrollToSection } from '../hooks/useScroll';
 
 const links = [
@@ -37,9 +37,11 @@ export function Navbar() {
               className="flex items-center gap-2.5 group"
               data-cursor="hover"
             >
-              <div className="transition-transform duration-700 group-hover:rotate-180">
-                <Aperture className="w-7 h-7 text-gold-400" strokeWidth={1.5} />
-              </div>
+              <img
+                src="/logo-doll.png"
+                alt="Doll Pictures logo"
+                className="h-11 w-11 rounded-full object-cover ring-1 ring-white/15 transition-transform duration-700 group-hover:scale-105"
+              />
               <span className="font-display text-xl font-semibold tracking-[0.3em] text-ink-50">
                 DOLL PICTURES
               </span>
