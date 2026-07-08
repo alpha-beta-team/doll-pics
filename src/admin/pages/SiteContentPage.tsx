@@ -21,6 +21,9 @@ const defaultSiteContent: SiteContent = {
   heroHeading: '',
   heroSubtext: '',
   about: '',
+  ourStory: '',
+  mission: '',
+  aboutHeroSubtext: '',
   contactEmail: '',
   whatsapp: '',
   phone: '',
@@ -39,7 +42,15 @@ export function SiteContentPage() {
     const fetchContent = async () => {
       try {
         const data = await api.getSiteContent();
-        setContent(data);
+        setContent({
+          ...defaultSiteContent,
+          ...data,
+          ourStory: data.ourStory ?? '',
+          mission: data.mission ?? '',
+          aboutHeroSubtext: data.aboutHeroSubtext ?? '',
+          socials: data.socials ?? {},
+          beforeAfter: data.beforeAfter ?? { before: '', after: '' },
+        });
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load site content');
       } finally {
@@ -225,8 +236,58 @@ export function SiteContentPage() {
               placeholder="Tell your story. Share your passion for photography and what makes your studio unique..."
             />
             <p className="text-xs text-gray-500 mt-1">
-              Supports basic formatting. Use line breaks for paragraphs.
+              Shown in the footer. Use line breaks for paragraphs.
             </p>
+          </div>
+        </section>
+
+        <section className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <h2 className="text-lg font-medium text-gray-900">About Page</h2>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                About Hero Subtext
+              </label>
+              <textarea
+                value={content.aboutHeroSubtext}
+                onChange={e => handleChange('aboutHeroSubtext', e.target.value)}
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                placeholder="A warm, inviting studio where craft meets whimsy..."
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Our Story
+              </label>
+              <textarea
+                value={content.ourStory}
+                onChange={e => handleChange('ourStory', e.target.value)}
+                rows={6}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                placeholder="Company history and how the studio began..."
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Use blank lines between paragraphs.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Mission
+              </label>
+              <textarea
+                value={content.mission}
+                onChange={e => handleChange('mission', e.target.value)}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                placeholder="A short mission statement shown as a pull-quote..."
+              />
+            </div>
           </div>
         </section>
 

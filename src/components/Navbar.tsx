@@ -1,18 +1,12 @@
 import { useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
-import { scrollToSection } from '../hooks/useScroll';
 import { useSiteData } from '../contexts/SiteDataContext';
-
-const links = [
-  { label: 'Work', href: '#work' },
-  { label: 'Gallery', href: '#gallery' },
-  { label: 'Services', href: '#services' },
-  { label: 'About', href: '#behind' },
-  { label: 'Stories', href: '#testimonials' },
-];
+import { BOOKING_ROUTE, NAV_LINKS } from '../lib/navigation';
 
 export function Navbar() {
   const { siteContent } = useSiteData();
+  const { pathname } = useLocation();
   const brand = siteContent.brandName || 'DOLL PICTURES';
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -22,6 +16,11 @@ export function Navbar() {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  const linkClass = (path: string) =>
+    `relative text-sm font-medium tracking-wide transition-colors duration-300 group ${
+      pathname === path ? 'text-ink-50' : 'text-ink-100/80 hover:text-ink-50'
+    }`;
 
   return (
     <>
@@ -35,8 +34,8 @@ export function Navbar() {
           }`}
         >
           <nav className="max-w-7xl mx-auto px-6 lg:px-10 h-20 flex items-center justify-between">
-            <button
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            <Link
+              to="/"
               className="flex items-center gap-2.5 group"
               data-cursor="hover"
             >
@@ -48,30 +47,30 @@ export function Navbar() {
               <span className="font-display text-xl font-semibold tracking-[0.3em] text-ink-50">
                 {brand}
               </span>
-            </button>
+            </Link>
 
             <div className="hidden lg:flex items-center gap-10">
-              {links.map((link) => (
-                <button
-                  key={link.label}
-                  onClick={() => scrollToSection(link.href)}
+              {NAV_LINKS.map((link) => (
+                <Link
+                  key={link.path}
+                  to={link.path}
                   data-cursor="hover"
-                  className="relative text-sm font-medium tracking-wide text-ink-100/80 hover:text-ink-50 transition-colors duration-300 group"
+                  className={linkClass(link.path)}
                 >
                   {link.label}
                   <span className="absolute -bottom-1 left-0 w-0 h-px bg-gold-400 transition-all duration-400 group-hover:w-full" />
-                </button>
+                </Link>
               ))}
             </div>
 
             <div className="flex items-center gap-4">
-              <button
-                onClick={() => scrollToSection('#booking')}
+              <Link
+                to={BOOKING_ROUTE.path}
                 data-cursor="hover"
                 className="hidden sm:inline-flex items-center px-6 py-2.5 text-xs font-medium tracking-widest uppercase text-ink-950 bg-gradient-to-r from-gold-300 to-gold-500 rounded-full hover:shadow-lg hover:shadow-gold-500/30 transition-all duration-400"
               >
                 Book Now
-              </button>
+              </Link>
               <button
                 onClick={() => setOpen(!open)}
                 className="lg:hidden text-ink-50"
@@ -86,23 +85,25 @@ export function Navbar() {
 
       {open && (
         <div className="fixed inset-0 z-[999] lg:hidden bg-ink-950/95 backdrop-blur-2xl flex flex-col items-center justify-center gap-8 fade-in">
-          {links.map((link, i) => (
-            <button
-              key={link.label}
-              onClick={() => { setOpen(false); scrollToSection(link.href); }}
+          {NAV_LINKS.map((link, i) => (
+            <Link
+              key={link.path}
+              to={link.path}
+              onClick={() => setOpen(false)}
               className="font-display text-4xl text-ink-50 hover:text-gold-400 transition-colors"
               style={{ animation: `fadeInUp 0.5s ${i * 0.08}s ease-out both` }}
             >
               {link.label}
-            </button>
+            </Link>
           ))}
-          <button
-            onClick={() => { setOpen(false); scrollToSection('#booking'); }}
+          <Link
+            to={BOOKING_ROUTE.path}
+            onClick={() => setOpen(false)}
             className="mt-4 px-8 py-4 text-sm tracking-widest uppercase text-ink-950 bg-gradient-to-r from-gold-300 to-gold-500 rounded-full"
             style={{ animation: 'fadeInUp 0.5s 0.4s ease-out both' }}
           >
             Book Now
-          </button>
+          </Link>
         </div>
       )}
     </>

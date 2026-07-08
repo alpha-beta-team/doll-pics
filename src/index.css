@@ -16,12 +16,18 @@
 
   body {
     @apply bg-ink-950 text-ink-50 font-sans antialiased overflow-x-hidden;
-    cursor: none;
+  }
+
+  /* Only hide the OS cursor when CustomCursor is mounted (desktop). */
+  body.custom-cursor-active,
+  body.custom-cursor-active * {
+    cursor: none !important;
   }
 
   @media (max-width: 768px) {
-    body {
-      cursor: auto;
+    body.custom-cursor-active,
+    body.custom-cursor-active * {
+      cursor: auto !important;
     }
   }
 

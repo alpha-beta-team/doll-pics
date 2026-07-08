@@ -7,6 +7,7 @@ import {
   FileText,
   Mail,
   Camera,
+  Users,
 } from 'lucide-react';
 
 const navItems = [
@@ -24,6 +25,7 @@ const homepageItems = [
   { to: '/admin/stats', label: 'Statistics', icon: LayoutDashboard },
   { to: '/admin/testimonials', label: 'Testimonials', icon: Mail },
   { to: '/admin/behind-scenes', label: 'Behind the Scenes', icon: Camera },
+  { to: '/admin/team-members', label: 'Team Members', icon: Users },
 ];
 
 export function Sidebar() {

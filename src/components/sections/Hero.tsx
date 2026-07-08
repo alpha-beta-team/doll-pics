@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useSiteData } from '../../contexts/SiteDataContext';
-import { scrollToSection } from '../../hooks/useScroll';
+import { BOOKING_ROUTE } from '../../lib/navigation';
 import { ChevronDown } from 'lucide-react';
 
 export function Hero() {
@@ -87,21 +88,21 @@ export function Hero() {
           className="mt-12 flex flex-col sm:flex-row items-center gap-4"
           style={{ animation: 'fadeInUp 1s 1.3s cubic-bezier(0.22,1,0.36,1) both' }}
         >
-          <button
-            onClick={() => scrollToSection('#work')}
+          <Link
+            to="/work"
             data-cursor="hover"
             className="btn-primary group"
           >
             <span className="relative z-10">Explore Our Work</span>
             <span className="absolute inset-0 bg-gradient-to-r from-gold-400 to-gold-300 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
-          </button>
-          <button
-            onClick={() => scrollToSection('#booking')}
+          </Link>
+          <Link
+            to={BOOKING_ROUTE.path}
             data-cursor="hover"
             className="btn-ghost"
           >
             Book a Consultation
-          </button>
+          </Link>
         </div>
       </div>
 

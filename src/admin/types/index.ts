@@ -50,6 +50,9 @@ export interface SiteContent {
   heroHeading: string;
   heroSubtext: string;
   about: string;
+  ourStory: string;
+  mission: string;
+  aboutHeroSubtext: string;
   contactEmail: string;
   whatsapp: string;
   phone: string;
@@ -107,6 +110,16 @@ export interface BehindScene {
   id: string;
   title: string;
   image: string;
+  order: number;
+  isPublished: boolean;
+}
+
+export interface TeamMember {
+  id: string;
+  name: string;
+  role: string;
+  bio: string;
+  photo: string;
   order: number;
   isPublished: boolean;
 }

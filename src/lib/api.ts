@@ -44,6 +44,9 @@ export interface PublicSiteContent {
   heroHeading: string;
   heroSubtext: string;
   about: string;
+  ourStory?: string;
+  mission?: string;
+  aboutHeroSubtext?: string;
   contactEmail: string;
   whatsapp: string;
   phone: string;
@@ -71,6 +74,7 @@ export interface PublicPackage {
   name: string;
   shootType: string;
   description: string;
+  inclusions: string[];
   icon?: string;
   imageUrl?: string;
   pricingMode: string;
@@ -108,6 +112,13 @@ export interface PublicBehindScene {
   image: string;
 }
 
+export interface PublicTeamMember {
+  name: string;
+  role: string;
+  bio: string;
+  photo: string;
+}
+
 export interface CreateEnquiryPayload {
   name: string;
   email: string;
@@ -128,6 +139,7 @@ export const publicApi = {
   getStats: () => publicFetch<PublicStat[]>('/stats'),
   getTestimonials: () => publicFetch<PublicTestimonial[]>('/testimonials'),
   getBehindScenes: () => publicFetch<PublicBehindScene[]>('/behind-scenes'),
+  getTeamMembers: () => publicFetch<PublicTeamMember[]>('/team-members'),
   createEnquiry: (data: CreateEnquiryPayload) =>
     publicFetch('/enquiries', {
       method: 'POST',

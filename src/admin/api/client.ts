@@ -1,6 +1,6 @@
 import type {
   Photo, Category, Package, SiteContent, Enquiry, User,
-  HeroSlide, StoryScene, Stat, Testimonial, BehindScene,
+  HeroSlide, StoryScene, Stat, Testimonial, BehindScene, TeamMember,
 } from '../types';
 import { normalizeId, request } from './http';
 
@@ -158,6 +158,16 @@ function mapBehindScene(doc: Record<string, unknown>): BehindScene {
   }));
 }
 
+function mapTeamMember(doc: Record<string, unknown>): TeamMember {
+  return mapOrderedItem(doc, base => ({
+    ...base,
+    name: (doc.name as string) ?? '',
+    role: (doc.role as string) ?? '',
+    bio: (doc.bio as string) ?? '',
+    photo: (doc.photo as string) ?? '',
+  }));
+}
+
 function orderedCrud<T>(
   resource: string,
   mapper: (doc: Record<string, unknown>) => T,
@@ -195,6 +205,7 @@ const storyScenesApi = orderedCrud('story-scenes', mapStoryScene);
 const statsApi = orderedCrud('stats', mapStat);
 const testimonialsApi = orderedCrud('testimonials', mapTestimonial);
 const behindScenesApi = orderedCrud('behind-scenes', mapBehindScene);
+const teamMembersApi = orderedCrud('team-members', mapTeamMember);
 
 export const api = {
   // Auth
@@ -511,4 +522,11 @@ export const api = {
   updateBehindScene: (id: string, data: Partial<BehindScene>) => behindScenesApi.update(id, data),
   deleteBehindScene: (id: string) => behindScenesApi.delete(id),
   reorderBehindScenes: (ids: string[]) => behindScenesApi.reorder(ids),
+
+  // Team Members
+  getTeamMembers: () => teamMembersApi.getAll(),
+  createTeamMember: (data: Omit<TeamMember, 'id'>) => teamMembersApi.create(data),
+  updateTeamMember: (id: string, data: Partial<TeamMember>) => teamMembersApi.update(id, data),
+  deleteTeamMember: (id: string) => teamMembersApi.delete(id),
+  reorderTeamMembers: (ids: string[]) => teamMembersApi.reorder(ids),
 };

@@ -1,6 +1,9 @@
 import { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Site } from './pages/Site';
+import { Packages } from './pages/Packages';
+import { About } from './pages/About';
+import { SECTION_PATHS } from './lib/navigation';
 
 const AdminApp = lazy(() => import('./admin/AdminApp'));
 
@@ -17,6 +20,11 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Site />} />
+        <Route path="/packages" element={<Packages />} />
+        <Route path="/about" element={<About />} />
+        {SECTION_PATHS.map((path) => (
+          <Route key={path} path={path} element={<Site />} />
+        ))}
         <Route
           path="/admin/*"
           element={

@@ -1,11 +1,36 @@
+import { Link } from 'react-router-dom';
 import { useSiteData } from '../../contexts/SiteDataContext';
 import { Instagram, Facebook, Youtube, Mail, Phone, MapPin } from 'lucide-react';
 
-const footerLinks = {
-  Studio: ['About Us', 'Our Team', 'Careers', 'Press'],
-  Services: ['Wedding', 'Pre-Wedding', 'Portrait', 'Commercial', 'Drone'],
-  Work: ['Portfolio', 'Gallery', 'Behind the Scenes', 'Awards'],
-  Connect: ['Book a Session', 'Free Consultation', 'Pricing', 'FAQ'],
+const footerLinks: Record<
+  string,
+  Array<{ label: string; to?: string; href?: string }>
+> = {
+  Studio: [
+    { label: 'About Us', to: '/about' },
+    { label: 'Our Team', to: '/about#team' },
+    { label: 'Careers' },
+    { label: 'Press' },
+  ],
+  Services: [
+    { label: 'Wedding' },
+    { label: 'Pre-Wedding' },
+    { label: 'Portrait' },
+    { label: 'Commercial' },
+    { label: 'Drone' },
+  ],
+  Work: [
+    { label: 'Portfolio', to: '/work' },
+    { label: 'Gallery', to: '/gallery' },
+    { label: 'Behind the Scenes', href: '/#behind' },
+    { label: 'Awards' },
+  ],
+  Connect: [
+    { label: 'Book a Session', href: '/#booking' },
+    { label: 'Free Consultation', href: '/#booking' },
+    { label: 'Pricing', to: '/packages' },
+    { label: 'FAQ' },
+  ],
 };
 
 const socialIcons = [
@@ -56,14 +81,24 @@ export function Footer() {
               <h4 className="text-xs tracking-widest uppercase text-gold-400 mb-4">{title}</h4>
               <ul className="space-y-3">
                 {links.map((link) => (
-                  <li key={link}>
-                    <a
-                      href="#"
-                      data-cursor="hover"
-                      className="text-sm text-ink-200/60 hover:text-ink-50 transition-colors duration-300"
-                    >
-                      {link}
-                    </a>
+                  <li key={link.label}>
+                    {link.to ? (
+                      <Link
+                        to={link.to}
+                        data-cursor="hover"
+                        className="text-sm text-ink-200/60 hover:text-ink-50 transition-colors duration-300"
+                      >
+                        {link.label}
+                      </Link>
+                    ) : (
+                      <a
+                        href={link.href ?? '#'}
+                        data-cursor="hover"
+                        className="text-sm text-ink-200/60 hover:text-ink-50 transition-colors duration-300"
+                      >
+                        {link.label}
+                      </a>
+                    )}
                   </li>
                 ))}
               </ul>

@@ -237,3 +237,34 @@ export const behindScenes = [
       "https://images.pexels.com/photos/325153/pexels-photo-325153.jpeg?auto=compress&cs=tinysrgb&w=800",
   },
 ];
+
+export const teamMembers = [
+  {
+    name: "Ramya Vignesh",
+    role: "Lead Photographer & Founder",
+    bio: "Visionary behind the lens — crafting cinematic narratives that feel intimate, elegant, and timeless.",
+    photo:
+      "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=600",
+  },
+  {
+    name: "Arun Prakash",
+    role: "Cinematographer",
+    bio: "Obsessed with light and motion. Turns every celebration into a moving film of joy and emotion.",
+    photo:
+      "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=600",
+  },
+  {
+    name: "Meera Krishnan",
+    role: "Creative Director",
+    bio: "Shapes mood boards, styling cues, and the whimsical finish that makes every gallery uniquely yours.",
+    photo:
+      "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=600",
+  },
+  {
+    name: "Karthik Selvam",
+    role: "Lead Editor",
+    bio: "Color grades and retouches with a painter\u2019s patience — turning raw frames into heirloom stills.",
+    photo:
+      "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=600",
+  },
+];

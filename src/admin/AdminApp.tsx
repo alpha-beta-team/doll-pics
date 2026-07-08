@@ -13,6 +13,7 @@ import { StoryScenesPage } from './pages/StoryScenesPage';
 import { StatsPage } from './pages/StatsPage';
 import { TestimonialsPage } from './pages/TestimonialsPage';
 import { BehindScenesPage } from './pages/BehindScenesPage';
+import { TeamMembersPage } from './pages/TeamMembersPage';
 
 export default function AdminApp() {
   return (
@@ -32,6 +33,7 @@ export default function AdminApp() {
           <Route path="stats" element={<StatsPage />} />
           <Route path="testimonials" element={<TestimonialsPage />} />
           <Route path="behind-scenes" element={<BehindScenesPage />} />
+          <Route path="team-members" element={<TeamMembersPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
       </Routes>
