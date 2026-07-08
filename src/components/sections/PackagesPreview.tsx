@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom';
 import { useSiteData } from '../../contexts/SiteDataContext';
 import { useInView } from '../../hooks/useScroll';
 import { PackagesGrid } from '../packages/PackagesGrid';
-import { ContactFabs } from '../packages/ContactFabs';
 
 export function PackagesPreview() {
   const { packages, siteContent } = useSiteData();
@@ -46,8 +45,6 @@ export function PackagesPreview() {
           </Link>
         </div>
       </div>
-
-      <ContactFabs phone={siteContent.phone} whatsapp={siteContent.whatsapp} />
     </section>
   );
 }

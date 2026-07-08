@@ -1,9 +1,21 @@
-import { Phone } from 'lucide-react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { Mail, MessageCircle, Phone, Plus } from 'lucide-react';
+import { useSiteData } from '../../contexts/SiteDataContext';
 import { whatsappDigits } from '../../lib/pricing';
 
 interface ContactFabsProps {
   phone: string;
   whatsapp: string;
+  email: string;
+}
+
+interface ContactAction {
+  id: string;
+  label: string;
+  href: string;
+  external?: boolean;
+  bgColor: string;
+  icon: ReactNode;
 }
 
 function WhatsAppIcon({ className }: { className?: string }) {
@@ -14,43 +26,138 @@ function WhatsAppIcon({ className }: { className?: string }) {
   );
 }
 
-const fabBase =
-  'flex h-14 w-14 items-center justify-center rounded-full text-white shadow-lg transition-all duration-300 hover:scale-110 hover:-translate-y-0.5 active:scale-95';
+export function ContactFabs({ phone, whatsapp, email }: ContactFabsProps) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-export function ContactFabs({ phone, whatsapp }: ContactFabsProps) {
   const tel = phone.replace(/\s/g, '');
   const wa = whatsappDigits(whatsapp);
 
-  if (!tel && !wa) return null;
+  const actions: ContactAction[] = [];
+  if (tel) {
+    actions.push({
+      id: 'call',
+      label: 'Call Now',
+      href: `tel:${tel}`,
+      bgColor: '#EF4444',
+      icon: <Phone className="h-5 w-5" strokeWidth={2} />,
+    });
+  }
+  if (email) {
+    actions.push({
+      id: 'email',
+      label: 'Send Email',
+      href: `mailto:${email}`,
+      bgColor: '#3B82F6',
+      icon: <Mail className="h-5 w-5" strokeWidth={2} />,
+    });
+  }
+  if (wa) {
+    actions.push({
+      id: 'whatsapp',
+      label: 'WhatsApp Us',
+      href: `https://wa.me/${wa}`,
+      external: true,
+      bgColor: '#25D366',
+      icon: <WhatsAppIcon className="h-5 w-5" />,
+    });
+  }
+
+  useEffect(() => {
+    if (!open) return;
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [open]);
+
+  if (actions.length === 0) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-[900] flex flex-col gap-3.5">
-      {tel && (
-        <a
-          href={`tel:${tel}`}
-          data-cursor="hover"
-          aria-label="Call us"
-          title="Call us"
-          className={`${fabBase} bg-[#25D366] shadow-[#25D366]/35 hover:shadow-xl hover:shadow-[#25D366]/45`}
-          style={{ animation: 'fadeInUp 0.5s 0.4s ease-out both' }}
-        >
-          <Phone className="h-6 w-6" strokeWidth={2} />
-        </a>
-      )}
-      {wa && (
-        <a
-          href={`https://wa.me/${wa}`}
-          target="_blank"
-          rel="noreferrer"
-          data-cursor="hover"
-          aria-label="WhatsApp"
-          title="Chat on WhatsApp"
-          className={`${fabBase} bg-[#25D366] shadow-[#25D366]/35 hover:shadow-xl hover:shadow-[#25D366]/45`}
-          style={{ animation: 'fadeInUp 0.5s 0.5s ease-out both' }}
-        >
-          <WhatsAppIcon className="h-7 w-7" />
-        </a>
-      )}
+    <div ref={containerRef} className="fixed bottom-6 right-6 z-[900] flex flex-col items-end gap-3">
+      <div role="menu" aria-label="Contact options" className="flex flex-col items-end gap-3">
+        {actions.map((action, index) => {
+          const openDelay = (actions.length - 1 - index) * 120;
+          const closeDelay = index * 80;
+
+          return (
+            <div
+              key={action.id}
+              role="none"
+              className={`fab-item flex items-center gap-3 ${open ? 'fab-item-open' : 'fab-item-closed'}`}
+              style={{ transitionDelay: `${open ? openDelay : closeDelay}ms` }}
+            >
+              <span className="whitespace-nowrap rounded-full bg-white px-4 py-2 text-sm font-semibold text-ink-950 shadow-md">
+                {action.label}
+              </span>
+              <a
+                role="menuitem"
+                href={action.href}
+                target={action.external ? '_blank' : undefined}
+                rel={action.external ? 'noreferrer' : undefined}
+                data-cursor="hover"
+                aria-label={action.label}
+                onClick={() => setOpen(false)}
+                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-white shadow-lg transition-transform duration-200 hover:scale-110 active:scale-95"
+                style={{ backgroundColor: action.bgColor }}
+              >
+                {action.icon}
+              </a>
+            </div>
+          );
+        })}
+      </div>
+
+      <button
+        type="button"
+        data-cursor="hover"
+        aria-label={open ? 'Close contact menu' : 'Open contact menu'}
+        aria-expanded={open}
+        onClick={() => setOpen(prev => !prev)}
+        className="relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-b from-cyan-400 to-blue-500 text-white shadow-lg shadow-blue-500/30 transition-transform duration-300 hover:scale-110 hover:-translate-y-0.5 active:scale-95"
+      >
+        {!open && (
+          <span className="absolute right-0.5 top-0.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-ink-950" />
+        )}
+        <span className="relative flex h-6 w-6 items-center justify-center">
+          <MessageCircle
+            className={`absolute h-6 w-6 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+              open ? 'rotate-90 scale-0 opacity-0' : 'rotate-0 scale-100 opacity-100'
+            }`}
+            strokeWidth={2}
+          />
+          <Plus
+            className={`absolute h-6 w-6 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+              open ? 'rotate-0 scale-100 opacity-100' : '-rotate-90 scale-0 opacity-0'
+            }`}
+            strokeWidth={2.5}
+          />
+        </span>
+      </button>
     </div>
+  );
+}
+
+export function ContactFabHost() {
+  const { siteContent } = useSiteData();
+  return (
+    <ContactFabs
+      phone={siteContent.phone}
+      whatsapp={siteContent.whatsapp}
+      email={siteContent.contactEmail}
+    />
   );
 }

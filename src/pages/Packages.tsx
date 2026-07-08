@@ -4,7 +4,7 @@ import { SmoothScroll } from '../components/SmoothScroll';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/sections/Footer';
 import { PackagesGrid } from '../components/packages/PackagesGrid';
-import { ContactFabs } from '../components/packages/ContactFabs';
+import { ContactFabHost } from '../components/packages/ContactFabs';
 import { useInView } from '../hooks/useScroll';
 
 function PackagesContent() {
@@ -55,7 +55,7 @@ function PackagesContent() {
       </main>
 
       <Footer />
-      <ContactFabs phone={siteContent.phone} whatsapp={siteContent.whatsapp} />
+      <ContactFabHost />
     </div>
   );
 }

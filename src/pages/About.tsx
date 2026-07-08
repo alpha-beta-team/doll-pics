@@ -1,9 +1,9 @@
-import { SiteDataProvider, useSiteData } from '../contexts/SiteDataContext';
+import { SiteDataProvider } from '../contexts/SiteDataContext';
 import { CustomCursor } from '../components/CustomCursor';
 import { SmoothScroll } from '../components/SmoothScroll';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/sections/Footer';
-import { ContactFabs } from '../components/packages/ContactFabs';
+import { ContactFabHost } from '../components/packages/ContactFabs';
 import { AboutHero } from '../components/about/AboutHero';
 import { AboutGallery } from '../components/about/AboutGallery';
 import { OurStory } from '../components/about/OurStory';
@@ -11,8 +11,6 @@ import { BehindScenesPreview } from '../components/about/BehindScenesPreview';
 import { MeetTheTeam } from '../components/about/MeetTheTeam';
 
 function AboutContent() {
-  const { siteContent } = useSiteData();
-
   return (
     <div className="relative bg-ink-950">
       <CustomCursor />
@@ -28,7 +26,7 @@ function AboutContent() {
       </main>
 
       <Footer />
-      <ContactFabs phone={siteContent.phone} whatsapp={siteContent.whatsapp} />
+      <ContactFabHost />
     </div>
   );
 }

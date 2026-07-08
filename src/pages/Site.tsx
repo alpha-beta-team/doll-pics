@@ -15,6 +15,7 @@ import { Testimonials } from '../components/sections/Testimonials';
 import { BehindScenes } from '../components/sections/BehindScenes';
 import { BookingCTA } from '../components/sections/BookingCTA';
 import { Footer } from '../components/sections/Footer';
+import { ContactFabHost } from '../components/packages/ContactFabs';
 import { SiteDataProvider } from '../contexts/SiteDataContext';
 import { PATH_TO_SECTION } from '../lib/navigation';
 import { SECTION_COMPONENTS } from '../lib/sectionComponents';
@@ -26,6 +27,7 @@ function SiteShell({ children }: { children: ReactNode }) {
       <div className="film-grain" />
       <Navbar />
       {children}
+      <ContactFabHost />
       <Footer />
     </div>
   );
