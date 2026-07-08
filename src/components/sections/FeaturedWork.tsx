@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
-import { featuredWork } from '../../data/content';
+import { useSiteData } from '../../contexts/SiteDataContext';
 import { useInView } from '../../hooks/useScroll';
+import type { FeaturedWorkItem } from '../../contexts/SiteDataContext';
 import { X, ChevronLeft, ChevronRight, MapPin, Calendar } from 'lucide-react';
 
 export function FeaturedWork() {
+  const { featuredWork } = useSiteData();
   const { ref, inView } = useInView<HTMLDivElement>();
 
   return (
@@ -25,7 +27,7 @@ export function FeaturedWork() {
   );
 }
 
-function FeatureCard({ work, index }: { work: typeof featuredWork[0]; index: number }) {
+function FeatureCard({ work, index }: { work: FeaturedWorkItem; index: number }) {
   const { ref, inView } = useInView<HTMLDivElement>();
   const [open, setOpen] = useState(false);
 
@@ -74,6 +76,7 @@ function FeatureCard({ work, index }: { work: typeof featuredWork[0]; index: num
 }
 
 function Lightbox({ index, onClose }: { index: number; onClose: () => void }) {
+  const { featuredWork } = useSiteData();
   const [current, setCurrent] = useState(index);
   const work = featuredWork[current];
 
@@ -89,7 +92,7 @@ function Lightbox({ index, onClose }: { index: number; onClose: () => void }) {
       window.removeEventListener('keydown', onKey);
       document.body.style.overflow = '';
     };
-  }, [onClose]);
+  }, [onClose, featuredWork.length]);
 
   const nav = (dir: number, e: React.MouseEvent) => {
     e.stopPropagation();

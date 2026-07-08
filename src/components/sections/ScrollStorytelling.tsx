@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { storyScenes } from '../../data/content';
+import { useSiteData } from '../../contexts/SiteDataContext';
 
 export function ScrollStorytelling() {
+  const { storyScenes } = useSiteData();
   const ref = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
 

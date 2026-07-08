@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { scrollToSection } from '../hooks/useScroll';
+import { useSiteData } from '../contexts/SiteDataContext';
 
 const links = [
   { label: 'Work', href: '#work' },
@@ -11,6 +12,8 @@ const links = [
 ];
 
 export function Navbar() {
+  const { siteContent } = useSiteData();
+  const brand = siteContent.brandName || 'DOLL PICTURES';
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -43,7 +46,7 @@ export function Navbar() {
                 className="h-11 w-11 rounded-full object-cover ring-1 ring-white/15 transition-transform duration-700 group-hover:scale-105"
               />
               <span className="font-display text-xl font-semibold tracking-[0.3em] text-ink-50">
-                DOLL PICTURES
+                {brand}
               </span>
             </button>
 

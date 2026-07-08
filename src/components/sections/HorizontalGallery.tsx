@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { galleryImages } from '../../data/content';
+import { useSiteData } from '../../contexts/SiteDataContext';
 
 const categories = ['Wedding', 'Portrait', 'Fashion', 'Drone', 'Maternity', 'Editorial'];
 const heights = ['h-[60vh]', 'h-[55vh]', 'h-[65vh]', 'h-[58vh]'];
 
 export function HorizontalGallery() {
+  const { galleryImages } = useSiteData();
   const ref = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);

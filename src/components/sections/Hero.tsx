@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { heroSlides } from '../../data/content';
+import { useSiteData } from '../../contexts/SiteDataContext';
 import { scrollToSection } from '../../hooks/useScroll';
 import { ChevronDown } from 'lucide-react';
 
 export function Hero() {
+  const { heroSlides } = useSiteData();
   const ref = useRef<HTMLDivElement>(null);
   const bgRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -15,7 +16,7 @@ export function Hero() {
       setActive((p) => (p + 1) % heroSlides.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [heroSlides.length]);
 
   // Scroll parallax
   useEffect(() => {

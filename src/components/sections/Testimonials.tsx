@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { testimonials } from '../../data/content';
+import { useSiteData } from '../../contexts/SiteDataContext';
 import { useInView } from '../../hooks/useScroll';
 import { Star, ChevronLeft, ChevronRight, ThumbsUp, Quote } from 'lucide-react';
 
 export function Testimonials() {
+  const { testimonials } = useSiteData();
   const [index, setIndex] = useState(0);
   const [dir, setDir] = useState(0);
   const { ref, inView } = useInView<HTMLDivElement>();

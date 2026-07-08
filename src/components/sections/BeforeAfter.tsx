@@ -1,9 +1,10 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
-import { beforeAfter } from '../../data/content';
+import { useSiteData } from '../../contexts/SiteDataContext';
 import { useInView } from '../../hooks/useScroll';
 import { MoveHorizontal } from 'lucide-react';
 
 export function BeforeAfter() {
+  const { beforeAfter } = useSiteData();
   const sectionRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState(50);

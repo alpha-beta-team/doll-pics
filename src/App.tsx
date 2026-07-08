@@ -1,40 +1,33 @@
-import { SmoothScroll } from './components/SmoothScroll';
-import { CustomCursor } from './components/CustomCursor';
-import { Navbar } from './components/Navbar';
-import { Hero } from './components/sections/Hero';
-import { ScrollStorytelling } from './components/sections/ScrollStorytelling';
-import { FeaturedWork } from './components/sections/FeaturedWork';
-import { HorizontalGallery } from './components/sections/HorizontalGallery';
-import { BeforeAfter } from './components/sections/BeforeAfter';
-import { Services } from './components/sections/Services';
-import { Statistics } from './components/sections/Statistics';
-import { Testimonials } from './components/sections/Testimonials';
-import { BehindScenes } from './components/sections/BehindScenes';
-import { BookingCTA } from './components/sections/BookingCTA';
-import { Footer } from './components/sections/Footer';
+import { Suspense, lazy } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Site } from './pages/Site';
+
+const AdminApp = lazy(() => import('./admin/AdminApp'));
+
+function AdminLoading() {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+}
 
 function App() {
   return (
-    <SmoothScroll>
-      <div className="relative bg-ink-950">
-        <CustomCursor />
-        <div className="film-grain" />
-        <Navbar />
-        <main>
-          <Hero />
-          <ScrollStorytelling />
-          <FeaturedWork />
-          <HorizontalGallery />
-          <BeforeAfter />
-          <Services />
-          <Statistics />
-          <Testimonials />
-          <BehindScenes />
-          <BookingCTA />
-        </main>
-        <Footer />
-      </div>
-    </SmoothScroll>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Site />} />
+        <Route
+          path="/admin/*"
+          element={
+            <Suspense fallback={<AdminLoading />}>
+              <AdminApp />
+            </Suspense>
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

@@ -1,8 +1,9 @@
-import { behindScenes } from '../../data/content';
+import { useSiteData } from '../../contexts/SiteDataContext';
 import { useInView } from '../../hooks/useScroll';
 import { Play } from 'lucide-react';
 
 export function BehindScenes() {
+  const { behindScenes } = useSiteData();
   const { ref, inView } = useInView<HTMLDivElement>();
 
   return (
@@ -27,7 +28,7 @@ export function BehindScenes() {
   );
 }
 
-function BehindCard({ scene, index }: { scene: typeof behindScenes[0]; index: number }) {
+function BehindCard({ scene, index }: { scene: { title: string; image: string }; index: number }) {
   const { ref, inView } = useInView<HTMLDivElement>();
 
   return (

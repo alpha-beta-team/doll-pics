@@ -69,6 +69,57 @@ doll-pics/
 └── vite.config.ts
 ```
 
+## Full Stack Development (CMS + API)
+
+This project combines the public portfolio with an admin CMS at `/admin`. Content is served by the NestJS backend in `../photography-cms-backend`.
+
+### Prerequisites
+
+- Node.js 18+
+- MongoDB running locally (or `MONGODB_URI` configured in backend `.env`)
+
+### Local dev (3 terminals)
+
+```bash
+# Terminal 1 — MongoDB (if not already running)
+# mongod or Docker
+
+# Terminal 2 — Backend API
+cd ../photography-cms-backend
+npm install
+npm run seed        # first time only
+npm run seed:admin  # first time only
+npm run start:dev
+
+# Terminal 3 — Frontend (this repo)
+cp .env.example .env.local
+npm install
+npm run dev
+```
+
+- Public site: `http://localhost:5173/`
+- Admin CMS: `http://localhost:5173/admin/login`
+- API: `http://localhost:3001/api`
+
+### Environment
+
+Copy `.env.example` to `.env.local`:
+
+```env
+VITE_API_URL=http://localhost:3001/api
+```
+
+Backend: set `CORS_ORIGIN=http://localhost:5173` and change `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
+
+### Production
+
+| Service | Notes |
+|---------|-------|
+| `photography-cms-backend` | Deploy to Railway/Render/VPS |
+| `doll-pics` | Deploy to Vercel/Netlify with `VITE_API_URL` pointing to API |
+
+SPA rewrites are configured in `vercel.json`. Admin routes require the same fallback on other hosts.
+
 ## Getting Started
 
 ### Prerequisites
