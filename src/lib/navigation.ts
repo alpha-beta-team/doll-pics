@@ -19,3 +19,5 @@ export const PATH_TO_SECTION: Record<string, string> = {
 };
 
 export const SECTION_PATHS = Object.keys(PATH_TO_SECTION);
+
+export const SITEMAP_ROUTES = ['/', '/packages', '/about', ...SECTION_PATHS];
