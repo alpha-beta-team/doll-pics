@@ -1,4 +1,4 @@
 User-agent: *
 Disallow: /admin
 
-Sitemap: https://dollpictures.com/sitemap.xml
+Sitemap: https://dollpictures.in/sitemap.xml
