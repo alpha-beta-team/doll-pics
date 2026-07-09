@@ -6,10 +6,17 @@ import { Footer } from '../components/sections/Footer';
 import { PackagesGrid } from '../components/packages/PackagesGrid';
 import { ContactFabHost } from '../components/packages/ContactFabs';
 import { useInView } from '../hooks/useScroll';
+import { usePageSeo } from '../hooks/usePageSeo';
 
 function PackagesContent() {
   const { siteContent, packages, loading } = useSiteData();
   const { ref, inView } = useInView<HTMLDivElement>();
+
+  usePageSeo({
+    phone: siteContent.phone,
+    email: siteContent.contactEmail,
+    socials: siteContent.socials,
+  });
 
   return (
     <div className="relative bg-ink-950">

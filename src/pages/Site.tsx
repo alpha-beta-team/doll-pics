@@ -16,9 +16,10 @@ import { BehindScenes } from '../components/sections/BehindScenes';
 import { BookingCTA } from '../components/sections/BookingCTA';
 import { Footer } from '../components/sections/Footer';
 import { ContactFabHost } from '../components/packages/ContactFabs';
-import { SiteDataProvider } from '../contexts/SiteDataContext';
+import { SiteDataProvider, useSiteData } from '../contexts/SiteDataContext';
 import { PATH_TO_SECTION } from '../lib/navigation';
 import { SECTION_COMPONENTS } from '../lib/sectionComponents';
+import { usePageSeo } from '../hooks/usePageSeo';
 
 function SiteShell({ children }: { children: ReactNode }) {
   return (
@@ -73,7 +74,14 @@ function HomeView() {
 
 function SiteContent() {
   const { pathname } = useLocation();
+  const { siteContent } = useSiteData();
   const sectionId = PATH_TO_SECTION[pathname];
+
+  usePageSeo({
+    phone: siteContent.phone,
+    email: siteContent.contactEmail,
+    socials: siteContent.socials,
+  });
 
   if (sectionId) {
     return <SectionOnlyView sectionId={sectionId} />;

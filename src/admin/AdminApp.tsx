@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { RequireAuth } from './components/Layout';
@@ -14,8 +15,22 @@ import { StatsPage } from './pages/StatsPage';
 import { TestimonialsPage } from './pages/TestimonialsPage';
 import { BehindScenesPage } from './pages/BehindScenesPage';
 import { TeamMembersPage } from './pages/TeamMembersPage';
+import { applyPageSeo } from '../lib/seo';
+
+function useAdminNoIndex() {
+  useEffect(() => {
+    applyPageSeo({
+      path: '/admin',
+      title: 'Admin — DOLL PICTURES',
+      description: 'Private admin area.',
+      noindex: true,
+    });
+  }, []);
+}
 
 export default function AdminApp() {
+  useAdminNoIndex();
+
   return (
     <AuthProvider>
       <Routes>

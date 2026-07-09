@@ -1,3 +1,5 @@
+# Static files (e.g. /work/index.html) are served first.
+# This SPA fallback only applies when no matching file exists.
 [[redirects]]
   from = "/*"
   to = "/index.html"
