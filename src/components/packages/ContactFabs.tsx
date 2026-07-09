@@ -87,7 +87,10 @@ export function ContactFabs({ phone, whatsapp, email }: ContactFabsProps) {
   if (actions.length === 0) return null;
 
   return (
-    <div ref={containerRef} className="fixed bottom-6 right-6 z-[900] flex flex-col items-end gap-3">
+    <div
+      ref={containerRef}
+      className="pointer-events-none fixed bottom-6 right-6 z-[900] flex flex-col items-end gap-3"
+    >
       <div role="menu" aria-label="Contact options" className="flex flex-col items-end gap-3">
         {actions.map((action, index) => {
           const openDelay = (actions.length - 1 - index) * 120;
@@ -100,7 +103,7 @@ export function ContactFabs({ phone, whatsapp, email }: ContactFabsProps) {
               className={`fab-item flex items-center gap-3 ${open ? 'fab-item-open' : 'fab-item-closed'}`}
               style={{ transitionDelay: `${open ? openDelay : closeDelay}ms` }}
             >
-              <span className="whitespace-nowrap rounded-full bg-white px-4 py-2 text-sm font-semibold text-ink-950 shadow-md">
+              <span className="pointer-events-none whitespace-nowrap rounded-full bg-white px-4 py-2 text-sm font-semibold text-ink-950 shadow-md">
                 {action.label}
               </span>
               <a
@@ -110,8 +113,11 @@ export function ContactFabs({ phone, whatsapp, email }: ContactFabsProps) {
                 rel={action.external ? 'noreferrer' : undefined}
                 data-cursor="hover"
                 aria-label={action.label}
+                tabIndex={open ? 0 : -1}
                 onClick={() => setOpen(false)}
-                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-white shadow-lg transition-transform duration-200 hover:scale-110 active:scale-95"
+                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-white shadow-lg transition-transform duration-200 hover:scale-110 active:scale-95 ${
+                  open ? 'pointer-events-auto' : 'pointer-events-none'
+                }`}
                 style={{ backgroundColor: action.bgColor }}
               >
                 {action.icon}
@@ -127,7 +133,7 @@ export function ContactFabs({ phone, whatsapp, email }: ContactFabsProps) {
         aria-label={open ? 'Close contact menu' : 'Open contact menu'}
         aria-expanded={open}
         onClick={() => setOpen(prev => !prev)}
-        className="relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-b from-cyan-400 to-blue-500 text-white shadow-lg shadow-blue-500/30 transition-transform duration-300 hover:scale-110 hover:-translate-y-0.5 active:scale-95"
+        className="pointer-events-auto relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-b from-cyan-400 to-blue-500 text-white shadow-lg shadow-blue-500/30 transition-transform duration-300 hover:scale-110 hover:-translate-y-0.5 active:scale-95"
       >
         {!open && (
           <span className="absolute right-0.5 top-0.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-ink-950" />

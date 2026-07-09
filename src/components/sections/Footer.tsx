@@ -114,11 +114,11 @@ export function Footer() {
           </a>
         </div>
 
-        <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-ink-300/40 tracking-wide">
+        <div className="flex flex-col items-center justify-between gap-4 border-t border-white/5 pt-8 pr-20 md:flex-row md:pr-24">
+          <p className="text-xs tracking-wide text-ink-300/40">
             © 2026 {brand}. All rights reserved. Crafted with devotion.
           </p>
-          <div className="flex gap-6 text-xs text-ink-300/40">
+          <div className="relative z-10 flex gap-6 text-xs text-ink-300/40">
             <Link
               to="/privacy"
               data-cursor="hover"

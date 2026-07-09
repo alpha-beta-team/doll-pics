@@ -178,11 +178,17 @@
     opacity: 1;
     transform: translateY(0) scale(1);
     pointer-events: auto;
+    visibility: visible;
   }
 
   .fab-item-closed {
     opacity: 0;
     transform: translateY(24px) scale(0.75);
+    pointer-events: none;
+    visibility: hidden;
+  }
+
+  .fab-item-closed * {
     pointer-events: none;
   }
 }
