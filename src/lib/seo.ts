@@ -90,20 +90,22 @@ export function buildLocalBusinessJsonLd(contact?: {
   email?: string;
   socials?: Record<string, string>;
 }) {
-  const sameAs = Object.values(contact?.socials ?? {}).filter(Boolean);
+  const fromContact = Object.values(contact?.socials ?? {}).filter(Boolean);
+  const sameAs = [...new Set([...(seoPages.sameAs ?? []), ...fromContact])];
   const { address, geo } = seoPages;
+  const telephone = contact?.phone || seoPages.telephone || undefined;
 
   return {
     '@context': 'https://schema.org',
     '@type': 'PhotographyBusiness',
     '@id': `${SITE_URL}/#business`,
-    name: SITE_NAME,
-    alternateName: seoPages.brandByline,
+    name: seoPages.businessName || seoPages.brandByline,
+    alternateName: SITE_NAME,
     description: seoPages.defaultDescription,
     url: SITE_URL,
     image: DEFAULT_OG_IMAGE,
     logo: SITE_LOGO,
-    telephone: contact?.phone || undefined,
+    telephone,
     email: contact?.email || undefined,
     priceRange: '₹₹₹',
     address: {

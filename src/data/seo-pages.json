@@ -1,7 +1,12 @@
 {
   "siteName": "DOLL PICTURES",
   "tagline": "Cinematic Wedding & Portrait Photography",
-  "brandByline": "DOLL PICTURES by Ramya Vignesh",
+  "brandByline": "Doll Pictures by Ramya Vignesh",
+  "businessName": "Doll Pictures by Ramya Vignesh",
+  "telephone": "+91 99945 55673",
+  "sameAs": [
+    "https://www.instagram.com/dollpictures_studio/"
+  ],
   "defaultDescription": "DOLL PICTURES is a premium photography studio in Erode specializing in cinematic wedding, portrait, and commercial photography. We preserve emotions — every smile, every tear, every unforgettable moment.",
   "address": {
     "streetAddress": "URT TOWERS, 139/4-D, Perundurai Rd, Teachers Colony, Palayapalayam",

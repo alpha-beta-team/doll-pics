@@ -14,8 +14,17 @@ const seoPages = JSON.parse(
 
 const ogImage = `${siteUrl}/og-share.jpg`;
 const siteLogo = `${siteUrl}/logo-doll.png`;
-const { address, geo, siteName, brandByline, defaultDescription, pages } =
-  seoPages;
+const {
+  address,
+  geo,
+  siteName,
+  businessName,
+  brandByline,
+  telephone,
+  sameAs,
+  defaultDescription,
+  pages,
+} = seoPages;
 
 function escapeHtml(value) {
   return String(value)
@@ -35,11 +44,12 @@ function buildBusinessJsonLd() {
     '@context': 'https://schema.org',
     '@type': 'PhotographyBusiness',
     '@id': `${siteUrl}/#business`,
-    name: siteName,
-    alternateName: brandByline,
+    name: businessName || brandByline,
+    alternateName: siteName,
     url: siteUrl,
     image: ogImage,
     logo: siteLogo,
+    telephone: telephone || undefined,
     description: defaultDescription,
     priceRange: '₹₹₹',
     address: {
@@ -55,6 +65,7 @@ function buildBusinessJsonLd() {
       { '@type': 'State', name: address.addressRegion },
       { '@type': 'Country', name: address.addressCountry },
     ],
+    sameAs: sameAs?.length ? sameAs : undefined,
   };
 }
 

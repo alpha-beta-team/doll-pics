@@ -127,9 +127,11 @@ const defaultSiteContent: PublicSiteContent = {
   aboutHeroSubtext:
     'A warm, inviting studio where craft meets whimsy — dedicated to telling your story through light, emotion, and timeless imagery.',
   contactEmail: 'dollpictures2025@gmail.com',
-  whatsapp: '+919597562337',
-  phone: '+91 95975 62337',
-  socials: {},
+  whatsapp: '+919994555673',
+  phone: '+91 99945 55673',
+  socials: {
+    instagram: 'https://www.instagram.com/dollpictures_studio/',
+  },
   beforeAfter: fallbackBeforeAfter,
 };
 
