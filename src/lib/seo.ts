@@ -6,7 +6,8 @@ export const SITE_URL = (
 
 export const SITE_NAME = seoPages.siteName;
 export const SITE_TAGLINE = seoPages.tagline;
-export const DEFAULT_OG_IMAGE = `${SITE_URL}/logo-doll.png`;
+export const DEFAULT_OG_IMAGE = `${SITE_URL}/og-share.jpg`;
+export const SITE_LOGO = `${SITE_URL}/logo-doll.png`;
 
 export type PageSeo = {
   title: string;
@@ -101,7 +102,7 @@ export function buildLocalBusinessJsonLd(contact?: {
     description: seoPages.defaultDescription,
     url: SITE_URL,
     image: DEFAULT_OG_IMAGE,
-    logo: DEFAULT_OG_IMAGE,
+    logo: SITE_LOGO,
     telephone: contact?.phone || undefined,
     email: contact?.email || undefined,
     priceRange: '₹₹₹',

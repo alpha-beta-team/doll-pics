@@ -12,7 +12,8 @@ const seoPages = JSON.parse(
   readFileSync(join(root, 'src/data/seo-pages.json'), 'utf8'),
 );
 
-const ogImage = `${siteUrl}/logo-doll.png`;
+const ogImage = `${siteUrl}/og-share.jpg`;
+const siteLogo = `${siteUrl}/logo-doll.png`;
 const { address, geo, siteName, brandByline, defaultDescription, pages } =
   seoPages;
 
@@ -38,7 +39,7 @@ function buildBusinessJsonLd() {
     alternateName: brandByline,
     url: siteUrl,
     image: ogImage,
-    logo: ogImage,
+    logo: siteLogo,
     description: defaultDescription,
     priceRange: '₹₹₹',
     address: {
