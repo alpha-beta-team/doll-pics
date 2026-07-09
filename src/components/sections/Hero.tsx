@@ -51,7 +51,13 @@ export function Hero() {
               transform: i === active ? 'scale(1.08)' : 'scale(1.15)',
             }}
           >
-            <img src={slide.image} alt={slide.label} className="w-full h-full object-cover" loading="eager" />
+            <img
+              src={slide.image}
+              alt={slide.label}
+              className="w-full h-full object-cover"
+              loading={i === 0 ? 'eager' : 'lazy'}
+              fetchPriority={i === 0 ? 'high' : undefined}
+            />
           </div>
         ))}
         <div className="absolute inset-0 bg-gradient-to-b from-ink-950/50 via-transparent to-ink-950" />

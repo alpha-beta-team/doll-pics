@@ -1,6 +1,10 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { applyPageSeo, getPageSeo } from '../lib/seo';
+import {
+  applyPageSeo,
+  getPageSeo,
+  type AggregateRatingInput,
+} from '../lib/seo';
 
 type ContactSeo = {
   phone?: string;
@@ -8,13 +12,19 @@ type ContactSeo = {
   socials?: Record<string, string>;
 };
 
+type PageSeoOptions = ContactSeo & {
+  aggregateRating?: AggregateRatingInput;
+};
+
 /** Updates document title, meta, canonical, OG, and JSON-LD for the current route. */
-export function usePageSeo(contact?: ContactSeo) {
+export function usePageSeo(options?: PageSeoOptions) {
   const { pathname } = useLocation();
-  const phone = contact?.phone;
-  const email = contact?.email;
-  const socialsKey = contact?.socials
-    ? Object.entries(contact.socials)
+  const phone = options?.phone;
+  const email = options?.email;
+  const ratingValue = options?.aggregateRating?.ratingValue;
+  const reviewCount = options?.aggregateRating?.reviewCount;
+  const socialsKey = options?.socials
+    ? Object.entries(options.socials)
         .filter(([, v]) => v)
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([k, v]) => `${k}:${v}`)
@@ -26,8 +36,12 @@ export function usePageSeo(contact?: ContactSeo) {
       contact: {
         phone,
         email,
-        socials: contact?.socials,
+        socials: options?.socials,
       },
+      aggregateRating:
+        ratingValue != null && reviewCount != null
+          ? { ratingValue, reviewCount }
+          : undefined,
     });
-  }, [pathname, phone, email, socialsKey]);
+  }, [pathname, phone, email, socialsKey, ratingValue, reviewCount]);
 }

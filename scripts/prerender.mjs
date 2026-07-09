@@ -87,6 +87,45 @@ function buildWebPageJsonLd(page, url) {
   };
 }
 
+function buildBreadcrumbJsonLd(page, url) {
+  const name = page.heading || page.title.split('—')[0].trim() || page.title;
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: siteUrl,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name,
+        item: url,
+      },
+    ],
+  };
+}
+
+function buildFaqPageJsonLd() {
+  const faqs = seoPages.faqs ?? [];
+  if (!faqs.length) return null;
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((faq) => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.answer,
+      },
+    })),
+  };
+}
+
 function injectRouteHtml(template, path, page) {
   const url = absoluteUrl(path);
   const title = escapeHtml(page.title);
@@ -95,6 +134,21 @@ function injectRouteHtml(template, path, page) {
   const body = escapeHtml(page.body);
   const businessJson = JSON.stringify(buildBusinessJsonLd());
   const webpageJson = JSON.stringify(buildWebPageJsonLd(page, url));
+  const extraScripts = [];
+
+  if (path !== '/') {
+    extraScripts.push(
+      `<script type="application/ld+json" id="seo-jsonld-breadcrumb">${JSON.stringify(buildBreadcrumbJsonLd(page, url))}</script>`,
+    );
+  }
+  if (path === '/booking') {
+    const faqLd = buildFaqPageJsonLd();
+    if (faqLd) {
+      extraScripts.push(
+        `<script type="application/ld+json" id="seo-jsonld-faq">${JSON.stringify(faqLd)}</script>`,
+      );
+    }
+  }
 
   let html = template;
 
@@ -143,16 +197,36 @@ function injectRouteHtml(template, path, page) {
   }
 
   // Replace the static business JSON-LD block from index.html
+  const jsonLdBlock = [
+    `<script type="application/ld+json" id="seo-jsonld-business">${businessJson}</script>`,
+    `<script type="application/ld+json" id="seo-jsonld-webpage">${webpageJson}</script>`,
+    ...extraScripts,
+  ].join('\n    ');
+
   html = html.replace(
     /<script type="application\/ld\+json">[\s\S]*?<\/script>/,
-    `<script type="application/ld+json" id="seo-jsonld-business">${businessJson}</script>\n    <script type="application/ld+json" id="seo-jsonld-webpage">${webpageJson}</script>`,
+    jsonLdBlock,
   );
+
+  const faqNoscript =
+    path === '/booking' && (seoPages.faqs ?? []).length
+      ? [
+          '    <section>',
+          '      <h2>Frequently asked questions</h2>',
+          ...(seoPages.faqs ?? []).flatMap((faq) => [
+            `      <h3>${escapeHtml(faq.question)}</h3>`,
+            `      <p>${escapeHtml(faq.answer)}</p>`,
+          ]),
+          '    </section>',
+        ]
+      : [];
 
   const noscript = [
     '<noscript>',
     '  <main style="font-family:Georgia,serif;max-width:42rem;margin:2rem auto;padding:0 1.25rem;line-height:1.6;color:#111">',
     `    <h1>${heading}</h1>`,
     `    <p>${body}</p>`,
+    ...faqNoscript,
     `    <p><a href="${siteUrl}/">${escapeHtml(siteName)}</a> · Erode, Tamil Nadu</p>`,
     '  </main>',
     '</noscript>',
@@ -179,6 +253,52 @@ function writeRoute(path, html) {
   return file;
 }
 
+function inject404Html(template) {
+  const title = escapeHtml('Page Not Found — DOLL PICTURES');
+  const description = escapeHtml(
+    'This page could not be found. Return to DOLL PICTURES for cinematic wedding and portrait photography in Erode.',
+  );
+  const heading = escapeHtml('Page not found');
+  const body = escapeHtml(
+    'The page you are looking for does not exist or has been moved.',
+  );
+
+  let html = template;
+  html = html.replace(/<title>[\s\S]*?<\/title>/, `<title>${title}</title>`);
+  html = html.replace(
+    /<meta name="description" content="[^"]*"\s*\/?>/,
+    `<meta name="description" content="${description}" />`,
+  );
+  html = html.replace(
+    /<meta name="robots" content="[^"]*"\s*\/?>/,
+    '<meta name="robots" content="noindex, nofollow" />',
+  );
+
+  if (!/<meta name="robots"/.test(html)) {
+    html = html.replace(
+      '</head>',
+      '    <meta name="robots" content="noindex, nofollow" />\n  </head>',
+    );
+  }
+
+  const noscript = [
+    '<noscript>',
+    '  <main style="font-family:Georgia,serif;max-width:42rem;margin:2rem auto;padding:0 1.25rem;line-height:1.6;color:#111">',
+    `    <h1>${heading}</h1>`,
+    `    <p>${body}</p>`,
+    `    <p><a href="${siteUrl}/">${escapeHtml(siteName)}</a></p>`,
+    '  </main>',
+    '</noscript>',
+  ].join('\n');
+
+  html = html.replace(
+    /<div id="root"><\/div>/,
+    `<div id="root"></div>\n    ${noscript}`,
+  );
+
+  return html;
+}
+
 const template = readFileSync(join(distDir, 'index.html'), 'utf8');
 const written = [];
 
@@ -187,7 +307,12 @@ for (const [path, page] of Object.entries(pages)) {
   written.push(writeRoute(path, html));
 }
 
-console.log(`Prerendered ${written.length} routes for ${siteUrl}`);
+const notFoundHtml = inject404Html(template);
+const notFoundFile = join(distDir, '404.html');
+writeFileSync(notFoundFile, notFoundHtml);
+written.push(notFoundFile);
+
+console.log(`Prerendered ${written.length} files for ${siteUrl}`);
 for (const file of written) {
   console.log(`  ${file.replace(root + '/', '')}`);
 }

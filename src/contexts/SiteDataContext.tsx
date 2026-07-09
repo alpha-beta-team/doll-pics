@@ -7,7 +7,7 @@ import {
 } from 'react';
 import {
   publicApi,
-  getPhotoUrl,
+  getPhotoSources,
   type PublicSiteContent,
   type PublicHeroSlide,
   type PublicStoryScene,
@@ -16,6 +16,7 @@ import {
   type PublicBehindScene,
   type PublicTeamMember,
   type PublicPackage,
+  type PhotoSources,
 } from '../lib/api';
 import {
   heroSlides as fallbackHeroSlides,
@@ -34,8 +35,18 @@ export interface FeaturedWorkItem {
   title: string;
   category: string;
   image: string;
+  alt: string;
   location: string;
   year: string;
+  avifSrcSet?: string;
+  webpSrcSet?: string;
+}
+
+export interface GalleryImageItem {
+  src: string;
+  alt: string;
+  avifSrcSet?: string;
+  webpSrcSet?: string;
 }
 
 export interface ServiceItem {
@@ -50,7 +61,7 @@ export interface SiteData {
   heroSlides: PublicHeroSlide[];
   storyScenes: PublicStoryScene[];
   featuredWork: FeaturedWorkItem[];
-  galleryImages: string[];
+  galleryImages: GalleryImageItem[];
   beforeAfter: { before: string; after: string };
   services: ServiceItem[];
   packages: PublicPackage[];
@@ -60,6 +71,25 @@ export interface SiteData {
   teamMembers: PublicTeamMember[];
   loading: boolean;
   fromApi: boolean;
+}
+
+function sourcesToFeatured(
+  title: string,
+  category: string,
+  location: string,
+  year: string,
+  sources: PhotoSources,
+): FeaturedWorkItem {
+  return {
+    title,
+    category,
+    image: sources.src,
+    alt: sources.alt,
+    location,
+    year,
+    avifSrcSet: sources.avifSrcSet,
+    webpSrcSet: sources.webpSrcSet,
+  };
 }
 
 const fallbackPackages: PublicPackage[] = [
@@ -135,14 +165,28 @@ const defaultSiteContent: PublicSiteContent = {
   beforeAfter: fallbackBeforeAfter,
 };
 
+const normalizedFallbackFeatured: FeaturedWorkItem[] = fallbackFeaturedWork.map(
+  (w) => ({
+    ...w,
+    alt: w.alt ?? w.title,
+  }),
+);
+
+const normalizedFallbackGallery: GalleryImageItem[] = fallbackGalleryImages.map(
+  (item) =>
+    typeof item === 'string'
+      ? { src: item, alt: 'Cinematic photography by DOLL PICTURES' }
+      : item,
+);
+
 const fallbackData: Omit<SiteData, 'loading' | 'fromApi'> = {
   siteContent: defaultSiteContent,
   heroSlides: fallbackHeroSlides,
   storyScenes: fallbackStoryScenes,
-  featuredWork: fallbackFeaturedWork,
-  galleryImages: fallbackGalleryImages,
+  featuredWork: normalizedFallbackFeatured,
+  galleryImages: normalizedFallbackGallery,
   beforeAfter: fallbackBeforeAfter,
-  services: fallbackServices.map(s => ({
+  services: fallbackServices.map((s) => ({
     title: s.title,
     desc: s.desc,
     icon: s.icon,
@@ -200,23 +244,41 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
         if (cancelled) return;
 
         const featuredWork: FeaturedWorkItem[] = featuredPhotos.length
-          ? featuredPhotos.map(p => ({
-              title: p.title,
-              category: Array.isArray(p.categoryIds) && p.categoryIds[0] && typeof p.categoryIds[0] === 'object'
-                ? (p.categoryIds[0] as { name: string }).name
-                : 'Photography',
-              image: getPhotoUrl(p),
-              location: p.location ?? '',
-              year: p.year ?? '',
-            }))
-          : fallbackFeaturedWork;
+          ? featuredPhotos
+              .map((p) => {
+                const sources = getPhotoSources(p);
+                if (!sources) return null;
+                const category =
+                  Array.isArray(p.categoryIds) &&
+                  p.categoryIds[0] &&
+                  typeof p.categoryIds[0] === 'object'
+                    ? (p.categoryIds[0] as { name: string }).name
+                    : 'Photography';
+                return sourcesToFeatured(
+                  p.title,
+                  category,
+                  p.location ?? '',
+                  p.year ?? '',
+                  sources,
+                );
+              })
+              .filter((item): item is FeaturedWorkItem => item !== null)
+          : normalizedFallbackFeatured;
 
-        const galleryImages = allPhotos.length
-          ? allPhotos.map(getPhotoUrl).filter(Boolean)
-          : fallbackGalleryImages;
+        const galleryImages: GalleryImageItem[] = allPhotos.length
+          ? allPhotos
+              .map((p) => getPhotoSources(p))
+              .filter((s): s is PhotoSources => s !== null)
+              .map((s) => ({
+                src: s.src,
+                alt: s.alt,
+                avifSrcSet: s.avifSrcSet,
+                webpSrcSet: s.webpSrcSet,
+              }))
+          : normalizedFallbackGallery;
 
         const services: ServiceItem[] = packages.length
-          ? packages.map(p => ({
+          ? packages.map((p) => ({
               title: p.name,
               desc: p.description,
               icon: p.icon || 'Camera',
@@ -225,7 +287,7 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
           : fallbackData.services;
 
         const normalizedPackages: PublicPackage[] = packages.length
-          ? packages.map(p => ({
+          ? packages.map((p) => ({
               ...p,
               inclusions: Array.isArray(p.inclusions) ? p.inclusions : [],
             }))
@@ -245,8 +307,12 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
           },
           heroSlides: heroSlides.length ? heroSlides : fallbackHeroSlides,
           storyScenes: storyScenes.length ? storyScenes : fallbackStoryScenes,
-          featuredWork,
-          galleryImages,
+          featuredWork:
+            featuredWork.length > 0 ? featuredWork : normalizedFallbackFeatured,
+          galleryImages:
+            galleryImages.length > 0
+              ? galleryImages
+              : normalizedFallbackGallery,
           beforeAfter: siteContent.beforeAfter?.before
             ? siteContent.beforeAfter
             : fallbackBeforeAfter,
@@ -267,13 +333,13 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
     }
 
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
-    <SiteDataContext.Provider value={data}>
-      {children}
-    </SiteDataContext.Provider>
+    <SiteDataContext.Provider value={data}>{children}</SiteDataContext.Provider>
   );
 }
 

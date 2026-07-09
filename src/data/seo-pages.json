@@ -68,5 +68,27 @@
       "heading": "Book a Session",
       "body": "Book a wedding, portrait, or commercial photography session with DOLL PICTURES in Erode."
     }
-  }
+  },
+  "faqs": [
+    {
+      "question": "How do I book a photography session with DOLL PICTURES?",
+      "answer": "Share your date, shoot type, and a short note through our booking form or WhatsApp. We will confirm availability and schedule a free consultation to plan coverage, style, and timeline."
+    },
+    {
+      "question": "Which areas do you cover?",
+      "answer": "We are based in Erode, Tamil Nadu, and regularly cover weddings, portraits, and commercial shoots across Tamil Nadu and nearby cities. Travel for destination celebrations can be arranged."
+    },
+    {
+      "question": "What packages are available?",
+      "answer": "We offer wedding and celebration packages with cinematic photo and video coverage, albums, and curated inclusions. Compare options on our Packages page or ask during consultation for a custom fit."
+    },
+    {
+      "question": "How long until we receive our photos?",
+      "answer": "Turnaround depends on the package and season. Most couples receive a curated preview first, followed by the full gallery and album within the timeline shared at booking."
+    },
+    {
+      "question": "Is the consultation free?",
+      "answer": "Yes. Your first consultation is free — we discuss your story, preferred look, budget, and logistics so you can book with clarity."
+    }
+  ]
 }

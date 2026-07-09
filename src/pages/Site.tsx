@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { SmoothScroll } from '../components/SmoothScroll';
 import { CustomCursor } from '../components/CustomCursor';
 import { Navbar } from '../components/Navbar';
+import { SectionPageIntro } from '../components/SectionPageIntro';
 import { Hero } from '../components/sections/Hero';
 import { ScrollStorytelling } from '../components/sections/ScrollStorytelling';
 import { FeaturedWork } from '../components/sections/FeaturedWork';
@@ -14,11 +15,13 @@ import { Statistics } from '../components/sections/Statistics';
 import { Testimonials } from '../components/sections/Testimonials';
 import { BehindScenes } from '../components/sections/BehindScenes';
 import { BookingCTA } from '../components/sections/BookingCTA';
+import { BookingFaq } from '../components/sections/BookingFaq';
 import { Footer } from '../components/sections/Footer';
 import { ContactFabHost } from '../components/packages/ContactFabs';
 import { SiteDataProvider, useSiteData } from '../contexts/SiteDataContext';
 import { PATH_TO_SECTION } from '../lib/navigation';
 import { SECTION_COMPONENTS } from '../lib/sectionComponents';
+import { computeAggregateRating, getPageSeo } from '../lib/seo';
 import { usePageSeo } from '../hooks/usePageSeo';
 
 function SiteShell({ children }: { children: ReactNode }) {
@@ -34,8 +37,15 @@ function SiteShell({ children }: { children: ReactNode }) {
   );
 }
 
-function SectionOnlyView({ sectionId }: { sectionId: string }) {
+function SectionOnlyView({
+  sectionId,
+  pathname,
+}: {
+  sectionId: string;
+  pathname: string;
+}) {
   const Section = SECTION_COMPONENTS[sectionId];
+  const seo = getPageSeo(pathname);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -46,7 +56,11 @@ function SectionOnlyView({ sectionId }: { sectionId: string }) {
   return (
     <SiteShell>
       <main className="relative pt-20">
+        {seo.heading && seo.body ? (
+          <SectionPageIntro heading={seo.heading} body={seo.body} />
+        ) : null}
         <Section />
+        {pathname === '/booking' ? <BookingFaq /> : null}
       </main>
     </SiteShell>
   );
@@ -74,17 +88,18 @@ function HomeView() {
 
 function SiteContent() {
   const { pathname } = useLocation();
-  const { siteContent } = useSiteData();
+  const { siteContent, testimonials } = useSiteData();
   const sectionId = PATH_TO_SECTION[pathname];
 
   usePageSeo({
     phone: siteContent.phone,
     email: siteContent.contactEmail,
     socials: siteContent.socials,
+    aggregateRating: computeAggregateRating(testimonials),
   });
 
   if (sectionId) {
-    return <SectionOnlyView sectionId={sectionId} />;
+    return <SectionOnlyView sectionId={sectionId} pathname={pathname} />;
   }
 
   return <HomeView />;

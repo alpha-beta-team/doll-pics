@@ -16,10 +16,26 @@ export function resolveMediaUrl(url: string): string {
   return url.startsWith('/') ? `${origin}${url}` : `${origin}/${url}`;
 }
 
+type PhotoVariantList = string | { url: string; width: number }[] | undefined;
+
+function asWidthVariants(
+  value: PhotoVariantList,
+): { url: string; width: number }[] {
+  if (!value) return [];
+  if (typeof value === 'string') return [];
+  return [...value].sort((a, b) => a.width - b.width);
+}
+
+function buildSrcSet(variants: { url: string; width: number }[]): string {
+  return variants
+    .map((v) => `${resolveMediaUrl(v.url)} ${v.width}w`)
+    .join(', ');
+}
+
 export function getPhotoUrl(photo: {
   variants?: {
-    webp?: string | { url: string; width: number }[];
-    avif?: string | { url: string; width: number }[];
+    webp?: PhotoVariantList;
+    avif?: PhotoVariantList;
     original?: { url: string };
   };
 }): string {
@@ -28,14 +44,47 @@ export function getPhotoUrl(photo: {
   if (typeof variants.webp === 'string' && variants.webp) {
     return resolveMediaUrl(variants.webp);
   }
-  const webpArr = variants.webp;
-  if (Array.isArray(webpArr) && webpArr.length > 0) {
+  const webpArr = asWidthVariants(variants.webp);
+  if (webpArr.length > 0) {
     return resolveMediaUrl(webpArr[webpArr.length - 1].url);
   }
   if (variants.original?.url) {
     return resolveMediaUrl(variants.original.url);
   }
   return '';
+}
+
+export type PhotoSources = {
+  src: string;
+  alt: string;
+  avifSrcSet?: string;
+  webpSrcSet?: string;
+};
+
+/** Build responsive sources (AVIF/WebP srcsets) from CMS photo variants. */
+export function getPhotoSources(photo: {
+  title?: string;
+  altText?: string;
+  variants?: {
+    webp?: PhotoVariantList;
+    avif?: PhotoVariantList;
+    original?: { url: string };
+  };
+}): PhotoSources | null {
+  const src = getPhotoUrl(photo);
+  if (!src) return null;
+
+  const webpArr = asWidthVariants(photo.variants?.webp);
+  const avifArr = asWidthVariants(photo.variants?.avif);
+  const webpSrcSet = webpArr.length > 1 ? buildSrcSet(webpArr) : undefined;
+  const avifSrcSet = avifArr.length > 0 ? buildSrcSet(avifArr) : undefined;
+
+  return {
+    src,
+    alt: photo.altText?.trim() || photo.title?.trim() || 'Photography by DOLL PICTURES',
+    avifSrcSet,
+    webpSrcSet,
+  };
 }
 
 export interface PublicSiteContent {

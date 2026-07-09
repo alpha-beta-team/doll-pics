@@ -7,15 +7,17 @@ import { PackagesGrid } from '../components/packages/PackagesGrid';
 import { ContactFabHost } from '../components/packages/ContactFabs';
 import { useInView } from '../hooks/useScroll';
 import { usePageSeo } from '../hooks/usePageSeo';
+import { computeAggregateRating } from '../lib/seo';
 
 function PackagesContent() {
-  const { siteContent, packages, loading } = useSiteData();
+  const { siteContent, packages, loading, testimonials } = useSiteData();
   const { ref, inView } = useInView<HTMLDivElement>();
 
   usePageSeo({
     phone: siteContent.phone,
     email: siteContent.contactEmail,
     socials: siteContent.socials,
+    aggregateRating: computeAggregateRating(testimonials),
   });
 
   return (

@@ -37,7 +37,11 @@ export function AboutHero() {
             <div className="relative overflow-hidden rounded-[1.75rem] border border-white/10 shadow-[0_40px_80px_-40px_rgba(0,0,0,0.8)]">
               <img
                 src={heroImage}
-                alt=""
+                alt={
+                  heroSlides[0]?.label
+                    ? `${heroSlides[0].label} photography by DOLL PICTURES`
+                    : `${siteContent.brandName} studio photography`
+                }
                 className="aspect-[4/5] w-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-ink-950/60 via-transparent to-transparent" />

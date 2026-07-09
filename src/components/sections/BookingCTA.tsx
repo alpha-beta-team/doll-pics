@@ -31,7 +31,7 @@ export function BookingCTA() {
       <div ref={bgRef} className="absolute inset-0 will-change-transform">
         <img
           src="https://images.pexels.com/photos/1024993/pexels-photo-1024993.jpeg?auto=compress&cs=tinysrgb&w=1920"
-          alt=""
+          alt="Couple portrait — book a photography session with DOLL PICTURES"
           className="w-full h-full object-cover"
           loading="lazy"
         />

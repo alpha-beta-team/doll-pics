@@ -4,32 +4,28 @@ import { Instagram, Facebook, Youtube, Mail, Phone, MapPin } from 'lucide-react'
 
 const footerLinks: Record<
   string,
-  Array<{ label: string; to?: string; href?: string }>
+  Array<{ label: string; to: string }>
 > = {
   Studio: [
     { label: 'About Us', to: '/about' },
     { label: 'Our Team', to: '/about#team' },
-    { label: 'Careers' },
-    { label: 'Press' },
   ],
   Services: [
-    { label: 'Wedding' },
-    { label: 'Pre-Wedding' },
-    { label: 'Portrait' },
-    { label: 'Commercial' },
-    { label: 'Drone' },
+    { label: 'Wedding', to: '/services' },
+    { label: 'Pre-Wedding', to: '/services' },
+    { label: 'Portrait', to: '/services' },
+    { label: 'Commercial', to: '/services' },
+    { label: 'Drone', to: '/services' },
   ],
   Work: [
     { label: 'Portfolio', to: '/work' },
     { label: 'Gallery', to: '/gallery' },
-    { label: 'Behind the Scenes', href: '/#behind' },
-    { label: 'Awards' },
+    { label: 'Behind the Scenes', to: '/#behind' },
   ],
   Connect: [
-    { label: 'Book a Session', href: '/#booking' },
-    { label: 'Free Consultation', href: '/#booking' },
+    { label: 'Book a Session', to: '/booking' },
+    { label: 'Free Consultation', to: '/booking' },
     { label: 'Pricing', to: '/packages' },
-    { label: 'FAQ' },
   ],
 };
 
@@ -82,23 +78,13 @@ export function Footer() {
               <ul className="space-y-3">
                 {links.map((link) => (
                   <li key={link.label}>
-                    {link.to ? (
-                      <Link
-                        to={link.to}
-                        data-cursor="hover"
-                        className="text-sm text-ink-200/60 hover:text-ink-50 transition-colors duration-300"
-                      >
-                        {link.label}
-                      </Link>
-                    ) : (
-                      <a
-                        href={link.href ?? '#'}
-                        data-cursor="hover"
-                        className="text-sm text-ink-200/60 hover:text-ink-50 transition-colors duration-300"
-                      >
-                        {link.label}
-                      </a>
-                    )}
+                    <Link
+                      to={link.to}
+                      data-cursor="hover"
+                      className="text-sm text-ink-200/60 hover:text-ink-50 transition-colors duration-300"
+                    >
+                      {link.label}
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -132,11 +118,6 @@ export function Footer() {
           <p className="text-xs text-ink-300/40 tracking-wide">
             © 2026 {brand}. All rights reserved. Crafted with devotion.
           </p>
-          <div className="flex gap-6 text-xs text-ink-300/40">
-            <a href="#" data-cursor="hover" className="hover:text-ink-200 transition-colors">Privacy</a>
-            <a href="#" data-cursor="hover" className="hover:text-ink-200 transition-colors">Terms</a>
-            <a href="#" data-cursor="hover" className="hover:text-ink-200 transition-colors">Cookies</a>
-          </div>
         </div>
       </div>
     </footer>

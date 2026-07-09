@@ -20,6 +20,16 @@ export type PageSeo = {
   body?: string;
 };
 
+export type AggregateRatingInput = {
+  ratingValue: number;
+  reviewCount: number;
+};
+
+export type FaqItem = {
+  question: string;
+  answer: string;
+};
+
 export const PAGE_SEO: Record<string, PageSeo> = Object.fromEntries(
   Object.entries(seoPages.pages).map(([path, page]) => [
     path,
@@ -32,6 +42,11 @@ export const PAGE_SEO: Record<string, PageSeo> = Object.fromEntries(
     },
   ]),
 );
+
+export const SITE_FAQS: FaqItem[] = (seoPages.faqs ?? []).map((faq) => ({
+  question: faq.question,
+  answer: faq.answer,
+}));
 
 export function getPageSeo(pathname: string): PageSeo {
   const normalized =
@@ -85,11 +100,32 @@ function upsertJsonLd(id: string, data: Record<string, unknown>) {
   el.textContent = JSON.stringify(data);
 }
 
-export function buildLocalBusinessJsonLd(contact?: {
-  phone?: string;
-  email?: string;
-  socials?: Record<string, string>;
-}) {
+function removeJsonLd(id: string) {
+  document.getElementById(id)?.remove();
+}
+
+export function computeAggregateRating(
+  ratings: Array<{ rating?: number }>,
+): AggregateRatingInput | undefined {
+  const values = ratings
+    .map((r) => r.rating)
+    .filter((n): n is number => typeof n === 'number' && n > 0);
+  if (!values.length) return undefined;
+  const sum = values.reduce((a, b) => a + b, 0);
+  return {
+    ratingValue: Math.round((sum / values.length) * 10) / 10,
+    reviewCount: values.length,
+  };
+}
+
+export function buildLocalBusinessJsonLd(
+  contact?: {
+    phone?: string;
+    email?: string;
+    socials?: Record<string, string>;
+  },
+  aggregateRating?: AggregateRatingInput,
+) {
   const fromContact = Object.values(contact?.socials ?? {}).filter(Boolean);
   const sameAs = [...new Set([...(seoPages.sameAs ?? []), ...fromContact])];
   const { address, geo } = seoPages;
@@ -122,6 +158,57 @@ export function buildLocalBusinessJsonLd(contact?: {
       { '@type': 'Country', name: address.addressCountry },
     ],
     sameAs: sameAs.length ? sameAs : undefined,
+    ...(aggregateRating
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: aggregateRating.ratingValue,
+            reviewCount: aggregateRating.reviewCount,
+            bestRating: 5,
+            worstRating: 1,
+          },
+        }
+      : {}),
+  };
+}
+
+export function buildBreadcrumbJsonLd(seo: PageSeo) {
+  const url = absoluteUrl(seo.path);
+  const name = seo.heading || seo.title.split('—')[0].trim() || seo.title;
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: SITE_URL,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name,
+        item: url,
+      },
+    ],
+  };
+}
+
+export function buildFaqPageJsonLd(faqs: FaqItem[] = SITE_FAQS) {
+  if (!faqs.length) return null;
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((faq) => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.answer,
+      },
+    })),
   };
 }
 
@@ -129,11 +216,14 @@ export function applyPageSeo(
   seo: PageSeo,
   options?: {
     contact?: { phone?: string; email?: string; socials?: Record<string, string> };
+    aggregateRating?: AggregateRatingInput;
   },
 ) {
   const url = absoluteUrl(seo.path);
   const image = seo.image || DEFAULT_OG_IMAGE;
   const type = seo.type || 'website';
+  const isHome = !seo.path || seo.path === '/';
+  const isBooking = seo.path === '/booking';
 
   document.title = seo.title;
 
@@ -161,7 +251,7 @@ export function applyPageSeo(
 
   upsertJsonLd(
     'seo-jsonld-business',
-    buildLocalBusinessJsonLd(options?.contact),
+    buildLocalBusinessJsonLd(options?.contact, options?.aggregateRating),
   );
 
   upsertJsonLd('seo-jsonld-webpage', {
@@ -179,4 +269,18 @@ export function applyPageSeo(
     },
     about: { '@id': `${SITE_URL}/#business` },
   });
+
+  if (!isHome && !seo.noindex) {
+    upsertJsonLd('seo-jsonld-breadcrumb', buildBreadcrumbJsonLd(seo));
+  } else {
+    removeJsonLd('seo-jsonld-breadcrumb');
+  }
+
+  if (isBooking && !seo.noindex) {
+    const faqLd = buildFaqPageJsonLd();
+    if (faqLd) upsertJsonLd('seo-jsonld-faq', faqLd);
+    else removeJsonLd('seo-jsonld-faq');
+  } else {
+    removeJsonLd('seo-jsonld-faq');
+  }
 }

@@ -53,6 +53,7 @@ export const featuredWork = [
     category: "Wedding",
     image:
       "https://images.pexels.com/photos/169198/pexels-photo-169198.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    alt: "Bride and groom wedding portrait — Eternal Vows",
     location: "Tuscany, Italy",
     year: "2024",
   },
@@ -61,6 +62,7 @@ export const featuredWork = [
     category: "Pre-Wedding",
     image:
       "https://images.pexels.com/photos/1024968/pexels-photo-1024968.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    alt: "Couple at golden hour — pre-wedding portrait",
     location: "Santorini, Greece",
     year: "2025",
   },
@@ -69,6 +71,7 @@ export const featuredWork = [
     category: "Fashion",
     image:
       "https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    alt: "Editorial fashion portrait — Silk and Smoke",
     location: "Paris, France",
     year: "2023",
   },
@@ -77,6 +80,7 @@ export const featuredWork = [
     category: "Maternity",
     image:
       "https://images.pexels.com/photos/2958995/pexels-photo-2958995.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    alt: "Maternity portrait in soft morning light",
     location: "Kyoto, Japan",
     year: "2026",
   },
@@ -85,6 +89,7 @@ export const featuredWork = [
     category: "Drone",
     image:
       "https://images.pexels.com/photos/1000653/pexels-photo-1000653.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    alt: "Aerial drone landscape of a coastal celebration",
     location: "Amalfi Coast",
     year: "2023",
   },
@@ -93,24 +98,61 @@ export const featuredWork = [
     category: "Birthday",
     image:
       "https://images.pexels.com/photos/796444/pexels-photo-796444.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    alt: "Birthday celebration candid photography",
     location: "New York, USA",
     year: "2026",
   },
 ];
 
 export const galleryImages = [
-  "https://images.pexels.com/photos/1024960/pexels-photo-1024960.jpeg?auto=compress&cs=tinysrgb&w=800",
-  "https://images.pexels.com/photos/1024993/pexels-photo-1024993.jpeg?auto=compress&cs=tinysrgb&w=800",
-  "https://images.pexels.com/photos/1779415/pexels-photo-1779415.jpeg?auto=compress&cs=tinysrgb&w=800",
-  "https://images.pexels.com/photos/169198/pexels-photo-169198.jpeg?auto=compress&cs=tinysrgb&w=800",
-  "https://images.pexels.com/photos/1024968/pexels-photo-1024968.jpeg?auto=compress&cs=tinysrgb&w=800",
-  "https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=800",
-  "https://images.pexels.com/photos/2958995/pexels-photo-2958995.jpeg?auto=compress&cs=tinysrgb&w=800",
-  "https://images.pexels.com/photos/1000653/pexels-photo-1000653.jpeg?auto=compress&cs=tinysrgb&w=800",
-  "https://images.pexels.com/photos/796444/pexels-photo-796444.jpeg?auto=compress&cs=tinysrgb&w=800",
-  "https://images.pexels.com/photos/265722/pexels-photo-265722.jpeg?auto=compress&cs=tinysrgb&w=800",
-  "https://images.pexels.com/photos/2253870/pexels-photo-2253870.jpeg?auto=compress&cs=tinysrgb&w=800",
-  "https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=800",
+  {
+    src: "https://images.pexels.com/photos/1024960/pexels-photo-1024960.jpeg?auto=compress&cs=tinysrgb&w=800",
+    alt: "Cinematic wedding moment by DOLL PICTURES",
+  },
+  {
+    src: "https://images.pexels.com/photos/1024993/pexels-photo-1024993.jpeg?auto=compress&cs=tinysrgb&w=800",
+    alt: "Romantic couple portrait photography",
+  },
+  {
+    src: "https://images.pexels.com/photos/1779415/pexels-photo-1779415.jpeg?auto=compress&cs=tinysrgb&w=800",
+    alt: "Cinematic celebration photography",
+  },
+  {
+    src: "https://images.pexels.com/photos/169198/pexels-photo-169198.jpeg?auto=compress&cs=tinysrgb&w=800",
+    alt: "Wedding ceremony photography in soft light",
+  },
+  {
+    src: "https://images.pexels.com/photos/1024968/pexels-photo-1024968.jpeg?auto=compress&cs=tinysrgb&w=800",
+    alt: "Pre-wedding couple portrait at golden hour",
+  },
+  {
+    src: "https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=800",
+    alt: "Fashion and editorial portrait photography",
+  },
+  {
+    src: "https://images.pexels.com/photos/2958995/pexels-photo-2958995.jpeg?auto=compress&cs=tinysrgb&w=800",
+    alt: "Maternity portrait photography",
+  },
+  {
+    src: "https://images.pexels.com/photos/1000653/pexels-photo-1000653.jpeg?auto=compress&cs=tinysrgb&w=800",
+    alt: "Aerial drone photography of a scenic coast",
+  },
+  {
+    src: "https://images.pexels.com/photos/796444/pexels-photo-796444.jpeg?auto=compress&cs=tinysrgb&w=800",
+    alt: "Birthday and celebration photography",
+  },
+  {
+    src: "https://images.pexels.com/photos/265722/pexels-photo-265722.jpeg?auto=compress&cs=tinysrgb&w=800",
+    alt: "Wedding reception photography",
+  },
+  {
+    src: "https://images.pexels.com/photos/2253870/pexels-photo-2253870.jpeg?auto=compress&cs=tinysrgb&w=800",
+    alt: "Emotional wedding day portrait",
+  },
+  {
+    src: "https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=800",
+    alt: "Timeless couple portrait by DOLL PICTURES",
+  },
 ];
 
 export const beforeAfter = {

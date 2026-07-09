@@ -1,5 +1,6 @@
-import { useSiteData } from '../../contexts/SiteDataContext';
+import { useSiteData, type FeaturedWorkItem } from '../../contexts/SiteDataContext';
 import { useInView } from '../../hooks/useScroll';
+import { ResponsiveImage } from '../ResponsiveImage';
 
 const EDITORIAL_COPY = [
   'We chase the soft edges of light — the glance before a smile, the hush before a vow.',
@@ -47,7 +48,7 @@ function GalleryRow({
   reverse,
   index,
 }: {
-  work: { title: string; category: string; image: string; location: string; year: string };
+  work: FeaturedWorkItem;
   copy: string;
   reverse: boolean;
   index: number;
@@ -66,9 +67,12 @@ function GalleryRow({
         <div className="absolute -left-2 -top-2 h-10 w-10 border-l border-t border-gold-400/40" />
         <div className="absolute -bottom-2 -right-2 h-10 w-10 border-b border-r border-gold-400/40" />
         <div className="overflow-hidden rounded-[2rem] rounded-tl-[3.5rem]">
-          <img
+          <ResponsiveImage
             src={work.image}
-            alt={work.title}
+            alt={work.alt}
+            avifSrcSet={work.avifSrcSet}
+            webpSrcSet={work.webpSrcSet}
+            sizes="(max-width: 1024px) 100vw, 50vw"
             loading="lazy"
             className="aspect-[4/5] w-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
