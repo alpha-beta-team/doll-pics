@@ -1,0 +1,12 @@
+# Admin SPA: client routes need the app shell.
+[[redirects]]
+  from = "/admin/*"
+  to = "/index.html"
+  status = 200
+
+# Static files (e.g. /work/index.html) are served first.
+# Unknown paths return the 404 page with a real HTTP 404 status.
+[[redirects]]
+  from = "/*"
+  to = "/404.html"
+  status = 404

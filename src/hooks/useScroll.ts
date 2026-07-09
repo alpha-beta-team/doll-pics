@@ -57,10 +57,15 @@ export function useScrollProgress<T extends HTMLElement>(
   return { ref, progress };
 }
 
-// Smooth scroll to an element
-export function scrollToSection(href: string) {
-  const el = document.querySelector(href);
-  el?.scrollIntoView({ behavior: 'smooth' });
+// Smooth scroll to a section by element id
+export function scrollToSection(
+  sectionId: string,
+  behavior: ScrollBehavior = 'smooth',
+): boolean {
+  const el = document.getElementById(sectionId);
+  if (!el) return false;
+  el.scrollIntoView({ behavior });
+  return true;
 }
 
 // Count-up animation hook

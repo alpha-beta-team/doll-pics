@@ -69,6 +69,86 @@ doll-pics/
 └── vite.config.ts
 ```
 
+## Full Stack Development (CMS + API)
+
+This project combines the public portfolio with an admin CMS at `/admin`. Content is served by the NestJS backend in `../photography-cms-backend`.
+
+### Prerequisites
+
+- Node.js 18+
+- MongoDB running locally (or `MONGODB_URI` configured in backend `.env`)
+
+### Local dev (3 terminals)
+
+```bash
+# Terminal 1 — MongoDB (if not already running)
+# mongod or Docker
+
+# Terminal 2 — Backend API
+cd ../photography-cms-backend
+npm install
+npm run seed        # first time only
+npm run seed:admin  # first time only
+npm run start:dev
+
+# Terminal 3 — Frontend (this repo)
+cp .env.example .env.local
+npm install
+npm run dev
+```
+
+- Public site: `http://localhost:5173/`
+- Admin CMS: `http://localhost:5173/admin/login`
+- API: `http://localhost:3001/api`
+
+### Environment
+
+Copy `.env.example` to `.env.local`:
+
+```env
+VITE_API_URL=http://localhost:3001/api
+VITE_SITE_URL=https://dollpictures.in
+```
+
+| Variable | Required | Purpose |
+|----------|----------|---------|
+| `VITE_API_URL` | Yes (prod) | CMS/API base URL (includes `/api`) |
+| `VITE_SITE_URL` | Recommended (prod) | Site origin for sitemap, robots, prerender, and SEO absolute URLs. No trailing slash. Defaults to `https://dollpictures.in` if unset. |
+
+Backend: set `CORS_ORIGIN=http://localhost:5173` and change `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
+
+### Production
+
+| Service | Notes |
+|---------|-------|
+| `photography-cms-backend` | Deploy to Railway/Render/VPS |
+| `doll-pics` | Deploy to Vercel/Netlify with `VITE_API_URL` and `VITE_SITE_URL` set |
+
+SPA rewrites are configured in `vercel.json` / `netlify.toml`. Admin routes require the same fallback on other hosts.
+
+#### Host environment variables (Step 4)
+
+Set these in your host dashboard so every production build regenerates sitemap/robots correctly:
+
+**Netlify:** Site configuration → Environment variables → add:
+
+- `VITE_API_URL` = your production API URL (e.g. `https://api.example.com/api`)
+- `VITE_SITE_URL` = `https://dollpictures.in`
+
+Apply to **Production** (and Preview if you want preview builds to use the same origin).
+
+**Vercel:** Project → Settings → Environment Variables → add the same two variables for **Production** (and Preview if desired).
+
+Redeploy after saving so `prebuild` (`generate-sitemap.mjs`) runs with the new values.
+
+#### Google Search Console (Step 5)
+
+After deploy:
+
+1. Open `https://dollpictures.in/robots.txt` and confirm it includes `Sitemap: https://dollpictures.in/sitemap.xml`
+2. Open `https://dollpictures.in/sitemap.xml` and confirm all public routes are listed
+3. In [Google Search Console](https://search.google.com/search-console) → **Sitemaps** → submit `https://dollpictures.in/sitemap.xml` (or use **Refresh** if already submitted)
+
 ## Getting Started
 
 ### Prerequisites

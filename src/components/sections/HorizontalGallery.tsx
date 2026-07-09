@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
-import { galleryImages } from '../../data/content';
+import { useSiteData, type GalleryImageItem } from '../../contexts/SiteDataContext';
+import { ResponsiveImage } from '../ResponsiveImage';
 
 const categories = ['Wedding', 'Portrait', 'Fashion', 'Drone', 'Maternity', 'Editorial'];
 const heights = ['h-[60vh]', 'h-[55vh]', 'h-[65vh]', 'h-[58vh]'];
+const GALLERY_SIZES = '(max-width: 768px) 80vw, 28vw';
 
 export function HorizontalGallery() {
+  const { galleryImages } = useSiteData();
   const ref = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
@@ -47,7 +50,7 @@ export function HorizontalGallery() {
           style={{ transform: `translateX(${xPercent}%)` }}
         >
           {images.map((img, i) => (
-            <GalleryItem key={i} src={img} index={i} />
+            <GalleryItem key={i} image={img} index={i} />
           ))}
         </div>
 
@@ -63,7 +66,7 @@ export function HorizontalGallery() {
   );
 }
 
-function GalleryItem({ src, index }: { src: string; index: number }) {
+function GalleryItem({ image, index }: { image: GalleryImageItem; index: number }) {
   const [hovered, setHovered] = useState(false);
   const h = heights[index % heights.length];
   const cat = categories[index % categories.length];
@@ -75,9 +78,12 @@ function GalleryItem({ src, index }: { src: string; index: number }) {
       onMouseLeave={() => setHovered(false)}
       className={`relative ${h} w-[28vw] min-w-[280px] flex-shrink-0 overflow-hidden rounded-2xl group cursor-pointer`}
     >
-      <img
-        src={src}
-        alt=""
+      <ResponsiveImage
+        src={image.src}
+        alt={image.alt}
+        avifSrcSet={image.avifSrcSet}
+        webpSrcSet={image.webpSrcSet}
+        sizes={GALLERY_SIZES}
         loading="lazy"
         className="w-full h-full object-cover transition-transform duration-600"
         style={{ transform: hovered ? 'scale(1.08)' : 'scale(1)' }}

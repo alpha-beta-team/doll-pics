@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { heroSlides } from '../../data/content';
-import { scrollToSection } from '../../hooks/useScroll';
+import { Link } from 'react-router-dom';
+import { useSiteData } from '../../contexts/SiteDataContext';
+import { BOOKING_ROUTE } from '../../lib/navigation';
 import { ChevronDown } from 'lucide-react';
 
 export function Hero() {
+  const { heroSlides } = useSiteData();
   const ref = useRef<HTMLDivElement>(null);
   const bgRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -15,7 +17,7 @@ export function Hero() {
       setActive((p) => (p + 1) % heroSlides.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [heroSlides.length]);
 
   // Scroll parallax
   useEffect(() => {
@@ -49,7 +51,13 @@ export function Hero() {
               transform: i === active ? 'scale(1.08)' : 'scale(1.15)',
             }}
           >
-            <img src={slide.image} alt={slide.label} className="w-full h-full object-cover" loading="eager" />
+            <img
+              src={slide.image}
+              alt={slide.label}
+              className="w-full h-full object-cover"
+              loading={i === 0 ? 'eager' : 'lazy'}
+              fetchPriority={i === 0 ? 'high' : undefined}
+            />
           </div>
         ))}
         <div className="absolute inset-0 bg-gradient-to-b from-ink-950/50 via-transparent to-ink-950" />
@@ -86,21 +94,21 @@ export function Hero() {
           className="mt-12 flex flex-col sm:flex-row items-center gap-4"
           style={{ animation: 'fadeInUp 1s 1.3s cubic-bezier(0.22,1,0.36,1) both' }}
         >
-          <button
-            onClick={() => scrollToSection('#work')}
+          <Link
+            to="/work"
             data-cursor="hover"
             className="btn-primary group"
           >
             <span className="relative z-10">Explore Our Work</span>
             <span className="absolute inset-0 bg-gradient-to-r from-gold-400 to-gold-300 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
-          </button>
-          <button
-            onClick={() => scrollToSection('#booking')}
+          </Link>
+          <Link
+            to={BOOKING_ROUTE.path}
             data-cursor="hover"
             className="btn-ghost"
           >
             Book a Consultation
-          </button>
+          </Link>
         </div>
       </div>
 

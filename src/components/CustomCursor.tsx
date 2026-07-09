@@ -14,6 +14,8 @@ export function CustomCursor() {
       return;
     }
 
+    document.body.classList.add('custom-cursor-active');
+
     let mouseX = -100, mouseY = -100;
     let ringX = -100, ringY = -100;
     let raf = 0;
@@ -33,13 +35,14 @@ export function CustomCursor() {
     const onMove = (e: MouseEvent) => {
       mouseX = e.clientX;
       mouseY = e.clientY;
+      setHidden(false);
     };
 
     const onOver = (e: MouseEvent) => {
       const t = e.target as HTMLElement;
       if (t.closest('[data-cursor="view"]')) setVariant('view');
       else if (t.closest('[data-cursor="drag"]')) setVariant('drag');
-      else if (t.closest('a, button, [data-cursor="hover"]')) setVariant('hover');
+      else if (t.closest('a, button, [data-cursor="hover"], [role="button"]')) setVariant('hover');
       else setVariant('default');
     };
 
@@ -53,6 +56,7 @@ export function CustomCursor() {
     raf = requestAnimationFrame(animate);
 
     return () => {
+      document.body.classList.remove('custom-cursor-active');
       window.removeEventListener('mousemove', onMove);
       window.removeEventListener('mouseover', onOver);
       document.removeEventListener('mouseleave', onLeave);
@@ -75,16 +79,19 @@ export function CustomCursor() {
         style={{ willChange: 'transform' }}
       >
         <div
-          className="rounded-full border flex items-center justify-center transition-all duration-300"
+          className="rounded-full border-2 flex items-center justify-center transition-all duration-300"
           style={{
             width: size,
             height: size,
-            borderColor: variant === 'default' ? 'rgba(212,162,73,0.6)' : 'rgba(212,162,73,0.9)',
-            backgroundColor: variant === 'default' ? 'rgba(212,162,73,0.15)' : 'rgba(212,162,73,0.05)',
+            borderColor: variant === 'default' ? 'rgba(212,162,73,0.85)' : 'rgba(212,162,73,1)',
+            backgroundColor:
+              variant === 'default' ? 'rgba(212,162,73,0.2)' : 'rgba(212,162,73,0.08)',
+            boxShadow:
+              '0 0 0 1px rgba(5,5,8,0.35), 0 2px 12px rgba(212,162,73,0.35)',
           }}
         >
           {showLabel && (
-            <span className="text-[9px] tracking-widest uppercase text-gold-300 font-medium">
+            <span className="text-[9px] tracking-widest uppercase text-gold-300 font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
               {variant === 'view' ? 'View' : 'Drag'}
             </span>
           )}
@@ -92,8 +99,12 @@ export function CustomCursor() {
       </div>
       <div
         ref={dotRef}
-        className="pointer-events-none fixed top-0 left-0 z-[9999] w-1.5 h-1.5 rounded-full bg-gold-400 transition-opacity duration-300"
-        style={{ willChange: 'transform', opacity: variant === 'default' ? 1 : 0 }}
+        className="pointer-events-none fixed top-0 left-0 z-[9999] w-2 h-2 rounded-full bg-gold-400 transition-opacity duration-300"
+        style={{
+          willChange: 'transform',
+          opacity: variant === 'default' ? 1 : 0,
+          boxShadow: '0 0 0 1.5px rgba(5,5,8,0.5), 0 0 8px rgba(212,162,73,0.6)',
+        }}
       />
     </>
   );

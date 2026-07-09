@@ -1,0 +1,106 @@
+{
+  "siteName": "DOLL PICTURES",
+  "tagline": "Cinematic Wedding & Portrait Photography",
+  "brandByline": "Doll Pictures by Ramya Vignesh",
+  "businessName": "Doll Pictures by Ramya Vignesh",
+  "telephone": "+91 99945 55673",
+  "sameAs": [
+    "https://www.instagram.com/dollpictures_studio/"
+  ],
+  "defaultDescription": "DOLL PICTURES is a premium photography studio in Erode specializing in cinematic wedding, portrait, and commercial photography. We preserve emotions — every smile, every tear, every unforgettable moment.",
+  "address": {
+    "streetAddress": "URT TOWERS, 139/4-D, Perundurai Rd, Teachers Colony, Palayapalayam",
+    "addressLocality": "Erode",
+    "addressRegion": "Tamil Nadu",
+    "postalCode": "638011",
+    "addressCountry": "IN"
+  },
+  "geo": {
+    "latitude": 11.341,
+    "longitude": 77.7172
+  },
+  "pages": {
+    "/": {
+      "title": "DOLL PICTURES by Ramya Vignesh — Cinematic Wedding & Portrait Photography",
+      "description": "DOLL PICTURES is a premium photography studio in Erode specializing in cinematic wedding, portrait, and commercial photography. We preserve emotions — every smile, every tear, every unforgettable moment.",
+      "heading": "DOLL PICTURES",
+      "body": "Premium cinematic wedding, portrait, and commercial photography in Erode, Tamil Nadu. We don't just take photos — we preserve emotions."
+    },
+    "/work": {
+      "title": "Featured Work — DOLL PICTURES by Ramya Vignesh",
+      "description": "Explore cinematic wedding, pre-wedding, portrait, and commercial photography from DOLL PICTURES. Featured shoots and portfolio highlights from Erode and beyond.",
+      "heading": "Featured Work",
+      "body": "Cinematic wedding, pre-wedding, portrait, and commercial photography from DOLL PICTURES."
+    },
+    "/gallery": {
+      "title": "Photo Gallery — DOLL PICTURES by Ramya Vignesh",
+      "description": "Browse the DOLL PICTURES gallery — cinematic stills from weddings, portraits, and celebrations captured with emotion and craft.",
+      "heading": "Photo Gallery",
+      "body": "Cinematic stills from weddings, portraits, and celebrations by DOLL PICTURES."
+    },
+    "/services": {
+      "title": "Photography Services — DOLL PICTURES by Ramya Vignesh",
+      "description": "Wedding, pre-wedding, portrait, maternity, commercial, and drone photography services by DOLL PICTURES in Erode, Tamil Nadu.",
+      "heading": "Photography Services",
+      "body": "Wedding, pre-wedding, portrait, maternity, commercial, and drone photography in Erode, Tamil Nadu."
+    },
+    "/packages": {
+      "title": "Photography Packages & Pricing — DOLL PICTURES by Ramya Vignesh",
+      "description": "Compare DOLL PICTURES photography packages for weddings and celebrations. Transparent pricing with cinematic coverage and lasting albums.",
+      "heading": "Photography Packages",
+      "body": "Wedding and celebration photography packages with cinematic coverage and lasting albums."
+    },
+    "/about": {
+      "title": "About Us — DOLL PICTURES by Ramya Vignesh",
+      "description": "Meet Ramya Vignesh and the DOLL PICTURES team. A cinematic photography studio based in Erode, Tamil Nadu — devoted to preserving real emotion.",
+      "heading": "About DOLL PICTURES",
+      "body": "Meet Ramya Vignesh and the team behind DOLL PICTURES — a cinematic photography studio in Erode, Tamil Nadu."
+    },
+    "/stories": {
+      "title": "Client Stories — DOLL PICTURES by Ramya Vignesh",
+      "description": "Real stories from couples and clients who trusted DOLL PICTURES with their weddings, portraits, and celebrations.",
+      "heading": "Client Stories",
+      "body": "Real stories from couples and clients who trusted DOLL PICTURES with their celebrations."
+    },
+    "/booking": {
+      "title": "Book a Session — DOLL PICTURES by Ramya Vignesh",
+      "description": "Book a wedding, portrait, or commercial photography session with DOLL PICTURES in Erode. Free consultation available.",
+      "heading": "Book a Session",
+      "body": "Book a wedding, portrait, or commercial photography session with DOLL PICTURES in Erode."
+    },
+    "/privacy": {
+      "title": "Privacy Policy — DOLL PICTURES",
+      "description": "How DOLL PICTURES collects, uses, and protects personal information when you visit our website or enquire about photography services.",
+      "heading": "Privacy Policy",
+      "body": "How we collect, use, and protect your personal information."
+    },
+    "/terms": {
+      "title": "Terms of Service — DOLL PICTURES",
+      "description": "Terms governing use of the DOLL PICTURES website and photography services provided by Doll Pictures by Ramya Vignesh in Erode, Tamil Nadu.",
+      "heading": "Terms of Service",
+      "body": "Terms governing use of our website and photography services."
+    }
+  },
+  "faqs": [
+    {
+      "question": "How do I book a photography session with DOLL PICTURES?",
+      "answer": "Share your date, shoot type, and a short note through our booking form or WhatsApp. We will confirm availability and schedule a free consultation to plan coverage, style, and timeline."
+    },
+    {
+      "question": "Which areas do you cover?",
+      "answer": "We are based in Erode, Tamil Nadu, and regularly cover weddings, portraits, and commercial shoots across Tamil Nadu and nearby cities. Travel for destination celebrations can be arranged."
+    },
+    {
+      "question": "What packages are available?",
+      "answer": "We offer wedding and celebration packages with cinematic photo and video coverage, albums, and curated inclusions. Compare options on our Packages page or ask during consultation for a custom fit."
+    },
+    {
+      "question": "How long until we receive our photos?",
+      "answer": "Turnaround depends on the package and season. Most couples receive a curated preview first, followed by the full gallery and album within the timeline shared at booking."
+    },
+    {
+      "question": "Is the consultation free?",
+      "answer": "Yes. Your first consultation is free — we discuss your story, preferred look, budget, and logistics so you can book with clarity."
+    }
+  ]
+}

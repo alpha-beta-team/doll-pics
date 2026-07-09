@@ -1,4 +1,4 @@
-import { services } from '../../data/content';
+import { useSiteData, type ServiceItem } from '../../contexts/SiteDataContext';
 import { useInView, useMousePosition } from '../../hooks/useScroll';
 import { Heart, Camera, Gift, Baby, Sparkles, Briefcase, Plane, type LucideIcon } from 'lucide-react';
 
@@ -7,6 +7,7 @@ const iconMap: Record<string, LucideIcon> = {
 };
 
 export function Services() {
+  const { services } = useSiteData();
   const { ref, inView } = useInView<HTMLDivElement>();
 
   return (
@@ -28,7 +29,7 @@ export function Services() {
   );
 }
 
-function ServiceCard({ service, index }: { service: typeof services[0]; index: number }) {
+function ServiceCard({ service, index }: { service: ServiceItem; index: number }) {
   const { ref: viewRef, inView } = useInView<HTMLDivElement>();
   const { ref: mouseRef, pos, handleMove, handleLeave } = useMousePosition<HTMLDivElement>();
   const Icon = iconMap[service.icon] || Camera;

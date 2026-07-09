@@ -1,9 +1,15 @@
 import { useEffect, useState } from 'react';
-import { featuredWork } from '../../data/content';
+import { useSiteData } from '../../contexts/SiteDataContext';
 import { useInView } from '../../hooks/useScroll';
+import type { FeaturedWorkItem } from '../../contexts/SiteDataContext';
+import { ResponsiveImage } from '../ResponsiveImage';
 import { X, ChevronLeft, ChevronRight, MapPin, Calendar } from 'lucide-react';
 
+const FEATURED_SIZES =
+  '(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw';
+
 export function FeaturedWork() {
+  const { featuredWork } = useSiteData();
   const { ref, inView } = useInView<HTMLDivElement>();
 
   return (
@@ -25,7 +31,7 @@ export function FeaturedWork() {
   );
 }
 
-function FeatureCard({ work, index }: { work: typeof featuredWork[0]; index: number }) {
+function FeatureCard({ work, index }: { work: FeaturedWorkItem; index: number }) {
   const { ref, inView } = useInView<HTMLDivElement>();
   const [open, setOpen] = useState(false);
 
@@ -39,9 +45,12 @@ function FeatureCard({ work, index }: { work: typeof featuredWork[0]; index: num
         style={{ transitionDelay: `${index * 0.1}s` }}
       >
         <div className="absolute inset-0 overflow-hidden">
-          <img
+          <ResponsiveImage
             src={work.image}
-            alt={work.title}
+            alt={work.alt}
+            avifSrcSet={work.avifSrcSet}
+            webpSrcSet={work.webpSrcSet}
+            sizes={FEATURED_SIZES}
             loading="lazy"
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           />
@@ -74,6 +83,7 @@ function FeatureCard({ work, index }: { work: typeof featuredWork[0]; index: num
 }
 
 function Lightbox({ index, onClose }: { index: number; onClose: () => void }) {
+  const { featuredWork } = useSiteData();
   const [current, setCurrent] = useState(index);
   const work = featuredWork[current];
 
@@ -89,7 +99,7 @@ function Lightbox({ index, onClose }: { index: number; onClose: () => void }) {
       window.removeEventListener('keydown', onKey);
       document.body.style.overflow = '';
     };
-  }, [onClose]);
+  }, [onClose, featuredWork.length]);
 
   const nav = (dir: number, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -128,7 +138,15 @@ function Lightbox({ index, onClose }: { index: number; onClose: () => void }) {
         className="relative max-w-5xl w-full max-h-[80vh] fade-in"
         onClick={(e) => e.stopPropagation()}
       >
-        <img src={work.image} alt={work.title} className="w-full h-full object-contain rounded-xl" />
+        <ResponsiveImage
+          src={work.image}
+          alt={work.alt}
+          avifSrcSet={work.avifSrcSet}
+          webpSrcSet={work.webpSrcSet}
+          sizes="(max-width: 1280px) 100vw, 1024px"
+          loading="eager"
+          className="w-full h-full object-contain rounded-xl"
+        />
         <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-ink-950 to-transparent rounded-b-xl">
           <div className="section-label mb-1 text-gold-300">{work.category}</div>
           <h3 className="font-display text-4xl font-light text-ink-50">{work.title}</h3>

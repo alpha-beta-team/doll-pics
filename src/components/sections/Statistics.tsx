@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'react';
-import { stats } from '../../data/content';
+import { useSiteData } from '../../contexts/SiteDataContext';
 import { useInView, useCountUp } from '../../hooks/useScroll';
 
 export function Statistics() {
+  const { stats } = useSiteData();
   const { ref, inView } = useInView<HTMLDivElement>();
 
   return (
@@ -28,7 +29,7 @@ export function Statistics() {
   );
 }
 
-function StatItem({ stat, index, inView }: { stat: typeof stats[0]; index: number; inView: boolean }) {
+function StatItem({ stat, index, inView }: { stat: { value: number; suffix: string; label: string }; index: number; inView: boolean }) {
   const value = useCountUp(stat.value, inView);
 
   return (

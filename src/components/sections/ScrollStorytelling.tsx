@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { storyScenes } from '../../data/content';
+import { useSiteData } from '../../contexts/SiteDataContext';
 
 export function ScrollStorytelling() {
+  const { storyScenes } = useSiteData();
   const ref = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
 
@@ -58,7 +59,12 @@ export function ScrollStorytelling() {
                 className="absolute inset-0 transition-none"
                 style={{ opacity, transform: `scale(${scale})`, filter: `blur(${blur}px)` }}
               >
-                <img src={scene.image} alt="" className="w-full h-full object-cover" loading="lazy" />
+                <img
+                  src={scene.image}
+                  alt={scene.text.replace(/\u2026/g, '…').replace(/\.\.\./g, '') || 'Story scene'}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
                 <div className="absolute inset-0 bg-ink-950/50" />
                 <div className="absolute inset-0 bg-gradient-to-b from-ink-950/40 via-transparent to-ink-950/60" />
               </div>
