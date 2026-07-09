@@ -20,4 +20,15 @@ export const PATH_TO_SECTION: Record<string, string> = {
 
 export const SECTION_PATHS = Object.keys(PATH_TO_SECTION);
 
-export const SITEMAP_ROUTES = ['/', '/packages', '/about', ...SECTION_PATHS];
+export const LEGAL_LINKS = [
+  { label: 'Privacy', path: '/privacy' },
+  { label: 'Terms', path: '/terms' },
+] as const;
+
+export const SITEMAP_ROUTES = [
+  '/',
+  '/packages',
+  '/about',
+  ...SECTION_PATHS,
+  ...LEGAL_LINKS.map((link) => link.path),
+];

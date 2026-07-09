@@ -3,12 +3,9 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const siteUrl = process.env.VITE_SITE_URL?.replace(/\/$/, '');
-
-if (!siteUrl) {
-  console.warn('VITE_SITE_URL is not set — skipping sitemap generation.');
-  process.exit(0);
-}
+const siteUrl = (
+  process.env.VITE_SITE_URL || 'https://dollpictures.in'
+).replace(/\/$/, '');
 
 const navSource = readFileSync(join(root, 'src/lib/navigation.ts'), 'utf8');
 const paths = [...navSource.matchAll(/path: '([^']+)'/g)].map((match) => match[1]);
@@ -19,6 +16,8 @@ const routeConfig = {
   '/packages': { changefreq: 'monthly', priority: '0.8' },
   '/about': { changefreq: 'monthly', priority: '0.8' },
   '/booking': { changefreq: 'monthly', priority: '0.8' },
+  '/privacy': { changefreq: 'yearly', priority: '0.3' },
+  '/terms': { changefreq: 'yearly', priority: '0.3' },
 };
 
 const lastmod = new Date().toISOString().split('T')[0];
@@ -26,7 +25,8 @@ const lastmod = new Date().toISOString().split('T')[0];
 const urlEntries = routes
   .map((path) => {
     const config = routeConfig[path] ?? { changefreq: 'monthly', priority: '0.7' };
-    const loc = `${siteUrl}${path === '/' ? '' : path}`;
+    // No trailing slash — matches vercel.json trailingSlash:false and seo.ts absoluteUrl
+    const loc = path === '/' ? siteUrl : `${siteUrl}${path}`;
 
     return [
       '  <url>',

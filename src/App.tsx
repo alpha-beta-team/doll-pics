@@ -1,11 +1,23 @@
 import { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Site } from './pages/Site';
-import { Packages } from './pages/Packages';
-import { About } from './pages/About';
-import { NotFound } from './pages/NotFound';
 import { SECTION_PATHS } from './lib/navigation';
 
+const Packages = lazy(() =>
+  import('./pages/Packages').then((m) => ({ default: m.Packages })),
+);
+const About = lazy(() =>
+  import('./pages/About').then((m) => ({ default: m.About })),
+);
+const Privacy = lazy(() =>
+  import('./pages/Privacy').then((m) => ({ default: m.Privacy })),
+);
+const Terms = lazy(() =>
+  import('./pages/Terms').then((m) => ({ default: m.Terms })),
+);
+const NotFound = lazy(() =>
+  import('./pages/NotFound').then((m) => ({ default: m.NotFound })),
+);
 const AdminApp = lazy(() => import('./admin/AdminApp'));
 
 function AdminLoading() {
@@ -16,13 +28,51 @@ function AdminLoading() {
   );
 }
 
+function PublicLoading() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-ink-950">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-gold-400 border-t-transparent" />
+    </div>
+  );
+}
+
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Site />} />
-        <Route path="/packages" element={<Packages />} />
-        <Route path="/about" element={<About />} />
+        <Route
+          path="/packages"
+          element={
+            <Suspense fallback={<PublicLoading />}>
+              <Packages />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/about"
+          element={
+            <Suspense fallback={<PublicLoading />}>
+              <About />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/privacy"
+          element={
+            <Suspense fallback={<PublicLoading />}>
+              <Privacy />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/terms"
+          element={
+            <Suspense fallback={<PublicLoading />}>
+              <Terms />
+            </Suspense>
+          }
+        />
         {SECTION_PATHS.map((path) => (
           <Route key={path} path={path} element={<Site />} />
         ))}
@@ -34,7 +84,14 @@ function App() {
             </Suspense>
           }
         />
-        <Route path="*" element={<NotFound />} />
+        <Route
+          path="*"
+          element={
+            <Suspense fallback={<PublicLoading />}>
+              <NotFound />
+            </Suspense>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );

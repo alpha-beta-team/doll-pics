@@ -107,7 +107,13 @@ Copy `.env.example` to `.env.local`:
 
 ```env
 VITE_API_URL=http://localhost:3001/api
+VITE_SITE_URL=https://dollpictures.in
 ```
+
+| Variable | Required | Purpose |
+|----------|----------|---------|
+| `VITE_API_URL` | Yes (prod) | CMS/API base URL (includes `/api`) |
+| `VITE_SITE_URL` | Recommended (prod) | Site origin for sitemap, robots, prerender, and SEO absolute URLs. No trailing slash. Defaults to `https://dollpictures.in` if unset. |
 
 Backend: set `CORS_ORIGIN=http://localhost:5173` and change `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
 
@@ -116,9 +122,32 @@ Backend: set `CORS_ORIGIN=http://localhost:5173` and change `ADMIN_EMAIL` / `ADM
 | Service | Notes |
 |---------|-------|
 | `photography-cms-backend` | Deploy to Railway/Render/VPS |
-| `doll-pics` | Deploy to Vercel/Netlify with `VITE_API_URL` pointing to API |
+| `doll-pics` | Deploy to Vercel/Netlify with `VITE_API_URL` and `VITE_SITE_URL` set |
 
-SPA rewrites are configured in `vercel.json`. Admin routes require the same fallback on other hosts.
+SPA rewrites are configured in `vercel.json` / `netlify.toml`. Admin routes require the same fallback on other hosts.
+
+#### Host environment variables (Step 4)
+
+Set these in your host dashboard so every production build regenerates sitemap/robots correctly:
+
+**Netlify:** Site configuration → Environment variables → add:
+
+- `VITE_API_URL` = your production API URL (e.g. `https://api.example.com/api`)
+- `VITE_SITE_URL` = `https://dollpictures.in`
+
+Apply to **Production** (and Preview if you want preview builds to use the same origin).
+
+**Vercel:** Project → Settings → Environment Variables → add the same two variables for **Production** (and Preview if desired).
+
+Redeploy after saving so `prebuild` (`generate-sitemap.mjs`) runs with the new values.
+
+#### Google Search Console (Step 5)
+
+After deploy:
+
+1. Open `https://dollpictures.in/robots.txt` and confirm it includes `Sitemap: https://dollpictures.in/sitemap.xml`
+2. Open `https://dollpictures.in/sitemap.xml` and confirm all public routes are listed
+3. In [Google Search Console](https://search.google.com/search-console) → **Sitemaps** → submit `https://dollpictures.in/sitemap.xml` (or use **Refresh** if already submitted)
 
 ## Getting Started
 

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useInView } from '../../hooks/useScroll';
 import { ArrowRight, X } from 'lucide-react';
 import { publicApi } from '../../lib/api';
@@ -165,6 +166,25 @@ function EnquiryModal({ onClose }: { onClose: () => void }) {
               {status === 'error' && (
                 <p className="text-red-400 text-sm">{errorMsg}</p>
               )}
+              <p className="text-xs leading-relaxed text-ink-200/50">
+                By submitting, you agree to our{' '}
+                <Link
+                  to="/terms"
+                  className="text-gold-400/80 underline-offset-2 hover:text-gold-300 hover:underline"
+                  onClick={onClose}
+                >
+                  Terms and Conditions
+                </Link>
+                {' '}and{' '}
+                <Link
+                  to="/privacy"
+                  className="text-gold-400/80 underline-offset-2 hover:text-gold-300 hover:underline"
+                  onClick={onClose}
+                >
+                  Privacy Policy
+                </Link>
+                .
+              </p>
               <button
                 type="submit"
                 disabled={status === 'sending'}

@@ -67,6 +67,18 @@
       "description": "Book a wedding, portrait, or commercial photography session with DOLL PICTURES in Erode. Free consultation available.",
       "heading": "Book a Session",
       "body": "Book a wedding, portrait, or commercial photography session with DOLL PICTURES in Erode."
+    },
+    "/privacy": {
+      "title": "Privacy Policy — DOLL PICTURES",
+      "description": "How DOLL PICTURES collects, uses, and protects personal information when you visit our website or enquire about photography services.",
+      "heading": "Privacy Policy",
+      "body": "How we collect, use, and protect your personal information."
+    },
+    "/terms": {
+      "title": "Terms of Service — DOLL PICTURES",
+      "description": "Terms governing use of the DOLL PICTURES website and photography services provided by Doll Pictures by Ramya Vignesh in Erode, Tamil Nadu.",
+      "heading": "Terms of Service",
+      "body": "Terms governing use of our website and photography services."
     }
   },
   "faqs": [

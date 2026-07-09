@@ -118,6 +118,22 @@ export function Footer() {
           <p className="text-xs text-ink-300/40 tracking-wide">
             © 2026 {brand}. All rights reserved. Crafted with devotion.
           </p>
+          <div className="flex gap-6 text-xs text-ink-300/40">
+            <Link
+              to="/privacy"
+              data-cursor="hover"
+              className="hover:text-ink-200 transition-colors"
+            >
+              Privacy
+            </Link>
+            <Link
+              to="/terms"
+              data-cursor="hover"
+              className="hover:text-ink-200 transition-colors"
+            >
+              Terms
+            </Link>
+          </div>
         </div>
       </div>
     </footer>
