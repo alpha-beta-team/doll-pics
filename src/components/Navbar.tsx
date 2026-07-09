@@ -45,7 +45,7 @@ export function Navbar() {
                 className="h-11 w-11 rounded-full object-cover ring-1 ring-white/15 transition-transform duration-700 group-hover:scale-105"
               />
               <span className="font-display text-xl font-semibold tracking-[0.3em] text-ink-50">
-                {brand}
+                {brand} 1
               </span>
             </Link>
 
