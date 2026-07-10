@@ -20,11 +20,6 @@ export type PageSeo = {
   body?: string;
 };
 
-export type AggregateRatingInput = {
-  ratingValue: number;
-  reviewCount: number;
-};
-
 export type FaqItem = {
   question: string;
   answer: string;
@@ -104,28 +99,11 @@ function removeJsonLd(id: string) {
   document.getElementById(id)?.remove();
 }
 
-export function computeAggregateRating(
-  ratings: Array<{ rating?: number }>,
-): AggregateRatingInput | undefined {
-  const values = ratings
-    .map((r) => r.rating)
-    .filter((n): n is number => typeof n === 'number' && n > 0);
-  if (!values.length) return undefined;
-  const sum = values.reduce((a, b) => a + b, 0);
-  return {
-    ratingValue: Math.round((sum / values.length) * 10) / 10,
-    reviewCount: values.length,
-  };
-}
-
-export function buildLocalBusinessJsonLd(
-  contact?: {
-    phone?: string;
-    email?: string;
-    socials?: Record<string, string>;
-  },
-  aggregateRating?: AggregateRatingInput,
-) {
+export function buildLocalBusinessJsonLd(contact?: {
+  phone?: string;
+  email?: string;
+  socials?: Record<string, string>;
+}) {
   const fromContact = Object.values(contact?.socials ?? {}).filter(Boolean);
   const sameAs = [...new Set([...(seoPages.sameAs ?? []), ...fromContact])];
   const { address, geo } = seoPages;
@@ -158,17 +136,6 @@ export function buildLocalBusinessJsonLd(
       { '@type': 'Country', name: address.addressCountry },
     ],
     sameAs: sameAs.length ? sameAs : undefined,
-    ...(aggregateRating
-      ? {
-          aggregateRating: {
-            '@type': 'AggregateRating',
-            ratingValue: aggregateRating.ratingValue,
-            reviewCount: aggregateRating.reviewCount,
-            bestRating: 5,
-            worstRating: 1,
-          },
-        }
-      : {}),
   };
 }
 
@@ -216,7 +183,6 @@ export function applyPageSeo(
   seo: PageSeo,
   options?: {
     contact?: { phone?: string; email?: string; socials?: Record<string, string> };
-    aggregateRating?: AggregateRatingInput;
   },
 ) {
   const url = absoluteUrl(seo.path);
@@ -249,10 +215,7 @@ export function applyPageSeo(
 
   upsertLink('canonical', url);
 
-  upsertJsonLd(
-    'seo-jsonld-business',
-    buildLocalBusinessJsonLd(options?.contact, options?.aggregateRating),
-  );
+  upsertJsonLd('seo-jsonld-business', buildLocalBusinessJsonLd(options?.contact));
 
   upsertJsonLd('seo-jsonld-webpage', {
     '@context': 'https://schema.org',

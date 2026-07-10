@@ -21,7 +21,7 @@ import { ContactFabHost } from '../components/packages/ContactFabs';
 import { SiteDataProvider, useSiteData } from '../contexts/SiteDataContext';
 import { PATH_TO_SECTION } from '../lib/navigation';
 import { SECTION_COMPONENTS } from '../lib/sectionComponents';
-import { computeAggregateRating, getPageSeo } from '../lib/seo';
+import { getPageSeo } from '../lib/seo';
 import { usePageSeo } from '../hooks/usePageSeo';
 
 function SiteShell({ children }: { children: ReactNode }) {
@@ -88,14 +88,13 @@ function HomeView() {
 
 function SiteContent() {
   const { pathname } = useLocation();
-  const { siteContent, testimonials } = useSiteData();
+  const { siteContent } = useSiteData();
   const sectionId = PATH_TO_SECTION[pathname];
 
   usePageSeo({
     phone: siteContent.phone,
     email: siteContent.contactEmail,
     socials: siteContent.socials,
-    aggregateRating: computeAggregateRating(testimonials),
   });
 
   if (sectionId) {

@@ -10,16 +10,14 @@ import { OurStory } from '../components/about/OurStory';
 import { BehindScenesPreview } from '../components/about/BehindScenesPreview';
 import { MeetTheTeam } from '../components/about/MeetTheTeam';
 import { usePageSeo } from '../hooks/usePageSeo';
-import { computeAggregateRating } from '../lib/seo';
 
 function AboutContent() {
-  const { siteContent, testimonials } = useSiteData();
+  const { siteContent } = useSiteData();
 
   usePageSeo({
     phone: siteContent.phone,
     email: siteContent.contactEmail,
     socials: siteContent.socials,
-    aggregateRating: computeAggregateRating(testimonials),
   });
 
   return (

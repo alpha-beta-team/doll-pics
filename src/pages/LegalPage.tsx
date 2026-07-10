@@ -7,7 +7,7 @@ import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/sections/Footer';
 import { ContactFabHost } from '../components/packages/ContactFabs';
 import { usePageSeo } from '../hooks/usePageSeo';
-import { computeAggregateRating, getPageSeo } from '../lib/seo';
+import { getPageSeo } from '../lib/seo';
 
 type LegalPageProps = {
   path: '/privacy' | '/terms';
@@ -15,14 +15,13 @@ type LegalPageProps = {
 };
 
 function LegalPageContent({ path, children }: LegalPageProps) {
-  const { siteContent, testimonials } = useSiteData();
+  const { siteContent } = useSiteData();
   const seo = getPageSeo(path);
 
   usePageSeo({
     phone: siteContent.phone,
     email: siteContent.contactEmail,
     socials: siteContent.socials,
-    aggregateRating: computeAggregateRating(testimonials),
   });
 
   return (
