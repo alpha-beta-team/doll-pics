@@ -9,6 +9,7 @@ import { CategoriesPage } from './pages/CategoriesPage';
 import { PackagesPage } from './pages/PackagesPage';
 import { SiteContentPage } from './pages/SiteContentPage';
 import { EnquiriesPage } from './pages/EnquiriesPage';
+import { BookingsPage } from './pages/BookingsPage';
 import { HeroSlidesPage } from './pages/HeroSlidesPage';
 import { StoryScenesPage } from './pages/StoryScenesPage';
 import { StatsPage } from './pages/StatsPage';
@@ -43,6 +44,7 @@ export default function AdminApp() {
           <Route path="packages" element={<PackagesPage />} />
           <Route path="site-content" element={<SiteContentPage />} />
           <Route path="enquiries" element={<EnquiriesPage />} />
+          <Route path="bookings" element={<BookingsPage />} />
           <Route path="hero-slides" element={<HeroSlidesPage />} />
           <Route path="story-scenes" element={<StoryScenesPage />} />
           <Route path="stats" element={<StatsPage />} />

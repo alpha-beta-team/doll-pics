@@ -8,6 +8,7 @@ import {
   Mail,
   Camera,
   Users,
+  Calendar,
 } from 'lucide-react';
 
 const navItems = [
@@ -17,6 +18,7 @@ const navItems = [
   { to: '/admin/packages', label: 'Packages', icon: Package },
   { to: '/admin/site-content', label: 'Site Content', icon: FileText },
   { to: '/admin/enquiries', label: 'Enquiries', icon: Mail },
+  { to: '/admin/bookings', label: 'Bookings', icon: Calendar },
 ];
 
 const homepageItems = [

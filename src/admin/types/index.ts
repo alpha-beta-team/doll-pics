@@ -135,6 +135,24 @@ export interface Enquiry {
   createdAt: string;
 }
 
+export type BookingStatus = 'draft' | 'confirmed' | 'cancelled' | 'completed';
+
+export interface Booking {
+  id: string;
+  customerName: string;
+  customerPhone: string;
+  customerEmail: string;
+  shootType: string;
+  shootDate: string;
+  location: string;
+  notes: string;
+  status: BookingStatus;
+  confirmedAt?: string;
+  enquiryId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface User {
   id: string;
   email: string;

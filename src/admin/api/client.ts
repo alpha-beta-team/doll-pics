@@ -1,5 +1,5 @@
 import type {
-  Photo, Category, Package, SiteContent, Enquiry, User,
+  Photo, Category, Package, SiteContent, Enquiry, User, Booking, BookingStatus,
   HeroSlide, StoryScene, Stat, Testimonial, BehindScene, TeamMember,
 } from '../types';
 import { normalizeId, request } from './http';
@@ -97,6 +97,25 @@ function mapEnquiry(doc: Record<string, unknown>): Enquiry {
     message: (doc.message as string) ?? '',
     status: (doc.status as Enquiry['status']) ?? 'new',
     createdAt: (doc.createdAt as string) ?? new Date().toISOString(),
+  };
+}
+
+function mapBooking(doc: Record<string, unknown>): Booking {
+  const base = normalizeId(doc);
+  return {
+    id: base.id,
+    customerName: (doc.customerName as string) ?? '',
+    customerPhone: (doc.customerPhone as string) ?? '',
+    customerEmail: (doc.customerEmail as string) ?? '',
+    shootType: (doc.shootType as string) ?? '',
+    shootDate: (doc.shootDate as string) ?? '',
+    location: (doc.location as string) ?? '',
+    notes: (doc.notes as string) ?? '',
+    status: (doc.status as BookingStatus) ?? 'draft',
+    confirmedAt: doc.confirmedAt ? String(doc.confirmedAt) : undefined,
+    enquiryId: doc.enquiryId ? String(doc.enquiryId) : undefined,
+    createdAt: (doc.createdAt as string) ?? new Date().toISOString(),
+    updatedAt: (doc.updatedAt as string) ?? new Date().toISOString(),
   };
 }
 
@@ -458,6 +477,65 @@ export const api = {
       body: JSON.stringify({ status }),
     });
     return mapEnquiry(doc);
+  },
+
+  // Bookings
+  async getBookings(filters?: { status?: BookingStatus }): Promise<Booking[]> {
+    const qs = filters?.status ? `?status=${filters.status}` : '';
+    const docs = await request<Record<string, unknown>[]>(`/admin/bookings${qs}`, { auth: true });
+    return docs.map(mapBooking).sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+  },
+
+  async getBooking(id: string): Promise<Booking | null> {
+    const doc = await request<Record<string, unknown>>(`/admin/bookings/${id}`, { auth: true });
+    return mapBooking(doc);
+  },
+
+  async createBooking(data: {
+    customerName: string;
+    customerPhone: string;
+    customerEmail?: string;
+    shootType?: string;
+    shootDate?: string;
+    location?: string;
+    notes?: string;
+    enquiryId?: string;
+  }): Promise<Booking> {
+    const doc = await request<Record<string, unknown>>('/admin/bookings', {
+      method: 'POST',
+      auth: true,
+      body: JSON.stringify(data),
+    });
+    return mapBooking(doc);
+  },
+
+  async updateBooking(id: string, data: Partial<{
+    customerName: string;
+    customerPhone: string;
+    customerEmail: string;
+    shootType: string;
+    shootDate: string;
+    location: string;
+    notes: string;
+    status: BookingStatus;
+    enquiryId: string;
+  }>): Promise<Booking> {
+    const doc = await request<Record<string, unknown>>(`/admin/bookings/${id}`, {
+      method: 'PATCH',
+      auth: true,
+      body: JSON.stringify(data),
+    });
+    return mapBooking(doc);
+  },
+
+  async confirmBooking(id: string): Promise<Booking> {
+    const doc = await request<Record<string, unknown>>(`/admin/bookings/${id}/confirm`, {
+      method: 'PATCH',
+      auth: true,
+    });
+    return mapBooking(doc);
   },
 
   // Upload — uses multipart to backend
