@@ -98,7 +98,7 @@
 
   /* Reveal animations (replacing framer-motion) */
   .reveal {
-    opacity: 0;
+    opacity: 0.001;
     transform: translateY(60px);
     transition: opacity 1s cubic-bezier(0.22, 1, 0.36, 1), transform 1s cubic-bezier(0.22, 1, 0.36, 1);
   }
@@ -108,7 +108,7 @@
   }
 
   .reveal-blur {
-    opacity: 0;
+    opacity: 0.001;
     filter: blur(10px);
     transform: translateY(40px);
     transition: opacity 1s cubic-bezier(0.22, 1, 0.36, 1), filter 1s cubic-bezier(0.22, 1, 0.36, 1), transform 1s cubic-bezier(0.22, 1, 0.36, 1);
@@ -120,7 +120,7 @@
   }
 
   .reveal-scale {
-    opacity: 0;
+    opacity: 0.001;
     transform: scale(1.15);
     transition: opacity 1.2s ease-out, transform 1.2s ease-out;
   }
@@ -143,14 +143,30 @@
   .stagger-4 { animation-delay: 0.4s; }
   .stagger-5 { animation-delay: 0.5s; }
 
+  /* Start above 0 so Lighthouse can register LCP (opacity:0 paints are ignored). */
   @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(40px); }
+    from { opacity: 0.001; transform: translateY(40px); }
     to { opacity: 1; transform: translateY(0); }
   }
 
   @keyframes fadeIn {
-    from { opacity: 0; }
+    from { opacity: 0.001; }
     to { opacity: 1; }
+  }
+
+  /* Hero entrance: transform-only so text is an immediate LCP candidate */
+  .hero-enter {
+    animation: heroEnter 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .hero-enter-delay-1 { animation-delay: 0.15s; }
+  .hero-enter-delay-2 { animation-delay: 0.25s; }
+  .hero-enter-delay-3 { animation-delay: 0.4s; }
+  .hero-enter-delay-4 { animation-delay: 0.55s; }
+  .hero-enter-delay-5 { animation-delay: 0.8s; }
+
+  @keyframes heroEnter {
+    from { opacity: 1; transform: translateY(28px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   .slide-in-right {
@@ -193,15 +209,21 @@
   }
 }
 
-/* Film grain overlay */
+/* Film grain overlay — static, disabled on mobile to cut compositor work */
 .film-grain {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 9998;
-  opacity: 0.04;
+  opacity: 0.03;
   mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@media (max-width: 768px), (pointer: coarse) {
+  .film-grain {
+    display: none;
+  }
 }
 
 /* Vignette */

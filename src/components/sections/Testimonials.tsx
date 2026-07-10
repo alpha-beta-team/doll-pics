@@ -72,18 +72,23 @@ export function Testimonials() {
 
           <div className="flex items-center justify-center gap-4 mt-8">
             <button
+              type="button"
               onClick={() => go(-1)}
               data-cursor="hover"
+              aria-label="Previous testimonial"
               className="w-12 h-12 glass rounded-full flex items-center justify-center text-ink-50 hover:text-gold-400 hover:scale-110 transition-all"
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="w-5 h-5" aria-hidden="true" />
             </button>
-            <div className="flex gap-2">
+            <div className="flex gap-2" role="tablist" aria-label="Testimonials">
               {testimonials.map((_, i) => (
                 <button
                   key={i}
+                  type="button"
                   onClick={() => { setDir(i > index ? 1 : -1); setIndex(i); }}
                   data-cursor="hover"
+                  aria-label={`Show testimonial ${i + 1}`}
+                  aria-current={i === index ? 'true' : undefined}
                   className={`h-1.5 rounded-full transition-all duration-500 ${
                     i === index ? 'w-10 bg-gold-400' : 'w-4 bg-ink-300/30 hover:bg-ink-300/50'
                   }`}
@@ -91,11 +96,13 @@ export function Testimonials() {
               ))}
             </div>
             <button
+              type="button"
               onClick={() => go(1)}
               data-cursor="hover"
+              aria-label="Next testimonial"
               className="w-12 h-12 glass rounded-full flex items-center justify-center text-ink-50 hover:text-gold-400 hover:scale-110 transition-all"
             >
-              <ChevronRight className="w-5 h-5" />
+              <ChevronRight className="w-5 h-5" aria-hidden="true" />
             </button>
           </div>
         </div>

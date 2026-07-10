@@ -184,6 +184,14 @@ function injectRouteHtml(template, path, page) {
     }
   }
 
+  // Hero image preload is only useful on the homepage.
+  if (path !== '/') {
+    html = html.replace(
+      /\s*<link\s+rel="preload"\s+as="image"\s+href="[^"]*"\s+fetchpriority="high"\s*\/?>/i,
+      '',
+    );
+  }
+
   if (/<link rel="canonical" href="[^"]*"\s*\/?>/.test(html)) {
     html = html.replace(
       /<link rel="canonical" href="[^"]*"\s*\/?>/,

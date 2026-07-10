@@ -30,9 +30,9 @@ const footerLinks: Record<
 };
 
 const socialIcons = [
-  { key: 'instagram', Icon: Instagram },
-  { key: 'facebook', Icon: Facebook },
-  { key: 'youtube', Icon: Youtube },
+  { key: 'instagram', Icon: Instagram, label: 'Instagram' },
+  { key: 'facebook', Icon: Facebook, label: 'Facebook' },
+  { key: 'youtube', Icon: Youtube, label: 'YouTube' },
 ] as const;
 
 export function Footer() {
@@ -53,7 +53,7 @@ export function Footer() {
               {siteContent.about || siteContent.tagline}
             </p>
             <div className="flex gap-3">
-              {socialIcons.map(({ key, Icon }) => {
+              {socialIcons.map(({ key, Icon, label }) => {
                 const href = siteContent.socials?.[key];
                 if (!href) return null;
                 return (
@@ -63,9 +63,10 @@ export function Footer() {
                     target="_blank"
                     rel="noreferrer"
                     data-cursor="hover"
+                    aria-label={label}
                     className="w-10 h-10 glass rounded-full flex items-center justify-center text-ink-200/70 hover:text-gold-400 hover:scale-110 transition-all duration-300"
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon className="w-4 h-4" aria-hidden="true" />
                   </a>
                 );
               })}
@@ -74,7 +75,7 @@ export function Footer() {
 
           {Object.entries(footerLinks).map(([title, links]) => (
             <div key={title}>
-              <h4 className="text-xs tracking-widest uppercase text-gold-400 mb-4">{title}</h4>
+              <h2 className="text-xs tracking-widest uppercase text-gold-400 mb-4">{title}</h2>
               <ul className="space-y-3">
                 {links.map((link) => (
                   <li key={link.label}>

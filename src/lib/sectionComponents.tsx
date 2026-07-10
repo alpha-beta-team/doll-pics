@@ -1,16 +1,37 @@
-import type { ComponentType } from 'react';
-import { FeaturedWork } from '../components/sections/FeaturedWork';
-import { HorizontalGallery } from '../components/sections/HorizontalGallery';
-import { Services } from '../components/sections/Services';
-import { BehindScenes } from '../components/sections/BehindScenes';
-import { Testimonials } from '../components/sections/Testimonials';
-import { BookingCTA } from '../components/sections/BookingCTA';
+import { lazy, type ComponentType } from 'react';
+
+function lazySection(
+  loader: () => Promise<Record<string, ComponentType>>,
+  exportName: string,
+) {
+  return lazy(() =>
+    loader().then((m) => ({ default: m[exportName] as ComponentType })),
+  );
+}
 
 export const SECTION_COMPONENTS: Record<string, ComponentType> = {
-  work: FeaturedWork,
-  gallery: HorizontalGallery,
-  services: Services,
-  behind: BehindScenes,
-  testimonials: Testimonials,
-  booking: BookingCTA,
+  work: lazySection(
+    () => import('../components/sections/FeaturedWork'),
+    'FeaturedWork',
+  ),
+  gallery: lazySection(
+    () => import('../components/sections/HorizontalGallery'),
+    'HorizontalGallery',
+  ),
+  services: lazySection(
+    () => import('../components/sections/Services'),
+    'Services',
+  ),
+  behind: lazySection(
+    () => import('../components/sections/BehindScenes'),
+    'BehindScenes',
+  ),
+  testimonials: lazySection(
+    () => import('../components/sections/Testimonials'),
+    'Testimonials',
+  ),
+  booking: lazySection(
+    () => import('../components/sections/BookingCTA'),
+    'BookingCTA',
+  ),
 };

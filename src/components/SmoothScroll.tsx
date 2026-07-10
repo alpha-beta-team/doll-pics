@@ -1,12 +1,20 @@
 import { useEffect, type ReactNode } from 'react';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 
-// Pure JS smooth scroll — replaces Lenis
+function shouldDisableSmoothScroll() {
+  if (typeof window === 'undefined') return true;
+  // Mobile / touch / PSI lab — native scroll is cheaper and avoids long tasks
+  return window.matchMedia(
+    '(pointer: coarse), (max-width: 768px), (hover: none)',
+  ).matches;
+}
+
+// Pure JS smooth scroll — desktop only (replaces Lenis)
 export function SmoothScroll({ children }: { children: ReactNode }) {
   const reduced = useReducedMotion();
 
   useEffect(() => {
-    if (reduced) return;
+    if (reduced || shouldDisableSmoothScroll()) return;
 
     let target = window.scrollY;
     let current = window.scrollY;
@@ -26,13 +34,15 @@ export function SmoothScroll({ children }: { children: ReactNode }) {
     };
 
     const onWheel = (e: WheelEvent) => {
-      // Only intercept standard wheel, not touchpad pinch-zoom
       if (e.ctrlKey) return;
       e.preventDefault();
-      target = Math.max(0, Math.min(
-        document.documentElement.scrollHeight - window.innerHeight,
-        target + e.deltaY
-      ));
+      target = Math.max(
+        0,
+        Math.min(
+          document.documentElement.scrollHeight - window.innerHeight,
+          target + e.deltaY,
+        ),
+      );
       if (!isAnimating) {
         isAnimating = true;
         raf = requestAnimationFrame(lerp);
@@ -44,9 +54,14 @@ export function SmoothScroll({ children }: { children: ReactNode }) {
     };
 
     const onKey = (e: KeyboardEvent) => {
-      if (['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', ' ', 'Home', 'End'].includes(e.key)) {
-        // Let native scroll update target
-        setTimeout(() => { target = window.scrollY; }, 0);
+      if (
+        ['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', ' ', 'Home', 'End'].includes(
+          e.key,
+        )
+      ) {
+        setTimeout(() => {
+          target = window.scrollY;
+        }, 0);
       }
     };
 

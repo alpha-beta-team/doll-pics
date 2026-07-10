@@ -84,6 +84,8 @@ function GalleryItem({ image, index }: { image: GalleryImageItem; index: number 
         avifSrcSet={image.avifSrcSet}
         webpSrcSet={image.webpSrcSet}
         sizes={GALLERY_SIZES}
+        width={640}
+        height={800}
         loading="lazy"
         className="w-full h-full object-cover transition-transform duration-600"
         style={{ transform: hovered ? 'scale(1.08)' : 'scale(1)' }}

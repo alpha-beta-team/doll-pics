@@ -217,83 +217,19 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
 
     async function load() {
       try {
-        const [
-          siteContent,
-          heroSlides,
-          storyScenes,
-          featuredPhotos,
-          allPhotos,
-          packages,
-          stats,
-          testimonials,
-          behindScenes,
-          teamMembers,
-        ] = await Promise.all([
+        // Critical path first: site content + hero (above-the-fold).
+        const [siteContent, heroSlides] = await Promise.all([
           publicApi.getSiteContent(),
           publicApi.getHeroSlides(),
-          publicApi.getStoryScenes(),
-          publicApi.getPhotos({ featured: true }),
-          publicApi.getPhotos(),
-          publicApi.getPackages(),
-          publicApi.getStats(),
-          publicApi.getTestimonials(),
-          publicApi.getBehindScenes(),
-          publicApi.getTeamMembers().catch(() => [] as PublicTeamMember[]),
         ]);
 
         if (cancelled) return;
 
-        const featuredWork: FeaturedWorkItem[] = featuredPhotos.length
-          ? featuredPhotos
-              .map((p) => {
-                const sources = getPhotoSources(p);
-                if (!sources) return null;
-                const category =
-                  Array.isArray(p.categoryIds) &&
-                  p.categoryIds[0] &&
-                  typeof p.categoryIds[0] === 'object'
-                    ? (p.categoryIds[0] as { name: string }).name
-                    : 'Photography';
-                return sourcesToFeatured(
-                  p.title,
-                  category,
-                  p.location ?? '',
-                  p.year ?? '',
-                  sources,
-                );
-              })
-              .filter((item): item is FeaturedWorkItem => item !== null)
-          : normalizedFallbackFeatured;
+        const nextHero =
+          heroSlides.length > 0 ? heroSlides : fallbackHeroSlides;
 
-        const galleryImages: GalleryImageItem[] = allPhotos.length
-          ? allPhotos
-              .map((p) => getPhotoSources(p))
-              .filter((s): s is PhotoSources => s !== null)
-              .map((s) => ({
-                src: s.src,
-                alt: s.alt,
-                avifSrcSet: s.avifSrcSet,
-                webpSrcSet: s.webpSrcSet,
-              }))
-          : normalizedFallbackGallery;
-
-        const services: ServiceItem[] = packages.length
-          ? packages.map((p) => ({
-              title: p.name,
-              desc: p.description,
-              icon: p.icon || 'Camera',
-              image: p.imageUrl || '',
-            }))
-          : fallbackData.services;
-
-        const normalizedPackages: PublicPackage[] = packages.length
-          ? packages.map((p) => ({
-              ...p,
-              inclusions: Array.isArray(p.inclusions) ? p.inclusions : [],
-            }))
-          : fallbackPackages;
-
-        setData({
+        setData((prev) => ({
+          ...prev,
           siteContent: {
             ...defaultSiteContent,
             ...siteContent,
@@ -305,25 +241,129 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
               ? siteContent.beforeAfter
               : fallbackBeforeAfter,
           },
-          heroSlides: heroSlides.length ? heroSlides : fallbackHeroSlides,
-          storyScenes: storyScenes.length ? storyScenes : fallbackStoryScenes,
-          featuredWork:
-            featuredWork.length > 0 ? featuredWork : normalizedFallbackFeatured,
-          galleryImages:
-            galleryImages.length > 0
-              ? galleryImages
-              : normalizedFallbackGallery,
+          // Preserve first-slide image briefly via Hero; apply API slides as returned.
+          heroSlides: nextHero,
           beforeAfter: siteContent.beforeAfter?.before
             ? siteContent.beforeAfter
             : fallbackBeforeAfter,
-          services,
-          packages: normalizedPackages,
-          stats: stats.length ? stats : fallbackStats,
-          testimonials: testimonials.length ? testimonials : fallbackTestimonials,
-          behindScenes: behindScenes.length ? behindScenes : fallbackBehindScenes,
-          teamMembers: teamMembers.length ? teamMembers : fallbackTeamMembers,
           loading: false,
           fromApi: true,
+        }));
+
+        // Defer the rest so it does not contend with LCP / first paint.
+        const defer =
+          typeof requestIdleCallback === 'function'
+            ? (cb: () => void) => requestIdleCallback(cb, { timeout: 2500 })
+            : (cb: () => void) => setTimeout(cb, 1);
+
+        defer(async () => {
+          if (cancelled) return;
+          try {
+            const [
+              storyScenes,
+              featuredPhotos,
+              allPhotos,
+              packages,
+              stats,
+              testimonials,
+              behindScenes,
+              teamMembers,
+            ] = await Promise.all([
+              publicApi.getStoryScenes(),
+              publicApi.getPhotos({ featured: true }),
+              publicApi.getPhotos(),
+              publicApi.getPackages(),
+              publicApi.getStats(),
+              publicApi.getTestimonials(),
+              publicApi.getBehindScenes(),
+              publicApi.getTeamMembers().catch(() => [] as PublicTeamMember[]),
+            ]);
+
+            if (cancelled) return;
+
+            const featuredWork: FeaturedWorkItem[] = featuredPhotos.length
+              ? featuredPhotos
+                  .map((p) => {
+                    const sources = getPhotoSources(p);
+                    if (!sources) return null;
+                    const category =
+                      Array.isArray(p.categoryIds) &&
+                      p.categoryIds[0] &&
+                      typeof p.categoryIds[0] === 'object'
+                        ? (p.categoryIds[0] as { name: string }).name
+                        : 'Photography';
+                    return sourcesToFeatured(
+                      p.title,
+                      category,
+                      p.location ?? '',
+                      p.year ?? '',
+                      sources,
+                    );
+                  })
+                  .filter((item): item is FeaturedWorkItem => item !== null)
+              : normalizedFallbackFeatured;
+
+            const galleryImages: GalleryImageItem[] = allPhotos.length
+              ? allPhotos
+                  .map((p) => getPhotoSources(p))
+                  .filter((s): s is PhotoSources => s !== null)
+                  .map((s) => ({
+                    src: s.src,
+                    alt: s.alt,
+                    avifSrcSet: s.avifSrcSet,
+                    webpSrcSet: s.webpSrcSet,
+                  }))
+              : normalizedFallbackGallery;
+
+            const services: ServiceItem[] = packages.length
+              ? packages.map((p) => ({
+                  title: p.name,
+                  desc: p.description,
+                  icon: p.icon || 'Camera',
+                  image: p.imageUrl || '',
+                }))
+              : fallbackData.services;
+
+            const normalizedPackages: PublicPackage[] = packages.length
+              ? packages.map((p) => ({
+                  ...p,
+                  inclusions: Array.isArray(p.inclusions) ? p.inclusions : [],
+                }))
+              : fallbackPackages;
+
+            setData((prev) => ({
+              ...prev,
+              storyScenes: storyScenes.length
+                ? storyScenes
+                : fallbackStoryScenes,
+              featuredWork:
+                featuredWork.length > 0
+                  ? featuredWork
+                  : normalizedFallbackFeatured,
+              galleryImages:
+                galleryImages.length > 0
+                  ? galleryImages
+                  : normalizedFallbackGallery,
+              services,
+              packages: normalizedPackages,
+              stats: stats.length ? stats : fallbackStats,
+              testimonials: testimonials.length
+                ? testimonials
+                : fallbackTestimonials,
+              behindScenes: behindScenes.length
+                ? behindScenes
+                : fallbackBehindScenes,
+              teamMembers: teamMembers.length
+                ? teamMembers
+                : fallbackTeamMembers,
+              loading: false,
+              fromApi: true,
+            }));
+          } catch {
+            if (!cancelled) {
+              setData((prev) => ({ ...prev, loading: false }));
+            }
+          }
         });
       } catch {
         if (!cancelled) {

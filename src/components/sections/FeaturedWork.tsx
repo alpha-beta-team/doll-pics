@@ -51,6 +51,8 @@ function FeatureCard({ work, index }: { work: FeaturedWorkItem; index: number })
             avifSrcSet={work.avifSrcSet}
             webpSrcSet={work.webpSrcSet}
             sizes={FEATURED_SIZES}
+            width={800}
+            height={1000}
             loading="lazy"
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           />

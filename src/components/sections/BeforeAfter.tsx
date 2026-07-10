@@ -54,7 +54,7 @@ export function BeforeAfter() {
         onTouchStart={(e) => { dragging.current = true; if (e.touches[0]) updatePos(e.touches[0].clientX); }}
         className={`relative max-w-5xl mx-auto aspect-[16/10] rounded-2xl overflow-hidden cursor-ew-resize select-none reveal-scale ${inView ? 'in' : ''}`}
       >
-        <img src={beforeAfter.after} alt="After" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+        <img src={beforeAfter.after} alt="After" width={1600} height={1000} className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
         <span className="absolute top-5 right-5 px-3 py-1.5 glass rounded-full text-[10px] tracking-widest uppercase text-gold-300 z-10">
           Edited
         </span>
@@ -63,6 +63,8 @@ export function BeforeAfter() {
           <img
             src={beforeAfter.before}
             alt="Before"
+            width={1600}
+            height={1000}
             className="absolute inset-0 h-full object-cover"
             style={{ width: containerRef.current?.clientWidth || '100%', maxWidth: 'none' }}
             loading="lazy"

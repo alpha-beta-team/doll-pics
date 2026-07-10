@@ -2,25 +2,48 @@ import { useEffect, useRef, useState } from 'react';
 
 type Variant = 'default' | 'hover' | 'view' | 'drag';
 
+/** Desktop-only custom cursor; deferred so it never competes with LCP / mobile PSI. */
 export function CustomCursor() {
+  const [enabled, setEnabled] = useState(false);
   const [variant, setVariant] = useState<Variant>('default');
   const [hidden, setHidden] = useState(false);
   const ringRef = useRef<HTMLDivElement>(null);
   const dotRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (window.matchMedia('(max-width: 768px)').matches) {
-      setHidden(true);
+    if (window.matchMedia('(max-width: 768px), (pointer: coarse)').matches) {
       return;
     }
 
+    const enable = () => setEnabled(true);
+    const idle =
+      typeof requestIdleCallback === 'function'
+        ? requestIdleCallback(enable, { timeout: 3000 })
+        : window.setTimeout(enable, 1500);
+
+    return () => {
+      if (typeof cancelIdleCallback === 'function' && typeof idle === 'number') {
+        cancelIdleCallback(idle);
+      } else {
+        clearTimeout(idle as number);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!enabled) return;
+
     document.body.classList.add('custom-cursor-active');
 
-    let mouseX = -100, mouseY = -100;
-    let ringX = -100, ringY = -100;
+    let mouseX = -100,
+      mouseY = -100;
+    let ringX = -100,
+      ringY = -100;
     let raf = 0;
+    let running = true;
 
     const animate = () => {
+      if (!running) return;
       ringX += (mouseX - ringX) * 0.15;
       ringY += (mouseY - ringY) * 0.15;
       if (ringRef.current) {
@@ -42,20 +65,24 @@ export function CustomCursor() {
       const t = e.target as HTMLElement;
       if (t.closest('[data-cursor="view"]')) setVariant('view');
       else if (t.closest('[data-cursor="drag"]')) setVariant('drag');
-      else if (t.closest('a, button, [data-cursor="hover"], [role="button"]')) setVariant('hover');
+      else if (
+        t.closest('a, button, [data-cursor="hover"], [role="button"]')
+      )
+        setVariant('hover');
       else setVariant('default');
     };
 
     const onLeave = () => setHidden(true);
     const onEnter = () => setHidden(false);
 
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseover', onOver);
+    window.addEventListener('mousemove', onMove, { passive: true });
+    window.addEventListener('mouseover', onOver, { passive: true });
     document.addEventListener('mouseleave', onLeave);
     document.addEventListener('mouseenter', onEnter);
     raf = requestAnimationFrame(animate);
 
     return () => {
+      running = false;
       document.body.classList.remove('custom-cursor-active');
       window.removeEventListener('mousemove', onMove);
       window.removeEventListener('mouseover', onOver);
@@ -63,11 +90,16 @@ export function CustomCursor() {
       document.removeEventListener('mouseenter', onEnter);
       cancelAnimationFrame(raf);
     };
-  }, []);
+  }, [enabled]);
 
-  if (hidden) return null;
+  if (!enabled || hidden) return null;
 
-  const sizes: Record<Variant, number> = { default: 12, hover: 56, view: 80, drag: 64 };
+  const sizes: Record<Variant, number> = {
+    default: 12,
+    hover: 56,
+    view: 80,
+    drag: 64,
+  };
   const size = sizes[variant];
   const showLabel = variant === 'view' || variant === 'drag';
 
@@ -83,9 +115,14 @@ export function CustomCursor() {
           style={{
             width: size,
             height: size,
-            borderColor: variant === 'default' ? 'rgba(212,162,73,0.85)' : 'rgba(212,162,73,1)',
+            borderColor:
+              variant === 'default'
+                ? 'rgba(212,162,73,0.85)'
+                : 'rgba(212,162,73,1)',
             backgroundColor:
-              variant === 'default' ? 'rgba(212,162,73,0.2)' : 'rgba(212,162,73,0.08)',
+              variant === 'default'
+                ? 'rgba(212,162,73,0.2)'
+                : 'rgba(212,162,73,0.08)',
             boxShadow:
               '0 0 0 1px rgba(5,5,8,0.35), 0 2px 12px rgba(212,162,73,0.35)',
           }}
@@ -103,7 +140,8 @@ export function CustomCursor() {
         style={{
           willChange: 'transform',
           opacity: variant === 'default' ? 1 : 0,
-          boxShadow: '0 0 0 1.5px rgba(5,5,8,0.5), 0 0 8px rgba(212,162,73,0.6)',
+          boxShadow:
+            '0 0 0 1.5px rgba(5,5,8,0.5), 0 0 8px rgba(212,162,73,0.6)',
         }}
       />
     </>

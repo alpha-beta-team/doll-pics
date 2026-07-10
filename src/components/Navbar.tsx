@@ -42,6 +42,8 @@ export function Navbar() {
               <img
                 src="/logo-doll.png"
                 alt="Doll Pictures logo"
+                width={44}
+                height={44}
                 className="h-11 w-11 rounded-full object-cover ring-1 ring-white/15 transition-transform duration-700 group-hover:scale-105"
               />
               <span className="font-display text-xl font-semibold tracking-[0.3em] text-ink-50">

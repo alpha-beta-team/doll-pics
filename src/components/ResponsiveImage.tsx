@@ -7,6 +7,8 @@ export type ResponsiveImageProps = {
   webpSrcSet?: string;
   sizes?: string;
   className?: string;
+  width?: number;
+  height?: number;
   loading?: ImgHTMLAttributes<HTMLImageElement>['loading'];
   decoding?: ImgHTMLAttributes<HTMLImageElement>['decoding'];
   fetchPriority?: ImgHTMLAttributes<HTMLImageElement>['fetchPriority'];
@@ -20,6 +22,8 @@ export function ResponsiveImage({
   webpSrcSet,
   sizes = '100vw',
   className,
+  width,
+  height,
   loading = 'lazy',
   decoding = 'async',
   fetchPriority,
@@ -29,6 +33,8 @@ export function ResponsiveImage({
     <img
       src={src}
       alt={alt}
+      width={width}
+      height={height}
       sizes={avifSrcSet || webpSrcSet ? sizes : undefined}
       loading={loading}
       decoding={decoding}
