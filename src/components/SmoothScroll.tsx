@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 
 function shouldDisableSmoothScroll() {
@@ -12,14 +13,22 @@ function shouldDisableSmoothScroll() {
 // Pure JS smooth scroll — desktop only (replaces Lenis)
 export function SmoothScroll({ children }: { children: ReactNode }) {
   const reduced = useReducedMotion();
+  const { pathname } = useLocation();
+
+  // Always jump to top on route change (SPA keeps prior scroll otherwise).
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
 
   useEffect(() => {
     if (reduced || shouldDisableSmoothScroll()) return;
 
-    let target = window.scrollY;
-    let current = window.scrollY;
+    let target = 0;
+    let current = 0;
     let raf = 0;
     let isAnimating = false;
+
+    window.scrollTo(0, 0);
 
     const lerp = () => {
       const diff = target - current;
@@ -75,7 +84,7 @@ export function SmoothScroll({ children }: { children: ReactNode }) {
       window.removeEventListener('keydown', onKey);
       cancelAnimationFrame(raf);
     };
-  }, [reduced]);
+  }, [reduced, pathname]);
 
   return <>{children}</>;
 }

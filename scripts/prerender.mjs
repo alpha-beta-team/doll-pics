@@ -7,9 +7,13 @@ const distDir = join(root, 'dist');
 const siteUrl = (
   process.env.VITE_SITE_URL || 'https://dollpictures.in'
 ).replace(/\/$/, '');
+const studioId = `${siteUrl}/#studio`;
 
 const seoPages = JSON.parse(
   readFileSync(join(root, 'src/data/seo-pages.json'), 'utf8'),
+);
+const servicePages = JSON.parse(
+  readFileSync(join(root, 'src/data/service-pages.json'), 'utf8'),
 );
 
 const ogImage = `${siteUrl}/og-share.jpg`;
@@ -23,8 +27,25 @@ const {
   telephone,
   sameAs,
   defaultDescription,
-  pages,
+  pages: basePages,
+  serviceAreas,
+  offerCatalog,
 } = seoPages;
+
+const pages = {
+  ...basePages,
+  ...Object.fromEntries(
+    Object.entries(servicePages).map(([path, page]) => [
+      path,
+      {
+        title: page.title,
+        description: page.description,
+        heading: page.heading,
+        body: page.body,
+      },
+    ]),
+  ),
+};
 
 function escapeHtml(value) {
   return String(value)
@@ -39,11 +60,36 @@ function absoluteUrl(path) {
   return `${siteUrl}${path.startsWith('/') ? path : `/${path}`}`;
 }
 
+function buildAreaServed() {
+  const cities = serviceAreas ?? [address.addressLocality];
+  return [
+    ...cities.map((name) => ({ '@type': 'City', name })),
+    { '@type': 'State', name: address.addressRegion },
+    { '@type': 'Country', name: address.addressCountry },
+  ];
+}
+
+function buildOfferCatalog() {
+  const items = offerCatalog ?? [];
+  if (!items.length) return undefined;
+  return {
+    '@type': 'OfferCatalog',
+    name: 'Photography services',
+    itemListElement: items.map((item) => ({
+      '@type': 'Offer',
+      itemOffered: {
+        '@type': 'Service',
+        name: item.name,
+      },
+    })),
+  };
+}
+
 function buildBusinessJsonLd() {
   return {
     '@context': 'https://schema.org',
     '@type': 'PhotographyBusiness',
-    '@id': `${siteUrl}/#business`,
+    '@id': studioId,
     name: businessName || brandByline,
     alternateName: siteName,
     url: siteUrl,
@@ -60,11 +106,8 @@ function buildBusinessJsonLd() {
       '@type': 'GeoCoordinates',
       ...geo,
     },
-    areaServed: [
-      { '@type': 'City', name: address.addressLocality },
-      { '@type': 'State', name: address.addressRegion },
-      { '@type': 'Country', name: address.addressCountry },
-    ],
+    areaServed: buildAreaServed(),
+    hasOfferCatalog: buildOfferCatalog(),
     sameAs: sameAs?.length ? sameAs : undefined,
   };
 }
@@ -83,35 +126,50 @@ function buildWebPageJsonLd(page, url) {
       name: siteName,
       url: siteUrl,
     },
-    about: { '@id': `${siteUrl}/#business` },
+    about: { '@id': studioId },
   };
 }
 
-function buildBreadcrumbJsonLd(page, url) {
-  const name = page.heading || page.title.split('—')[0].trim() || page.title;
+function buildBreadcrumbJsonLd(page, url, isService) {
+  const name = page.heading || page.title.split('|')[0].trim() || page.title;
+  const items = [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Home',
+      item: siteUrl,
+    },
+  ];
+  if (isService) {
+    items.push({
+      '@type': 'ListItem',
+      position: 2,
+      name: 'Services',
+      item: absoluteUrl('/services'),
+    });
+    items.push({
+      '@type': 'ListItem',
+      position: 3,
+      name,
+      item: url,
+    });
+  } else {
+    items.push({
+      '@type': 'ListItem',
+      position: 2,
+      name,
+      item: url,
+    });
+  }
   return {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
-    itemListElement: [
-      {
-        '@type': 'ListItem',
-        position: 1,
-        name: 'Home',
-        item: siteUrl,
-      },
-      {
-        '@type': 'ListItem',
-        position: 2,
-        name,
-        item: url,
-      },
-    ],
+    itemListElement: items,
   };
 }
 
-function buildFaqPageJsonLd() {
-  const faqs = seoPages.faqs ?? [];
-  if (!faqs.length) return null;
+function buildFaqPageJsonLd(faqs) {
+  if (!faqs?.length) return null;
   return {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
@@ -126,23 +184,50 @@ function buildFaqPageJsonLd() {
   };
 }
 
+function buildServiceJsonLd(path, servicePage) {
+  const url = absoluteUrl(path);
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    '@id': `${url}#service`,
+    name: servicePage.serviceName,
+    description: servicePage.description,
+    provider: { '@id': studioId },
+    areaServed: buildAreaServed(),
+    url,
+  };
+}
+
 function injectRouteHtml(template, path, page) {
   const url = absoluteUrl(path);
   const title = escapeHtml(page.title);
   const description = escapeHtml(page.description);
   const heading = escapeHtml(page.heading);
   const body = escapeHtml(page.body);
+  const servicePage = servicePages[path] ?? null;
+  const isService = Boolean(servicePage);
   const businessJson = JSON.stringify(buildBusinessJsonLd());
   const webpageJson = JSON.stringify(buildWebPageJsonLd(page, url));
   const extraScripts = [];
 
   if (path !== '/') {
     extraScripts.push(
-      `<script type="application/ld+json" id="seo-jsonld-breadcrumb">${JSON.stringify(buildBreadcrumbJsonLd(page, url))}</script>`,
+      `<script type="application/ld+json" id="seo-jsonld-breadcrumb">${JSON.stringify(buildBreadcrumbJsonLd(page, url, isService))}</script>`,
     );
   }
-  if (path === '/booking') {
-    const faqLd = buildFaqPageJsonLd();
+
+  if (isService) {
+    extraScripts.push(
+      `<script type="application/ld+json" id="seo-jsonld-service">${JSON.stringify(buildServiceJsonLd(path, servicePage))}</script>`,
+    );
+    const faqLd = buildFaqPageJsonLd(servicePage.faqs);
+    if (faqLd) {
+      extraScripts.push(
+        `<script type="application/ld+json" id="seo-jsonld-faq">${JSON.stringify(faqLd)}</script>`,
+      );
+    }
+  } else if (path === '/booking') {
+    const faqLd = buildFaqPageJsonLd(seoPages.faqs);
     if (faqLd) {
       extraScripts.push(
         `<script type="application/ld+json" id="seo-jsonld-faq">${JSON.stringify(faqLd)}</script>`,
@@ -204,7 +289,6 @@ function injectRouteHtml(template, path, page) {
     );
   }
 
-  // Replace the static business JSON-LD block from index.html
   const jsonLdBlock = [
     `<script type="application/ld+json" id="seo-jsonld-business">${businessJson}</script>`,
     `<script type="application/ld+json" id="seo-jsonld-webpage">${webpageJson}</script>`,
@@ -216,15 +300,43 @@ function injectRouteHtml(template, path, page) {
     jsonLdBlock,
   );
 
-  const faqNoscript =
-    path === '/booking' && (seoPages.faqs ?? []).length
+  const faqsForNoscript = isService
+    ? servicePage.faqs
+    : path === '/booking'
+      ? seoPages.faqs ?? []
+      : [];
+
+  const faqNoscript = faqsForNoscript.length
+    ? [
+        '    <section>',
+        '      <h2>Frequently asked questions</h2>',
+        ...faqsForNoscript.flatMap((faq) => [
+          `      <h3>${escapeHtml(faq.question)}</h3>`,
+          `      <p>${escapeHtml(faq.answer)}</p>`,
+        ]),
+        '    </section>',
+      ]
+    : [];
+
+  const sectionNoscript =
+    isService && servicePage.sections
+      ? servicePage.sections.flatMap((section) => [
+          `    <section>`,
+          `      <h2>${escapeHtml(section.heading)}</h2>`,
+          ...section.paragraphs.map((p) => `      <p>${escapeHtml(p)}</p>`),
+          `    </section>`,
+        ])
+      : [];
+
+  const imageNoscript =
+    isService && servicePage.fallbackImages?.length
       ? [
           '    <section>',
-          '      <h2>Frequently asked questions</h2>',
-          ...(seoPages.faqs ?? []).flatMap((faq) => [
-            `      <h3>${escapeHtml(faq.question)}</h3>`,
-            `      <p>${escapeHtml(faq.answer)}</p>`,
-          ]),
+          '      <h2>Selected work</h2>',
+          ...servicePage.fallbackImages.slice(0, 6).map(
+            (image) =>
+              `      <p><img src="${escapeHtml(image.src)}" alt="${escapeHtml(image.alt)}" width="800" height="1000" loading="lazy" /></p>`,
+          ),
           '    </section>',
         ]
       : [];
@@ -234,6 +346,8 @@ function injectRouteHtml(template, path, page) {
     '  <main style="font-family:Georgia,serif;max-width:42rem;margin:2rem auto;padding:0 1.25rem;line-height:1.6;color:#111">',
     `    <h1>${heading}</h1>`,
     `    <p>${body}</p>`,
+    ...imageNoscript,
+    ...sectionNoscript,
     ...faqNoscript,
     `    <p><a href="${siteUrl}/">${escapeHtml(siteName)}</a> · Erode, Tamil Nadu</p>`,
     '  </main>',

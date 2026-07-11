@@ -1,3 +1,22 @@
+# Canonical host: www → apex (force so it runs before SPA rules)
+[[redirects]]
+  from = "https://www.dollpictures.in/*"
+  to = "https://dollpictures.in/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "http://www.dollpictures.in/*"
+  to = "https://dollpictures.in/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "http://dollpictures.in/*"
+  to = "https://dollpictures.in/:splat"
+  status = 301
+  force = true
+
 # Admin SPA: client routes need the app shell.
 [[redirects]]
   from = "/admin/*"

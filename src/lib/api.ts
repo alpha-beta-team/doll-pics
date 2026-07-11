@@ -87,6 +87,18 @@ export function getPhotoSources(photo: {
   };
 }
 
+export interface PublicServiceNavLink {
+  _id?: string;
+  id?: string;
+  label: string;
+  path: string;
+  description?: string;
+  icon?: string;
+  imageUrl?: string;
+  order?: number;
+  isPublished?: boolean;
+}
+
 export interface PublicSiteContent {
   brandName: string;
   tagline: string;
@@ -101,6 +113,7 @@ export interface PublicSiteContent {
   phone: string;
   socials: Record<string, string>;
   beforeAfter: { before: string; after: string };
+  serviceNavLinks?: PublicServiceNavLink[];
 }
 
 export interface PublicPhoto {

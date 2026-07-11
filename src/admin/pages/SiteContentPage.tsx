@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
-import type { SiteContent } from '../types';
+import type { ServiceNavLink, SiteContent } from '../types';
+import { DEFAULT_SERVICE_NAV_LINKS } from '../../lib/navigation';
 import {
   Save,
   AlertCircle,
@@ -14,6 +15,10 @@ import {
   Twitter,
   Youtube,
   X,
+  Plus,
+  ChevronUp,
+  ChevronDown,
+  LayoutList,
 } from 'lucide-react';
 
 const defaultSiteContent: SiteContent = {
@@ -30,7 +35,22 @@ const defaultSiteContent: SiteContent = {
   phone: '',
   socials: {},
   beforeAfter: { before: '', after: '' },
+  serviceNavLinks: DEFAULT_SERVICE_NAV_LINKS.map((l) => ({ ...l })),
 };
+
+const ICON_OPTIONS = ['Heart', 'Camera', 'Gift', 'Baby', 'Sparkles', 'Briefcase', 'Plane'];
+
+function emptyServiceLink(order: number): ServiceNavLink {
+  return {
+    label: '',
+    path: '',
+    description: '',
+    icon: 'Camera',
+    imageUrl: '',
+    order,
+    isPublished: true,
+  };
+}
 
 export function SiteContentPage() {
   const [content, setContent] = useState<SiteContent>(defaultSiteContent);
@@ -51,6 +71,10 @@ export function SiteContentPage() {
           aboutHeroSubtext: data.aboutHeroSubtext ?? '',
           socials: data.socials ?? {},
           beforeAfter: data.beforeAfter ?? { before: '', after: '' },
+          serviceNavLinks:
+            data.serviceNavLinks?.length > 0
+              ? data.serviceNavLinks
+              : DEFAULT_SERVICE_NAV_LINKS.map((l) => ({ ...l })),
         });
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load site content');
@@ -79,6 +103,50 @@ export function SiteContentPage() {
       ...prev,
       beforeAfter: { ...prev.beforeAfter, [field]: value },
     }));
+    setSuccess(false);
+  };
+
+  const updateServiceLink = (index: number, patch: Partial<ServiceNavLink>) => {
+    setContent((prev) => {
+      const next = [...prev.serviceNavLinks];
+      next[index] = { ...next[index], ...patch };
+      return { ...prev, serviceNavLinks: next };
+    });
+    setSuccess(false);
+  };
+
+  const addServiceLink = () => {
+    setContent((prev) => ({
+      ...prev,
+      serviceNavLinks: [
+        ...prev.serviceNavLinks,
+        emptyServiceLink(prev.serviceNavLinks.length),
+      ],
+    }));
+    setSuccess(false);
+  };
+
+  const removeServiceLink = (index: number) => {
+    setContent((prev) => ({
+      ...prev,
+      serviceNavLinks: prev.serviceNavLinks
+        .filter((_, i) => i !== index)
+        .map((link, i) => ({ ...link, order: i })),
+    }));
+    setSuccess(false);
+  };
+
+  const moveServiceLink = (index: number, direction: -1 | 1) => {
+    setContent((prev) => {
+      const next = [...prev.serviceNavLinks];
+      const target = index + direction;
+      if (target < 0 || target >= next.length) return prev;
+      [next[index], next[target]] = [next[target], next[index]];
+      return {
+        ...prev,
+        serviceNavLinks: next.map((link, i) => ({ ...link, order: i })),
+      };
+    });
     setSuccess(false);
   };
 
@@ -400,6 +468,148 @@ export function SiteContentPage() {
                 placeholder="https://youtube.com/@yourstudio"
               />
             </div>
+          </div>
+        </section>
+
+        <section className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <div className="flex items-center gap-2">
+              <LayoutList className="w-5 h-5 text-gray-400" />
+              <div>
+                <h2 className="text-lg font-medium text-gray-900">Services menu</h2>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Powers header dropdown, footer Services column, and homepage service cards.
+                  Paths like /wedding-photography-erode, /newborn-baby-photography-erode, etc.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={addServiceLink}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100"
+            >
+              <Plus className="w-4 h-4" />
+              Add service
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            {content.serviceNavLinks.map((link, index) => (
+              <div
+                key={link.id || `new-${index}`}
+                className="rounded-lg border border-gray-200 p-4 space-y-3"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-medium uppercase tracking-wide text-gray-400">
+                    Service {index + 1}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      aria-label="Move up"
+                      onClick={() => moveServiceLink(index, -1)}
+                      disabled={index === 0}
+                      className="p-1.5 rounded hover:bg-gray-100 disabled:opacity-30"
+                    >
+                      <ChevronUp className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Move down"
+                      onClick={() => moveServiceLink(index, 1)}
+                      disabled={index === content.serviceNavLinks.length - 1}
+                      className="p-1.5 rounded hover:bg-gray-100 disabled:opacity-30"
+                    >
+                      <ChevronDown className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Remove service"
+                      onClick={() => removeServiceLink(index)}
+                      className="p-1.5 rounded text-red-600 hover:bg-red-50"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Label</label>
+                    <input
+                      type="text"
+                      value={link.label}
+                      onChange={(e) => updateServiceLink(index, { label: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Wedding"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Path</label>
+                    <input
+                      type="text"
+                      value={link.path}
+                      onChange={(e) => updateServiceLink(index, { path: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="/wedding-photography-erode"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Description (card blurb)
+                    </label>
+                    <textarea
+                      value={link.description}
+                      onChange={(e) => updateServiceLink(index, { description: e.target.value })}
+                      rows={2}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Icon</label>
+                    <select
+                      value={link.icon}
+                      onChange={(e) => updateServiceLink(index, { icon: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      {ICON_OPTIONS.map((icon) => (
+                        <option key={icon} value={icon}>
+                          {icon}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Published
+                    </label>
+                    <label className="inline-flex items-center gap-2 mt-2 text-sm text-gray-700">
+                      <input
+                        type="checkbox"
+                        checked={link.isPublished}
+                        onChange={(e) =>
+                          updateServiceLink(index, { isPublished: e.target.checked })
+                        }
+                        className="rounded border-gray-300"
+                      />
+                      Show in nav, footer, and cards
+                    </label>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Image URL
+                    </label>
+                    <input
+                      type="url"
+                      value={link.imageUrl}
+                      onChange={(e) => updateServiceLink(index, { imageUrl: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="https://..."
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 

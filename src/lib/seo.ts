@@ -1,4 +1,5 @@
 import seoPages from '../data/seo-pages.json';
+import servicePages from '../data/service-pages.json';
 
 export const SITE_URL = (
   import.meta.env.VITE_SITE_URL as string | undefined
@@ -8,6 +9,7 @@ export const SITE_NAME = seoPages.siteName;
 export const SITE_TAGLINE = seoPages.tagline;
 export const DEFAULT_OG_IMAGE = `${SITE_URL}/og-share.jpg`;
 export const SITE_LOGO = `${SITE_URL}/logo-doll.png`;
+export const STUDIO_ID = `${SITE_URL}/#studio`;
 
 export type PageSeo = {
   title: string;
@@ -25,8 +27,8 @@ export type FaqItem = {
   answer: string;
 };
 
-export const PAGE_SEO: Record<string, PageSeo> = Object.fromEntries(
-  Object.entries(seoPages.pages).map(([path, page]) => [
+const servicePageEntries = Object.fromEntries(
+  Object.entries(servicePages).map(([path, page]) => [
     path,
     {
       path,
@@ -37,6 +39,22 @@ export const PAGE_SEO: Record<string, PageSeo> = Object.fromEntries(
     },
   ]),
 );
+
+export const PAGE_SEO: Record<string, PageSeo> = {
+  ...Object.fromEntries(
+    Object.entries(seoPages.pages).map(([path, page]) => [
+      path,
+      {
+        path,
+        title: page.title,
+        description: page.description,
+        heading: page.heading,
+        body: page.body,
+      },
+    ]),
+  ),
+  ...servicePageEntries,
+};
 
 export const SITE_FAQS: FaqItem[] = (seoPages.faqs ?? []).map((faq) => ({
   question: faq.question,
@@ -55,6 +73,14 @@ export function getPageSeo(pathname: string): PageSeo {
       description: seoPages.defaultDescription,
     }
   );
+}
+
+export function getServicePage(pathname: string) {
+  const normalized =
+    pathname.endsWith('/') && pathname !== '/'
+      ? pathname.slice(0, -1)
+      : pathname;
+  return servicePages[normalized as keyof typeof servicePages] ?? null;
 }
 
 export function absoluteUrl(path: string): string {
@@ -99,6 +125,31 @@ function removeJsonLd(id: string) {
   document.getElementById(id)?.remove();
 }
 
+function buildAreaServed() {
+  const cities = seoPages.serviceAreas ?? [seoPages.address.addressLocality];
+  return [
+    ...cities.map((name) => ({ '@type': 'City', name })),
+    { '@type': 'State', name: seoPages.address.addressRegion },
+    { '@type': 'Country', name: seoPages.address.addressCountry },
+  ];
+}
+
+function buildOfferCatalog() {
+  const items = seoPages.offerCatalog ?? [];
+  if (!items.length) return undefined;
+  return {
+    '@type': 'OfferCatalog',
+    name: 'Photography services',
+    itemListElement: items.map((item) => ({
+      '@type': 'Offer',
+      itemOffered: {
+        '@type': 'Service',
+        name: item.name,
+      },
+    })),
+  };
+}
+
 export function buildLocalBusinessJsonLd(contact?: {
   phone?: string;
   email?: string;
@@ -108,11 +159,12 @@ export function buildLocalBusinessJsonLd(contact?: {
   const sameAs = [...new Set([...(seoPages.sameAs ?? []), ...fromContact])];
   const { address, geo } = seoPages;
   const telephone = contact?.phone || seoPages.telephone || undefined;
+  const hasOfferCatalog = buildOfferCatalog();
 
   return {
     '@context': 'https://schema.org',
     '@type': 'PhotographyBusiness',
-    '@id': `${SITE_URL}/#business`,
+    '@id': STUDIO_ID,
     name: seoPages.businessName || seoPages.brandByline,
     alternateName: SITE_NAME,
     description: seoPages.defaultDescription,
@@ -130,36 +182,59 @@ export function buildLocalBusinessJsonLd(contact?: {
       '@type': 'GeoCoordinates',
       ...geo,
     },
-    areaServed: [
-      { '@type': 'City', name: address.addressLocality },
-      { '@type': 'State', name: address.addressRegion },
-      { '@type': 'Country', name: address.addressCountry },
-    ],
+    areaServed: buildAreaServed(),
+    hasOfferCatalog,
     sameAs: sameAs.length ? sameAs : undefined,
   };
 }
 
-export function buildBreadcrumbJsonLd(seo: PageSeo) {
+export function buildServiceJsonLd(path: string) {
+  const page = getServicePage(path);
+  if (!page) return null;
+  const url = absoluteUrl(path);
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    '@id': `${url}#service`,
+    name: page.serviceName,
+    description: page.description,
+    provider: { '@id': STUDIO_ID },
+    areaServed: buildAreaServed(),
+    url,
+  };
+}
+
+export function buildBreadcrumbJsonLd(
+  seo: PageSeo,
+  extras?: Array<{ name: string; path: string }>,
+) {
   const url = absoluteUrl(seo.path);
-  const name = seo.heading || seo.title.split('—')[0].trim() || seo.title;
+  const name = seo.heading || seo.title.split('|')[0].trim() || seo.title;
+  const items = [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Home',
+      item: SITE_URL,
+    },
+    ...(extras ?? []).map((extra, index) => ({
+      '@type': 'ListItem',
+      position: index + 2,
+      name: extra.name,
+      item: absoluteUrl(extra.path),
+    })),
+    {
+      '@type': 'ListItem',
+      position: (extras?.length ?? 0) + 2,
+      name,
+      item: url,
+    },
+  ];
 
   return {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
-    itemListElement: [
-      {
-        '@type': 'ListItem',
-        position: 1,
-        name: 'Home',
-        item: SITE_URL,
-      },
-      {
-        '@type': 'ListItem',
-        position: 2,
-        name,
-        item: url,
-      },
-    ],
+    itemListElement: items,
   };
 }
 
@@ -183,6 +258,7 @@ export function applyPageSeo(
   seo: PageSeo,
   options?: {
     contact?: { phone?: string; email?: string; socials?: Record<string, string> };
+    faqs?: FaqItem[];
   },
 ) {
   const url = absoluteUrl(seo.path);
@@ -190,6 +266,8 @@ export function applyPageSeo(
   const type = seo.type || 'website';
   const isHome = !seo.path || seo.path === '/';
   const isBooking = seo.path === '/booking';
+  const servicePage = getServicePage(seo.path);
+  const isService = Boolean(servicePage);
 
   document.title = seo.title;
 
@@ -230,17 +308,37 @@ export function applyPageSeo(
       name: SITE_NAME,
       url: SITE_URL,
     },
-    about: { '@id': `${SITE_URL}/#business` },
+    about: { '@id': STUDIO_ID },
   });
 
   if (!isHome && !seo.noindex) {
-    upsertJsonLd('seo-jsonld-breadcrumb', buildBreadcrumbJsonLd(seo));
+    const breadcrumbExtras = isService
+      ? [{ name: 'Services', path: '/services' }]
+      : undefined;
+    upsertJsonLd(
+      'seo-jsonld-breadcrumb',
+      buildBreadcrumbJsonLd(seo, breadcrumbExtras),
+    );
   } else {
     removeJsonLd('seo-jsonld-breadcrumb');
   }
 
-  if (isBooking && !seo.noindex) {
-    const faqLd = buildFaqPageJsonLd();
+  const serviceLd = buildServiceJsonLd(seo.path);
+  if (serviceLd && !seo.noindex) {
+    upsertJsonLd('seo-jsonld-service', serviceLd);
+  } else {
+    removeJsonLd('seo-jsonld-service');
+  }
+
+  const faqs =
+    options?.faqs ??
+    (isService && servicePage
+      ? servicePage.faqs
+      : isBooking
+        ? SITE_FAQS
+        : null);
+  if (faqs?.length && !seo.noindex) {
+    const faqLd = buildFaqPageJsonLd(faqs);
     if (faqLd) upsertJsonLd('seo-jsonld-faq', faqLd);
     else removeJsonLd('seo-jsonld-faq');
   } else {

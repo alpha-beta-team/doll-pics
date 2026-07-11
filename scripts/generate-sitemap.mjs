@@ -20,11 +20,17 @@ const routeConfig = {
   '/terms': { changefreq: 'yearly', priority: '0.3' },
 };
 
+const servicePathRe = /-photography-erode$/;
 const lastmod = new Date().toISOString().split('T')[0];
 
 const urlEntries = routes
   .map((path) => {
-    const config = routeConfig[path] ?? { changefreq: 'monthly', priority: '0.7' };
+    const isService = servicePathRe.test(path);
+    const config =
+      routeConfig[path] ??
+      (isService
+        ? { changefreq: 'monthly', priority: '0.9' }
+        : { changefreq: 'monthly', priority: '0.7' });
     // No trailing slash — matches vercel.json trailingSlash:false and seo.ts absoluteUrl
     const loc = path === '/' ? siteUrl : `${siteUrl}${path}`;
 
@@ -49,7 +55,10 @@ const sitemap = [
 
 const robots = [
   'User-agent: *',
-  'Disallow: /admin',
+  'Allow: /',
+  'Disallow: /admin/',
+  'Disallow: /api/',
+  'Disallow: /preview/',
   '',
   `Sitemap: ${siteUrl}/sitemap.xml`,
   '',

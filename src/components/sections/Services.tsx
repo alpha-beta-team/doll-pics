@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useSiteData, type ServiceItem } from '../../contexts/SiteDataContext';
 import { useInView, useMousePosition } from '../../hooks/useScroll';
 import { Heart, Camera, Gift, Baby, Sparkles, Briefcase, Plane, type LucideIcon } from 'lucide-react';
@@ -18,11 +19,15 @@ export function Services() {
           Crafted for every
           <span className="italic text-gradient-gold"> chapter.</span>
         </h2>
+        <p className="mt-6 max-w-xl text-[0.95rem] leading-relaxed text-ink-200/70">
+          Explore dedicated pages for wedding, maternity, newborn, milestone, cake smash
+          and family photography in Erode — with travel across Tamil Nadu.
+        </p>
       </div>
 
       <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {services.map((service, i) => (
-          <ServiceCard key={i} service={service} index={i} />
+          <ServiceCard key={`${service.title}-${service.path ?? i}`} service={service} index={i} />
         ))}
       </div>
     </section>
@@ -31,8 +36,9 @@ export function Services() {
 
 function ServiceCard({ service, index }: { service: ServiceItem; index: number }) {
   const { ref: viewRef, inView } = useInView<HTMLDivElement>();
-  const { ref: mouseRef, pos, handleMove, handleLeave } = useMousePosition<HTMLDivElement>();
+  const { ref: mouseRef, pos, handleMove, handleLeave } = useMousePosition<HTMLAnchorElement>();
   const Icon = iconMap[service.icon] || Camera;
+  const href = service.path || '/services';
 
   return (
     <div
@@ -40,12 +46,13 @@ function ServiceCard({ service, index }: { service: ServiceItem; index: number }
       className={`group relative h-80 perspective-1000 reveal ${inView ? 'in' : ''}`}
       style={{ transitionDelay: `${index * 0.08}s` }}
     >
-      <div
+      <Link
+        to={href}
         ref={mouseRef}
         onMouseMove={handleMove}
         onMouseLeave={handleLeave}
         data-cursor="hover"
-        className="relative h-full w-full preserve-3d rounded-2xl overflow-hidden cursor-pointer transition-transform duration-300 ease-out"
+        className="relative block h-full w-full preserve-3d rounded-2xl overflow-hidden cursor-pointer transition-transform duration-300 ease-out"
         style={{ transform: `perspective(1000px) rotateY(${pos.x * 8}deg) rotateX(${-pos.y * 8}deg)` }}
       >
         <img
@@ -75,7 +82,7 @@ function ServiceCard({ service, index }: { service: ServiceItem; index: number }
         </div>
 
         <div className="absolute inset-0 rounded-2xl border border-white/5 group-hover:border-gold-400/30 transition-all duration-500" />
-      </div>
+      </Link>
     </div>
   );
 }

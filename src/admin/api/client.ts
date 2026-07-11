@@ -444,16 +444,54 @@ export const api = {
 
   // Site Content
   async getSiteContent(): Promise<SiteContent> {
-    return request<SiteContent>('/admin/site-content', { auth: true });
+    const doc = await request<Record<string, unknown>>('/admin/site-content', { auth: true });
+    const links = Array.isArray(doc.serviceNavLinks) ? doc.serviceNavLinks : [];
+    return {
+      brandName: (doc.brandName as string) ?? '',
+      tagline: (doc.tagline as string) ?? '',
+      heroHeading: (doc.heroHeading as string) ?? '',
+      heroSubtext: (doc.heroSubtext as string) ?? '',
+      about: (doc.about as string) ?? '',
+      ourStory: (doc.ourStory as string) ?? '',
+      mission: (doc.mission as string) ?? '',
+      aboutHeroSubtext: (doc.aboutHeroSubtext as string) ?? '',
+      contactEmail: (doc.contactEmail as string) ?? '',
+      whatsapp: (doc.whatsapp as string) ?? '',
+      phone: (doc.phone as string) ?? '',
+      socials: (doc.socials as SiteContent['socials']) ?? {},
+      beforeAfter: (doc.beforeAfter as SiteContent['beforeAfter']) ?? { before: '', after: '' },
+      serviceNavLinks: links.map((raw, index) => {
+        const link = raw as Record<string, unknown>;
+        return {
+          id: String(link._id ?? link.id ?? ''),
+          label: String(link.label ?? ''),
+          path: String(link.path ?? ''),
+          description: String(link.description ?? ''),
+          icon: String(link.icon ?? 'Camera'),
+          imageUrl: String(link.imageUrl ?? ''),
+          order: typeof link.order === 'number' ? link.order : index,
+          isPublished: link.isPublished !== false,
+        };
+      }),
+    };
   },
 
   async updateSiteContent(data: Partial<SiteContent>): Promise<SiteContent> {
     const current = await this.getSiteContent();
-    return request<SiteContent>('/admin/site-content', {
+    const merged = { ...current, ...data };
+    // Strip empty ids so Mongo can create new subdocs
+    const payload = {
+      ...merged,
+      serviceNavLinks: (merged.serviceNavLinks ?? []).map(({ id, ...rest }) =>
+        id ? { _id: id, ...rest } : rest,
+      ),
+    };
+    await request('/admin/site-content', {
       method: 'PUT',
       auth: true,
-      body: JSON.stringify({ ...current, ...data }),
+      body: JSON.stringify(payload),
     });
+    return this.getSiteContent();
   },
 
   // Enquiries

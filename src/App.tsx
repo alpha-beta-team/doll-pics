@@ -1,7 +1,7 @@
 import { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Site } from './pages/Site';
-import { SECTION_PATHS } from './lib/navigation';
+import { SECTION_PATHS, SERVICE_PATHS } from './lib/navigation';
 
 const Packages = lazy(() =>
   import('./pages/Packages').then((m) => ({ default: m.Packages })),
@@ -14,6 +14,9 @@ const Privacy = lazy(() =>
 );
 const Terms = lazy(() =>
   import('./pages/Terms').then((m) => ({ default: m.Terms })),
+);
+const ServicePage = lazy(() =>
+  import('./pages/ServicePage').then((m) => ({ default: m.ServicePage })),
 );
 const NotFound = lazy(() =>
   import('./pages/NotFound').then((m) => ({ default: m.NotFound })),
@@ -75,6 +78,17 @@ function App() {
         />
         {SECTION_PATHS.map((path) => (
           <Route key={path} path={path} element={<Site />} />
+        ))}
+        {SERVICE_PATHS.map((path) => (
+          <Route
+            key={path}
+            path={path}
+            element={
+              <Suspense fallback={<PublicLoading />}>
+                <ServicePage />
+              </Suspense>
+            }
+          />
         ))}
         <Route
           path="/admin/*"

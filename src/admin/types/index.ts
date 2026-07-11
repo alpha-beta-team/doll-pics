@@ -44,6 +44,17 @@ export interface Package {
   isPublished: boolean;
 }
 
+export interface ServiceNavLink {
+  id?: string;
+  label: string;
+  path: string;
+  description: string;
+  icon: string;
+  imageUrl: string;
+  order: number;
+  isPublished: boolean;
+}
+
 export interface SiteContent {
   brandName: string;
   tagline: string;
@@ -66,6 +77,7 @@ export interface SiteContent {
     before: string;
     after: string;
   };
+  serviceNavLinks: ServiceNavLink[];
 }
 
 export interface HeroSlide {

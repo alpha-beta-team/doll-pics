@@ -1,4 +1,7 @@
 User-agent: *
-Disallow: /admin
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /preview/
 
 Sitemap: https://dollpictures.in/sitemap.xml

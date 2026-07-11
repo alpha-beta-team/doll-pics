@@ -1,21 +1,15 @@
 import { Link } from 'react-router-dom';
 import { useSiteData } from '../../contexts/SiteDataContext';
+import { getPublishedServiceNavLinks } from '../../lib/navigation';
 import { Instagram, Facebook, Youtube, Mail, Phone, MapPin } from 'lucide-react';
 
-const footerLinks: Record<
+const staticFooterLinks: Record<
   string,
   Array<{ label: string; to: string }>
 > = {
   Studio: [
     { label: 'About Us', to: '/about' },
     { label: 'Our Team', to: '/about#team' },
-  ],
-  Services: [
-    { label: 'Wedding', to: '/services' },
-    { label: 'Pre-Wedding', to: '/services' },
-    { label: 'Portrait', to: '/services' },
-    { label: 'Commercial', to: '/services' },
-    { label: 'Drone', to: '/services' },
   ],
   Work: [
     { label: 'Portfolio', to: '/work' },
@@ -38,6 +32,16 @@ const socialIcons = [
 export function Footer() {
   const { siteContent } = useSiteData();
   const brand = siteContent.brandName || 'DOLL PICTURES';
+  const serviceLinks = getPublishedServiceNavLinks(siteContent.serviceNavLinks).map(
+    (link) => ({ label: link.label, to: link.path }),
+  );
+
+  const footerLinks = {
+    Studio: staticFooterLinks.Studio,
+    Services: serviceLinks,
+    Work: staticFooterLinks.Work,
+    Connect: staticFooterLinks.Connect,
+  };
 
   return (
     <footer className="relative bg-ink-950 border-t border-white/5 pt-20 pb-10 px-6 lg:px-10">
@@ -78,7 +82,7 @@ export function Footer() {
               <h2 className="text-xs tracking-widest uppercase text-gold-400 mb-4">{title}</h2>
               <ul className="space-y-3">
                 {links.map((link) => (
-                  <li key={link.label}>
+                  <li key={`${link.label}-${link.to}`}>
                     <Link
                       to={link.to}
                       data-cursor="hover"

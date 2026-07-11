@@ -24,12 +24,16 @@ import {
   featuredWork as fallbackFeaturedWork,
   galleryImages as fallbackGalleryImages,
   beforeAfter as fallbackBeforeAfter,
-  services as fallbackServices,
   stats as fallbackStats,
   testimonials as fallbackTestimonials,
   behindScenes as fallbackBehindScenes,
   teamMembers as fallbackTeamMembers,
 } from '../data/content';
+import {
+  DEFAULT_SERVICE_NAV_LINKS,
+  getPublishedServiceNavLinks,
+  normalizeServiceNavLinks,
+} from '../lib/navigation';
 
 export interface FeaturedWorkItem {
   title: string;
@@ -54,6 +58,7 @@ export interface ServiceItem {
   desc: string;
   icon: string;
   image: string;
+  path?: string;
 }
 
 export interface SiteData {
@@ -163,7 +168,20 @@ const defaultSiteContent: PublicSiteContent = {
     instagram: 'https://www.instagram.com/dollpictures_studio/',
   },
   beforeAfter: fallbackBeforeAfter,
+  serviceNavLinks: DEFAULT_SERVICE_NAV_LINKS,
 };
+
+function servicesFromNavLinks(
+  links: ReturnType<typeof getPublishedServiceNavLinks>,
+): ServiceItem[] {
+  return links.map((link) => ({
+    title: link.label,
+    desc: link.description,
+    icon: link.icon || 'Camera',
+    image: link.imageUrl,
+    path: link.path,
+  }));
+}
 
 const normalizedFallbackFeatured: FeaturedWorkItem[] = fallbackFeaturedWork.map(
   (w) => ({
@@ -186,12 +204,7 @@ const fallbackData: Omit<SiteData, 'loading' | 'fromApi'> = {
   featuredWork: normalizedFallbackFeatured,
   galleryImages: normalizedFallbackGallery,
   beforeAfter: fallbackBeforeAfter,
-  services: fallbackServices.map((s) => ({
-    title: s.title,
-    desc: s.desc,
-    icon: s.icon,
-    image: s.image,
-  })),
+  services: servicesFromNavLinks(DEFAULT_SERVICE_NAV_LINKS),
   packages: fallbackPackages,
   stats: fallbackStats,
   testimonials: fallbackTestimonials,
@@ -228,6 +241,13 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
         const nextHero =
           heroSlides.length > 0 ? heroSlides : fallbackHeroSlides;
 
+        const serviceNavLinks = normalizeServiceNavLinks(
+          siteContent.serviceNavLinks,
+        );
+        const services = servicesFromNavLinks(
+          getPublishedServiceNavLinks(serviceNavLinks),
+        );
+
         setData((prev) => ({
           ...prev,
           siteContent: {
@@ -240,7 +260,9 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
             beforeAfter: siteContent.beforeAfter?.before
               ? siteContent.beforeAfter
               : fallbackBeforeAfter,
+            serviceNavLinks,
           },
+          services,
           // Preserve first-slide image briefly via Hero; apply API slides as returned.
           heroSlides: nextHero,
           beforeAfter: siteContent.beforeAfter?.before
@@ -315,15 +337,6 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
                   }))
               : normalizedFallbackGallery;
 
-            const services: ServiceItem[] = packages.length
-              ? packages.map((p) => ({
-                  title: p.name,
-                  desc: p.description,
-                  icon: p.icon || 'Camera',
-                  image: p.imageUrl || '',
-                }))
-              : fallbackData.services;
-
             const normalizedPackages: PublicPackage[] = packages.length
               ? packages.map((p) => ({
                   ...p,
@@ -344,7 +357,6 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
                 galleryImages.length > 0
                   ? galleryImages
                   : normalizedFallbackGallery,
-              services,
               packages: normalizedPackages,
               stats: stats.length ? stats : fallbackStats,
               testimonials: testimonials.length
