@@ -18,19 +18,25 @@ function isTrackingAllowed(pathname: string): boolean {
 }
 
 function ensureGtagLoaded(id: string): void {
+  window.dataLayer = window.dataLayer || [];
+
+  // Must push `arguments` (not a rest-args array) for gtag.js to process the queue.
+  if (typeof window.gtag !== 'function') {
+    window.gtag = function gtag() {
+      // eslint-disable-next-line prefer-rest-params
+      window.dataLayer.push(arguments);
+    };
+  }
+
   if (document.getElementById('ga4-gtag')) return;
 
-  window.dataLayer = window.dataLayer || [];
-  window.gtag = function gtag(...args: unknown[]) {
-    window.dataLayer.push(args);
-  };
   window.gtag('js', new Date());
   window.gtag('config', id, { send_page_view: false });
 
   const script = document.createElement('script');
   script.id = 'ga4-gtag';
   script.async = true;
-  script.src = `https://www.googletagmanager.com/gtag/js?id=${id}`;
+  script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(id)}`;
   document.head.appendChild(script);
 }
 
