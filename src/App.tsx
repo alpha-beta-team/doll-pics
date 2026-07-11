@@ -1,5 +1,6 @@
 import { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { GoogleAnalytics } from './components/GoogleAnalytics';
 import { Site } from './pages/Site';
 import { SECTION_PATHS, SERVICE_PATHS } from './lib/navigation';
 
@@ -42,6 +43,7 @@ function PublicLoading() {
 function App() {
   return (
     <BrowserRouter>
+      <GoogleAnalytics />
       <Routes>
         <Route path="/" element={<Site />} />
         <Route
