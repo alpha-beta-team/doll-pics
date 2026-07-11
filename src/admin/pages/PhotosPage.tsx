@@ -292,8 +292,8 @@ export function PhotosPage() {
         <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
           <AlertCircle className="w-5 h-5" />
           <span>{error}</span>
-          <button onClick={() => setError(null)} className="ml-auto">
-            <X className="w-4 h-4" />
+          <button type="button" onClick={() => setError(null)} aria-label="Dismiss error" className="ml-auto">
+            <X className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
       )}
@@ -475,47 +475,52 @@ export function PhotosPage() {
 
               <div className="absolute inset-0 flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
+                  type="button"
                   onClick={() => setPreviewPhoto(photo)}
                   className="p-2 bg-white rounded-lg text-gray-700 hover:bg-gray-100"
-                  title="Preview"
+                  aria-label="Preview photo"
                 >
-                  <Maximize2 className="w-4 h-4" />
+                  <Maximize2 className="w-4 h-4" aria-hidden="true" />
                 </button>
                 <button
+                  type="button"
                   onClick={() => handleFeatureToggle(photo.id, !photo.isFeatured)}
                   className={`p-2 rounded-lg ${
                     photo.isFeatured ? 'bg-yellow-500 text-white' : 'bg-white text-gray-700'
                   }`}
-                  title={photo.isFeatured ? 'Remove from featured' : 'Feature on homepage'}
+                  aria-label={photo.isFeatured ? 'Remove from featured' : 'Feature on homepage'}
                 >
-                  <Star className="w-4 h-4" />
+                  <Star className="w-4 h-4" aria-hidden="true" />
                 </button>
                 <button
+                  type="button"
                   onClick={() => handlePublishToggle(photo.id, !photo.isPublished)}
                   className={`p-2 rounded-lg ${
                     photo.isPublished ? 'bg-white text-gray-700' : 'bg-green-500 text-white'
                   }`}
-                  title={photo.isPublished ? 'Unpublish' : 'Publish'}
+                  aria-label={photo.isPublished ? 'Unpublish' : 'Publish'}
                 >
                   {photo.isPublished ? (
-                    <EyeOff className="w-4 h-4" />
+                    <EyeOff className="w-4 h-4" aria-hidden="true" />
                   ) : (
-                    <Eye className="w-4 h-4" />
+                    <Eye className="w-4 h-4" aria-hidden="true" />
                   )}
                 </button>
                 <button
+                  type="button"
                   onClick={() => setEditingPhoto(photo)}
                   className="p-2 bg-white rounded-lg text-gray-700 hover:bg-gray-100"
-                  title="Edit"
+                  aria-label="Edit photo"
                 >
-                  <MoreVertical className="w-4 h-4" />
+                  <MoreVertical className="w-4 h-4" aria-hidden="true" />
                 </button>
                 <button
+                  type="button"
                   onClick={() => handleDelete(photo.id)}
                   className="p-2 bg-white rounded-lg text-red-600 hover:bg-red-50"
-                  title="Delete"
+                  aria-label="Delete photo"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-4 h-4" aria-hidden="true" />
                 </button>
               </div>
             </div>
@@ -549,13 +554,15 @@ export function PhotosPage() {
               <h2 className="text-lg font-semibold text-gray-900">Uploading Photos</h2>
               {!isUploading && (
                 <button
+                  type="button"
                   onClick={() => {
                     setShowUploadModal(false);
                     setUploadingFiles([]);
                   }}
+                  aria-label="Close"
                   className="p-1 hover:bg-gray-100 rounded"
                 >
-                  <X className="w-5 h-5 text-gray-500" />
+                  <X className="w-5 h-5 text-gray-500" aria-hidden="true" />
                 </button>
               )}
             </div>
@@ -658,7 +665,7 @@ function PhotoThumbnail({ photo, onPreview }: PhotoThumbnailProps) {
       type="button"
       onClick={onPreview}
       className="absolute inset-0 w-full h-full cursor-pointer"
-      title="Click to preview"
+      aria-label={`Preview ${photo.title}`}
     >
       <img
         src={src}
@@ -705,36 +712,39 @@ function PhotoPreviewModal({ photo, photos, onClose, onNavigate }: PhotoPreviewM
       onClick={onClose}
     >
       <button
+        type="button"
         onClick={onClose}
         className="absolute top-4 right-4 p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg"
-        title="Close"
+        aria-label="Close preview"
       >
-        <X className="w-6 h-6" />
+        <X className="w-6 h-6" aria-hidden="true" />
       </button>
 
       {hasPrev && (
         <button
+          type="button"
           onClick={e => {
             e.stopPropagation();
             onNavigate(photos[currentIndex - 1]);
           }}
           className="absolute left-4 p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg"
-          title="Previous photo"
+          aria-label="Previous photo"
         >
-          <ChevronLeft className="w-8 h-8" />
+          <ChevronLeft className="w-8 h-8" aria-hidden="true" />
         </button>
       )}
 
       {hasNext && (
         <button
+          type="button"
           onClick={e => {
             e.stopPropagation();
             onNavigate(photos[currentIndex + 1]);
           }}
           className="absolute right-4 p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg"
-          title="Next photo"
+          aria-label="Next photo"
         >
-          <ChevronRight className="w-8 h-8" />
+          <ChevronRight className="w-8 h-8" aria-hidden="true" />
         </button>
       )}
 
@@ -807,8 +817,8 @@ function PhotoEditModal({ photo, categories, onClose, onSave }: PhotoEditModalPr
       <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden">
         <div className="p-4 border-b border-gray-200 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900">Edit Photo</h2>
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
-            <X className="w-5 h-5 text-gray-500" />
+          <button type="button" onClick={onClose} aria-label="Close" className="p-1 hover:bg-gray-100 rounded">
+            <X className="w-5 h-5 text-gray-500" aria-hidden="true" />
           </button>
         </div>
 

@@ -114,25 +114,31 @@ function Lightbox({ index, onClose }: { index: number; onClose: () => void }) {
       onClick={onClose}
     >
       <button
+        type="button"
         onClick={onClose}
         data-cursor="hover"
+        aria-label="Close lightbox"
         className="absolute top-6 right-6 w-12 h-12 glass rounded-full flex items-center justify-center text-ink-50 hover:text-gold-400 transition-colors z-10"
       >
-        <X className="w-5 h-5" />
+        <X className="w-5 h-5" aria-hidden="true" />
       </button>
       <button
+        type="button"
         onClick={(e) => nav(-1, e)}
         data-cursor="hover"
+        aria-label="Previous image"
         className="absolute left-6 w-12 h-12 glass rounded-full flex items-center justify-center text-ink-50 hover:text-gold-400 transition-colors z-10"
       >
-        <ChevronLeft className="w-6 h-6" />
+        <ChevronLeft className="w-6 h-6" aria-hidden="true" />
       </button>
       <button
+        type="button"
         onClick={(e) => nav(1, e)}
         data-cursor="hover"
+        aria-label="Next image"
         className="absolute right-6 w-12 h-12 glass rounded-full flex items-center justify-center text-ink-50 hover:text-gold-400 transition-colors z-10"
       >
-        <ChevronRight className="w-6 h-6" />
+        <ChevronRight className="w-6 h-6" aria-hidden="true" />
       </button>
 
       <div

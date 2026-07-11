@@ -111,8 +111,8 @@ export function CategoriesPage() {
       <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
         <AlertCircle className="w-5 h-5 flex-shrink-0" />
         <span>{error}</span>
-        <button onClick={() => setError(null)} className="ml-auto hover:text-red-900">
-          <X className="w-4 h-4" />
+        <button type="button" onClick={() => setError(null)} aria-label="Dismiss error" className="ml-auto hover:text-red-900">
+          <X className="w-4 h-4" aria-hidden="true" />
         </button>
       </div>
     );
@@ -184,25 +184,27 @@ export function CategoriesPage() {
 
                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
+                    type="button"
                     onClick={() => setEditingCategory(category)}
                     className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
-                    title="Edit"
+                    aria-label="Edit category"
                   >
-                    <Pencil className="w-4 h-4" />
+                    <Pencil className="w-4 h-4" aria-hidden="true" />
                   </button>
                   <button
+                    type="button"
                     onClick={() => handleTogglePublished(category.id, !category.isPublished)}
                     className={`p-2 rounded-lg ${
                       category.isPublished
                         ? 'text-gray-600 hover:bg-gray-100'
                         : 'text-green-600 hover:bg-green-50'
                     }`}
-                    title={category.isPublished ? 'Unpublish' : 'Publish'}
+                    aria-label={category.isPublished ? 'Unpublish' : 'Publish'}
                   >
                     {category.isPublished ? (
-                      <EyeOff className="w-4 h-4" />
+                      <EyeOff className="w-4 h-4" aria-hidden="true" />
                     ) : (
-                      <Eye className="w-4 h-4" />
+                      <Eye className="w-4 h-4" aria-hidden="true" />
                     )}
                   </button>
                 </div>
@@ -285,8 +287,8 @@ function CategoryEditModal({ category, photos, onClose, onSave }: CategoryEditMo
       <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
         <div className="p-4 border-b border-gray-200 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900">Edit Category</h2>
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
-            <X className="w-5 h-5 text-gray-500" />
+          <button type="button" onClick={onClose} aria-label="Close" className="p-1 hover:bg-gray-100 rounded">
+            <X className="w-5 h-5 text-gray-500" aria-hidden="true" />
           </button>
         </div>
 
@@ -360,8 +362,11 @@ function CategoryEditModal({ category, photos, onClose, onSave }: CategoryEditMo
               ) : (
                 categoryPhotos.map(photo => (
                   <button
+                    type="button"
                     key={photo.id}
                     onClick={() => setCoverPhotoId(photo.id)}
+                    aria-label={`Set cover photo: ${photo.title}`}
+                    aria-pressed={coverPhotoId === photo.id}
                     className={`relative aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 transition-all ${
                       coverPhotoId === photo.id
                         ? 'border-blue-500 ring-2 ring-blue-200'

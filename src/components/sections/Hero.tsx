@@ -244,7 +244,8 @@ export function Hero() {
             }}
             data-cursor="hover"
             className="group"
-            aria-label={`Show slide ${i + 1}`}
+            aria-label={`Show slide ${i + 1} of ${slides.length}`}
+            aria-current={i === active ? 'true' : undefined}
           >
             <div
               className={`h-px transition-all duration-500 ${

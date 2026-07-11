@@ -114,8 +114,8 @@ export function PackagesPage() {
       <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
         <AlertCircle className="w-5 h-5 flex-shrink-0" />
         <span>{error}</span>
-        <button onClick={() => setError(null)} className="ml-auto hover:text-red-900">
-          <X className="w-4 h-4" />
+        <button type="button" onClick={() => setError(null)} aria-label="Dismiss error" className="ml-auto hover:text-red-900">
+          <X className="w-4 h-4" aria-hidden="true" />
         </button>
       </div>
     );
@@ -194,33 +194,36 @@ export function PackagesPage() {
 
                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
+                    type="button"
                     onClick={() => setEditingPackage(pkg)}
                     className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
-                    title="Edit"
+                    aria-label="Edit package"
                   >
-                    <Pencil className="w-4 h-4" />
+                    <Pencil className="w-4 h-4" aria-hidden="true" />
                   </button>
                   <button
+                    type="button"
                     onClick={() => handleTogglePublished(pkg.id, !pkg.isPublished)}
                     className={`p-2 rounded-lg ${
                       pkg.isPublished
                         ? 'text-gray-600 hover:bg-gray-100'
                         : 'text-green-600 hover:bg-green-50'
                     }`}
-                    title={pkg.isPublished ? 'Unpublish' : 'Publish'}
+                    aria-label={pkg.isPublished ? 'Unpublish' : 'Publish'}
                   >
                     {pkg.isPublished ? (
-                      <EyeOff className="w-4 h-4" />
+                      <EyeOff className="w-4 h-4" aria-hidden="true" />
                     ) : (
-                      <Eye className="w-4 h-4" />
+                      <Eye className="w-4 h-4" aria-hidden="true" />
                     )}
                   </button>
                   <button
+                    type="button"
                     onClick={() => handleDelete(pkg.id)}
                     className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                    title="Delete"
+                    aria-label="Delete package"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-4 h-4" aria-hidden="true" />
                   </button>
                 </div>
               </div>
@@ -313,8 +316,8 @@ function PackageEditModal({ pkg, onClose, onSave }: PackageEditModalProps) {
           <h2 className="text-lg font-semibold text-gray-900">
             {pkg ? 'Edit Package' : 'Create Package'}
           </h2>
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
-            <X className="w-5 h-5 text-gray-500" />
+          <button type="button" onClick={onClose} aria-label="Close" className="p-1 hover:bg-gray-100 rounded">
+            <X className="w-5 h-5 text-gray-500" aria-hidden="true" />
           </button>
         </div>
 
@@ -398,10 +401,12 @@ function PackageEditModal({ pkg, onClose, onSave }: PackageEditModalProps) {
                 >
                   <span className="flex-1 text-sm text-gray-700">{item}</span>
                   <button
+                    type="button"
                     onClick={() => handleRemoveInclusion(index)}
+                    aria-label={`Remove inclusion: ${item}`}
                     className="p-1 text-gray-400 hover:text-red-600"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-4 h-4" aria-hidden="true" />
                   </button>
                 </div>
               ))}

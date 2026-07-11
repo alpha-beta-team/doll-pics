@@ -30,9 +30,9 @@ const footerLinks: Record<
 };
 
 const socialIcons = [
-  { key: 'instagram', Icon: Instagram, label: 'Instagram' },
-  { key: 'facebook', Icon: Facebook, label: 'Facebook' },
-  { key: 'youtube', Icon: Youtube, label: 'YouTube' },
+  { key: 'instagram', Icon: Instagram, label: 'Follow us on Instagram' },
+  { key: 'facebook', Icon: Facebook, label: 'Follow us on Facebook' },
+  { key: 'youtube', Icon: Youtube, label: 'Watch us on YouTube' },
 ] as const;
 
 export function Footer() {

@@ -13,6 +13,7 @@ import {
   Facebook,
   Twitter,
   Youtube,
+  X,
 } from 'lucide-react';
 
 const defaultSiteContent: SiteContent = {
@@ -135,8 +136,8 @@ export function SiteContentPage() {
         <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
           <AlertCircle className="w-5 h-5 flex-shrink-0" />
           <span>{error}</span>
-          <button onClick={() => setError(null)} className="ml-auto hover:text-red-900">
-            <span className="sr-only">Dismiss</span>
+          <button type="button" onClick={() => setError(null)} aria-label="Dismiss error" className="ml-auto hover:text-red-900">
+            <X className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
       )}

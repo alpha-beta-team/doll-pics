@@ -143,8 +143,8 @@ export function BookingsPage() {
         <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
           <AlertCircle className="w-5 h-5 flex-shrink-0" />
           <span>{error}</span>
-          <button onClick={() => setError(null)} className="ml-auto hover:text-red-900">
-            <X className="w-4 h-4" />
+          <button type="button" onClick={() => setError(null)} aria-label="Dismiss error" className="ml-auto hover:text-red-900">
+            <X className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
       )}
@@ -296,18 +296,20 @@ export function BookingsPage() {
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
                         <button
+                          type="button"
                           onClick={() => setEditingBooking(booking)}
                           className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                          title="Edit"
+                          aria-label="Edit booking"
                         >
-                          <Pencil className="w-4 h-4" />
+                          <Pencil className="w-4 h-4" aria-hidden="true" />
                         </button>
                         <button
+                          type="button"
                           onClick={() => setSelectedBooking(booking)}
                           className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                          title="View details"
+                          aria-label="View booking details"
                         >
-                          <ChevronRight className="w-4 h-4" />
+                          <ChevronRight className="w-4 h-4" aria-hidden="true" />
                         </button>
                       </div>
                     </td>
@@ -398,8 +400,8 @@ function BookingDrawer({
       <div className="absolute right-0 top-0 h-full w-full max-w-lg bg-white shadow-xl flex flex-col">
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">Booking Details</h2>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
-            <X className="w-5 h-5 text-gray-500" />
+          <button type="button" onClick={onClose} aria-label="Close" className="p-2 hover:bg-gray-100 rounded-lg">
+            <X className="w-5 h-5 text-gray-500" aria-hidden="true" />
           </button>
         </div>
 
@@ -584,8 +586,8 @@ function BookingEditModal({ booking, onClose, onSave }: BookingEditModalProps) {
           <h2 className="text-lg font-semibold text-gray-900">
             {booking ? 'Edit Booking' : 'Create Booking'}
           </h2>
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
-            <X className="w-5 h-5 text-gray-500" />
+          <button type="button" onClick={onClose} aria-label="Close" className="p-1 hover:bg-gray-100 rounded">
+            <X className="w-5 h-5 text-gray-500" aria-hidden="true" />
           </button>
         </div>
 

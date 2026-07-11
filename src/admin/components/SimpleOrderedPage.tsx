@@ -126,16 +126,28 @@ export function SimpleOrderedPage<T extends OrderedItem>({
             {renderPreview?.(item)}
             <div className="flex items-center gap-2 ml-auto shrink-0">
               <button
+                type="button"
                 onClick={() => handleToggle(item)}
+                aria-label={item.isPublished ? 'Unpublish' : 'Publish'}
                 className={`p-2 rounded-lg ${item.isPublished ? 'text-green-600 bg-green-50' : 'text-gray-400 bg-gray-50'}`}
               >
-                {item.isPublished ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                {item.isPublished ? <Eye className="w-4 h-4" aria-hidden="true" /> : <EyeOff className="w-4 h-4" aria-hidden="true" />}
               </button>
-              <button onClick={() => setEditing(item)} className="p-2 rounded-lg text-gray-600 hover:bg-gray-100">
-                <Pencil className="w-4 h-4" />
+              <button
+                type="button"
+                onClick={() => setEditing(item)}
+                aria-label="Edit"
+                className="p-2 rounded-lg text-gray-600 hover:bg-gray-100"
+              >
+                <Pencil className="w-4 h-4" aria-hidden="true" />
               </button>
-              <button onClick={() => handleDelete(item.id)} className="p-2 rounded-lg text-red-600 hover:bg-red-50">
-                <Trash2 className="w-4 h-4" />
+              <button
+                type="button"
+                onClick={() => handleDelete(item.id)}
+                aria-label="Delete"
+                className="p-2 rounded-lg text-red-600 hover:bg-red-50"
+              >
+                <Trash2 className="w-4 h-4" aria-hidden="true" />
               </button>
             </div>
           </div>

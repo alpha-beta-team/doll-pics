@@ -74,11 +74,14 @@ export function Navbar() {
                 Book Now
               </Link>
               <button
+                type="button"
                 onClick={() => setOpen(!open)}
                 className="lg:hidden text-ink-50"
                 data-cursor="hover"
+                aria-label={open ? 'Close menu' : 'Open menu'}
+                aria-expanded={open}
               >
-                {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                {open ? <X className="w-6 h-6" aria-hidden="true" /> : <Menu className="w-6 h-6" aria-hidden="true" />}
               </button>
             </div>
           </nav>
