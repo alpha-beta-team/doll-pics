@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useSiteData } from '../../contexts/SiteDataContext';
+import { trackPhoneClick } from '../../lib/analytics';
 import { getPublishedServiceNavLinks } from '../../lib/navigation';
 import { Instagram, Facebook, Youtube, Mail, Phone, MapPin } from 'lucide-react';
 
@@ -104,7 +105,12 @@ export function Footer() {
             </a>
           )}
           {siteContent.phone && (
-            <a href={`tel:${siteContent.phone.replace(/\s/g, '')}`} data-cursor="hover" className="flex items-center gap-3 text-ink-200/60 hover:text-gold-400 transition-colors">
+            <a
+              href={`tel:${siteContent.phone.replace(/\s/g, '')}`}
+              data-cursor="hover"
+              onClick={() => trackPhoneClick({ cta_location: 'footer' })}
+              className="flex items-center gap-3 text-ink-200/60 hover:text-gold-400 transition-colors"
+            >
               <Phone className="w-5 h-5" /> {siteContent.phone}
             </a>
           )}

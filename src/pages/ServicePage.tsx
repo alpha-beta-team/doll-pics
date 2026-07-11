@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
 import { SiteDataProvider, useSiteData } from '../contexts/SiteDataContext';
 import { CustomCursor } from '../components/CustomCursor';
 import { SmoothScroll } from '../components/SmoothScroll';
@@ -8,6 +9,7 @@ import { ContactFabHost } from '../components/packages/ContactFabs';
 import { ResponsiveImage } from '../components/ResponsiveImage';
 import { usePageSeo } from '../hooks/usePageSeo';
 import { useInView } from '../hooks/useScroll';
+import { trackPhoneClick, trackViewService } from '../lib/analytics';
 import { getServicePage } from '../lib/seo';
 import { selectServiceImages, type ServiceImage } from '../lib/serviceImages';
 import { SERVICE_ROUTES } from '../lib/navigation';
@@ -23,12 +25,23 @@ function ServicePageContent() {
     pathname.endsWith('/') && pathname !== '/' ? pathname.slice(0, -1) : pathname;
   const { siteContent, featuredWork, galleryImages } = useSiteData();
   const page = getServicePage(path);
+  const viewTrackedPath = useRef<string | null>(null);
 
   usePageSeo({
     phone: siteContent.phone,
     email: siteContent.contactEmail,
     socials: siteContent.socials,
   });
+
+  useEffect(() => {
+    if (!page) return;
+    if (viewTrackedPath.current === path) return;
+    viewTrackedPath.current = path;
+    trackViewService({
+      service_name: page.label,
+      page_path: path,
+    });
+  }, [page, path]);
 
   if (!page) return <NotFound />;
 
@@ -166,6 +179,12 @@ function ServicePageContent() {
                     <a
                       href={phoneHref}
                       className="text-gold-400 transition-colors hover:text-gold-300"
+                      onClick={() =>
+                        trackPhoneClick({
+                          cta_location: 'service_page',
+                          page_path: path,
+                        })
+                      }
                     >
                       {siteContent.phone}
                     </a>

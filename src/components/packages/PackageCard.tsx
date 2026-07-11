@@ -1,14 +1,22 @@
 import { Check } from 'lucide-react';
 import type { PublicPackage } from '../../lib/api';
+import { trackWhatsAppClick, type WhatsAppCtaLocation } from '../../lib/analytics';
 import { formatPackagePrice, packageWhatsAppUrl } from '../../lib/pricing';
 
 interface PackageCardProps {
   pkg: PublicPackage;
   whatsapp: string;
   index?: number;
+  /** Where this card appears; package WhatsApp CTAs map to booking intent. */
+  ctaLocation?: WhatsAppCtaLocation;
 }
 
-export function PackageCard({ pkg, whatsapp, index = 0 }: PackageCardProps) {
+export function PackageCard({
+  pkg,
+  whatsapp,
+  index = 0,
+  ctaLocation = 'booking_page',
+}: PackageCardProps) {
   const priceLabel = formatPackagePrice(pkg.pricingMode, pkg.price);
   const bookHref = packageWhatsAppUrl(whatsapp, pkg.name);
   const isExternal = bookHref.startsWith('http');
@@ -61,6 +69,14 @@ export function PackageCard({ pkg, whatsapp, index = 0 }: PackageCardProps) {
             href={bookHref}
             {...(isExternal ? { target: '_blank', rel: 'noreferrer' } : {})}
             data-cursor="hover"
+            onClick={() => {
+              if (isExternal) {
+                trackWhatsAppClick({
+                  cta_location: ctaLocation,
+                  service_name: pkg.name,
+                });
+              }
+            }}
             className="group/btn relative inline-flex items-center justify-center overflow-hidden border border-white/20 px-9 py-3 text-[0.7rem] font-medium tracking-[0.22em] text-ink-50 transition-all duration-400 hover:border-gold-400/60 hover:text-gold-300"
           >
             <span className="relative z-10">BOOK NOW</span>

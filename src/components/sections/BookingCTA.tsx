@@ -3,6 +3,10 @@ import { Link } from 'react-router-dom';
 import { useInView } from '../../hooks/useScroll';
 import { ArrowRight, X } from 'lucide-react';
 import { publicApi } from '../../lib/api';
+import {
+  trackBookingStart,
+  trackGenerateLead,
+} from '../../lib/analytics';
 
 export function BookingCTA() {
   const bgRef = useRef<HTMLDivElement>(null);
@@ -30,6 +34,8 @@ export function BookingCTA() {
     onScroll();
     return () => { window.removeEventListener('scroll', onScroll); cancelAnimationFrame(raf); };
   }, []);
+
+  const openForm = () => setShowForm(true);
 
   return (
     <section id="booking" className="relative min-h-screen flex items-center justify-center overflow-hidden px-6">
@@ -76,14 +82,14 @@ export function BookingCTA() {
           className={`mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 ${inView ? 'fade-in-up stagger-4' : ''}`}
           style={{ opacity: inView ? undefined : 0.001 }}
         >
-          <button data-cursor="hover" className="btn-primary group" onClick={() => setShowForm(true)}>
+          <button data-cursor="hover" className="btn-primary group" onClick={openForm}>
             <span className="relative z-10 flex items-center gap-2">
               Let's Create Your Story
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </span>
             <span className="absolute inset-0 bg-gradient-to-r from-gold-400 to-gold-300 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
           </button>
-          <button data-cursor="hover" className="btn-ghost" onClick={() => setShowForm(true)}>
+          <button data-cursor="hover" className="btn-ghost" onClick={openForm}>
             Book a Free Consultation
           </button>
         </div>
@@ -102,6 +108,16 @@ function EnquiryModal({ onClose }: { onClose: () => void }) {
   const [message, setMessage] = useState('');
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
+  // One booking_start per modal open (not per field change).
+  const bookingStartSent = useRef(false);
+  const leadSent = useRef(false);
+
+  useEffect(() => {
+    if (bookingStartSent.current) return;
+    bookingStartSent.current = true;
+    trackBookingStart({ service_name: shootType });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fire once on open with initial shoot type
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,6 +126,13 @@ function EnquiryModal({ onClose }: { onClose: () => void }) {
     try {
       await publicApi.createEnquiry({ name, email, phone, shootType, message });
       setStatus('success');
+      if (!leadSent.current) {
+        leadSent.current = true;
+        trackGenerateLead({
+          method: 'booking_form',
+          service_name: shootType,
+        });
+      }
     } catch (err) {
       setStatus('error');
       setErrorMsg(err instanceof Error ? err.message : 'Failed to send enquiry');
