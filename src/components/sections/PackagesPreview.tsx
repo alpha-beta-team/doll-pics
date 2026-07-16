@@ -13,7 +13,7 @@ export function PackagesPreview() {
         className="pointer-events-none absolute inset-x-0 top-0 h-64 opacity-50"
         style={{
           background:
-            'radial-gradient(ellipse 70% 80% at 50% 0%, rgba(212,162,73,0.1), transparent)',
+            'radial-gradient(ellipse 70% 80% at 50% 0%, rgb(var(--gold-glow) / 0.1), transparent)',
         }}
       />
 
@@ -38,7 +38,7 @@ export function PackagesPreview() {
           <Link
             to="/packages"
             data-cursor="hover"
-            className="group inline-flex items-center gap-3 border border-white/20 px-9 py-3.5 text-[0.7rem] font-medium uppercase tracking-[0.22em] text-ink-50 transition-all duration-400 hover:border-gold-400/60 hover:text-gold-300"
+            className="group inline-flex items-center gap-3 border border-hairline/20 px-9 py-3.5 text-[0.7rem] font-medium uppercase tracking-[0.22em] text-ink-50 transition-all duration-400 hover:border-gold-400/60 hover:text-gold-300"
           >
             View all packages
             <span className="h-px w-6 bg-current transition-all duration-400 group-hover:w-10" />

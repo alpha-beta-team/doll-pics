@@ -58,14 +58,14 @@ function FeatureCard({ work, index }: { work: FeaturedWorkItem; index: number })
           />
         </div>
 
-        <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/20 to-transparent opacity-80 group-hover:opacity-95 transition-opacity duration-500" />
-        <div className="absolute inset-0 rounded-2xl border border-white/0 group-hover:border-gold-400/40 transition-all duration-500" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-80 group-hover:opacity-95 transition-opacity duration-500" />
+        <div className="absolute inset-0 rounded-2xl border border-hairline/0 group-hover:border-gold-400/40 transition-all duration-500" />
 
         <div className="absolute inset-0 flex flex-col justify-end p-6">
           <div className="transform transition-all duration-500 group-hover:translate-y-0 translate-y-2">
             <div className="section-label mb-2 text-gold-300">{work.category}</div>
-            <h3 className="font-display text-3xl font-light text-ink-50 mb-2">{work.title}</h3>
-            <div className="flex items-center gap-4 text-xs text-ink-200/70 overflow-hidden max-h-0 group-hover:max-h-12 transition-all duration-500">
+            <h3 className="font-display text-3xl font-light text-white mb-2">{work.title}</h3>
+            <div className="flex items-center gap-4 text-xs text-white/70 overflow-hidden max-h-0 group-hover:max-h-12 transition-all duration-500">
               <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {work.location}</span>
               <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {work.year}</span>
             </div>
@@ -155,10 +155,10 @@ function Lightbox({ index, onClose }: { index: number; onClose: () => void }) {
           loading="eager"
           className="w-full h-full object-contain rounded-xl"
         />
-        <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-ink-950 to-transparent rounded-b-xl">
+        <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black to-transparent rounded-b-xl">
           <div className="section-label mb-1 text-gold-300">{work.category}</div>
-          <h3 className="font-display text-4xl font-light text-ink-50">{work.title}</h3>
-          <div className="flex items-center gap-4 mt-2 text-sm text-ink-200/70">
+          <h3 className="font-display text-4xl font-light text-white">{work.title}</h3>
+          <div className="flex items-center gap-4 mt-2 text-sm text-white/70">
             <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4" /> {work.location}</span>
             <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4" /> {work.year}</span>
           </div>

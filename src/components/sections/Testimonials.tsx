@@ -67,7 +67,7 @@ export function Testimonials() {
               </div>
             </div>
 
-            <div className="mt-6 pt-6 border-t border-white/10">
+            <div className="mt-6 pt-6 border-t border-hairline/10">
               <div className="text-xs tracking-widest uppercase text-gold-400 mb-2">Photographer's Reply</div>
               <p className="text-sm text-ink-200/70 italic">{t.reply}</p>
             </div>

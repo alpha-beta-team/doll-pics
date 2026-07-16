@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ChevronDown, Menu, X } from 'lucide-react';
+import { ChevronDown, Menu, Moon, Sun, X } from 'lucide-react';
 import { useSiteData } from '../contexts/SiteDataContext';
+import { useTheme } from '../contexts/ThemeContext';
 import {
   BOOKING_ROUTE,
   NAV_LINKS,
@@ -11,6 +12,7 @@ import {
 
 export function Navbar() {
   const { siteContent } = useSiteData();
+  const { theme, toggleTheme } = useTheme();
   const { pathname } = useLocation();
   const brand = siteContent.brandName || 'DOLL PICTURES';
   const [scrolled, setScrolled] = useState(false);
@@ -56,7 +58,9 @@ export function Navbar() {
       >
         <div
           className={`transition-all duration-500 ${
-            scrolled ? 'glass-strong shadow-2xl shadow-black/30' : 'bg-transparent'
+            scrolled || theme === 'light'
+              ? 'glass-strong shadow-2xl shadow-black/30'
+              : 'bg-transparent'
           }`}
         >
           <nav className="max-w-7xl mx-auto px-6 lg:px-10 h-20 flex items-center justify-between">
@@ -70,7 +74,7 @@ export function Navbar() {
                 alt="Doll Pictures logo"
                 width={44}
                 height={44}
-                className="h-11 w-11 rounded-full object-cover ring-1 ring-white/15 transition-transform duration-700 group-hover:scale-105"
+                className="h-11 w-11 rounded-full object-cover ring-1 ring-hairline/15 transition-transform duration-700 group-hover:scale-105"
               />
               <span className="font-display text-xl font-semibold tracking-[0.3em] text-ink-50">
                 {brand}
@@ -111,7 +115,7 @@ export function Navbar() {
 
                     {servicesOpen ? (
                       <div className="absolute left-1/2 top-full z-50 pt-3 -translate-x-1/2">
-                        <div className="min-w-[14rem] rounded-xl border border-white/10 bg-ink-950/95 p-3 shadow-2xl shadow-black/50 backdrop-blur-xl">
+                        <div className="min-w-[14rem] rounded-xl border border-hairline/10 bg-ink-950/95 p-3 shadow-2xl shadow-black/50 backdrop-blur-xl">
                           <ul className="space-y-1">
                             {serviceLinks.map((item) => (
                               <li key={item.path}>
@@ -120,8 +124,8 @@ export function Navbar() {
                                   data-cursor="hover"
                                   className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
                                     pathname === item.path
-                                      ? 'bg-white/5 text-gold-400'
-                                      : 'text-ink-200/80 hover:bg-white/5 hover:text-ink-50'
+                                      ? 'bg-hairline/5 text-gold-400'
+                                      : 'text-ink-200/80 hover:bg-hairline/5 hover:text-ink-50'
                                   }`}
                                   onClick={() => setServicesOpen(false)}
                                 >
@@ -130,11 +134,11 @@ export function Navbar() {
                               </li>
                             ))}
                           </ul>
-                          <div className="mt-2 border-t border-white/10 pt-2">
+                          <div className="mt-2 border-t border-hairline/10 pt-2">
                             <Link
                               to="/services"
                               data-cursor="hover"
-                              className="block rounded-lg px-3 py-2 text-xs uppercase tracking-widest text-gold-400 transition-colors hover:bg-white/5"
+                              className="block rounded-lg px-3 py-2 text-xs uppercase tracking-widest text-gold-400 transition-colors hover:bg-hairline/5"
                               onClick={() => setServicesOpen(false)}
                             >
                               All services
@@ -159,10 +163,23 @@ export function Navbar() {
             </div>
 
             <div className="flex items-center gap-4">
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="inline-flex items-center justify-center text-ink-100/80 transition-colors duration-300 hover:text-gold-400"
+                data-cursor="hover"
+                aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+              >
+                {theme === 'dark' ? (
+                  <Sun className="h-5 w-5" aria-hidden="true" />
+                ) : (
+                  <Moon className="h-5 w-5" aria-hidden="true" />
+                )}
+              </button>
               <Link
                 to={BOOKING_ROUTE.path}
                 data-cursor="hover"
-                className="hidden sm:inline-flex items-center px-6 py-2.5 text-xs font-medium tracking-widest uppercase text-ink-950 bg-gradient-to-r from-gold-300 to-gold-500 rounded-full hover:shadow-lg hover:shadow-gold-500/30 transition-all duration-400"
+                className="hidden sm:inline-flex items-center px-6 py-2.5 text-xs font-medium tracking-widest uppercase text-on-gold bg-gradient-to-r from-gold-300 to-gold-500 rounded-full hover:shadow-lg hover:shadow-gold-500/30 transition-all duration-400"
               >
                 Book Now
               </Link>
@@ -239,10 +256,24 @@ export function Navbar() {
               </Link>
             ),
           )}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="mt-2 inline-flex items-center gap-2 text-sm tracking-widest uppercase text-ink-200/80 transition-colors hover:text-gold-400"
+            aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+            style={{ animation: 'fadeInUp 0.5s 0.35s ease-out both' }}
+          >
+            {theme === 'dark' ? (
+              <Sun className="h-5 w-5" aria-hidden="true" />
+            ) : (
+              <Moon className="h-5 w-5" aria-hidden="true" />
+            )}
+            {theme === 'dark' ? 'Light theme' : 'Dark theme'}
+          </button>
           <Link
             to={BOOKING_ROUTE.path}
             onClick={() => setOpen(false)}
-            className="mt-4 px-8 py-4 text-sm tracking-widest uppercase text-ink-950 bg-gradient-to-r from-gold-300 to-gold-500 rounded-full"
+            className="mt-4 px-8 py-4 text-sm tracking-widest uppercase text-on-gold bg-gradient-to-r from-gold-300 to-gold-500 rounded-full"
             style={{ animation: 'fadeInUp 0.5s 0.4s ease-out both' }}
           >
             Book Now

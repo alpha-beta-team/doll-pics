@@ -29,7 +29,7 @@ function PackagesContent() {
           className="pointer-events-none absolute inset-x-0 top-0 h-[32rem] opacity-50"
           style={{
             background:
-              'radial-gradient(ellipse 70% 60% at 50% 0%, rgba(212,162,73,0.12), transparent)',
+              'radial-gradient(ellipse 70% 60% at 50% 0%, rgb(var(--gold-glow) / 0.12), transparent)',
           }}
         />
 

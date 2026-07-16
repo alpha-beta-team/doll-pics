@@ -32,6 +32,16 @@ function useAdminNoIndex() {
 export default function AdminApp() {
   useAdminNoIndex();
 
+  // Public site may leave color-scheme=dark on <html>; keep admin form chrome light.
+  useEffect(() => {
+    const root = document.documentElement;
+    const prevScheme = root.style.colorScheme;
+    root.style.colorScheme = 'light';
+    return () => {
+      root.style.colorScheme = prevScheme;
+    };
+  }, []);
+
   return (
     <AuthProvider>
       <Routes>

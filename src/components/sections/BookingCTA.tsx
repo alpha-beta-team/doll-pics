@@ -13,6 +13,7 @@ import {
   SHOOT_TYPE_OPTIONS,
   type ShootTypeOption,
 } from '../../lib/shootTypes';
+import { getGoldGlowRgb } from '../../lib/theme';
 
 export function BookingCTA() {
   const bgRef = useRef<HTMLDivElement>(null);
@@ -55,7 +56,7 @@ export function BookingCTA() {
           loading="lazy"
           decoding="async"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-ink-950/80 via-ink-950/60 to-ink-950/90" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/90" />
       </div>
 
       <CTAParticles />
@@ -69,7 +70,7 @@ export function BookingCTA() {
         </div>
 
         <h2
-          className={`font-display text-6xl md:text-8xl font-light text-ink-50 leading-[0.95] text-shadow-cinematic ${inView ? 'fade-in-up stagger-2' : ''}`}
+          className={`font-display text-6xl md:text-8xl font-light text-white leading-[0.95] text-shadow-cinematic ${inView ? 'fade-in-up stagger-2' : ''}`}
           style={{ opacity: inView ? undefined : 0.001 }}
         >
           Let's create
@@ -78,7 +79,7 @@ export function BookingCTA() {
         </h2>
 
         <p
-          className={`mt-8 text-lg md:text-xl text-ink-200/80 font-light max-w-xl mx-auto ${inView ? 'fade-in-up stagger-3' : ''}`}
+          className={`mt-8 text-lg md:text-xl text-white/80 font-light max-w-xl mx-auto ${inView ? 'fade-in-up stagger-3' : ''}`}
           style={{ opacity: inView ? undefined : 0.001 }}
         >
           Book a free consultation and let's craft something unforgettable together.
@@ -95,7 +96,11 @@ export function BookingCTA() {
             </span>
             <span className="absolute inset-0 bg-gradient-to-r from-gold-400 to-gold-300 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
           </button>
-          <button data-cursor="hover" className="btn-ghost" onClick={openForm}>
+          <button
+            data-cursor="hover"
+            className="btn-ghost !text-white !border-white/20 hover:!border-gold-400/60"
+            onClick={openForm}
+          >
             Book a Free Consultation
           </button>
         </div>
@@ -167,12 +172,12 @@ function EnquiryModal({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-[2000] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-ink-900 border border-white/10 rounded-2xl w-full max-w-md p-6 relative">
+      <div className="bg-ink-900 border border-hairline/10 rounded-2xl w-full max-w-md p-6 relative">
         <button
           type="button"
           onClick={onClose}
           aria-label="Close booking form"
-          className="absolute top-4 right-4 text-ink-200 hover:text-white"
+          className="absolute top-4 right-4 text-ink-200 hover:text-ink-50"
         >
           <X className="w-5 h-5" aria-hidden="true" />
         </button>
@@ -197,7 +202,7 @@ function EnquiryModal({ onClose }: { onClose: () => void }) {
                 onChange={e => setName(e.target.value)}
                 placeholder="Your name"
                 aria-label="Your name"
-                className="w-full px-4 py-3 bg-ink-950 border border-white/10 rounded-lg text-ink-50 placeholder:text-ink-300/40 focus:outline-none focus:ring-2 focus:ring-gold-400"
+                className="w-full px-4 py-3 bg-ink-950 border border-hairline/10 rounded-lg text-ink-50 placeholder:text-ink-300/40 focus:outline-none focus:ring-2 focus:ring-gold-400"
               />
               <input
                 required
@@ -206,20 +211,20 @@ function EnquiryModal({ onClose }: { onClose: () => void }) {
                 onChange={e => setEmail(e.target.value)}
                 placeholder="Email"
                 aria-label="Email"
-                className="w-full px-4 py-3 bg-ink-950 border border-white/10 rounded-lg text-ink-50 placeholder:text-ink-300/40 focus:outline-none focus:ring-2 focus:ring-gold-400"
+                className="w-full px-4 py-3 bg-ink-950 border border-hairline/10 rounded-lg text-ink-50 placeholder:text-ink-300/40 focus:outline-none focus:ring-2 focus:ring-gold-400"
               />
               <input
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
                 placeholder="Phone (optional)"
                 aria-label="Phone (optional)"
-                className="w-full px-4 py-3 bg-ink-950 border border-white/10 rounded-lg text-ink-50 placeholder:text-ink-300/40 focus:outline-none focus:ring-2 focus:ring-gold-400"
+                className="w-full px-4 py-3 bg-ink-950 border border-hairline/10 rounded-lg text-ink-50 placeholder:text-ink-300/40 focus:outline-none focus:ring-2 focus:ring-gold-400"
               />
               <select
                 value={shootType}
                 onChange={e => setShootType(e.target.value as ShootTypeOption)}
                 aria-label="Shoot type"
-                className="w-full px-4 py-3 bg-ink-950 border border-white/10 rounded-lg text-ink-50 focus:outline-none focus:ring-2 focus:ring-gold-400"
+                className="w-full px-4 py-3 bg-ink-950 border border-hairline/10 rounded-lg text-ink-50 focus:outline-none focus:ring-2 focus:ring-gold-400"
               >
                 {SHOOT_TYPE_OPTIONS.map(t => (
                   <option key={t} value={t}>{t}</option>
@@ -232,14 +237,14 @@ function EnquiryModal({ onClose }: { onClose: () => void }) {
                 placeholder="Tell us about your event..."
                 aria-label="Tell us about your event"
                 rows={4}
-                className="w-full px-4 py-3 bg-ink-950 border border-white/10 rounded-lg text-ink-50 placeholder:text-ink-300/40 focus:outline-none focus:ring-2 focus:ring-gold-400 resize-none"
+                className="w-full px-4 py-3 bg-ink-950 border border-hairline/10 rounded-lg text-ink-50 placeholder:text-ink-300/40 focus:outline-none focus:ring-2 focus:ring-gold-400 resize-none"
               />
               <label className="flex items-start gap-3 text-left text-sm text-ink-200/70 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={tipsOptIn}
                   onChange={e => setTipsOptIn(e.target.checked)}
-                  className="mt-1 rounded border-white/20 bg-ink-950 text-gold-400 focus:ring-gold-400"
+                  className="mt-1 rounded border-hairline/20 bg-ink-950 text-gold-400 focus:ring-gold-400"
                 />
                 <span>
                   Email me shoot-prep tips for Erode / Tamil Nadu sessions
@@ -270,7 +275,7 @@ function EnquiryModal({ onClose }: { onClose: () => void }) {
               <button
                 type="submit"
                 disabled={status === 'sending'}
-                className="w-full py-3 bg-gradient-to-r from-gold-300 to-gold-500 text-ink-950 font-medium rounded-lg hover:shadow-lg transition-all disabled:opacity-50"
+                className="w-full py-3 bg-gradient-to-r from-gold-300 to-gold-500 text-on-gold font-medium rounded-lg hover:shadow-lg transition-all disabled:opacity-50"
               >
                 {status === 'sending' ? 'Sending...' : 'Send Enquiry'}
               </button>
@@ -312,6 +317,7 @@ function CTAParticles() {
     const render = () => {
       if (!visible) return;
       ctx.clearRect(0, 0, w, h);
+      const [gr, gg, gb] = getGoldGlowRgb().split(/\s+/);
       for (const p of particles) {
         p.y += p.vy;
         if (p.y < -10) {
@@ -320,7 +326,7 @@ function CTAParticles() {
         }
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(212, 162, 73, ${p.a})`;
+        ctx.fillStyle = `rgba(${gr}, ${gg}, ${gb}, ${p.a})`;
         ctx.fill();
       }
       raf = requestAnimationFrame(render);

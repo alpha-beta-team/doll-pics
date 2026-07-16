@@ -104,7 +104,7 @@ function ServicePageContent() {
                 fetchPriority="high"
                 className="absolute inset-0 h-full w-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
             </div>
           </div>
         ) : null}
@@ -215,7 +215,7 @@ function ServicePageContent() {
               </div>
             </section>
 
-            <section className="border-t border-white/5 pt-14">
+            <section className="border-t border-hairline/5 pt-14">
               <h2 className="font-display text-3xl font-light text-ink-50 md:text-4xl">
                 Ready to plan your session?
               </h2>
@@ -227,14 +227,14 @@ function ServicePageContent() {
                 <Link
                   to="/booking"
                   data-cursor="hover"
-                  className="inline-flex items-center justify-center rounded-sm bg-gold-500 px-6 py-3 text-sm font-medium tracking-wide text-ink-950 transition-colors hover:bg-gold-400"
+                  className="inline-flex items-center justify-center rounded-sm bg-gold-500 px-6 py-3 text-sm font-medium tracking-wide text-on-gold transition-colors hover:bg-gold-400"
                 >
                   Book a session
                 </Link>
                 <Link
                   to="/packages"
                   data-cursor="hover"
-                  className="inline-flex items-center justify-center rounded-sm border border-white/15 px-6 py-3 text-sm tracking-wide text-ink-50 transition-colors hover:border-gold-400/50 hover:text-gold-400"
+                  className="inline-flex items-center justify-center rounded-sm border border-hairline/15 px-6 py-3 text-sm tracking-wide text-ink-50 transition-colors hover:border-gold-400/50 hover:text-gold-400"
                 >
                   View packages
                 </Link>
@@ -258,7 +258,7 @@ function ServicePageContent() {
                   </li>
                 ))}
               </ul>
-              <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-3 border-t border-white/5 pt-6">
+              <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-3 border-t border-hairline/5 pt-6">
                 {SERVICE_ROUTES.filter((route) => route.path !== path).map((route) => (
                   <li key={route.path}>
                     <Link
@@ -312,14 +312,14 @@ function ServiceWorkGrid({ images }: { images: ServiceImage[] }) {
             loading="lazy"
             className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-950/50 via-transparent to-transparent opacity-60" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-60" />
           {image.category || image.title ? (
             <div className="absolute bottom-0 left-0 right-0 p-4">
               {image.category ? (
                 <p className="section-label mb-1 text-gold-300">{image.category}</p>
               ) : null}
               {image.title ? (
-                <p className="font-display text-xl font-light text-ink-50">{image.title}</p>
+                <p className="font-display text-xl font-light text-white">{image.title}</p>
               ) : null}
             </div>
           ) : null}

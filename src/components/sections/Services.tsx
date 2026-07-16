@@ -63,7 +63,7 @@ function ServiceCard({ service, index }: { service: ServiceItem; index: number }
           loading="lazy"
           className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/50 to-ink-950/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/20" />
         <div className="absolute inset-0 rounded-2xl shadow-2xl shadow-black/40 group-hover:shadow-gold-500/10 transition-shadow duration-500" />
 
         <div className="absolute top-6 left-6 w-14 h-14 glass rounded-2xl flex items-center justify-center text-gold-400 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
@@ -71,8 +71,8 @@ function ServiceCard({ service, index }: { service: ServiceItem; index: number }
         </div>
 
         <div className="absolute bottom-0 left-0 right-0 p-6">
-          <h3 className="font-display text-2xl font-light text-ink-50 mb-2">{service.title}</h3>
-          <p className="text-sm text-ink-200/70 leading-relaxed max-h-0 group-hover:max-h-24 opacity-70 group-hover:opacity-100 transition-all duration-500 overflow-hidden">
+          <h3 className="font-display text-2xl font-light text-white mb-2">{service.title}</h3>
+          <p className="text-sm text-white/70 leading-relaxed max-h-0 group-hover:max-h-24 opacity-70 group-hover:opacity-100 transition-all duration-500 overflow-hidden">
             {service.desc}
           </p>
           <div className="mt-4 flex items-center gap-2 text-xs tracking-widest uppercase text-gold-300 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-2 group-hover:translate-y-0">
@@ -81,7 +81,7 @@ function ServiceCard({ service, index }: { service: ServiceItem; index: number }
           </div>
         </div>
 
-        <div className="absolute inset-0 rounded-2xl border border-white/5 group-hover:border-gold-400/30 transition-all duration-500" />
+        <div className="absolute inset-0 rounded-2xl border border-hairline/5 group-hover:border-gold-400/30 transition-all duration-500" />
       </Link>
     </div>
   );

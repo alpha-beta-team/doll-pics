@@ -117,14 +117,14 @@ export function CustomCursor() {
             height: size,
             borderColor:
               variant === 'default'
-                ? 'rgba(212,162,73,0.85)'
-                : 'rgba(212,162,73,1)',
+                ? 'rgb(var(--gold-glow) / 0.85)'
+                : 'rgb(var(--gold-glow) / 1)',
             backgroundColor:
               variant === 'default'
-                ? 'rgba(212,162,73,0.2)'
-                : 'rgba(212,162,73,0.08)',
+                ? 'rgb(var(--gold-glow) / 0.2)'
+                : 'rgb(var(--gold-glow) / 0.08)',
             boxShadow:
-              '0 0 0 1px rgba(5,5,8,0.35), 0 2px 12px rgba(212,162,73,0.35)',
+              '0 0 0 1px rgb(var(--on-gold) / 0.35), 0 2px 12px rgb(var(--gold-glow) / 0.35)',
           }}
         >
           {showLabel && (
@@ -141,7 +141,7 @@ export function CustomCursor() {
           willChange: 'transform',
           opacity: variant === 'default' ? 1 : 0,
           boxShadow:
-            '0 0 0 1.5px rgba(5,5,8,0.5), 0 0 8px rgba(212,162,73,0.6)',
+            '0 0 0 1.5px rgb(var(--on-gold) / 0.5), 0 0 8px rgb(var(--gold-glow) / 0.6)',
         }}
       />
     </>

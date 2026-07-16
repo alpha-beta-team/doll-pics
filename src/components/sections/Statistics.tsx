@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useSiteData } from '../../contexts/SiteDataContext';
 import { useInView, useCountUp } from '../../hooks/useScroll';
+import { getGoldGlowRgb } from '../../lib/theme';
 
 export function Statistics() {
   const { stats } = useSiteData();
@@ -69,6 +70,7 @@ function ParticleField() {
     let raf = 0;
     const render = () => {
       ctx.clearRect(0, 0, w, h);
+      const [gr, gg, gb] = getGoldGlowRgb().split(/\s+/);
       particles.forEach((p) => {
         p.x += p.vx;
         p.y += p.vy;
@@ -76,7 +78,7 @@ function ParticleField() {
         if (p.y < 0 || p.y > h) p.vy *= -1;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(212, 162, 73, ${p.a})`;
+        ctx.fillStyle = `rgba(${gr}, ${gg}, ${gb}, ${p.a})`;
         ctx.fill();
       });
       raf = requestAnimationFrame(render);

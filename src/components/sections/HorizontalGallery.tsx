@@ -90,7 +90,7 @@ function GalleryItem({ image, index }: { image: GalleryImageItem; index: number 
         className="w-full h-full object-cover transition-transform duration-600"
         style={{ transform: hovered ? 'scale(1.08)' : 'scale(1)' }}
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-ink-950/80 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
 
       <div
         className="absolute bottom-5 left-5 transition-all duration-400"

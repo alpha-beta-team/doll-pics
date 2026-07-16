@@ -1,6 +1,7 @@
 import { Suspense, lazy } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import { GoogleAnalytics } from './components/GoogleAnalytics';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { Site } from './pages/Site';
 import { SECTION_PATHS, SERVICE_PATHS } from './lib/navigation';
 
@@ -40,58 +41,19 @@ function PublicLoading() {
   );
 }
 
+function PublicThemeLayout() {
+  return (
+    <ThemeProvider>
+      <Outlet />
+    </ThemeProvider>
+  );
+}
+
 function App() {
   return (
     <BrowserRouter>
       <GoogleAnalytics />
       <Routes>
-        <Route path="/" element={<Site />} />
-        <Route
-          path="/packages"
-          element={
-            <Suspense fallback={<PublicLoading />}>
-              <Packages />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/about"
-          element={
-            <Suspense fallback={<PublicLoading />}>
-              <About />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/privacy"
-          element={
-            <Suspense fallback={<PublicLoading />}>
-              <Privacy />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/terms"
-          element={
-            <Suspense fallback={<PublicLoading />}>
-              <Terms />
-            </Suspense>
-          }
-        />
-        {SECTION_PATHS.map((path) => (
-          <Route key={path} path={path} element={<Site />} />
-        ))}
-        {SERVICE_PATHS.map((path) => (
-          <Route
-            key={path}
-            path={path}
-            element={
-              <Suspense fallback={<PublicLoading />}>
-                <ServicePage />
-              </Suspense>
-            }
-          />
-        ))}
         <Route
           path="/admin/*"
           element={
@@ -100,14 +62,63 @@ function App() {
             </Suspense>
           }
         />
-        <Route
-          path="*"
-          element={
-            <Suspense fallback={<PublicLoading />}>
-              <NotFound />
-            </Suspense>
-          }
-        />
+        <Route element={<PublicThemeLayout />}>
+          <Route path="/" element={<Site />} />
+          <Route
+            path="/packages"
+            element={
+              <Suspense fallback={<PublicLoading />}>
+                <Packages />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/about"
+            element={
+              <Suspense fallback={<PublicLoading />}>
+                <About />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/privacy"
+            element={
+              <Suspense fallback={<PublicLoading />}>
+                <Privacy />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/terms"
+            element={
+              <Suspense fallback={<PublicLoading />}>
+                <Terms />
+              </Suspense>
+            }
+          />
+          {SECTION_PATHS.map((path) => (
+            <Route key={path} path={path} element={<Site />} />
+          ))}
+          {SERVICE_PATHS.map((path) => (
+            <Route
+              key={path}
+              path={path}
+              element={
+                <Suspense fallback={<PublicLoading />}>
+                  <ServicePage />
+                </Suspense>
+              }
+            />
+          ))}
+          <Route
+            path="*"
+            element={
+              <Suspense fallback={<PublicLoading />}>
+                <NotFound />
+              </Suspense>
+            }
+          />
+        </Route>
       </Routes>
     </BrowserRouter>
   );

@@ -4,8 +4,6 @@ import { SmoothScroll } from '../components/SmoothScroll';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/sections/Footer';
 import { ContactFabHost } from '../components/packages/ContactFabs';
-import { AboutHero } from '../components/about/AboutHero';
-import { AboutGallery } from '../components/about/AboutGallery';
 import { OurStory } from '../components/about/OurStory';
 import { BehindScenesPreview } from '../components/about/BehindScenesPreview';
 import { MeetTheTeam } from '../components/about/MeetTheTeam';
@@ -27,8 +25,6 @@ function AboutContent() {
       <Navbar />
 
       <main className="relative overflow-hidden bg-ink-950 pt-20">
-        <AboutHero />
-        <AboutGallery />
         <OurStory />
         <BehindScenesPreview />
         <MeetTheTeam />

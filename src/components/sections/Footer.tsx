@@ -45,7 +45,7 @@ export function Footer() {
   };
 
   return (
-    <footer className="relative bg-ink-950 border-t border-white/5 pt-20 pb-10 px-6 lg:px-10">
+    <footer className="relative bg-ink-950 border-t border-hairline/5 pt-20 pb-10 px-6 lg:px-10">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 mb-16">
           <div className="lg:col-span-2">
@@ -98,7 +98,7 @@ export function Footer() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-8 border-t border-white/5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-8 border-t border-hairline/5">
           {siteContent.contactEmail && (
             <a href={`mailto:${siteContent.contactEmail}`} data-cursor="hover" className="flex items-center gap-3 text-ink-200/60 hover:text-gold-400 transition-colors">
               <Mail className="w-5 h-5" /> {siteContent.contactEmail}
@@ -125,7 +125,7 @@ export function Footer() {
           </a>
         </div>
 
-        <div className="flex flex-col items-center justify-between gap-4 border-t border-white/5 pt-8 pr-20 md:flex-row md:pr-24">
+        <div className="flex flex-col items-center justify-between gap-4 border-t border-hairline/5 pt-8 pr-20 md:flex-row md:pr-24">
           <p className="text-xs tracking-wide text-ink-300/40">
             © 2026 {brand}. All rights reserved. Crafted with devotion.
           </p>
