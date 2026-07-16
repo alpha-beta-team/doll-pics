@@ -15,7 +15,9 @@ import {
   Ban,
 } from 'lucide-react';
 
-const SHOOT_TYPES = ['Wedding', 'Pre-Wedding', 'Portrait', 'Maternity', 'Commercial', 'Other'];
+import { SHOOT_TYPE_OPTIONS } from '../../lib/shootTypes';
+
+const SHOOT_TYPES = [...SHOOT_TYPE_OPTIONS];
 const STATUSES: BookingStatus[] = ['draft', 'confirmed', 'cancelled', 'completed'];
 
 export function BookingsPage() {

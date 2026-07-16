@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { initializeAnalytics, trackPageView } from '../lib/analytics';
+import { initializeMetaPixel } from '../lib/metaPixel';
 
 /**
  * SPA route tracker — must render inside BrowserRouter.
@@ -11,6 +12,7 @@ export function GoogleAnalytics() {
 
   useEffect(() => {
     initializeAnalytics();
+    initializeMetaPixel();
     trackPageView(`${location.pathname}${location.search}`);
   }, [location.pathname, location.search]);
 

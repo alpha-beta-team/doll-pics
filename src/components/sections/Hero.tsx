@@ -219,16 +219,17 @@ export function Hero() {
 
         <p className="mt-8 max-w-xl text-lg md:text-xl text-ink-200/90 font-light leading-relaxed text-shadow-cinematic hero-enter hero-enter-delay-3">
           We preserve the emotions, the light, and the fleeting moments that
-          deserve to live forever.
+          deserve to live forever — for weddings and baby sessions in Erode
+          & across Tamil Nadu.
         </p>
 
         <div className="mt-12 flex flex-col sm:flex-row items-center gap-4 hero-enter hero-enter-delay-4">
-          <Link to="/work" data-cursor="hover" className="btn-primary group">
-            <span className="relative z-10">Explore Our Work</span>
+          <Link to={BOOKING_ROUTE.path} data-cursor="hover" className="btn-primary group">
+            <span className="relative z-10">Book a Consultation</span>
             <span className="absolute inset-0 bg-gradient-to-r from-gold-400 to-gold-300 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
           </Link>
-          <Link to={BOOKING_ROUTE.path} data-cursor="hover" className="btn-ghost">
-            Book a Consultation
+          <Link to="/work" data-cursor="hover" className="btn-ghost">
+            Explore Our Work
           </Link>
         </div>
       </div>

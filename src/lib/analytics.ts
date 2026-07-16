@@ -3,6 +3,14 @@
  * Never send names, emails, phones, or enquiry message text.
  */
 
+import {
+  initializeMetaPixel,
+  trackMetaContact,
+  trackMetaLead,
+  trackMetaPageView,
+  trackMetaViewContent,
+} from './metaPixel';
+
 export type WhatsAppCtaLocation =
   | 'homepage_hero'
   | 'header'
@@ -72,7 +80,7 @@ export function getPagePath(): string {
 
 /**
  * Load gtag.js once and configure GA4 with automatic page views disabled.
- * No-ops when the measurement ID is missing (e. with local .env unset).
+ * No-ops when the measurement ID is missing (e.g. with local .env unset).
  */
 export function initializeAnalytics(): void {
   if (!isReady() || scriptRequested) return;
@@ -103,15 +111,21 @@ export function initializeAnalytics(): void {
   } catch {
     // Fail silently.
   }
+
+  initializeMetaPixel();
 }
 
 /**
  * Manual SPA page_view. Dedupes identical path+search (covers React Strict Mode).
  */
 export function trackPageView(pagePath?: string): void {
+  const path = pagePath ?? getPagePath();
+
+  // Meta PageView uses its own dedupe; always attempt when path changes.
+  trackMetaPageView(path);
+
   if (!isReady()) return;
 
-  const path = pagePath ?? getPagePath();
   if (path === lastPagePath) return;
   // Allow view_service again after navigating away and returning.
   if (lastViewServicePath && path !== lastViewServicePath) {
@@ -144,6 +158,7 @@ export function trackWhatsAppClick(params: {
     service_name: params.service_name ?? '',
     page_path: params.page_path ?? getPagePath(),
   });
+  trackMetaContact();
 }
 
 export function trackPhoneClick(params: {
@@ -154,6 +169,7 @@ export function trackPhoneClick(params: {
     cta_location: params.cta_location,
     page_path: params.page_path ?? getPagePath(),
   });
+  trackMetaContact();
 }
 
 export function trackBookingStart(params: {
@@ -184,6 +200,7 @@ export function trackGenerateLead(params: {
     service_name: params.service_name,
     page_path: params.page_path ?? getPagePath(),
   });
+  trackMetaLead();
 }
 
 export function trackViewService(params: {
@@ -198,6 +215,19 @@ export function trackViewService(params: {
   trackEvent('view_service', {
     service_name: params.service_name,
     page_path,
+  });
+  trackMetaViewContent(params.service_name);
+}
+
+export function trackEmailCapture(params: {
+  method: LeadMethod;
+  service_name: string;
+  page_path?: string;
+}): void {
+  trackEvent('email_capture', {
+    method: params.method,
+    service_name: params.service_name,
+    page_path: params.page_path ?? getPagePath(),
   });
 }
 

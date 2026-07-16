@@ -9,12 +9,15 @@ export function Testimonials() {
   const [dir, setDir] = useState(0);
   const { ref, inView } = useInView<HTMLDivElement>();
 
+  if (!testimonials.length) return null;
+
   const go = (d: number) => {
     setDir(d);
     setIndex((p) => (p + d + testimonials.length) % testimonials.length);
   };
 
   const t = testimonials[index];
+  if (!t) return null;
 
   return (
     <section id="testimonials" className="relative py-32 px-6 lg:px-10 bg-ink-950 overflow-hidden">

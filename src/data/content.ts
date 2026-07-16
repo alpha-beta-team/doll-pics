@@ -222,40 +222,16 @@ export const stats = [
   { value: 25, suffix: "", label: "Awards Won" },
 ];
 
-export const testimonials = [
-  {
-    name: "Sarah & Marcus",
-    role: "Wedding, Tuscany",
-    avatar:
-      "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=200",
-    rating: 5,
-    text: "They didn\u2019t just photograph our wedding \u2014 they told the story of our love. Every frame feels like a still from a film. We relive that day through their images.",
-    likes: 142,
-    reply:
-      "Thank you, Sarah & Marcus. Your story deserved nothing less than cinema. \u2014 Elena",
-  },
-  {
-    name: "Priya Sharma",
-    role: "Maternity, Kyoto",
-    avatar:
-      "https://images.pexels.com/photos/762020/pexels-photo-762020.jpeg?auto=compress&cs=tinysrgb&w=200",
-    rating: 5,
-    text: "The most tender, beautiful photos I have ever seen of myself. They made me feel like the protagonist of my own story. Worth every penny.",
-    likes: 98,
-    reply: "Priya, you radiated grace. It was our honor. \u2014 Marco",
-  },
-  {
-    name: "James Whitfield",
-    role: "Commercial, Paris",
-    avatar:
-      "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=200",
-    rating: 5,
-    text: "Our campaign conversion jumped 40% after we swapped in their imagery. They understand light, story, and brand on a level I\u2019ve never seen before.",
-    likes: 76,
-    reply:
-      "James, a pleasure to collaborate with a brand that values craft. \u2014 Elena",
-  },
-];
+/** Empty until real Erode/TN client quotes exist in CMS. */
+export const testimonials: Array<{
+  name: string;
+  role: string;
+  avatar: string;
+  rating: number;
+  text: string;
+  likes: number;
+  reply: string;
+}> = [];
 
 export const behindScenes = [
   {

@@ -5,8 +5,14 @@ import { ArrowRight, X } from 'lucide-react';
 import { publicApi } from '../../lib/api';
 import {
   trackBookingStart,
+  trackEmailCapture,
   trackGenerateLead,
 } from '../../lib/analytics';
+import {
+  DEFAULT_SHOOT_TYPE,
+  SHOOT_TYPE_OPTIONS,
+  type ShootTypeOption,
+} from '../../lib/shootTypes';
 
 export function BookingCTA() {
   const bgRef = useRef<HTMLDivElement>(null);
@@ -104,13 +110,16 @@ function EnquiryModal({ onClose }: { onClose: () => void }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [shootType, setShootType] = useState('Wedding');
+  const [shootType, setShootType] = useState(DEFAULT_SHOOT_TYPE);
   const [message, setMessage] = useState('');
+  const [tipsOptIn, setTipsOptIn] = useState(false);
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
+  const [submittedTipsOptIn, setSubmittedTipsOptIn] = useState(false);
   // One booking_start per modal open (not per field change).
   const bookingStartSent = useRef(false);
   const leadSent = useRef(false);
+  const emailCaptureSent = useRef(false);
 
   useEffect(() => {
     if (bookingStartSent.current) return;
@@ -123,12 +132,29 @@ function EnquiryModal({ onClose }: { onClose: () => void }) {
     e.preventDefault();
     setStatus('sending');
     setErrorMsg('');
+    const messageWithOptIn = tipsOptIn
+      ? `${message.trim()}\n\n[Tips email: yes]`
+      : message;
     try {
-      await publicApi.createEnquiry({ name, email, phone, shootType, message });
+      await publicApi.createEnquiry({
+        name,
+        email,
+        phone,
+        shootType,
+        message: messageWithOptIn,
+      });
+      setSubmittedTipsOptIn(tipsOptIn);
       setStatus('success');
       if (!leadSent.current) {
         leadSent.current = true;
         trackGenerateLead({
+          method: 'booking_form',
+          service_name: shootType,
+        });
+      }
+      if (tipsOptIn && !emailCaptureSent.current) {
+        emailCaptureSent.current = true;
+        trackEmailCapture({
           method: 'booking_form',
           service_name: shootType,
         });
@@ -155,6 +181,11 @@ function EnquiryModal({ onClose }: { onClose: () => void }) {
           <div className="text-center py-8">
             <h3 className="font-display text-2xl text-ink-50 mb-2">Thank you!</h3>
             <p className="text-ink-200/70">We'll be in touch shortly.</p>
+            {submittedTipsOptIn ? (
+              <p className="mt-3 text-sm text-ink-200/60">
+                Shoot-prep tips will also go to your email.
+              </p>
+            ) : null}
           </div>
         ) : (
           <>
@@ -165,6 +196,7 @@ function EnquiryModal({ onClose }: { onClose: () => void }) {
                 value={name}
                 onChange={e => setName(e.target.value)}
                 placeholder="Your name"
+                aria-label="Your name"
                 className="w-full px-4 py-3 bg-ink-950 border border-white/10 rounded-lg text-ink-50 placeholder:text-ink-300/40 focus:outline-none focus:ring-2 focus:ring-gold-400"
               />
               <input
@@ -173,20 +205,23 @@ function EnquiryModal({ onClose }: { onClose: () => void }) {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="Email"
+                aria-label="Email"
                 className="w-full px-4 py-3 bg-ink-950 border border-white/10 rounded-lg text-ink-50 placeholder:text-ink-300/40 focus:outline-none focus:ring-2 focus:ring-gold-400"
               />
               <input
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
                 placeholder="Phone (optional)"
+                aria-label="Phone (optional)"
                 className="w-full px-4 py-3 bg-ink-950 border border-white/10 rounded-lg text-ink-50 placeholder:text-ink-300/40 focus:outline-none focus:ring-2 focus:ring-gold-400"
               />
               <select
                 value={shootType}
-                onChange={e => setShootType(e.target.value)}
+                onChange={e => setShootType(e.target.value as ShootTypeOption)}
+                aria-label="Shoot type"
                 className="w-full px-4 py-3 bg-ink-950 border border-white/10 rounded-lg text-ink-50 focus:outline-none focus:ring-2 focus:ring-gold-400"
               >
-                {['Wedding', 'Pre-Wedding', 'Portrait', 'Maternity', 'Commercial', 'Other'].map(t => (
+                {SHOOT_TYPE_OPTIONS.map(t => (
                   <option key={t} value={t}>{t}</option>
                 ))}
               </select>
@@ -195,9 +230,21 @@ function EnquiryModal({ onClose }: { onClose: () => void }) {
                 value={message}
                 onChange={e => setMessage(e.target.value)}
                 placeholder="Tell us about your event..."
+                aria-label="Tell us about your event"
                 rows={4}
                 className="w-full px-4 py-3 bg-ink-950 border border-white/10 rounded-lg text-ink-50 placeholder:text-ink-300/40 focus:outline-none focus:ring-2 focus:ring-gold-400 resize-none"
               />
+              <label className="flex items-start gap-3 text-left text-sm text-ink-200/70 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={tipsOptIn}
+                  onChange={e => setTipsOptIn(e.target.checked)}
+                  className="mt-1 rounded border-white/20 bg-ink-950 text-gold-400 focus:ring-gold-400"
+                />
+                <span>
+                  Email me shoot-prep tips for Erode / Tamil Nadu sessions
+                </span>
+              </label>
               {status === 'error' && (
                 <p className="text-red-400 text-sm">{errorMsg}</p>
               )}
@@ -314,4 +361,3 @@ function CTAParticles() {
     />
   );
 }
-
