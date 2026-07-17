@@ -15,6 +15,9 @@ const seoPages = JSON.parse(
 const servicePages = JSON.parse(
   readFileSync(join(root, 'src/data/service-pages.json'), 'utf8'),
 );
+const packagePages = JSON.parse(
+  readFileSync(join(root, 'src/data/package-pages.json'), 'utf8'),
+);
 
 const ogImage = `${siteUrl}/og-share.jpg`;
 const siteLogo = `${siteUrl}/logo-doll.png`;
@@ -36,6 +39,17 @@ const pages = {
   ...basePages,
   ...Object.fromEntries(
     Object.entries(servicePages).map(([path, page]) => [
+      path,
+      {
+        title: page.title,
+        description: page.description,
+        heading: page.heading,
+        body: page.body,
+      },
+    ]),
+  ),
+  ...Object.fromEntries(
+    Object.entries(packagePages).map(([path, page]) => [
       path,
       {
         title: page.title,

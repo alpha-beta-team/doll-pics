@@ -54,10 +54,15 @@ export function enquiryWhatsAppUrl(
   return `https://wa.me/${digits}?text=${encodeURIComponent(lines.join('\n'))}`;
 }
 
-export function packageEnquirePath(pkg: { name: string; shootType?: string }): string {
+export function packageEnquirePath(pkg: {
+  name: string;
+  shootType?: string;
+  categoryName?: string;
+}): string {
   const params = new URLSearchParams();
   if (pkg.name.trim()) params.set('package', pkg.name.trim());
-  if (pkg.shootType?.trim()) params.set('shootType', pkg.shootType.trim());
+  const shootType = pkg.categoryName?.trim() || pkg.shootType?.trim();
+  if (shootType) params.set('shootType', shootType);
   const qs = params.toString();
   return qs ? `/booking?${qs}` : '/booking';
 }

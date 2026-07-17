@@ -1,4 +1,4 @@
-import { SiteDataProvider, useSiteData } from '../contexts/SiteDataContext';
+import { useSiteData } from '../contexts/SiteDataContext';
 import { CustomCursor } from '../components/CustomCursor';
 import { SmoothScroll } from '../components/SmoothScroll';
 import { Navbar } from '../components/Navbar';
@@ -38,10 +38,8 @@ function AboutContent() {
 
 export function About() {
   return (
-    <SiteDataProvider>
-      <SmoothScroll>
-        <AboutContent />
-      </SmoothScroll>
-    </SiteDataProvider>
+    <SmoothScroll>
+      <AboutContent />
+    </SmoothScroll>
   );
 }

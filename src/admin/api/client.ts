@@ -1,5 +1,5 @@
 import type {
-  Photo, Category, Package, SiteContent, Enquiry, User, Booking, BookingStatus,
+  Photo, Category, Package, PackageCategory, SiteContent, Enquiry, User, Booking, BookingStatus,
   HeroSlide, StoryScene, Stat, Testimonial, BehindScene, TeamMember,
 } from '../types';
 import { normalizeId, request } from './http';
@@ -69,12 +69,51 @@ function mapCategory(doc: Record<string, unknown>): Category {
   };
 }
 
-function mapPackage(doc: Record<string, unknown>): Package {
+function mapPackageCategory(doc: Record<string, unknown>): PackageCategory {
   const base = normalizeId(doc);
+  const slug = (doc.slug as string) ?? '';
+  const rawPath = (doc.path as string) ?? '';
   return {
     id: base.id,
     name: (doc.name as string) ?? '',
-    shootType: (doc.shootType as string) ?? '',
+    slug,
+    path:
+      rawPath ||
+      (slug ? `/${slug}-packages-erode` : ''),
+    description: (doc.description as string) ?? '',
+    order: (doc.order as number) ?? 0,
+    isPublished: (doc.isPublished as boolean) ?? false,
+  };
+}
+
+function mapPackage(doc: Record<string, unknown>): Package {
+  const base = normalizeId(doc);
+  const categoryId =
+    doc.categoryId != null
+      ? String(doc.categoryId)
+      : typeof doc.category === 'object' && doc.category && '_id' in (doc.category as object)
+        ? String((doc.category as { _id: unknown })._id)
+        : '';
+  const categoryName =
+    (doc.categoryName as string) ||
+    (typeof doc.category === 'object' && doc.category && 'name' in (doc.category as object)
+      ? String((doc.category as { name: unknown }).name)
+      : '') ||
+    (doc.shootType as string) ||
+    '';
+  const categorySlug =
+    (doc.categorySlug as string) ||
+    (typeof doc.category === 'object' && doc.category && 'slug' in (doc.category as object)
+      ? String((doc.category as { slug: unknown }).slug)
+      : '') ||
+    '';
+  return {
+    id: base.id,
+    name: (doc.name as string) ?? '',
+    categoryId,
+    categoryName: categoryName || undefined,
+    categorySlug: categorySlug || undefined,
+    shootType: (doc.shootType as string) || categoryName || undefined,
     description: (doc.description as string) ?? '',
     inclusions: (doc.inclusions as string[]) ?? [],
     pricingMode: (doc.pricingMode as Package['pricingMode']) ?? 'enquire',
@@ -450,6 +489,52 @@ export const api = {
       method: 'PATCH',
       auth: true,
       body: JSON.stringify({ ids: packageIds }),
+    });
+  },
+
+  // Package categories
+  async getPackageCategories(): Promise<PackageCategory[]> {
+    const docs = await request<Record<string, unknown>[]>('/admin/package-categories', {
+      auth: true,
+    });
+    return docs.map(mapPackageCategory).sort((a, b) => a.order - b.order);
+  },
+
+  async createPackageCategory(
+    data: Omit<PackageCategory, 'id'>,
+  ): Promise<PackageCategory> {
+    const doc = await request<Record<string, unknown>>('/admin/package-categories', {
+      method: 'POST',
+      auth: true,
+      body: JSON.stringify(data),
+    });
+    return mapPackageCategory(doc);
+  },
+
+  async updatePackageCategory(
+    id: string,
+    data: Partial<PackageCategory>,
+  ): Promise<PackageCategory> {
+    const doc = await request<Record<string, unknown>>(
+      `/admin/package-categories/${id}`,
+      {
+        method: 'PATCH',
+        auth: true,
+        body: JSON.stringify(data),
+      },
+    );
+    return mapPackageCategory(doc);
+  },
+
+  async deletePackageCategory(id: string): Promise<void> {
+    await request(`/admin/package-categories/${id}`, { method: 'DELETE', auth: true });
+  },
+
+  async reorderPackageCategories(categoryIds: string[]): Promise<void> {
+    await request('/admin/package-categories/reorder', {
+      method: 'PATCH',
+      auth: true,
+      body: JSON.stringify({ ids: categoryIds }),
     });
   },
 

@@ -7,6 +7,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { PhotosPage } from './pages/PhotosPage';
 import { CategoriesPage } from './pages/CategoriesPage';
 import { PackagesPage } from './pages/PackagesPage';
+import { PackageCategoriesPage } from './pages/PackageCategoriesPage';
 import { SiteContentPage } from './pages/SiteContentPage';
 import { EnquiriesPage } from './pages/EnquiriesPage';
 import { BookingsPage } from './pages/BookingsPage';
@@ -53,6 +54,7 @@ export default function AdminApp() {
           <Route path="photos" element={<PhotosPage />} />
           <Route path="categories" element={<CategoriesPage />} />
           <Route path="packages" element={<PackagesPage />} />
+          <Route path="package-categories" element={<PackageCategoriesPage />} />
           <Route path="site-content" element={<SiteContentPage />} />
           <Route path="enquiries" element={<EnquiriesPage />} />
           <Route path="bookings" element={<BookingsPage />} />

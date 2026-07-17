@@ -1,0 +1,441 @@
+{
+  "/wedding-packages-erode": {
+    "title": "Wedding Photography Packages in Erode | Doll Pictures",
+    "description": "Compare wedding photography packages in Erode — cinematic coverage, films and albums. Transparent inclusions from DOLL PICTURES for couples across Tamil Nadu.",
+    "heading": "Wedding photography packages in Erode",
+    "body": "Choose a wedding package that fits your celebration — candid coverage, crafted films and lasting albums from our Erode studio.",
+    "serviceName": "Wedding photography packages in Erode",
+    "label": "Wedding",
+    "lead": "From intimate ceremonies to multi-day celebrations, our wedding packages are built around cinematic stills, films and albums — rooted in Erode, ready to travel across Tamil Nadu.",
+    "categorySlug": "wedding",
+    "sections": [
+      {
+        "heading": "Packages shaped around your day",
+        "paragraphs": [
+          "Every wedding package lists clear inclusions so you know what coverage, albums and films are included before you book. We plan timelines around your rituals, family moments and the quiet frames that make the day yours.",
+          "Whether you need essential coverage or a full team for a multi-venue celebration, we confirm exact deliverables and turnaround during your free consultation."
+        ]
+      },
+      {
+        "heading": "How booking works",
+        "paragraphs": [
+          "Compare packages below, then enquire with the option that fits. We meet for a free consultation to align on venues, look and must-have moments before you commit.",
+          "Pricing shown is for the listed inclusions. Travel outside Erode, additional shooters and custom album upgrades are confirmed when you book."
+        ]
+      },
+      {
+        "heading": "Erode studio, Tamil Nadu travel",
+        "paragraphs": [
+          "Our studio is at URT TOWERS on Perundurai Road in Erode. We regularly photograph weddings across Tamil Nadu — including Salem, Namakkal, Coimbatore and Chennai — and can arrange destination coverage during consultation.",
+          "Share your venues and dates early so we can plan travel, second shooters if needed, and a timeline that protects both rituals and portraits."
+        ]
+      }
+    ],
+    "faqs": [
+      {
+        "question": "What is included in a wedding package?",
+        "answer": "Each package below lists its inclusions — such as traditional and candid photo/video, albums and outdoor sessions. Exact deliverables are confirmed when you book."
+      },
+      {
+        "question": "Do you photograph weddings outside Erode?",
+        "answer": "Yes. We are based in Erode and shoot weddings across Tamil Nadu. Destination celebrations can be arranged during consultation; travel fees are confirmed at booking."
+      },
+      {
+        "question": "Is the first consultation free?",
+        "answer": "Yes. Your first consultation is free so we can discuss story, look, budget and logistics before you commit."
+      },
+      {
+        "question": "Can I customise a package?",
+        "answer": "Yes. Many couples start from a listed package and adjust coverage hours, albums or film options. Share what you need when you enquire."
+      }
+    ],
+    "related": [
+      {
+        "label": "Wedding photography",
+        "path": "/wedding-photography-erode"
+      },
+      {
+        "label": "Maternity packages",
+        "path": "/maternity-packages-erode"
+      },
+      {
+        "label": "All packages",
+        "path": "/packages"
+      },
+      {
+        "label": "Featured work",
+        "path": "/work"
+      }
+    ],
+    "imageCategories": ["Wedding", "Pre-Wedding"],
+    "fallbackImages": [
+      {
+        "src": "https://images.pexels.com/photos/169198/pexels-photo-169198.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "alt": "Bride and groom wedding portrait by DOLL PICTURES"
+      },
+      {
+        "src": "https://images.pexels.com/photos/1024968/pexels-photo-1024968.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "alt": "Pre-wedding couple portrait at golden hour"
+      },
+      {
+        "src": "https://images.pexels.com/photos/2253870/pexels-photo-2253870.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "alt": "Emotional wedding day portrait"
+      }
+    ]
+  },
+  "/pre-wedding-packages-erode": {
+    "title": "Pre-Wedding Photography Packages in Erode | Doll Pictures",
+    "description": "Pre-wedding photography packages in Erode — romantic sessions, cinematic films and styled locations. Book with DOLL PICTURES across Tamil Nadu.",
+    "heading": "Pre-wedding packages in Erode",
+    "body": "Romantic pre-wedding packages with cinematic stills and films — planned around locations you love.",
+    "serviceName": "Pre-wedding photography packages in Erode",
+    "label": "Pre-Wedding",
+    "lead": "Celebrate your story before the wedding day with packages built for chemistry, light and locations that feel like you.",
+    "categorySlug": "pre-wedding",
+    "sections": [
+      {
+        "heading": "Sessions made for connection",
+        "paragraphs": [
+          "Our pre-wedding packages focus on natural chemistry — guided posing that still feels effortless, and locations that match your style, from city streets to countryside gold hour.",
+          "Inclusions vary by package: stills, short films, outfit changes and travel. Compare options below and enquire with the one that fits."
+        ]
+      },
+      {
+        "heading": "Planning your shoot",
+        "paragraphs": [
+          "We start with a free consultation to discuss mood, outfits and venues. Then we lock a date and deliver a curated gallery with the film or album options in your package.",
+          "Travel across Tamil Nadu is available; fees and timeline are confirmed at booking."
+        ]
+      }
+    ],
+    "faqs": [
+      {
+        "question": "How long is a typical pre-wedding session?",
+        "answer": "Most sessions run a few hours depending on locations and outfit changes. Exact duration is listed in your package and confirmed at booking."
+      },
+      {
+        "question": "Can we shoot outside Erode?",
+        "answer": "Yes. We regularly travel across Tamil Nadu for pre-wedding sessions. Travel is confirmed during consultation."
+      },
+      {
+        "question": "Do packages include a film?",
+        "answer": "Some packages include a cinematic film; others are stills-focused. Check the inclusions on each package below."
+      }
+    ],
+    "related": [
+      {
+        "label": "Wedding packages",
+        "path": "/wedding-packages-erode"
+      },
+      {
+        "label": "Wedding photography",
+        "path": "/wedding-photography-erode"
+      },
+      {
+        "label": "All packages",
+        "path": "/packages"
+      }
+    ],
+    "imageCategories": ["Pre-Wedding", "Wedding"],
+    "fallbackImages": [
+      {
+        "src": "https://images.pexels.com/photos/1024968/pexels-photo-1024968.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "alt": "Pre-wedding couple portrait at golden hour"
+      },
+      {
+        "src": "https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "alt": "Timeless couple portrait by DOLL PICTURES"
+      }
+    ]
+  },
+  "/maternity-packages-erode": {
+    "title": "Maternity Photography Packages in Erode | Doll Pictures",
+    "description": "Maternity photography packages in Erode — tender studio and outdoor portraits celebrating new beginnings. Clear inclusions from DOLL PICTURES.",
+    "heading": "Maternity photography packages in Erode",
+    "body": "Tender maternity packages for studio and outdoor portraits — celebrating this chapter with warmth and care.",
+    "serviceName": "Maternity photography packages in Erode",
+    "label": "Maternity",
+    "lead": "Celebrate this season with packages designed for comfort, flattering light and portraits you will treasure for years.",
+    "categorySlug": "maternity",
+    "sections": [
+      {
+        "heading": "Gentle sessions, lasting portraits",
+        "paragraphs": [
+          "Maternity packages include guided posing, soft styling advice and a curated gallery. Studio and outdoor options depend on the package you choose.",
+          "We pace the session around your comfort and schedule ideal timing in your pregnancy during the free consultation."
+        ]
+      },
+      {
+        "heading": "Partner and family frames",
+        "paragraphs": [
+          "Many packages include partner or sibling portraits. Share who you want in frame when you enquire so we can plan the right inclusions."
+        ]
+      }
+    ],
+    "faqs": [
+      {
+        "question": "When should we book a maternity shoot?",
+        "answer": "Most clients book for the second or early third trimester. We advise the best window during your free consultation."
+      },
+      {
+        "question": "Studio or outdoor?",
+        "answer": "Both are available depending on the package. We help choose locations that flatter and feel comfortable for you."
+      },
+      {
+        "question": "Is consultation free?",
+        "answer": "Yes. Your first consultation is free before you book a package."
+      }
+    ],
+    "related": [
+      {
+        "label": "Maternity photography",
+        "path": "/maternity-photography-erode"
+      },
+      {
+        "label": "Newborn packages",
+        "path": "/newborn-packages-erode"
+      },
+      {
+        "label": "All packages",
+        "path": "/packages"
+      }
+    ],
+    "imageCategories": ["Maternity"],
+    "fallbackImages": [
+      {
+        "src": "https://images.pexels.com/photos/2958995/pexels-photo-2958995.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "alt": "Maternity portrait by DOLL PICTURES"
+      }
+    ]
+  },
+  "/newborn-packages-erode": {
+    "title": "Newborn Photography Packages in Erode | Doll Pictures",
+    "description": "Newborn photography packages in Erode — safe, baby-friendly studio sessions with gentle posing and soft editing. Book DOLL PICTURES.",
+    "heading": "Newborn photography packages in Erode",
+    "body": "Baby-first newborn packages with calm studio setups, gentle posing and timeless edited galleries.",
+    "serviceName": "Newborn photography packages in Erode",
+    "label": "Newborn",
+    "lead": "Welcome your baby with packages paced for comfort and safety — warm rooms, soft setups and portraits that feel tender and true.",
+    "categorySlug": "newborn",
+    "sections": [
+      {
+        "heading": "Baby-first packages",
+        "paragraphs": [
+          "Newborn packages are designed around your baby’s rhythm — breaks whenever needed, parents close throughout, and never rushed posing.",
+          "Themes, wraps and image counts depend on the package. We share a clear timeline at booking after your free consultation."
+        ]
+      },
+      {
+        "heading": "Ideal timing",
+        "paragraphs": [
+          "Many families book within the first two weeks. Enquire early — even before birth — so we can reserve a slot that works for your family."
+        ]
+      }
+    ],
+    "faqs": [
+      {
+        "question": "How long is a newborn session?",
+        "answer": "Sessions are paced for your baby and can take several hours with feeding and settling breaks. Exact structure is confirmed with your package."
+      },
+      {
+        "question": "Do you provide wraps and props?",
+        "answer": "Yes. Studio wraps, blankets and simple props are included as listed in each package."
+      },
+      {
+        "question": "Can parents be in the photos?",
+        "answer": "Absolutely. Parent and sibling frames are part of most newborn packages — tell us who to include when you enquire."
+      }
+    ],
+    "related": [
+      {
+        "label": "Newborn photography",
+        "path": "/newborn-baby-photography-erode"
+      },
+      {
+        "label": "Maternity packages",
+        "path": "/maternity-packages-erode"
+      },
+      {
+        "label": "Baby milestone packages",
+        "path": "/baby-milestone-packages-erode"
+      },
+      {
+        "label": "All packages",
+        "path": "/packages"
+      }
+    ],
+    "imageCategories": ["Newborn"],
+    "fallbackImages": [
+      {
+        "src": "https://images.pexels.com/photos/3662667/pexels-photo-3662667.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "alt": "Newborn baby photography by DOLL PICTURES"
+      }
+    ]
+  },
+  "/baby-milestone-packages-erode": {
+    "title": "Baby Milestone Photography Packages in Erode | Doll Pictures",
+    "description": "Baby milestone photography packages in Erode — sitters, crawl and early celebration sessions. Clear inclusions from DOLL PICTURES.",
+    "heading": "Baby milestone packages in Erode",
+    "body": "Packages for life’s early milestones — joyful sessions that capture personality as your baby grows.",
+    "serviceName": "Baby milestone photography packages in Erode",
+    "label": "Baby Milestone",
+    "lead": "From first sits to curious crawls, milestone packages celebrate the little stages with warmth and play.",
+    "categorySlug": "baby-milestone",
+    "sections": [
+      {
+        "heading": "Celebrate every stage",
+        "paragraphs": [
+          "Milestone packages are built for shorter, playful sessions that follow your child’s energy. Studio setups and simple themes keep the focus on expression and connection.",
+          "Compare inclusions below — from digital galleries to print options — and enquire with the package that fits your celebration."
+        ]
+      }
+    ],
+    "faqs": [
+      {
+        "question": "Which ages do you cover?",
+        "answer": "We photograph common early milestones such as sitters and crawlers. Share your baby’s age when you enquire so we can recommend the right package."
+      },
+      {
+        "question": "How long is the session?",
+        "answer": "Most milestone sessions are shorter than newborn shoots and paced around your child’s mood. Duration is confirmed with your package."
+      }
+    ],
+    "related": [
+      {
+        "label": "Baby milestone photography",
+        "path": "/baby-milestone-photography-erode"
+      },
+      {
+        "label": "Cake smash packages",
+        "path": "/cake-smash-packages-erode"
+      },
+      {
+        "label": "Newborn packages",
+        "path": "/newborn-packages-erode"
+      },
+      {
+        "label": "All packages",
+        "path": "/packages"
+      }
+    ],
+    "imageCategories": ["Baby Milestone"],
+    "fallbackImages": [
+      {
+        "src": "https://images.pexels.com/photos/796444/pexels-photo-796444.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "alt": "Baby milestone photography by DOLL PICTURES"
+      }
+    ]
+  },
+  "/cake-smash-packages-erode": {
+    "title": "Cake Smash Photography Packages in Erode | Doll Pictures",
+    "description": "Cake smash photography packages in Erode — playful first-birthday sessions full of colour and joy. Book DOLL PICTURES.",
+    "heading": "Cake smash packages in Erode",
+    "body": "Playful first-birthday cake smash packages — messy, joyful frames and a gallery you will laugh over for years.",
+    "serviceName": "Cake smash photography packages in Erode",
+    "label": "Cake Smash",
+    "lead": "Mark the first birthday with packages built for colour, cake and candid delight — studio setups that keep the focus on fun.",
+    "categorySlug": "cake-smash",
+    "sections": [
+      {
+        "heading": "Messy, joyful coverage",
+        "paragraphs": [
+          "Cake smash packages typically include a styled setup, smash time and clean-up portraits. Cake and theme details are planned in your free consultation.",
+          "Digital galleries and print options vary by package — compare inclusions below before you enquire."
+        ]
+      }
+    ],
+    "faqs": [
+      {
+        "question": "Do you provide the cake?",
+        "answer": "Cake arrangements depend on the package and are confirmed during consultation. We can advise on size and colours that photograph well."
+      },
+      {
+        "question": "What should my child wear?",
+        "answer": "We share simple styling tips when you book. Bring a spare outfit for post-smash portraits if your package includes them."
+      }
+    ],
+    "related": [
+      {
+        "label": "Cake smash photography",
+        "path": "/cake-smash-photography-erode"
+      },
+      {
+        "label": "Baby milestone packages",
+        "path": "/baby-milestone-packages-erode"
+      },
+      {
+        "label": "Family packages",
+        "path": "/family-packages-erode"
+      },
+      {
+        "label": "All packages",
+        "path": "/packages"
+      }
+    ],
+    "imageCategories": ["Cake Smash"],
+    "fallbackImages": [
+      {
+        "src": "https://images.pexels.com/photos/1721932/pexels-photo-1721932.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "alt": "Cake smash photography by DOLL PICTURES"
+      }
+    ]
+  },
+  "/family-packages-erode": {
+    "title": "Family Photography Packages in Erode | Doll Pictures",
+    "description": "Family photography packages in Erode — warm multi-generation portraits for studio and outdoor sessions. Book DOLL PICTURES across Tamil Nadu.",
+    "heading": "Family photography packages in Erode",
+    "body": "Warm family packages for every generation — natural connection, flattering light and galleries you will share for years.",
+    "serviceName": "Family photography packages in Erode",
+    "label": "Family",
+    "lead": "Gather the people who matter in packages designed for real smiles, soft direction and portraits that feel like home.",
+    "categorySlug": "family",
+    "sections": [
+      {
+        "heading": "Together, naturally",
+        "paragraphs": [
+          "Family packages balance group frames with quieter pairings — grandparents, siblings and the in-between laughs. Studio and outdoor options depend on the package.",
+          "We keep direction light so everyone stays comfortable, especially with young children. Enquire with the package that matches your group size and location preference."
+        ]
+      }
+    ],
+    "faqs": [
+      {
+        "question": "How many people can be in a family session?",
+        "answer": "Most packages work for small to extended families. Share your headcount when you enquire so we can recommend coverage time and framing."
+      },
+      {
+        "question": "Studio or outdoor?",
+        "answer": "Both are available depending on the package. We help choose a location that suits your group and the light."
+      },
+      {
+        "question": "Is consultation free?",
+        "answer": "Yes. Your first consultation is free before you book."
+      }
+    ],
+    "related": [
+      {
+        "label": "Family photography",
+        "path": "/family-photography-erode"
+      },
+      {
+        "label": "Maternity packages",
+        "path": "/maternity-packages-erode"
+      },
+      {
+        "label": "Wedding packages",
+        "path": "/wedding-packages-erode"
+      },
+      {
+        "label": "All packages",
+        "path": "/packages"
+      }
+    ],
+    "imageCategories": ["Family"],
+    "fallbackImages": [
+      {
+        "src": "https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        "alt": "Family portrait photography by DOLL PICTURES"
+      }
+    ]
+  }
+}

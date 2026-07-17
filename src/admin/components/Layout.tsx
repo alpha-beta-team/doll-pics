@@ -1,7 +1,30 @@
 import { Outlet, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Sidebar } from './Sidebar';
+import { AdminShellProvider, useAdminShell } from '../contexts/AdminShellContext';
+import { SIDEBAR_COLLAPSED_WIDTH, SIDEBAR_EXPANDED_WIDTH } from '../nav/config';
+import { Sidebar } from './sidebar';
 import { TopBar } from './TopBar';
+
+function AdminShell() {
+  const { collapsed, isMobile } = useAdminShell();
+  const sidebarWidth =
+    isMobile ? 0 : collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_EXPANDED_WIDTH;
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Sidebar />
+      <TopBar sidebarWidth={sidebarWidth} />
+      <main
+        className="min-h-screen pt-16 transition-[padding] duration-200 ease-out"
+        style={{ paddingLeft: sidebarWidth }}
+      >
+        <div className="p-6">
+          <Outlet />
+        </div>
+      </main>
+    </div>
+  );
+}
 
 export function RequireAuth() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -22,14 +45,8 @@ export function RequireAuth() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Sidebar />
-      <TopBar />
-      <main className="pl-64 pt-16 min-h-screen">
-        <div className="p-6">
-          <Outlet />
-        </div>
-      </main>
-    </div>
+    <AdminShellProvider>
+      <AdminShell />
+    </AdminShellProvider>
   );
 }

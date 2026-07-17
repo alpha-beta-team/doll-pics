@@ -1,5 +1,6 @@
 import seoPages from '../data/seo-pages.json';
 import servicePages from '../data/service-pages.json';
+import packagePages from '../data/package-pages.json';
 
 export const SITE_URL = (
   import.meta.env.VITE_SITE_URL as string | undefined
@@ -40,6 +41,19 @@ const servicePageEntries = Object.fromEntries(
   ]),
 );
 
+const packagePageEntries = Object.fromEntries(
+  Object.entries(packagePages).map(([path, page]) => [
+    path,
+    {
+      path,
+      title: page.title,
+      description: page.description,
+      heading: page.heading,
+      body: page.body,
+    },
+  ]),
+);
+
 export const PAGE_SEO: Record<string, PageSeo> = {
   ...Object.fromEntries(
     Object.entries(seoPages.pages).map(([path, page]) => [
@@ -54,6 +68,7 @@ export const PAGE_SEO: Record<string, PageSeo> = {
     ]),
   ),
   ...servicePageEntries,
+  ...packagePageEntries,
 };
 
 export const SITE_FAQS: FaqItem[] = (seoPages.faqs ?? []).map((faq) => ({
@@ -81,6 +96,80 @@ export function getServicePage(pathname: string) {
       ? pathname.slice(0, -1)
       : pathname;
   return servicePages[normalized as keyof typeof servicePages] ?? null;
+}
+
+export function getPackagePage(pathname: string) {
+  const normalized =
+    pathname.endsWith('/') && pathname !== '/'
+      ? pathname.slice(0, -1)
+      : pathname;
+  return packagePages[normalized as keyof typeof packagePages] ?? null;
+}
+
+export type PackagePageContent = {
+  title: string;
+  description: string;
+  heading: string;
+  body: string;
+  serviceName: string;
+  label: string;
+  lead: string;
+  categorySlug: string;
+  sections: Array<{ heading: string; paragraphs: string[] }>;
+  faqs: FaqItem[];
+  related: Array<{ label: string; path: string }>;
+  imageCategories: string[];
+  fallbackImages: Array<{ src: string; alt: string }>;
+};
+
+/** JSON landing when present; otherwise a minimal page from CMS nav link. */
+export function resolvePackagePage(
+  pathname: string,
+  nav?: { label: string; path: string; categorySlug: string; description: string } | null,
+): PackagePageContent | null {
+  const json = getPackagePage(pathname);
+  if (json) {
+    return {
+      title: json.title,
+      description: json.description,
+      heading: json.heading,
+      body: json.body,
+      serviceName: json.serviceName,
+      label: json.label,
+      lead: json.lead,
+      categorySlug: json.categorySlug,
+      sections: json.sections ?? [],
+      faqs: json.faqs ?? [],
+      related: json.related ?? [],
+      imageCategories: json.imageCategories ?? [],
+      fallbackImages: json.fallbackImages ?? [],
+    };
+  }
+
+  if (!nav) return null;
+
+  return {
+    title: `${nav.label} Photography Packages | Doll Pictures`,
+    description:
+      nav.description ||
+      `${nav.label} photography packages in Erode from DOLL PICTURES.`,
+    heading: `${nav.label} packages`,
+    body: nav.description || `Explore our ${nav.label.toLowerCase()} packages.`,
+    serviceName: `${nav.label} photography packages`,
+    label: nav.label,
+    lead:
+      nav.description ||
+      `Compare ${nav.label.toLowerCase()} packages and enquire with the option that fits.`,
+    categorySlug: nav.categorySlug,
+    sections: [],
+    faqs: [],
+    related: [
+      { label: 'All packages', path: '/packages' },
+      { label: 'Book a session', path: '/booking' },
+    ],
+    imageCategories: [nav.label],
+    fallbackImages: [],
+  };
 }
 
 export function absoluteUrl(path: string): string {
@@ -204,6 +293,25 @@ export function buildServiceJsonLd(path: string) {
   };
 }
 
+export function buildPackageCategoryJsonLd(
+  path: string,
+  pageOverride?: PackagePageContent | null,
+) {
+  const page = pageOverride ?? getPackagePage(path);
+  if (!page) return null;
+  const url = absoluteUrl(path);
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    '@id': `${url}#package-category`,
+    name: page.serviceName,
+    description: page.description,
+    provider: { '@id': STUDIO_ID },
+    areaServed: buildAreaServed(),
+    url,
+  };
+}
+
 export function buildBreadcrumbJsonLd(
   seo: PageSeo,
   extras?: Array<{ name: string; path: string }>,
@@ -259,6 +367,8 @@ export function applyPageSeo(
   options?: {
     contact?: { phone?: string; email?: string; socials?: Record<string, string> };
     faqs?: FaqItem[];
+    /** CMS-resolved package landing when JSON has no entry. */
+    packagePage?: PackagePageContent | null;
   },
 ) {
   const url = absoluteUrl(seo.path);
@@ -267,7 +377,9 @@ export function applyPageSeo(
   const isHome = !seo.path || seo.path === '/';
   const isBooking = seo.path === '/booking';
   const servicePage = getServicePage(seo.path);
+  const packagePage = options?.packagePage ?? getPackagePage(seo.path);
   const isService = Boolean(servicePage);
+  const isPackageCategory = Boolean(packagePage);
 
   document.title = seo.title;
 
@@ -314,7 +426,9 @@ export function applyPageSeo(
   if (!isHome && !seo.noindex) {
     const breadcrumbExtras = isService
       ? [{ name: 'Services', path: '/services' }]
-      : undefined;
+      : isPackageCategory
+        ? [{ name: 'Packages', path: '/packages' }]
+        : undefined;
     upsertJsonLd(
       'seo-jsonld-breadcrumb',
       buildBreadcrumbJsonLd(seo, breadcrumbExtras),
@@ -324,8 +438,14 @@ export function applyPageSeo(
   }
 
   const serviceLd = buildServiceJsonLd(seo.path);
+  const packageLd = buildPackageCategoryJsonLd(
+    seo.path,
+    options?.packagePage ?? null,
+  );
   if (serviceLd && !seo.noindex) {
     upsertJsonLd('seo-jsonld-service', serviceLd);
+  } else if (packageLd && !seo.noindex) {
+    upsertJsonLd('seo-jsonld-service', packageLd);
   } else {
     removeJsonLd('seo-jsonld-service');
   }
@@ -334,9 +454,11 @@ export function applyPageSeo(
     options?.faqs ??
     (isService && servicePage
       ? servicePage.faqs
-      : isBooking
-        ? SITE_FAQS
-        : null);
+      : isPackageCategory && packagePage
+        ? packagePage.faqs
+        : isBooking
+          ? SITE_FAQS
+          : null);
   if (faqs?.length && !seo.noindex) {
     const faqLd = buildFaqPageJsonLd(faqs);
     if (faqLd) upsertJsonLd('seo-jsonld-faq', faqLd);

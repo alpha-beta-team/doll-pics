@@ -7,7 +7,7 @@ import { SectionPageIntro } from '../components/SectionPageIntro';
 import { Hero } from '../components/sections/Hero';
 import { Footer } from '../components/sections/Footer';
 import { ContactFabHost } from '../components/packages/ContactFabs';
-import { SiteDataProvider, useSiteData } from '../contexts/SiteDataContext';
+import { useSiteData } from '../contexts/SiteDataContext';
 import { PATH_TO_SECTION } from '../lib/navigation';
 import { SECTION_COMPONENTS } from '../lib/sectionComponents';
 import { getPageSeo } from '../lib/seo';
@@ -276,10 +276,8 @@ function SiteContent() {
 
 export function Site() {
   return (
-    <SiteDataProvider>
-      <SmoothScroll>
-        <SiteContent />
-      </SmoothScroll>
-    </SiteDataProvider>
+    <SmoothScroll>
+      <SiteContent />
+    </SmoothScroll>
   );
 }

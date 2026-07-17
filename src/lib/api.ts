@@ -166,9 +166,20 @@ export interface PublicPhoto {
   categoryIds?: Array<{ name: string; slug: string } | string>;
 }
 
+export interface PublicPackageCategory {
+  name: string;
+  slug: string;
+  path?: string;
+  description?: string;
+  order?: number;
+}
+
 export interface PublicPackage {
   name: string;
-  shootType: string;
+  /** @deprecated Prefer categoryName; kept for API backwards compatibility */
+  shootType?: string;
+  categorySlug?: string;
+  categoryName?: string;
   description: string;
   inclusions: string[];
   icon?: string;
@@ -235,6 +246,8 @@ export const publicApi = {
     return publicFetch<PublicPhoto[]>(`/photos${qs}`);
   },
   getPackages: () => publicFetch<PublicPackage[]>('/packages'),
+  getPackageCategories: () =>
+    publicFetch<PublicPackageCategory[]>('/package-categories'),
   getHeroSlides: () => publicFetch<PublicHeroSlide[]>('/hero-slides'),
   getStoryScenes: () => publicFetch<PublicStoryScene[]>('/story-scenes'),
   getStats: () => publicFetch<PublicStat[]>('/stats'),

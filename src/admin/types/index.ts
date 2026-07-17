@@ -30,10 +30,25 @@ export interface Category {
   isPublished: boolean;
 }
 
+export interface PackageCategory {
+  id: string;
+  name: string;
+  slug: string;
+  /** Public SEO path, e.g. `/wedding-packages-erode`. */
+  path: string;
+  description: string;
+  order: number;
+  isPublished: boolean;
+}
+
 export interface Package {
   id: string;
   name: string;
-  shootType: string;
+  categoryId: string;
+  categoryName?: string;
+  categorySlug?: string;
+  /** @deprecated Prefer categoryId; kept for API backwards compatibility */
+  shootType?: string;
   description: string;
   inclusions: string[];
   pricingMode: 'price' | 'startingFrom' | 'enquire';

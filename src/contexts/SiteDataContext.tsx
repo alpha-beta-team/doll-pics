@@ -16,6 +16,7 @@ import {
   type PublicBehindScene,
   type PublicTeamMember,
   type PublicPackage,
+  type PublicPackageCategory,
   type PhotoSources,
 } from '../lib/api';
 import {
@@ -30,9 +31,12 @@ import {
   teamMembers as fallbackTeamMembers,
 } from '../data/content';
 import {
+  DEFAULT_PACKAGE_NAV_LINKS,
   DEFAULT_SERVICE_NAV_LINKS,
+  getPublishedPackageNavLinks,
   getPublishedServiceNavLinks,
   normalizeServiceNavLinks,
+  type PackageNavLink,
 } from '../lib/navigation';
 
 export interface FeaturedWorkItem {
@@ -70,6 +74,8 @@ export interface SiteData {
   beforeAfter: { before: string; after: string };
   services: ServiceItem[];
   packages: PublicPackage[];
+  packageCategories: PublicPackageCategory[];
+  packageNavLinks: PackageNavLink[];
   stats: PublicStat[];
   testimonials: PublicTestimonial[];
   behindScenes: PublicBehindScene[];
@@ -97,52 +103,14 @@ function sourcesToFeatured(
   };
 }
 
-const fallbackPackages: PublicPackage[] = [
-  {
-    name: 'Package 1',
-    shootType: 'Wedding',
-    description: 'Essential wedding coverage',
-    inclusions: [
-      '1 Traditional Photo',
-      '1 Traditional Video',
-      '1 Premium Album',
-      'Family Wedding Shoot (5 mins)',
-    ],
-    pricingMode: 'price',
-    price: 45000,
-    icon: 'Heart',
-  },
-  {
-    name: 'Package 2',
-    shootType: 'Wedding',
-    description: 'Popular wedding coverage',
-    inclusions: [
-      '1 Traditional Photo',
-      '1 Traditional Video',
-      '1 Candid Photo',
-      '1 Premium Album',
-    ],
-    pricingMode: 'price',
-    price: 65000,
-    icon: 'Camera',
-  },
-  {
-    name: 'Package 3',
-    shootType: 'Wedding',
-    description: 'Complete wedding coverage',
-    inclusions: [
-      '1 Traditional Photo',
-      '1 Traditional Video',
-      '1 Candid Photo',
-      '1 Candid Video',
-      'Post Wedding Outdoor',
-      '1 Premium Album',
-    ],
-    pricingMode: 'price',
-    price: 100000,
-    icon: 'Sparkles',
-  },
-];
+const fallbackPackageCategories: PublicPackageCategory[] =
+  DEFAULT_PACKAGE_NAV_LINKS.map((link) => ({
+    name: link.label,
+    slug: link.categorySlug,
+    path: link.path,
+    description: link.description,
+    order: link.order,
+  }));
 
 const defaultSiteContent: PublicSiteContent = {
   brandName: 'DOLL PICTURES',
@@ -183,6 +151,20 @@ function servicesFromNavLinks(
   }));
 }
 
+function normalizePublicPackage(p: PublicPackage): PublicPackage {
+  const categoryName = p.categoryName?.trim() || p.shootType?.trim() || '';
+  const categorySlug =
+    p.categorySlug?.trim().toLowerCase() ||
+    categoryName.toLowerCase().replace(/\s+/g, '-');
+  return {
+    ...p,
+    inclusions: Array.isArray(p.inclusions) ? p.inclusions : [],
+    categoryName: categoryName || undefined,
+    categorySlug: categorySlug || undefined,
+    shootType: p.shootType || categoryName || undefined,
+  };
+}
+
 const normalizedFallbackFeatured: FeaturedWorkItem[] = fallbackFeaturedWork.map(
   (w) => ({
     ...w,
@@ -205,7 +187,9 @@ const fallbackData: Omit<SiteData, 'loading' | 'fromApi'> = {
   galleryImages: normalizedFallbackGallery,
   beforeAfter: fallbackBeforeAfter,
   services: servicesFromNavLinks(DEFAULT_SERVICE_NAV_LINKS),
-  packages: fallbackPackages,
+  packages: [],
+  packageCategories: fallbackPackageCategories,
+  packageNavLinks: getPublishedPackageNavLinks(fallbackPackageCategories),
   stats: fallbackStats,
   testimonials: fallbackTestimonials,
   behindScenes: fallbackBehindScenes,
@@ -230,10 +214,12 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
 
     async function load() {
       try {
-        // Critical path first: site content + hero (above-the-fold).
-        const [siteContent, heroSlides] = await Promise.all([
+        const [siteContent, heroSlides, packageCategories] = await Promise.all([
           publicApi.getSiteContent(),
           publicApi.getHeroSlides(),
+          publicApi
+            .getPackageCategories()
+            .catch(() => [] as PublicPackageCategory[]),
         ]);
 
         if (cancelled) return;
@@ -247,6 +233,21 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
         const services = servicesFromNavLinks(
           getPublishedServiceNavLinks(serviceNavLinks),
         );
+
+        const categories =
+          packageCategories.length > 0
+            ? packageCategories
+                .map((c, index) => ({
+                  name: c.name,
+                  slug: c.slug,
+                  path: c.path,
+                  description: c.description,
+                  order: typeof c.order === 'number' ? c.order : index,
+                }))
+                .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+            : fallbackPackageCategories;
+
+        const packageNavLinks = getPublishedPackageNavLinks(categories);
 
         setData((prev) => ({
           ...prev,
@@ -263,16 +264,16 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
             serviceNavLinks,
           },
           services,
-          // Preserve first-slide image briefly via Hero; apply API slides as returned.
           heroSlides: nextHero,
           beforeAfter: siteContent.beforeAfter?.before
             ? siteContent.beforeAfter
             : fallbackBeforeAfter,
+          packageCategories: categories,
+          packageNavLinks,
           loading: false,
           fromApi: true,
         }));
 
-        // Defer the rest so it does not contend with LCP / first paint.
         const defer =
           typeof requestIdleCallback === 'function'
             ? (cb: () => void) => requestIdleCallback(cb, { timeout: 2500 })
@@ -337,12 +338,8 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
                   }))
               : normalizedFallbackGallery;
 
-            const normalizedPackages: PublicPackage[] = packages.length
-              ? packages.map((p) => ({
-                  ...p,
-                  inclusions: Array.isArray(p.inclusions) ? p.inclusions : [],
-                }))
-              : fallbackPackages;
+            const normalizedPackages: PublicPackage[] =
+              packages.map(normalizePublicPackage);
 
             setData((prev) => ({
               ...prev,

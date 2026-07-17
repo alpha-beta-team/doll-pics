@@ -6,56 +6,98 @@ import { SmoothScroll } from '../components/SmoothScroll';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/sections/Footer';
 import { ContactFabHost } from '../components/packages/ContactFabs';
+import { PackagesGrid } from '../components/packages/PackagesGrid';
 import { ResponsiveImage } from '../components/ResponsiveImage';
-import { usePageSeo } from '../hooks/usePageSeo';
 import { useInView } from '../hooks/useScroll';
 import { trackPhoneClick, trackViewService } from '../lib/analytics';
-import { getServicePage } from '../lib/seo';
-import { selectServiceImages, type ServiceImage } from '../lib/serviceImages';
 import {
-  getPublishedServiceNavLinks,
-  normalizePathname,
-} from '../lib/navigation';
+  applyPageSeo,
+  resolvePackagePage,
+} from '../lib/seo';
+import { selectServiceImages, type ServiceImage } from '../lib/serviceImages';
+import { normalizePathname } from '../lib/navigation';
 import { NotFound } from './NotFound';
 
-const HERO_SIZES = '100vw';
 const GRID_SIZES = '(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw';
 const INLINE_SIZES = '(max-width: 1024px) 100vw, 70vw';
 
-function ServicePageContent() {
+function packageMatchesCategory(
+  pkg: { categorySlug?: string; shootType?: string; categoryName?: string },
+  categorySlug: string,
+  label: string,
+): boolean {
+  if (pkg.categorySlug?.toLowerCase() === categorySlug) return true;
+  const name = (pkg.categoryName || pkg.shootType || '').trim().toLowerCase();
+  return name === label.toLowerCase() || name === categorySlug.replace(/-/g, ' ');
+}
+
+function PackageCategoryPageContent() {
   const { pathname } = useLocation();
   const path = normalizePathname(pathname);
-  const { siteContent, featuredWork, galleryImages } = useSiteData();
-  const page = getServicePage(path);
+  const {
+    siteContent,
+    featuredWork,
+    galleryImages,
+    packages,
+    packageNavLinks,
+    loading,
+  } = useSiteData();
+  const nav = packageNavLinks.find((link) => link.path === path) ?? null;
+  const page = resolvePackagePage(path, nav);
   const viewTrackedPath = useRef<string | null>(null);
-  const otherServiceLinks = getPublishedServiceNavLinks(
-    siteContent.serviceNavLinks,
-  ).filter((link) => link.path !== path);
 
-  usePageSeo({
-    phone: siteContent.phone,
-    email: siteContent.contactEmail,
-    socials: siteContent.socials,
-  });
+  useEffect(() => {
+    if (!page) return;
+    applyPageSeo(
+      {
+        path,
+        title: page.title,
+        description: page.description,
+        heading: page.heading,
+        body: page.body,
+      },
+      {
+        contact: {
+          phone: siteContent.phone,
+          email: siteContent.contactEmail,
+          socials: siteContent.socials,
+        },
+        packagePage: page,
+        faqs: page.faqs.length ? page.faqs : undefined,
+      },
+    );
+  }, [
+    page,
+    path,
+    siteContent.phone,
+    siteContent.contactEmail,
+    siteContent.socials,
+  ]);
 
   useEffect(() => {
     if (!page) return;
     if (viewTrackedPath.current === path) return;
     viewTrackedPath.current = path;
     trackViewService({
-      service_name: page.label,
+      service_name: `${page.label} Packages`,
       page_path: path,
     });
   }, [page, path]);
 
   if (!page) return <NotFound />;
 
-  const { hero, gallery, inline } = selectServiceImages({
+  const categoryPackages = packages.filter((pkg) =>
+    packageMatchesCategory(pkg, page.categorySlug, page.label),
+  );
+
+  const { gallery, inline } = selectServiceImages({
     imageCategories: page.imageCategories,
     fallbackImages: page.fallbackImages,
     featuredWork,
     galleryImages,
   });
+
+  const otherPackageLinks = packageNavLinks.filter((link) => link.path !== path);
 
   const phoneHref = siteContent.phone
     ? `tel:${siteContent.phone.replace(/\s/g, '')}`
@@ -68,51 +110,42 @@ function ServicePageContent() {
       <Navbar />
 
       <main className="relative overflow-hidden bg-ink-950 pt-20">
-        <header className="relative px-6 pb-10 pt-16 lg:px-10">
-          <div className="mx-auto max-w-7xl">
-            <p className="section-label mb-4">{page.label}</p>
-            <h1 className="max-w-4xl font-display text-5xl font-light leading-tight text-ink-50 md:text-7xl">
-              {page.heading}
-            </h1>
-            <p className="mt-6 max-w-2xl text-[0.95rem] leading-relaxed text-ink-200/70">
-              {page.lead}
-            </p>
+        <section id="packages" className="relative px-6 pb-16 pt-12 lg:px-10">
+          <div className="mx-auto mb-10 max-w-7xl">
             <nav
               aria-label="Breadcrumb"
-              className="mt-8 flex flex-wrap items-center gap-2 text-xs tracking-wide text-ink-300/50"
+              className="mb-6 flex flex-wrap items-center gap-2 text-xs tracking-wide text-ink-300/50"
             >
               <Link to="/" className="transition-colors hover:text-gold-400">
                 Home
               </Link>
               <span aria-hidden="true">/</span>
-              <Link to="/services" className="transition-colors hover:text-gold-400">
-                Services
+              <Link to="/packages" className="transition-colors hover:text-gold-400">
+                Packages
               </Link>
               <span aria-hidden="true">/</span>
               <span className="text-ink-200/70">{page.label}</span>
             </nav>
+            <h1 className="max-w-3xl font-display text-4xl font-light leading-tight text-ink-50 md:text-5xl">
+              {page.heading}
+            </h1>
+            <p className="mt-4 max-w-xl text-[0.95rem] leading-relaxed text-ink-200/70">
+              {page.lead}
+            </p>
           </div>
-        </header>
-
-        {hero ? (
-          <div className="relative w-full">
-            <div className="relative min-h-[50vh] w-full overflow-hidden md:min-h-[62vh]">
-              <ResponsiveImage
-                src={hero.src}
-                alt={hero.alt}
-                avifSrcSet={hero.avifSrcSet}
-                webpSrcSet={hero.webpSrcSet}
-                sizes={HERO_SIZES}
-                width={1600}
-                height={1000}
-                loading="eager"
-                fetchPriority="high"
-                className="absolute inset-0 h-full w-full object-cover"
+          <div className="relative mx-auto max-w-7xl">
+            {loading ? (
+              <div className="flex justify-center py-24">
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-gold-400 border-t-transparent" />
+              </div>
+            ) : (
+              <PackagesGrid
+                packages={categoryPackages}
+                whatsapp={siteContent.whatsapp}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
-            </div>
+            )}
           </div>
-        ) : null}
+        </section>
 
         {gallery.length > 0 ? (
           <section className="relative px-6 py-20 lg:px-10">
@@ -122,19 +155,8 @@ function ServicePageContent() {
                 Frames from this
                 <span className="italic text-gradient-gold"> craft.</span>
               </h2>
-              <p className="mt-4 max-w-xl text-[0.95rem] leading-relaxed text-ink-200/70">
-                A look at the mood and moments we create — explore more in our{' '}
-                <Link to="/work" className="text-gold-400 transition-colors hover:text-gold-300">
-                  featured work
-                </Link>{' '}
-                and{' '}
-                <Link to="/gallery" className="text-gold-400 transition-colors hover:text-gold-300">
-                  gallery
-                </Link>
-                .
-              </p>
             </div>
-            <ServiceWorkGrid images={gallery} />
+            <PackageWorkGrid images={gallery} />
           </section>
         ) : null}
 
@@ -197,36 +219,33 @@ function ServicePageContent() {
                   </>
                 ) : null}
               </p>
-              <p className="mt-4 text-[0.95rem] leading-relaxed text-ink-200/70">
-                We photograph across Tamil Nadu, including Salem, Namakkal, Coimbatore
-                and Chennai. Opening hours and travel fees are confirmed during your
-                free consultation.
-              </p>
             </section>
 
-            <section>
-              <h2 className="font-display text-3xl font-light text-ink-50 md:text-4xl">
-                Frequently asked questions
-              </h2>
-              <div className="mt-8 space-y-8">
-                {page.faqs.map((faq) => (
-                  <div key={faq.question}>
-                    <h3 className="text-base font-medium text-ink-50">{faq.question}</h3>
-                    <p className="mt-2 text-[0.95rem] leading-relaxed text-ink-200/70">
-                      {faq.answer}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </section>
+            {page.faqs.length > 0 ? (
+              <section>
+                <h2 className="font-display text-3xl font-light text-ink-50 md:text-4xl">
+                  Frequently asked questions
+                </h2>
+                <div className="mt-8 space-y-8">
+                  {page.faqs.map((faq) => (
+                    <div key={faq.question}>
+                      <h3 className="text-base font-medium text-ink-50">{faq.question}</h3>
+                      <p className="mt-2 text-[0.95rem] leading-relaxed text-ink-200/70">
+                        {faq.answer}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ) : null}
 
             <section className="border-t border-hairline/5 pt-14">
               <h2 className="font-display text-3xl font-light text-ink-50 md:text-4xl">
-                Ready to plan your session?
+                Ready to choose a package?
               </h2>
               <p className="mt-5 max-w-xl text-[0.95rem] leading-relaxed text-ink-200/70">
-                Share your date and shoot type — we will confirm availability and schedule
-                a free consultation. Package details are confirmed when you book.
+                Enquire on a package above or book a free consultation — we will confirm
+                inclusions and availability for your date.
               </p>
               <div className="mt-8 flex flex-wrap gap-4">
                 <Link
@@ -234,15 +253,15 @@ function ServicePageContent() {
                   data-cursor="hover"
                   className="inline-flex items-center justify-center rounded-sm bg-gold-500 px-6 py-3 text-sm font-medium tracking-wide text-on-gold transition-colors hover:bg-gold-400"
                 >
-                  Book a session
+                  Book a consultation
                 </Link>
-                <Link
-                  to="/packages"
+                <a
+                  href="#packages"
                   data-cursor="hover"
                   className="inline-flex items-center justify-center rounded-sm border border-hairline/15 px-6 py-3 text-sm tracking-wide text-ink-50 transition-colors hover:border-gold-400/50 hover:text-gold-400"
                 >
                   View packages
-                </Link>
+                </a>
               </div>
             </section>
 
@@ -264,14 +283,14 @@ function ServicePageContent() {
                 ))}
               </ul>
               <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-3 border-t border-hairline/5 pt-6">
-                {otherServiceLinks.map((route) => (
+                {otherPackageLinks.map((route) => (
                   <li key={route.path}>
                     <Link
                       to={route.path}
                       data-cursor="hover"
                       className="text-sm text-ink-200/50 transition-colors hover:text-gold-400"
                     >
-                      {route.label} Photography
+                      {route.label} Packages
                     </Link>
                   </li>
                 ))}
@@ -287,7 +306,7 @@ function ServicePageContent() {
   );
 }
 
-function ServiceWorkGrid({ images }: { images: ServiceImage[] }) {
+function PackageWorkGrid({ images }: { images: ServiceImage[] }) {
   const { ref, inView } = useInView<HTMLDivElement>();
 
   return (
@@ -318,26 +337,16 @@ function ServiceWorkGrid({ images }: { images: ServiceImage[] }) {
             className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-60" />
-          {image.category || image.title ? (
-            <div className="absolute bottom-0 left-0 right-0 p-4">
-              {image.category ? (
-                <p className="section-label mb-1 text-gold-300">{image.category}</p>
-              ) : null}
-              {image.title ? (
-                <p className="font-display text-xl font-light text-white">{image.title}</p>
-              ) : null}
-            </div>
-          ) : null}
         </div>
       ))}
     </div>
   );
 }
 
-export function ServicePage() {
+export function PackageCategoryPage() {
   return (
     <SmoothScroll>
-      <ServicePageContent />
+      <PackageCategoryPageContent />
     </SmoothScroll>
   );
 }
