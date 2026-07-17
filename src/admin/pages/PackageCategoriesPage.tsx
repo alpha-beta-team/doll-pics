@@ -268,6 +268,12 @@ function CategoryEditModal({
   const [path, setPath] = useState(category?.path || '');
   const [pathTouched, setPathTouched] = useState(Boolean(category?.path));
   const [description, setDescription] = useState(category?.description || '');
+  const [seoTitle, setSeoTitle] = useState(category?.seoTitle || '');
+  const [seoDescription, setSeoDescription] = useState(
+    category?.seoDescription || '',
+  );
+  const [heading, setHeading] = useState(category?.heading || '');
+  const [lead, setLead] = useState(category?.lead || '');
   const [isPublished, setIsPublished] = useState(category?.isPublished ?? true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -292,6 +298,10 @@ function CategoryEditModal({
         slug: nextSlug,
         path: path || pathFromSlug(nextSlug),
         description,
+        seoTitle: seoTitle.trim(),
+        seoDescription: seoDescription.trim(),
+        heading: heading.trim(),
+        lead: lead.trim(),
         isPublished,
         order: category?.order ?? 0,
       });
@@ -301,9 +311,9 @@ function CategoryEditModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
-        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="p-4 border-b border-gray-200 flex items-center justify-between shrink-0">
           <h2 className="text-lg font-semibold text-gray-900">
             {category ? 'Edit category' : 'Create category'}
           </h2>
@@ -311,7 +321,7 @@ function CategoryEditModal({
             <X className="w-5 h-5 text-gray-500" aria-hidden="true" />
           </button>
         </div>
-        <div className="p-4 space-y-4">
+        <div className="p-4 space-y-4 overflow-y-auto">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
             <input
@@ -366,6 +376,64 @@ function CategoryEditModal({
               placeholder="Short blurb for the packages hub"
             />
           </div>
+
+          <div className="border-t border-gray-200 pt-4 space-y-4">
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900">Landing SEO</h3>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Overrides static JSON when filled. Leave blank to keep defaults.
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                SEO title
+              </label>
+              <input
+                type="text"
+                value={seoTitle}
+                onChange={(e) => setSeoTitle(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Wedding Photography Packages in Erode | Doll Pictures"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Meta description
+              </label>
+              <textarea
+                value={seoDescription}
+                onChange={(e) => setSeoDescription(e.target.value)}
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                placeholder="Compare wedding photography packages in Erode…"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Page heading (H1)
+              </label>
+              <input
+                type="text"
+                value={heading}
+                onChange={(e) => setHeading(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Wedding photography packages in Erode"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Lead paragraph
+              </label>
+              <textarea
+                value={lead}
+                onChange={(e) => setLead(e.target.value)}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                placeholder="Intro copy under the heading"
+              />
+            </div>
+          </div>
+
           <label className="flex items-center gap-2 cursor-pointer">
             <input
               type="checkbox"
@@ -376,7 +444,7 @@ function CategoryEditModal({
             <span className="text-sm text-gray-700">Published</span>
           </label>
         </div>
-        <div className="p-4 border-t border-gray-200 flex justify-end gap-3">
+        <div className="p-4 border-t border-gray-200 flex justify-end gap-3 shrink-0">
           <button
             type="button"
             onClick={onClose}

@@ -7,10 +7,9 @@ import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/sections/Footer';
 import { ContactFabHost } from '../components/packages/ContactFabs';
 import { ResponsiveImage } from '../components/ResponsiveImage';
-import { usePageSeo } from '../hooks/usePageSeo';
 import { useInView } from '../hooks/useScroll';
 import { trackPhoneClick, trackViewService } from '../lib/analytics';
-import { getServicePage } from '../lib/seo';
+import { applyPageSeo, resolveServicePage } from '../lib/seo';
 import { selectServiceImages, type ServiceImage } from '../lib/serviceImages';
 import {
   getPublishedServiceNavLinks,
@@ -26,17 +25,39 @@ function ServicePageContent() {
   const { pathname } = useLocation();
   const path = normalizePathname(pathname);
   const { siteContent, featuredWork, galleryImages } = useSiteData();
-  const page = getServicePage(path);
+  const serviceLinks = getPublishedServiceNavLinks(siteContent.serviceNavLinks);
+  const nav = serviceLinks.find((link) => link.path === path) ?? null;
+  const page = resolveServicePage(path, nav);
   const viewTrackedPath = useRef<string | null>(null);
-  const otherServiceLinks = getPublishedServiceNavLinks(
-    siteContent.serviceNavLinks,
-  ).filter((link) => link.path !== path);
+  const otherServiceLinks = serviceLinks.filter((link) => link.path !== path);
 
-  usePageSeo({
-    phone: siteContent.phone,
-    email: siteContent.contactEmail,
-    socials: siteContent.socials,
-  });
+  useEffect(() => {
+    if (!page) return;
+    applyPageSeo(
+      {
+        path,
+        title: page.title,
+        description: page.description,
+        heading: page.heading,
+        body: page.body,
+      },
+      {
+        contact: {
+          phone: siteContent.phone,
+          email: siteContent.contactEmail,
+          socials: siteContent.socials,
+        },
+        servicePage: page,
+        faqs: page.faqs.length ? page.faqs : undefined,
+      },
+    );
+  }, [
+    page,
+    path,
+    siteContent.phone,
+    siteContent.contactEmail,
+    siteContent.socials,
+  ]);
 
   useEffect(() => {
     if (!page) return;
@@ -204,21 +225,23 @@ function ServicePageContent() {
               </p>
             </section>
 
-            <section>
-              <h2 className="font-display text-3xl font-light text-ink-50 md:text-4xl">
-                Frequently asked questions
-              </h2>
-              <div className="mt-8 space-y-8">
-                {page.faqs.map((faq) => (
-                  <div key={faq.question}>
-                    <h3 className="text-base font-medium text-ink-50">{faq.question}</h3>
-                    <p className="mt-2 text-[0.95rem] leading-relaxed text-ink-200/70">
-                      {faq.answer}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </section>
+            {page.faqs.length > 0 ? (
+              <section>
+                <h2 className="font-display text-3xl font-light text-ink-50 md:text-4xl">
+                  Frequently asked questions
+                </h2>
+                <div className="mt-8 space-y-8">
+                  {page.faqs.map((faq) => (
+                    <div key={faq.question}>
+                      <h3 className="text-base font-medium text-ink-50">{faq.question}</h3>
+                      <p className="mt-2 text-[0.95rem] leading-relaxed text-ink-200/70">
+                        {faq.answer}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ) : null}
 
             <section className="border-t border-hairline/5 pt-14">
               <h2 className="font-display text-3xl font-light text-ink-50 md:text-4xl">

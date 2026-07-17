@@ -81,6 +81,10 @@ function mapPackageCategory(doc: Record<string, unknown>): PackageCategory {
       rawPath ||
       (slug ? `/${slug}-packages-erode` : ''),
     description: (doc.description as string) ?? '',
+    seoTitle: (doc.seoTitle as string) ?? '',
+    seoDescription: (doc.seoDescription as string) ?? '',
+    heading: (doc.heading as string) ?? '',
+    lead: (doc.lead as string) ?? '',
     order: (doc.order as number) ?? 0,
     isPublished: (doc.isPublished as boolean) ?? false,
   };
@@ -565,6 +569,10 @@ export const api = {
           description: String(link.description ?? ''),
           icon: String(link.icon ?? 'Camera'),
           imageUrl: String(link.imageUrl ?? ''),
+          seoTitle: String(link.seoTitle ?? ''),
+          seoDescription: String(link.seoDescription ?? ''),
+          heading: String(link.heading ?? ''),
+          lead: String(link.lead ?? ''),
           order: typeof link.order === 'number' ? link.order : index,
           isPublished: link.isPublished !== false,
         };

@@ -7,6 +7,10 @@ export type ServiceNavLink = {
   description: string;
   icon: string;
   imageUrl: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  heading?: string;
+  lead?: string;
   order: number;
   isPublished: boolean;
 };
@@ -109,6 +113,10 @@ export type PackageNavLink = {
   path: string;
   categorySlug: string;
   description: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  heading?: string;
+  lead?: string;
   order: number;
   isPublished: boolean;
 };
@@ -230,16 +238,27 @@ export function normalizeServiceNavLinks(
 ): ServiceNavLink[] {
   if (!links?.length) return DEFAULT_SERVICE_NAV_LINKS.map((l) => ({ ...l }));
   return links
-    .map((link, index) => ({
-      id: link.id ?? link._id,
-      label: link.label?.trim() || 'Service',
-      path: link.path?.trim() || '/services',
-      description: link.description?.trim() || '',
-      icon: link.icon?.trim() || 'Camera',
-      imageUrl: link.imageUrl?.trim() || '',
-      order: typeof link.order === 'number' ? link.order : index,
-      isPublished: link.isPublished !== false,
-    }))
+    .map((link, index) => {
+      const next: ServiceNavLink = {
+        id: link.id ?? link._id,
+        label: link.label?.trim() || 'Service',
+        path: link.path?.trim() || '/services',
+        description: link.description?.trim() || '',
+        icon: link.icon?.trim() || 'Camera',
+        imageUrl: link.imageUrl?.trim() || '',
+        order: typeof link.order === 'number' ? link.order : index,
+        isPublished: link.isPublished !== false,
+      };
+      const seoTitle = link.seoTitle?.trim();
+      const seoDescription = link.seoDescription?.trim();
+      const heading = link.heading?.trim();
+      const lead = link.lead?.trim();
+      if (seoTitle) next.seoTitle = seoTitle;
+      if (seoDescription) next.seoDescription = seoDescription;
+      if (heading) next.heading = heading;
+      if (lead) next.lead = lead;
+      return next;
+    })
     .sort((a, b) => a.order - b.order);
 }
 
@@ -254,6 +273,10 @@ export type PackageCategoryInput = {
   slug?: string;
   path?: string;
   description?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  heading?: string;
+  lead?: string;
   order?: number;
   isPublished?: boolean;
 };
@@ -275,14 +298,23 @@ export function normalizePackageNavLinks(
       const path = rawPath
         ? normalizePathname(rawPath.startsWith('/') ? rawPath : `/${rawPath}`)
         : fallback?.path ?? defaultPackagePathForSlug(slug);
-      return {
+      const link: PackageNavLink = {
         label: cat.name?.trim() || fallback?.label || 'Packages',
         path,
         categorySlug: slug,
         description: cat.description?.trim() || fallback?.description || '',
         order: typeof cat.order === 'number' ? cat.order : index,
         isPublished: cat.isPublished !== false,
-      } satisfies PackageNavLink;
+      };
+      const seoTitle = cat.seoTitle?.trim();
+      const seoDescription = cat.seoDescription?.trim();
+      const heading = cat.heading?.trim();
+      const lead = cat.lead?.trim();
+      if (seoTitle) link.seoTitle = seoTitle;
+      if (seoDescription) link.seoDescription = seoDescription;
+      if (heading) link.heading = heading;
+      if (lead) link.lead = lead;
+      return link;
     })
     .filter((link): link is PackageNavLink => link !== null)
     .sort((a, b) => a.order - b.order);

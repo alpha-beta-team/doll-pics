@@ -129,6 +129,10 @@ export interface PublicServiceNavLink {
   description?: string;
   icon?: string;
   imageUrl?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  heading?: string;
+  lead?: string;
   order?: number;
   isPublished?: boolean;
 }
@@ -171,6 +175,10 @@ export interface PublicPackageCategory {
   slug: string;
   path?: string;
   description?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  heading?: string;
+  lead?: string;
   order?: number;
 }
 

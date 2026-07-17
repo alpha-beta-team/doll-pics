@@ -47,6 +47,10 @@ function emptyServiceLink(order: number): ServiceNavLink {
     description: '',
     icon: 'Camera',
     imageUrl: '',
+    seoTitle: '',
+    seoDescription: '',
+    heading: '',
+    lead: '',
     order,
     isPublished: true,
   };
@@ -565,6 +569,72 @@ export function SiteContentPage() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                     />
                   </div>
+
+                  <div className="md:col-span-2 border-t border-gray-100 pt-3 space-y-3">
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">Landing SEO</p>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        Overrides static JSON when filled. Leave blank to keep defaults.
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        SEO title
+                      </label>
+                      <input
+                        type="text"
+                        value={link.seoTitle ?? ''}
+                        onChange={(e) =>
+                          updateServiceLink(index, { seoTitle: e.target.value })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Maternity Photoshoot in Erode | Doll Pictures"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Meta description
+                      </label>
+                      <textarea
+                        value={link.seoDescription ?? ''}
+                        onChange={(e) =>
+                          updateServiceLink(index, { seoDescription: e.target.value })
+                        }
+                        rows={2}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                        placeholder="Personalized maternity photography in Erode…"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Page heading (H1)
+                      </label>
+                      <input
+                        type="text"
+                        value={link.heading ?? ''}
+                        onChange={(e) =>
+                          updateServiceLink(index, { heading: e.target.value })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Maternity photography in Erode"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Lead paragraph
+                      </label>
+                      <textarea
+                        value={link.lead ?? ''}
+                        onChange={(e) =>
+                          updateServiceLink(index, { lead: e.target.value })
+                        }
+                        rows={2}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                        placeholder="Intro copy under the heading"
+                      />
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Icon</label>
                     <select

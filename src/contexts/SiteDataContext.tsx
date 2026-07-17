@@ -242,6 +242,10 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
                   slug: c.slug,
                   path: c.path,
                   description: c.description,
+                  seoTitle: c.seoTitle,
+                  seoDescription: c.seoDescription,
+                  heading: c.heading,
+                  lead: c.lead,
                   order: typeof c.order === 'number' ? c.order : index,
                 }))
                 .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))

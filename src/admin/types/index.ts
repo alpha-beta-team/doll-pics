@@ -37,6 +37,10 @@ export interface PackageCategory {
   /** Public SEO path, e.g. `/wedding-packages-erode`. */
   path: string;
   description: string;
+  seoTitle: string;
+  seoDescription: string;
+  heading: string;
+  lead: string;
   order: number;
   isPublished: boolean;
 }
@@ -66,6 +70,10 @@ export interface ServiceNavLink {
   description: string;
   icon: string;
   imageUrl: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  heading?: string;
+  lead?: string;
   order: number;
   isPublished: boolean;
 }

@@ -98,6 +98,97 @@ export function getServicePage(pathname: string) {
   return servicePages[normalized as keyof typeof servicePages] ?? null;
 }
 
+export type ServicePageContent = {
+  title: string;
+  description: string;
+  heading: string;
+  body: string;
+  serviceName: string;
+  label: string;
+  lead: string;
+  sections: Array<{ heading: string; paragraphs: string[] }>;
+  faqs: FaqItem[];
+  related: Array<{ label: string; path: string }>;
+  imageCategories: string[];
+  fallbackImages: Array<{ src: string; alt: string }>;
+};
+
+type ServiceNavLinkLike = {
+  label: string;
+  path: string;
+  description: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  heading?: string;
+  lead?: string;
+};
+
+/** JSON landing when present; CMS SEO fields overlay when set. */
+export function resolveServicePage(
+  pathname: string,
+  nav?: ServiceNavLinkLike | null,
+): ServicePageContent | null {
+  const json = getServicePage(pathname);
+  const base: ServicePageContent | null = json
+    ? {
+        title: json.title,
+        description: json.description,
+        heading: json.heading,
+        body: json.body,
+        serviceName: json.serviceName,
+        label: json.label,
+        lead: json.lead,
+        sections: json.sections ?? [],
+        faqs: json.faqs ?? [],
+        related: json.related ?? [],
+        imageCategories: json.imageCategories ?? [],
+        fallbackImages: json.fallbackImages ?? [],
+      }
+    : nav
+      ? {
+          title: `${nav.label} Photography in Erode | Doll Pictures`,
+          description:
+            nav.description ||
+            `${nav.label} photography in Erode from DOLL PICTURES.`,
+          heading: `${nav.label} photography in Erode`,
+          body:
+            nav.description ||
+            `Explore our ${nav.label.toLowerCase()} photography.`,
+          serviceName: `${nav.label} photography in Erode`,
+          label: nav.label,
+          lead:
+            nav.description ||
+            `Book a ${nav.label.toLowerCase()} session with DOLL PICTURES in Erode.`,
+          sections: [],
+          faqs: [],
+          related: [
+            { label: 'Packages', path: '/packages' },
+            { label: 'Book a session', path: '/booking' },
+          ],
+          imageCategories: [nav.label],
+          fallbackImages: [],
+        }
+      : null;
+
+  if (!base) return null;
+
+  const seoTitle = nav?.seoTitle?.trim();
+  const seoDescription = nav?.seoDescription?.trim();
+  const heading = nav?.heading?.trim();
+  const lead = nav?.lead?.trim();
+
+  return {
+    ...base,
+    title: seoTitle || base.title,
+    description: seoDescription || base.description,
+    heading: heading || base.heading,
+    lead: lead || base.lead,
+    body: seoDescription || base.body,
+    serviceName: heading || base.serviceName,
+    label: nav?.label?.trim() || base.label,
+  };
+}
+
 export function getPackagePage(pathname: string) {
   const normalized =
     pathname.endsWith('/') && pathname !== '/'
@@ -122,55 +213,85 @@ export type PackagePageContent = {
   fallbackImages: Array<{ src: string; alt: string }>;
 };
 
-/** JSON landing when present; otherwise a minimal page from CMS nav link. */
+/** JSON landing when present; CMS SEO fields overlay when set. */
 export function resolvePackagePage(
   pathname: string,
-  nav?: { label: string; path: string; categorySlug: string; description: string } | null,
+  nav?: PackageNavLinkLike | null,
 ): PackagePageContent | null {
   const json = getPackagePage(pathname);
-  if (json) {
-    return {
-      title: json.title,
-      description: json.description,
-      heading: json.heading,
-      body: json.body,
-      serviceName: json.serviceName,
-      label: json.label,
-      lead: json.lead,
-      categorySlug: json.categorySlug,
-      sections: json.sections ?? [],
-      faqs: json.faqs ?? [],
-      related: json.related ?? [],
-      imageCategories: json.imageCategories ?? [],
-      fallbackImages: json.fallbackImages ?? [],
-    };
-  }
+  const base: PackagePageContent | null = json
+    ? {
+        title: json.title,
+        description: json.description,
+        heading: json.heading,
+        body: json.body,
+        serviceName: json.serviceName,
+        label: json.label,
+        lead: json.lead,
+        categorySlug: json.categorySlug,
+        sections: json.sections ?? [],
+        faqs: json.faqs ?? [],
+        related: json.related ?? [],
+        imageCategories: json.imageCategories ?? [],
+        fallbackImages: json.fallbackImages ?? [],
+      }
+    : nav
+      ? {
+          title: `${nav.label} Photography Packages | Doll Pictures`,
+          description:
+            nav.description ||
+            `${nav.label} photography packages in Erode from DOLL PICTURES.`,
+          heading: `${nav.label} packages`,
+          body:
+            nav.description ||
+            `Explore our ${nav.label.toLowerCase()} packages.`,
+          serviceName: `${nav.label} photography packages`,
+          label: nav.label,
+          lead:
+            nav.description ||
+            `Compare ${nav.label.toLowerCase()} packages and enquire with the option that fits.`,
+          categorySlug: nav.categorySlug,
+          sections: [],
+          faqs: [],
+          related: [
+            { label: 'All packages', path: '/packages' },
+            { label: 'Book a session', path: '/booking' },
+          ],
+          imageCategories: [nav.label],
+          fallbackImages: [],
+        }
+      : null;
 
-  if (!nav) return null;
+  if (!base) return null;
+
+  const seoTitle = nav?.seoTitle?.trim();
+  const seoDescription = nav?.seoDescription?.trim();
+  const heading = nav?.heading?.trim();
+  const lead = nav?.lead?.trim();
 
   return {
-    title: `${nav.label} Photography Packages | Doll Pictures`,
-    description:
-      nav.description ||
-      `${nav.label} photography packages in Erode from DOLL PICTURES.`,
-    heading: `${nav.label} packages`,
-    body: nav.description || `Explore our ${nav.label.toLowerCase()} packages.`,
-    serviceName: `${nav.label} photography packages`,
-    label: nav.label,
-    lead:
-      nav.description ||
-      `Compare ${nav.label.toLowerCase()} packages and enquire with the option that fits.`,
-    categorySlug: nav.categorySlug,
-    sections: [],
-    faqs: [],
-    related: [
-      { label: 'All packages', path: '/packages' },
-      { label: 'Book a session', path: '/booking' },
-    ],
-    imageCategories: [nav.label],
-    fallbackImages: [],
+    ...base,
+    title: seoTitle || base.title,
+    description: seoDescription || base.description,
+    heading: heading || base.heading,
+    lead: lead || base.lead,
+    body: seoDescription || base.body,
+    serviceName: heading || base.serviceName,
+    label: nav?.label?.trim() || base.label,
+    categorySlug: nav?.categorySlug || base.categorySlug,
   };
 }
+
+type PackageNavLinkLike = {
+  label: string;
+  path: string;
+  categorySlug: string;
+  description: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  heading?: string;
+  lead?: string;
+};
 
 export function absoluteUrl(path: string): string {
   if (!path || path === '/') return SITE_URL;
@@ -277,8 +398,11 @@ export function buildLocalBusinessJsonLd(contact?: {
   };
 }
 
-export function buildServiceJsonLd(path: string) {
-  const page = getServicePage(path);
+export function buildServiceJsonLd(
+  path: string,
+  pageOverride?: ServicePageContent | null,
+) {
+  const page = pageOverride ?? getServicePage(path);
   if (!page) return null;
   const url = absoluteUrl(path);
   return {
@@ -369,6 +493,8 @@ export function applyPageSeo(
     faqs?: FaqItem[];
     /** CMS-resolved package landing when JSON has no entry. */
     packagePage?: PackagePageContent | null;
+    /** CMS-resolved service landing when JSON has no entry / SEO overlay. */
+    servicePage?: ServicePageContent | null;
   },
 ) {
   const url = absoluteUrl(seo.path);
@@ -376,7 +502,7 @@ export function applyPageSeo(
   const type = seo.type || 'website';
   const isHome = !seo.path || seo.path === '/';
   const isBooking = seo.path === '/booking';
-  const servicePage = getServicePage(seo.path);
+  const servicePage = options?.servicePage ?? getServicePage(seo.path);
   const packagePage = options?.packagePage ?? getPackagePage(seo.path);
   const isService = Boolean(servicePage);
   const isPackageCategory = Boolean(packagePage);
@@ -437,7 +563,7 @@ export function applyPageSeo(
     removeJsonLd('seo-jsonld-breadcrumb');
   }
 
-  const serviceLd = buildServiceJsonLd(seo.path);
+  const serviceLd = buildServiceJsonLd(seo.path, options?.servicePage ?? null);
   const packageLd = buildPackageCategoryJsonLd(
     seo.path,
     options?.packagePage ?? null,
