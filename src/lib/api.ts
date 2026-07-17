@@ -1,9 +1,43 @@
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3001/api';
 
+export class ApiError extends Error {
+  status: number;
+  messages: string[];
+
+  constructor(status: number, messages: string[]) {
+    super(messages.join(', ') || `API error ${status}`);
+    this.name = 'ApiError';
+    this.status = status;
+    this.messages = messages;
+  }
+}
+
+/** Map NestJS/class-validator messages ("email must be an email") to field keys. */
+export function parseApiFieldErrors(
+  messages: string[],
+  fields: readonly string[],
+): Record<string, string> {
+  const errors: Record<string, string> = {};
+  for (const msg of messages) {
+    const field = fields.find((f) => msg === f || msg.startsWith(`${f} `));
+    if (!field || errors[field]) continue;
+    const stripped = msg.startsWith(`${field} `) ? msg.slice(field.length + 1) : msg;
+    errors[field] = stripped.charAt(0).toUpperCase() + stripped.slice(1);
+  }
+  return errors;
+}
+
 export async function publicFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, init);
   if (!res.ok) {
-    throw new Error(`API error ${res.status}`);
+    const body = await res.json().catch(() => null) as { message?: string | string[] } | null;
+    const raw = body?.message;
+    const messages = Array.isArray(raw)
+      ? raw.map(String)
+      : raw
+        ? [String(raw)]
+        : [`API error ${res.status}`];
+    throw new ApiError(res.status, messages);
   }
   if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
@@ -186,6 +220,11 @@ export interface CreateEnquiryPayload {
   email: string;
   phone?: string;
   shootType: string;
+  preferredEvent?: string;
+  shootDate?: string;
+  location?: string;
+  reminderDate?: string;
+  notes?: string;
   message: string;
 }
 

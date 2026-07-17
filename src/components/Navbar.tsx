@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ChevronDown, Menu, Moon, Sun, X } from 'lucide-react';
+import { EnquiryModal } from './EnquiryModal';
 import { useSiteData } from '../contexts/SiteDataContext';
 import { useTheme } from '../contexts/ThemeContext';
 import {
-  BOOKING_ROUTE,
   NAV_LINKS,
   getPublishedServiceNavLinks,
   SERVICE_PATHS,
@@ -19,6 +19,12 @@ export function Navbar() {
   const [open, setOpen] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
   const [mobileServicesOpen, setMobileServicesOpen] = useState(false);
+  const [showBookingModal, setShowBookingModal] = useState(false);
+
+  const openBookingModal = () => {
+    setOpen(false);
+    setShowBookingModal(true);
+  };
 
   const serviceLinks = getPublishedServiceNavLinks(siteContent.serviceNavLinks);
   const servicesActive =
@@ -176,13 +182,14 @@ export function Navbar() {
                   <Moon className="h-5 w-5" aria-hidden="true" />
                 )}
               </button>
-              <Link
-                to={BOOKING_ROUTE.path}
+              <button
+                type="button"
+                onClick={openBookingModal}
                 data-cursor="hover"
                 className="hidden sm:inline-flex items-center px-6 py-2.5 text-xs font-medium tracking-widest uppercase text-on-gold bg-gradient-to-r from-gold-300 to-gold-500 rounded-full hover:shadow-lg hover:shadow-gold-500/30 transition-all duration-400"
               >
                 Book Now
-              </Link>
+              </button>
               <button
                 type="button"
                 onClick={() => setOpen(!open)}
@@ -270,16 +277,20 @@ export function Navbar() {
             )}
             {theme === 'dark' ? 'Light theme' : 'Dark theme'}
           </button>
-          <Link
-            to={BOOKING_ROUTE.path}
-            onClick={() => setOpen(false)}
+          <button
+            type="button"
+            onClick={openBookingModal}
             className="mt-4 px-8 py-4 text-sm tracking-widest uppercase text-on-gold bg-gradient-to-r from-gold-300 to-gold-500 rounded-full"
             style={{ animation: 'fadeInUp 0.5s 0.4s ease-out both' }}
           >
             Book Now
-          </Link>
+          </button>
         </div>
       )}
+
+      {showBookingModal ? (
+        <EnquiryModal onClose={() => setShowBookingModal(false)} />
+      ) : null}
     </>
   );
 }

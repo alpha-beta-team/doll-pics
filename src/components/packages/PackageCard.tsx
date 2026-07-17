@@ -1,7 +1,12 @@
+import { Link } from 'react-router-dom';
 import { Check } from 'lucide-react';
 import type { PublicPackage } from '../../lib/api';
 import { trackWhatsAppClick, type WhatsAppCtaLocation } from '../../lib/analytics';
-import { formatPackagePrice, packageWhatsAppUrl } from '../../lib/pricing';
+import {
+  formatPackagePrice,
+  packageEnquirePath,
+  packageWhatsAppUrl,
+} from '../../lib/pricing';
 
 interface PackageCardProps {
   pkg: PublicPackage;
@@ -18,8 +23,9 @@ export function PackageCard({
   ctaLocation = 'booking_page',
 }: PackageCardProps) {
   const priceLabel = formatPackagePrice(pkg.pricingMode, pkg.price);
-  const bookHref = packageWhatsAppUrl(whatsapp, pkg.name);
-  const isExternal = bookHref.startsWith('http');
+  const enquireHref = packageEnquirePath(pkg);
+  const whatsappHref = packageWhatsAppUrl(whatsapp, pkg.name);
+  const whatsappAvailable = whatsappHref.startsWith('http');
   const inclusions = pkg.inclusions ?? [];
 
   return (
@@ -64,24 +70,32 @@ export function PackageCard({
           ))}
         </ul>
 
-        <div className="mt-9 flex justify-center">
-          <a
-            href={bookHref}
-            {...(isExternal ? { target: '_blank', rel: 'noreferrer' } : {})}
+        <div className="mt-9 flex flex-col items-center gap-3">
+          <Link
+            to={enquireHref}
             data-cursor="hover"
-            onClick={() => {
-              if (isExternal) {
+            className="group/btn relative inline-flex items-center justify-center overflow-hidden border border-hairline/20 px-9 py-3 text-[0.7rem] font-medium tracking-[0.22em] text-ink-50 transition-all duration-400 hover:border-gold-400/60 hover:text-gold-300"
+          >
+            <span className="relative z-10">ENQUIRE</span>
+            <span className="absolute inset-0 origin-left scale-x-0 bg-gradient-to-r from-gold-400/20 to-gold-500/10 transition-transform duration-400 group-hover/btn:scale-x-100" />
+          </Link>
+          {whatsappAvailable ? (
+            <a
+              href={whatsappHref}
+              target="_blank"
+              rel="noreferrer"
+              data-cursor="hover"
+              onClick={() => {
                 trackWhatsAppClick({
                   cta_location: ctaLocation,
                   service_name: pkg.name,
                 });
-              }
-            }}
-            className="group/btn relative inline-flex items-center justify-center overflow-hidden border border-hairline/20 px-9 py-3 text-[0.7rem] font-medium tracking-[0.22em] text-ink-50 transition-all duration-400 hover:border-gold-400/60 hover:text-gold-300"
-          >
-            <span className="relative z-10">BOOK NOW</span>
-            <span className="absolute inset-0 origin-left scale-x-0 bg-gradient-to-r from-gold-400/20 to-gold-500/10 transition-transform duration-400 group-hover/btn:scale-x-100" />
-          </a>
+              }}
+              className="text-[0.65rem] font-medium tracking-[0.18em] text-ink-200/50 transition-colors hover:text-gold-300"
+            >
+              WhatsApp
+            </a>
+          ) : null}
         </div>
       </div>
 

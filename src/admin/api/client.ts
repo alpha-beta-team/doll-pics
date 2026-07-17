@@ -94,6 +94,11 @@ function mapEnquiry(doc: Record<string, unknown>): Enquiry {
     email: (doc.email as string) ?? '',
     phone: (doc.phone as string) ?? '',
     shootType: (doc.shootType as string) ?? '',
+    preferredEvent: (doc.preferredEvent as string) ?? '',
+    shootDate: (doc.shootDate as string) ?? '',
+    location: (doc.location as string) ?? '',
+    reminderDate: (doc.reminderDate as string) ?? '',
+    notes: (doc.notes as string) ?? '',
     message: (doc.message as string) ?? '',
     status: (doc.status as Enquiry['status']) ?? 'new',
     createdAt: (doc.createdAt as string) ?? new Date().toISOString(),
@@ -108,9 +113,15 @@ function mapBooking(doc: Record<string, unknown>): Booking {
     customerPhone: (doc.customerPhone as string) ?? '',
     customerEmail: (doc.customerEmail as string) ?? '',
     shootType: (doc.shootType as string) ?? '',
+    preferredEvent: (doc.preferredEvent as string) ?? '',
     shootDate: (doc.shootDate as string) ?? '',
     location: (doc.location as string) ?? '',
+    reminderDate: (doc.reminderDate as string) ?? '',
     notes: (doc.notes as string) ?? '',
+    driveGalleryUrl: (doc.driveGalleryUrl as string) ?? '',
+    driveEditedUrl: (doc.driveEditedUrl as string) ?? '',
+    driveRawsUrl: (doc.driveRawsUrl as string) ?? '',
+    driveNotes: (doc.driveNotes as string) ?? '',
     status: (doc.status as BookingStatus) ?? 'draft',
     confirmedAt: doc.confirmedAt ? String(doc.confirmedAt) : undefined,
     enquiryId: doc.enquiryId ? String(doc.enquiryId) : undefined,
@@ -536,9 +547,15 @@ export const api = {
     customerPhone: string;
     customerEmail?: string;
     shootType?: string;
+    preferredEvent?: string;
     shootDate?: string;
     location?: string;
+    reminderDate?: string;
     notes?: string;
+    driveGalleryUrl?: string;
+    driveEditedUrl?: string;
+    driveRawsUrl?: string;
+    driveNotes?: string;
     enquiryId?: string;
   }): Promise<Booking> {
     const doc = await request<Record<string, unknown>>('/admin/bookings', {
@@ -554,9 +571,15 @@ export const api = {
     customerPhone: string;
     customerEmail: string;
     shootType: string;
+    preferredEvent: string;
     shootDate: string;
     location: string;
+    reminderDate: string;
     notes: string;
+    driveGalleryUrl: string;
+    driveEditedUrl: string;
+    driveRawsUrl: string;
+    driveNotes: string;
     status: BookingStatus;
     enquiryId: string;
   }>): Promise<Booking> {

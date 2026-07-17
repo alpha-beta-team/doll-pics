@@ -142,6 +142,11 @@ export interface Enquiry {
   email: string;
   phone: string;
   shootType: string;
+  preferredEvent: string;
+  shootDate: string;
+  location: string;
+  reminderDate: string;
+  notes: string;
   message: string;
   status: 'new' | 'read' | 'responded';
   createdAt: string;
@@ -155,15 +160,39 @@ export interface Booking {
   customerPhone: string;
   customerEmail: string;
   shootType: string;
+  preferredEvent: string;
   shootDate: string;
   location: string;
+  reminderDate: string;
   notes: string;
+  driveGalleryUrl: string;
+  driveEditedUrl: string;
+  driveRawsUrl: string;
+  driveNotes: string;
   status: BookingStatus;
   confirmedAt?: string;
   enquiryId?: string;
   createdAt: string;
   updatedAt: string;
 }
+
+export type BookingWritePayload = {
+  customerName: string;
+  customerPhone: string;
+  customerEmail?: string;
+  shootType?: string;
+  preferredEvent?: string;
+  shootDate?: string;
+  location?: string;
+  reminderDate?: string;
+  notes?: string;
+  driveGalleryUrl?: string;
+  driveEditedUrl?: string;
+  driveRawsUrl?: string;
+  driveNotes?: string;
+  status?: BookingStatus;
+  enquiryId?: string;
+};
 
 export interface User {
   id: string;
