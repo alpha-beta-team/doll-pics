@@ -1,19 +1,9 @@
-export type NavLink = { label: string; path: string; sectionId?: string };
+import sitemapRoutes from '../data/sitemap-routes.json';
+import type { ServiceNavLink, ServiceNavLinkInput } from '../shared/types';
 
-export type ServiceNavLink = {
-  id?: string;
-  label: string;
-  path: string;
-  description: string;
-  icon: string;
-  imageUrl: string;
-  seoTitle?: string;
-  seoDescription?: string;
-  heading?: string;
-  lead?: string;
-  order: number;
-  isPublished: boolean;
-};
+export type { ServiceNavLink, ServiceNavLinkInput };
+
+export type NavLink = { label: string; path: string; sectionId?: string };
 
 export const NAV_LINKS: NavLink[] = [
   { label: 'Work', path: '/work', sectionId: 'work' },
@@ -194,33 +184,8 @@ export const LEGAL_LINKS = [
   { label: 'Terms', path: '/terms' },
 ] as const;
 
-/** Core + default landing paths for offline sitemap/prerender fallbacks.
- * Keep as string literals (no spreads) so generate-sitemap.mjs can parse it. */
-export const SITEMAP_ROUTES = [
-  '/',
-  '/packages',
-  '/about',
-  '/work',
-  '/gallery',
-  '/services',
-  '/stories',
-  '/booking',
-  '/wedding-photography-erode',
-  '/newborn-baby-photography-erode',
-  '/maternity-photography-erode',
-  '/baby-milestone-photography-erode',
-  '/cake-smash-photography-erode',
-  '/family-photography-erode',
-  '/wedding-packages-erode',
-  '/pre-wedding-packages-erode',
-  '/maternity-packages-erode',
-  '/newborn-packages-erode',
-  '/baby-milestone-packages-erode',
-  '/cake-smash-packages-erode',
-  '/family-packages-erode',
-  '/privacy',
-  '/terms',
-];
+/** Core + default landing paths. Source of truth: src/data/sitemap-routes.json */
+export const SITEMAP_ROUTES: string[] = [...sitemapRoutes];
 
 export function normalizePathname(pathname: string): string {
   if (!pathname || pathname === '/') return pathname || '/';
@@ -234,7 +199,7 @@ export function defaultPackagePathForSlug(slug: string): string {
 }
 
 export function normalizeServiceNavLinks(
-  links?: Array<Partial<ServiceNavLink> & { _id?: string }> | null,
+  links?: ServiceNavLinkInput[] | Array<Partial<ServiceNavLink> & { _id?: string }> | null,
 ): ServiceNavLink[] {
   if (!links?.length) return DEFAULT_SERVICE_NAV_LINKS.map((l) => ({ ...l }));
   return links

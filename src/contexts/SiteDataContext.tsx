@@ -2,23 +2,28 @@ import {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   publicApi,
   getPhotoSources,
-  type PublicSiteContent,
-  type PublicHeroSlide,
-  type PublicStoryScene,
-  type PublicStat,
-  type PublicTestimonial,
-  type PublicBehindScene,
-  type PublicTeamMember,
-  type PublicPackage,
-  type PublicPackageCategory,
   type PhotoSources,
 } from '../lib/api';
+import type {
+  PublicBehindScene,
+  PublicHeroSlide,
+  PublicPackage,
+  PublicPackageCategory,
+  PublicPhoto,
+  PublicSiteContent,
+  PublicStat,
+  PublicStoryScene,
+  PublicTeamMember,
+  PublicTestimonial,
+} from '../shared/types';
 import {
   heroSlides as fallbackHeroSlides,
   storyScenes as fallbackStoryScenes,
@@ -33,11 +38,18 @@ import {
 import {
   DEFAULT_PACKAGE_NAV_LINKS,
   DEFAULT_SERVICE_NAV_LINKS,
+  SECTION_PATHS,
   getPublishedPackageNavLinks,
   getPublishedServiceNavLinks,
+  normalizePathname,
   normalizeServiceNavLinks,
   type PackageNavLink,
 } from '../lib/navigation';
+
+/** Max published photos for the horizontal gallery / landing imagery. */
+const GALLERY_PHOTO_LIMIT = 24;
+
+type DataBucket = 'home' | 'media' | 'packages' | 'about';
 
 export interface FeaturedWorkItem {
   title: string;
@@ -179,6 +191,68 @@ const normalizedFallbackGallery: GalleryImageItem[] = fallbackGalleryImages.map(
       : item,
 );
 
+const HOME_PATHS = new Set<string>(['/', ...SECTION_PATHS]);
+
+function featuredFromPhotos(photos: PublicPhoto[]): FeaturedWorkItem[] {
+  return photos
+    .map((p) => {
+      const sources = getPhotoSources(p);
+      if (!sources) return null;
+      const category =
+        Array.isArray(p.categoryIds) &&
+        p.categoryIds[0] &&
+        typeof p.categoryIds[0] === 'object'
+          ? (p.categoryIds[0] as { name: string }).name
+          : 'Photography';
+      return sourcesToFeatured(
+        p.title,
+        category,
+        p.location ?? '',
+        p.year ?? '',
+        sources,
+      );
+    })
+    .filter((item): item is FeaturedWorkItem => item !== null);
+}
+
+function galleryFromPhotos(photos: PublicPhoto[]): GalleryImageItem[] {
+  return photos
+    .map((p) => getPhotoSources(p))
+    .filter((s): s is PhotoSources => s !== null)
+    .map((s) => ({
+      src: s.src,
+      alt: s.alt,
+      avifSrcSet: s.avifSrcSet,
+      webpSrcSet: s.webpSrcSet,
+    }));
+}
+
+function bucketsForPath(
+  pathname: string,
+  packagePaths: Set<string>,
+  servicePaths: Set<string>,
+): DataBucket[] {
+  const path = normalizePathname(pathname);
+  const buckets = new Set<DataBucket>();
+
+  if (HOME_PATHS.has(path)) {
+    buckets.add('home');
+    buckets.add('media');
+    buckets.add('packages');
+  }
+  if (path === '/about') {
+    buckets.add('about');
+  }
+  if (packagePaths.has(path)) {
+    buckets.add('packages');
+    buckets.add('media');
+  }
+  if (servicePaths.has(path)) {
+    buckets.add('media');
+  }
+  return [...buckets];
+}
+
 const fallbackData: Omit<SiteData, 'loading' | 'fromApi'> = {
   siteContent: defaultSiteContent,
   heroSlides: fallbackHeroSlides,
@@ -203,16 +277,35 @@ const SiteDataContext = createContext<SiteData>({
 });
 
 export function SiteDataProvider({ children }: { children: ReactNode }) {
+  const { pathname } = useLocation();
   const [data, setData] = useState<SiteData>({
     ...fallbackData,
     loading: true,
     fromApi: false,
   });
 
+  const loadedBuckets = useRef(new Set<DataBucket>());
+  const inflightBuckets = useRef(new Set<DataBucket>());
+  const packagePathsRef = useRef(
+    new Set(DEFAULT_PACKAGE_NAV_LINKS.map((l) => l.path)),
+  );
+  const servicePathsRef = useRef(
+    new Set(DEFAULT_SERVICE_NAV_LINKS.map((l) => l.path)),
+  );
+  const cancelledRef = useRef(false);
+
+  useEffect(() => {
+    cancelledRef.current = false;
+    return () => {
+      cancelledRef.current = true;
+    };
+  }, []);
+
+  // Critical bootstrap: site content, hero, package categories (routing/nav).
   useEffect(() => {
     let cancelled = false;
 
-    async function load() {
+    async function loadCritical() {
       try {
         const [siteContent, heroSlides, packageCategories] = await Promise.all([
           publicApi.getSiteContent(),
@@ -222,7 +315,7 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
             .catch(() => [] as PublicPackageCategory[]),
         ]);
 
-        if (cancelled) return;
+        if (cancelled || cancelledRef.current) return;
 
         const nextHero =
           heroSlides.length > 0 ? heroSlides : fallbackHeroSlides;
@@ -253,6 +346,11 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
 
         const packageNavLinks = getPublishedPackageNavLinks(categories);
 
+        packagePathsRef.current = new Set(packageNavLinks.map((l) => l.path));
+        servicePathsRef.current = new Set(
+          getPublishedServiceNavLinks(serviceNavLinks).map((l) => l.path),
+        );
+
         setData((prev) => ({
           ...prev,
           siteContent: {
@@ -277,119 +375,176 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
           loading: false,
           fromApi: true,
         }));
-
-        const defer =
-          typeof requestIdleCallback === 'function'
-            ? (cb: () => void) => requestIdleCallback(cb, { timeout: 2500 })
-            : (cb: () => void) => setTimeout(cb, 1);
-
-        defer(async () => {
-          if (cancelled) return;
-          try {
-            const [
-              storyScenes,
-              featuredPhotos,
-              allPhotos,
-              packages,
-              stats,
-              testimonials,
-              behindScenes,
-              teamMembers,
-            ] = await Promise.all([
-              publicApi.getStoryScenes(),
-              publicApi.getPhotos({ featured: true }),
-              publicApi.getPhotos(),
-              publicApi.getPackages(),
-              publicApi.getStats(),
-              publicApi.getTestimonials(),
-              publicApi.getBehindScenes(),
-              publicApi.getTeamMembers().catch(() => [] as PublicTeamMember[]),
-            ]);
-
-            if (cancelled) return;
-
-            const featuredWork: FeaturedWorkItem[] = featuredPhotos.length
-              ? featuredPhotos
-                  .map((p) => {
-                    const sources = getPhotoSources(p);
-                    if (!sources) return null;
-                    const category =
-                      Array.isArray(p.categoryIds) &&
-                      p.categoryIds[0] &&
-                      typeof p.categoryIds[0] === 'object'
-                        ? (p.categoryIds[0] as { name: string }).name
-                        : 'Photography';
-                    return sourcesToFeatured(
-                      p.title,
-                      category,
-                      p.location ?? '',
-                      p.year ?? '',
-                      sources,
-                    );
-                  })
-                  .filter((item): item is FeaturedWorkItem => item !== null)
-              : normalizedFallbackFeatured;
-
-            const galleryImages: GalleryImageItem[] = allPhotos.length
-              ? allPhotos
-                  .map((p) => getPhotoSources(p))
-                  .filter((s): s is PhotoSources => s !== null)
-                  .map((s) => ({
-                    src: s.src,
-                    alt: s.alt,
-                    avifSrcSet: s.avifSrcSet,
-                    webpSrcSet: s.webpSrcSet,
-                  }))
-              : normalizedFallbackGallery;
-
-            const normalizedPackages: PublicPackage[] =
-              packages.map(normalizePublicPackage);
-
-            setData((prev) => ({
-              ...prev,
-              storyScenes: storyScenes.length
-                ? storyScenes
-                : fallbackStoryScenes,
-              featuredWork:
-                featuredWork.length > 0
-                  ? featuredWork
-                  : normalizedFallbackFeatured,
-              galleryImages:
-                galleryImages.length > 0
-                  ? galleryImages
-                  : normalizedFallbackGallery,
-              packages: normalizedPackages,
-              stats: stats.length ? stats : fallbackStats,
-              testimonials: testimonials.length
-                ? testimonials
-                : fallbackTestimonials,
-              behindScenes: behindScenes.length
-                ? behindScenes
-                : fallbackBehindScenes,
-              teamMembers: teamMembers.length
-                ? teamMembers
-                : fallbackTeamMembers,
-              loading: false,
-              fromApi: true,
-            }));
-          } catch {
-            if (!cancelled) {
-              setData((prev) => ({ ...prev, loading: false }));
-            }
-          }
-        });
       } catch {
-        if (!cancelled) {
+        if (!cancelled && !cancelledRef.current) {
           setData({ ...fallbackData, loading: false, fromApi: false });
         }
       }
     }
 
-    load();
+    loadCritical();
     return () => {
       cancelled = true;
     };
   }, []);
+
+  // Route-aware deferred buckets — only fetch what the current page needs.
+  useEffect(() => {
+    if (data.loading && !data.fromApi) return;
+
+    const needed = bucketsForPath(
+      pathname,
+      packagePathsRef.current,
+      servicePathsRef.current,
+    );
+    const missing = needed.filter(
+      (b) => !loadedBuckets.current.has(b) && !inflightBuckets.current.has(b),
+    );
+    if (!missing.length) return;
+
+    for (const b of missing) inflightBuckets.current.add(b);
+
+    const defer =
+      typeof requestIdleCallback === 'function'
+        ? (cb: () => void) => requestIdleCallback(cb, { timeout: 2500 })
+        : (cb: () => void) => setTimeout(cb, 1);
+
+    let idleId: number | ReturnType<typeof setTimeout> | undefined;
+    let started = false;
+    let effectCancelled = false;
+
+    const run = () => {
+      if (effectCancelled) {
+        for (const b of missing) inflightBuckets.current.delete(b);
+        return;
+      }
+      started = true;
+      void (async () => {
+        try {
+          const patch: Partial<SiteData> = {};
+
+          await Promise.all(
+            missing.map(async (bucket) => {
+              if (cancelledRef.current || effectCancelled) return;
+
+              if (bucket === 'home') {
+                const [storyScenes, stats, testimonials, behindScenes] =
+                  await Promise.all([
+                    publicApi.getStoryScenes(),
+                    publicApi.getStats(),
+                    publicApi.getTestimonials(),
+                    publicApi.getBehindScenes(),
+                  ]);
+                if (cancelledRef.current || effectCancelled) return;
+                patch.storyScenes = storyScenes.length
+                  ? storyScenes
+                  : fallbackStoryScenes;
+                patch.stats = stats.length ? stats : fallbackStats;
+                patch.testimonials = testimonials.length
+                  ? testimonials
+                  : fallbackTestimonials;
+                patch.behindScenes = behindScenes.length
+                  ? behindScenes
+                  : fallbackBehindScenes;
+              }
+
+              if (bucket === 'media') {
+                const [featuredPhotos, galleryPhotos] = await Promise.all([
+                  publicApi.getPhotos({ featured: true }),
+                  publicApi.getPhotos({ limit: GALLERY_PHOTO_LIMIT }),
+                ]);
+                if (cancelledRef.current || effectCancelled) return;
+
+                const featuredWork = featuredFromPhotos(featuredPhotos);
+                let galleryImages = galleryFromPhotos(galleryPhotos);
+                if (!galleryImages.length && featuredWork.length) {
+                  galleryImages = featuredWork.map((w) => ({
+                    src: w.image,
+                    alt: w.alt,
+                    avifSrcSet: w.avifSrcSet,
+                    webpSrcSet: w.webpSrcSet,
+                  }));
+                }
+
+                patch.featuredWork =
+                  featuredWork.length > 0
+                    ? featuredWork
+                    : normalizedFallbackFeatured;
+                patch.galleryImages =
+                  galleryImages.length > 0
+                    ? galleryImages
+                    : normalizedFallbackGallery;
+              }
+
+              if (bucket === 'packages') {
+                const packages = await publicApi.getPackages();
+                if (cancelledRef.current || effectCancelled) return;
+                patch.packages = packages.map(normalizePublicPackage);
+              }
+
+              if (bucket === 'about') {
+                const [teamMembers, behindScenes] = await Promise.all([
+                  publicApi
+                    .getTeamMembers()
+                    .catch(() => [] as PublicTeamMember[]),
+                  loadedBuckets.current.has('home')
+                    ? Promise.resolve(null)
+                    : publicApi.getBehindScenes(),
+                ]);
+                if (cancelledRef.current || effectCancelled) return;
+                patch.teamMembers = teamMembers.length
+                  ? teamMembers
+                  : fallbackTeamMembers;
+                if (behindScenes) {
+                  patch.behindScenes = behindScenes.length
+                    ? behindScenes
+                    : fallbackBehindScenes;
+                }
+              }
+
+              loadedBuckets.current.add(bucket);
+              inflightBuckets.current.delete(bucket);
+            }),
+          );
+
+          if (cancelledRef.current || effectCancelled) return;
+          if (Object.keys(patch).length) {
+            setData((prev) => ({
+              ...prev,
+              ...patch,
+              loading: false,
+              fromApi: true,
+            }));
+          }
+        } catch {
+          for (const b of missing) inflightBuckets.current.delete(b);
+          if (!cancelledRef.current && !effectCancelled) {
+            setData((prev) => ({ ...prev, loading: false }));
+          }
+        }
+      })();
+    };
+
+    idleId = defer(run);
+
+    return () => {
+      effectCancelled = true;
+      if (typeof idleId === 'number' && typeof cancelIdleCallback === 'function') {
+        cancelIdleCallback(idleId);
+      } else if (idleId != null) {
+        clearTimeout(idleId as ReturnType<typeof setTimeout>);
+      }
+      if (!started) {
+        for (const b of missing) inflightBuckets.current.delete(b);
+      }
+    };
+  }, [
+    pathname,
+    data.loading,
+    data.fromApi,
+    data.packageNavLinks,
+    data.siteContent.serviceNavLinks,
+  ]);
 
   return (
     <SiteDataContext.Provider value={data}>{children}</SiteDataContext.Provider>

@@ -1,17 +1,20 @@
-import { readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { loadEnvFiles, root } from './lib/env.mjs';
+import {
+  collectSitemapRoutes,
+  getApiBase,
+  getSiteUrl,
+  loadCmsOverlays,
+  loadStaticSeoData,
+} from './lib/seo-shared.mjs';
 
-const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const siteUrl = (
-  process.env.VITE_SITE_URL || 'https://dollpictures.in'
-).replace(/\/$/, '');
+loadEnvFiles();
 
-const apiBase = (
-  process.env.VITE_API_URL ||
-  process.env.API_URL ||
-  ''
-).replace(/\/$/, '');
+const siteUrl = getSiteUrl();
+const apiBase = getApiBase();
+const { sitemapRoutes } = loadStaticSeoData();
+const { packagesByPath, servicesByPath } = await loadCmsOverlays();
 
 const routeConfig = {
   '/': { changefreq: 'weekly', priority: '1.0' },
@@ -26,41 +29,17 @@ const servicePathRe = /-photography-erode$/;
 const packagePathRe = /-packages-erode$/;
 const lastmod = new Date().toISOString().split('T')[0];
 
-/** Parse `export const SITEMAP_ROUTES = [...]` from navigation.ts (no TS runtime needed). */
-function loadSitemapRoutesFromNav() {
-  const navSource = readFileSync(join(root, 'src/lib/navigation.ts'), 'utf8');
-  const block = navSource.match(
-    /export const SITEMAP_ROUTES = \[([\s\S]*?)\];/,
+const routes = collectSitemapRoutes(
+  sitemapRoutes,
+  packagesByPath,
+  servicesByPath,
+);
+
+if (!apiBase) {
+  console.warn(
+    'Sitemap: VITE_API_URL not set — using sitemap-routes.json defaults only.',
   );
-  if (!block) {
-    throw new Error('Could not find SITEMAP_ROUTES in navigation.ts');
-  }
-  return [...block[1].matchAll(/'([^']+)'/g)].map((m) => m[1]);
 }
-
-async function loadApiPackagePaths() {
-  if (!apiBase) return [];
-  try {
-    const res = await fetch(`${apiBase}/package-categories`);
-    if (!res.ok) return [];
-    const categories = await res.json();
-    if (!Array.isArray(categories)) return [];
-    return categories
-      .map((c) => (typeof c?.path === 'string' ? c.path.trim() : ''))
-      .filter(Boolean);
-  } catch (err) {
-    console.warn('Sitemap: could not fetch package categories from API:', err);
-    return [];
-  }
-}
-
-function uniquePaths(paths) {
-  return [...new Set(paths.filter(Boolean))];
-}
-
-const fallbackRoutes = loadSitemapRoutesFromNav();
-const apiPackagePaths = await loadApiPackagePaths();
-const routes = uniquePaths([...fallbackRoutes, ...apiPackagePaths]);
 
 const urlEntries = routes
   .map((path) => {
@@ -106,9 +85,10 @@ const robots = [
 writeFileSync(join(root, 'public/sitemap.xml'), sitemap);
 writeFileSync(join(root, 'public/robots.txt'), robots);
 
+const apiNote = apiBase
+  ? ` (API: +${packagesByPath.size} packages, +${servicesByPath.size} services)`
+  : ' (defaults only)';
+
 console.log(
-  `Generated sitemap with ${routes.length} URLs for ${siteUrl}` +
-    (apiPackagePaths.length
-      ? ` (+${apiPackagePaths.length} from API)`
-      : ' (defaults only)'),
+  `Generated sitemap with ${routes.length} URLs for ${siteUrl}${apiNote}`,
 );

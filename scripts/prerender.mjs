@@ -1,65 +1,36 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
+import { loadEnvFiles, root } from './lib/env.mjs';
+import {
+  absoluteUrl,
+  buildBreadcrumbJsonLd,
+  buildBusinessJsonLd,
+  buildFaqPageJsonLd,
+  buildPageCatalog,
+  buildServiceOrPackageJsonLd,
+  buildWebPageJsonLd,
+  getSiteUrl,
+  loadCmsOverlays,
+  loadStaticSeoData,
+} from './lib/seo-shared.mjs';
 
-const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+loadEnvFiles();
+
 const distDir = join(root, 'dist');
-const siteUrl = (
-  process.env.VITE_SITE_URL || 'https://dollpictures.in'
-).replace(/\/$/, '');
-const studioId = `${siteUrl}/#studio`;
-
-const seoPages = JSON.parse(
-  readFileSync(join(root, 'src/data/seo-pages.json'), 'utf8'),
-);
-const servicePages = JSON.parse(
-  readFileSync(join(root, 'src/data/service-pages.json'), 'utf8'),
-);
-const packagePages = JSON.parse(
-  readFileSync(join(root, 'src/data/package-pages.json'), 'utf8'),
-);
-
+const siteUrl = getSiteUrl();
 const ogImage = `${siteUrl}/og-share.jpg`;
-const siteLogo = `${siteUrl}/logo-doll.png`;
-const {
-  address,
-  geo,
-  siteName,
-  businessName,
-  brandByline,
-  telephone,
-  sameAs,
-  defaultDescription,
-  pages: basePages,
-  serviceAreas,
-  offerCatalog,
-} = seoPages;
 
-const pages = {
-  ...basePages,
-  ...Object.fromEntries(
-    Object.entries(servicePages).map(([path, page]) => [
-      path,
-      {
-        title: page.title,
-        description: page.description,
-        heading: page.heading,
-        body: page.body,
-      },
-    ]),
-  ),
-  ...Object.fromEntries(
-    Object.entries(packagePages).map(([path, page]) => [
-      path,
-      {
-        title: page.title,
-        description: page.description,
-        heading: page.heading,
-        body: page.body,
-      },
-    ]),
-  ),
-};
+const { seoPages, servicePages, packagePages } = loadStaticSeoData();
+const { packagesByPath, servicesByPath, apiBase } = await loadCmsOverlays();
+const pages = buildPageCatalog({
+  seoPages,
+  servicePages,
+  packagePages,
+  packagesByPath,
+  servicesByPath,
+});
+
+const siteName = seoPages.siteName;
 
 function escapeHtml(value) {
   return String(value)
@@ -69,184 +40,46 @@ function escapeHtml(value) {
     .replaceAll('"', '&quot;');
 }
 
-function absoluteUrl(path) {
-  if (!path || path === '/') return siteUrl;
-  return `${siteUrl}${path.startsWith('/') ? path : `/${path}`}`;
-}
-
-function buildAreaServed() {
-  const cities = serviceAreas ?? [address.addressLocality];
-  return [
-    ...cities.map((name) => ({ '@type': 'City', name })),
-    { '@type': 'State', name: address.addressRegion },
-    { '@type': 'Country', name: address.addressCountry },
-  ];
-}
-
-function buildOfferCatalog() {
-  const items = offerCatalog ?? [];
-  if (!items.length) return undefined;
-  return {
-    '@type': 'OfferCatalog',
-    name: 'Photography services',
-    itemListElement: items.map((item) => ({
-      '@type': 'Offer',
-      itemOffered: {
-        '@type': 'Service',
-        name: item.name,
-      },
-    })),
-  };
-}
-
-function buildBusinessJsonLd() {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'PhotographyBusiness',
-    '@id': studioId,
-    name: businessName || brandByline,
-    alternateName: siteName,
-    url: siteUrl,
-    image: ogImage,
-    logo: siteLogo,
-    telephone: telephone || undefined,
-    description: defaultDescription,
-    priceRange: '₹₹₹',
-    address: {
-      '@type': 'PostalAddress',
-      ...address,
-    },
-    geo: {
-      '@type': 'GeoCoordinates',
-      ...geo,
-    },
-    areaServed: buildAreaServed(),
-    hasOfferCatalog: buildOfferCatalog(),
-    sameAs: sameAs?.length ? sameAs : undefined,
-  };
-}
-
-function buildWebPageJsonLd(page, url) {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'WebPage',
-    '@id': `${url}#webpage`,
-    url,
-    name: page.title,
-    description: page.description,
-    isPartOf: {
-      '@type': 'WebSite',
-      '@id': `${siteUrl}/#website`,
-      name: siteName,
-      url: siteUrl,
-    },
-    about: { '@id': studioId },
-  };
-}
-
-function buildBreadcrumbJsonLd(page, url, isService) {
-  const name = page.heading || page.title.split('|')[0].trim() || page.title;
-  const items = [
-    {
-      '@type': 'ListItem',
-      position: 1,
-      name: 'Home',
-      item: siteUrl,
-    },
-  ];
-  if (isService) {
-    items.push({
-      '@type': 'ListItem',
-      position: 2,
-      name: 'Services',
-      item: absoluteUrl('/services'),
-    });
-    items.push({
-      '@type': 'ListItem',
-      position: 3,
-      name,
-      item: url,
-    });
-  } else {
-    items.push({
-      '@type': 'ListItem',
-      position: 2,
-      name,
-      item: url,
-    });
-  }
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: items,
-  };
-}
-
-function buildFaqPageJsonLd(faqs) {
-  if (!faqs?.length) return null;
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: faqs.map((faq) => ({
-      '@type': 'Question',
-      name: faq.question,
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: faq.answer,
-      },
-    })),
-  };
-}
-
-function buildServiceJsonLd(path, servicePage) {
-  const url = absoluteUrl(path);
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'Service',
-    '@id': `${url}#service`,
-    name: servicePage.serviceName,
-    description: servicePage.description,
-    provider: { '@id': studioId },
-    areaServed: buildAreaServed(),
-    url,
-  };
-}
-
-function injectRouteHtml(template, path, page) {
-  const url = absoluteUrl(path);
+function injectRouteHtml(template, page) {
+  const path = page.path;
+  const url = absoluteUrl(siteUrl, path);
   const title = escapeHtml(page.title);
   const description = escapeHtml(page.description);
   const heading = escapeHtml(page.heading);
   const body = escapeHtml(page.body);
-  const servicePage = servicePages[path] ?? null;
-  const isService = Boolean(servicePage);
-  const businessJson = JSON.stringify(buildBusinessJsonLd());
-  const webpageJson = JSON.stringify(buildWebPageJsonLd(page, url));
+  const isService = page.kind === 'service';
+  const isPackage = page.kind === 'package';
+
+  const businessJson = JSON.stringify(buildBusinessJsonLd(siteUrl, seoPages));
+  const webpageJson = JSON.stringify(
+    buildWebPageJsonLd(siteUrl, { ...page, siteName }, url),
+  );
   const extraScripts = [];
 
   if (path !== '/') {
     extraScripts.push(
-      `<script type="application/ld+json" id="seo-jsonld-breadcrumb">${JSON.stringify(buildBreadcrumbJsonLd(page, url, isService))}</script>`,
+      `<script type="application/ld+json" id="seo-jsonld-breadcrumb">${JSON.stringify(buildBreadcrumbJsonLd(siteUrl, page, url))}</script>`,
     );
   }
 
-  if (isService) {
+  const serviceLd = buildServiceOrPackageJsonLd(siteUrl, page, seoPages);
+  if (serviceLd) {
     extraScripts.push(
-      `<script type="application/ld+json" id="seo-jsonld-service">${JSON.stringify(buildServiceJsonLd(path, servicePage))}</script>`,
+      `<script type="application/ld+json" id="seo-jsonld-service">${JSON.stringify(serviceLd)}</script>`,
     );
-    const faqLd = buildFaqPageJsonLd(servicePage.faqs);
-    if (faqLd) {
-      extraScripts.push(
-        `<script type="application/ld+json" id="seo-jsonld-faq">${JSON.stringify(faqLd)}</script>`,
-      );
-    }
-  } else if (path === '/booking') {
-    const faqLd = buildFaqPageJsonLd(seoPages.faqs);
-    if (faqLd) {
-      extraScripts.push(
-        `<script type="application/ld+json" id="seo-jsonld-faq">${JSON.stringify(faqLd)}</script>`,
-      );
-    }
+  }
+
+  const faqs =
+    isService || isPackage
+      ? page.faqs
+      : path === '/booking'
+        ? seoPages.faqs ?? []
+        : [];
+  const faqLd = buildFaqPageJsonLd(faqs);
+  if (faqLd) {
+    extraScripts.push(
+      `<script type="application/ld+json" id="seo-jsonld-faq">${JSON.stringify(faqLd)}</script>`,
+    );
   }
 
   let html = template;
@@ -283,7 +116,6 @@ function injectRouteHtml(template, path, page) {
     }
   }
 
-  // Hero image preload is only useful on the homepage.
   if (path !== '/') {
     html = html.replace(
       /\s*<link\s+rel="preload"\s+as="image"\s+href="[^"]*"\s+fetchpriority="high"\s*\/?>/i,
@@ -309,22 +141,21 @@ function injectRouteHtml(template, path, page) {
     ...extraScripts,
   ].join('\n    ');
 
+  // Remove any existing JSON-LD (with or without id attrs), then inject the route block.
   html = html.replace(
-    /<script type="application\/ld\+json">[\s\S]*?<\/script>/,
-    jsonLdBlock,
+    /\s*<script type="application\/ld\+json"[^>]*>[\s\S]*?<\/script>/g,
+    '',
+  );
+  html = html.replace(
+    '</head>',
+    `    ${jsonLdBlock}\n  </head>`,
   );
 
-  const faqsForNoscript = isService
-    ? servicePage.faqs
-    : path === '/booking'
-      ? seoPages.faqs ?? []
-      : [];
-
-  const faqNoscript = faqsForNoscript.length
+  const faqNoscript = faqs.length
     ? [
         '    <section>',
         '      <h2>Frequently asked questions</h2>',
-        ...faqsForNoscript.flatMap((faq) => [
+        ...faqs.flatMap((faq) => [
           `      <h3>${escapeHtml(faq.question)}</h3>`,
           `      <p>${escapeHtml(faq.answer)}</p>`,
         ]),
@@ -332,33 +163,34 @@ function injectRouteHtml(template, path, page) {
       ]
     : [];
 
-  const sectionNoscript =
-    isService && servicePage.sections
-      ? servicePage.sections.flatMap((section) => [
-          `    <section>`,
-          `      <h2>${escapeHtml(section.heading)}</h2>`,
-          ...section.paragraphs.map((p) => `      <p>${escapeHtml(p)}</p>`),
-          `    </section>`,
-        ])
-      : [];
+  const sectionNoscript = (page.sections ?? []).flatMap((section) => [
+    `    <section>`,
+    `      <h2>${escapeHtml(section.heading)}</h2>`,
+    ...section.paragraphs.map((p) => `      <p>${escapeHtml(p)}</p>`),
+    `    </section>`,
+  ]);
 
-  const imageNoscript =
-    isService && servicePage.fallbackImages?.length
-      ? [
-          '    <section>',
-          '      <h2>Selected work</h2>',
-          ...servicePage.fallbackImages.slice(0, 6).map(
-            (image) =>
-              `      <p><img src="${escapeHtml(image.src)}" alt="${escapeHtml(image.alt)}" width="800" height="1000" loading="lazy" /></p>`,
-          ),
-          '    </section>',
-        ]
-      : [];
+  const imageNoscript = page.fallbackImages?.length
+    ? [
+        '    <section>',
+        '      <h2>Selected work</h2>',
+        ...page.fallbackImages.slice(0, 6).map(
+          (image) =>
+            `      <p><img src="${escapeHtml(image.src)}" alt="${escapeHtml(image.alt)}" width="800" height="1000" loading="lazy" /></p>`,
+        ),
+        '    </section>',
+      ]
+    : [];
+
+  const leadNoscript = page.lead
+    ? `    <p>${escapeHtml(page.lead)}</p>`
+    : null;
 
   const noscript = [
     '<noscript>',
     '  <main style="font-family:Georgia,serif;max-width:42rem;margin:2rem auto;padding:0 1.25rem;line-height:1.6;color:#111">',
     `    <h1>${heading}</h1>`,
+    leadNoscript,
     `    <p>${body}</p>`,
     ...imageNoscript,
     ...sectionNoscript,
@@ -366,7 +198,9 @@ function injectRouteHtml(template, path, page) {
     `    <p><a href="${siteUrl}/">${escapeHtml(siteName)}</a> · Erode, Tamil Nadu</p>`,
     '  </main>',
     '</noscript>',
-  ].join('\n');
+  ]
+    .filter(Boolean)
+    .join('\n');
 
   html = html.replace(
     /<div id="root"><\/div>/,
@@ -438,9 +272,10 @@ function inject404Html(template) {
 const template = readFileSync(join(distDir, 'index.html'), 'utf8');
 const written = [];
 
-for (const [path, page] of Object.entries(pages)) {
-  const html = injectRouteHtml(template, path, page);
-  written.push(writeRoute(path, html));
+for (const page of Object.values(pages)) {
+  if (!page?.path) continue;
+  const html = injectRouteHtml(template, page);
+  written.push(writeRoute(page.path, html));
 }
 
 const notFoundHtml = inject404Html(template);
@@ -448,7 +283,11 @@ const notFoundFile = join(distDir, '404.html');
 writeFileSync(notFoundFile, notFoundHtml);
 written.push(notFoundFile);
 
-console.log(`Prerendered ${written.length} files for ${siteUrl}`);
+const apiNote = apiBase
+  ? ` (CMS overlays: ${packagesByPath.size} packages, ${servicesByPath.size} services)`
+  : ' (static JSON only — set VITE_API_URL for CMS SEO overlays)';
+
+console.log(`Prerendered ${written.length} files for ${siteUrl}${apiNote}`);
 for (const file of written) {
   console.log(`  ${file.replace(root + '/', '')}`);
 }

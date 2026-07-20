@@ -1,3 +1,32 @@
+import type {
+  CreateEnquiryPayload,
+  PublicBehindScene,
+  PublicHeroSlide,
+  PublicPackage,
+  PublicPackageCategory,
+  PublicPhoto,
+  PublicSiteContent,
+  PublicStat,
+  PublicStoryScene,
+  PublicTeamMember,
+  PublicTestimonial,
+} from '../shared/types';
+
+export type {
+  CreateEnquiryPayload,
+  PublicBehindScene,
+  PublicHeroSlide,
+  PublicPackage,
+  PublicPackageCategory,
+  PublicPhoto,
+  PublicSiteContent,
+  PublicStat,
+  PublicStoryScene,
+  PublicTeamMember,
+  PublicTestimonial,
+  ServiceNavLinkInput as PublicServiceNavLink,
+} from '../shared/types';
+
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3001/api';
 
 export class ApiError extends Error {
@@ -121,137 +150,24 @@ export function getPhotoSources(photo: {
   };
 }
 
-export interface PublicServiceNavLink {
-  _id?: string;
-  id?: string;
-  label: string;
-  path: string;
-  description?: string;
-  icon?: string;
-  imageUrl?: string;
-  seoTitle?: string;
-  seoDescription?: string;
-  heading?: string;
-  lead?: string;
-  order?: number;
-  isPublished?: boolean;
-}
-
-export interface PublicSiteContent {
-  brandName: string;
-  tagline: string;
-  heroHeading: string;
-  heroSubtext: string;
-  about: string;
-  ourStory?: string;
-  mission?: string;
-  aboutHeroSubtext?: string;
-  contactEmail: string;
-  whatsapp: string;
-  phone: string;
-  socials: Record<string, string>;
-  beforeAfter: { before: string; after: string };
-  serviceNavLinks?: PublicServiceNavLink[];
-}
-
-export interface PublicPhoto {
-  _id?: string;
-  id?: string;
-  title: string;
-  altText?: string;
-  location?: string;
-  year?: string;
-  isFeatured?: boolean;
-  variants?: {
-    webp?: string | { url: string; width: number }[];
-    avif?: string | { url: string; width: number }[];
-    original?: { url: string };
-  };
-  categoryIds?: Array<{ name: string; slug: string } | string>;
-}
-
-export interface PublicPackageCategory {
-  name: string;
-  slug: string;
-  path?: string;
-  description?: string;
-  seoTitle?: string;
-  seoDescription?: string;
-  heading?: string;
-  lead?: string;
-  order?: number;
-}
-
-export interface PublicPackage {
-  name: string;
-  /** @deprecated Prefer categoryName; kept for API backwards compatibility */
-  shootType?: string;
-  categorySlug?: string;
-  categoryName?: string;
-  description: string;
-  inclusions: string[];
-  icon?: string;
-  imageUrl?: string;
-  pricingMode: string;
-  price?: number;
-}
-
-export interface PublicHeroSlide {
-  image: string;
-  label: string;
-}
-
-export interface PublicStoryScene {
-  text: string;
-  image: string;
-}
-
-export interface PublicStat {
-  value: number;
-  suffix: string;
-  label: string;
-}
-
-export interface PublicTestimonial {
-  name: string;
-  role: string;
-  avatar: string;
-  rating: number;
-  text: string;
-  likes: number;
-  reply: string;
-}
-
-export interface PublicBehindScene {
-  title: string;
-  image: string;
-}
-
-export interface PublicTeamMember {
-  name: string;
-  role: string;
-  bio: string;
-  photo: string;
-}
-
-export interface CreateEnquiryPayload {
-  name: string;
-  email: string;
-  phone?: string;
-  shootType: string;
-  preferredEvent?: string;
-  shootDate?: string;
-  location?: string;
-  reminderDate?: string;
-  notes?: string;
-  message: string;
-}
+export type PhotosQuery = {
+  featured?: boolean;
+  /** Cap results (public gallery). Backend clamps to a safe max. */
+  limit?: number;
+  category?: string;
+};
 
 export const publicApi = {
   getSiteContent: () => publicFetch<PublicSiteContent>('/site-content'),
-  getPhotos: (params?: { featured?: boolean }) => {
-    const qs = params?.featured ? '?featured=true' : '';
-    return publicFetch<PublicPhoto[]>(`/photos${qs}`);
+  getPhotos: (params?: PhotosQuery) => {
+    const qs = new URLSearchParams();
+    if (params?.featured) qs.set('featured', 'true');
+    if (params?.category) qs.set('category', params.category);
+    if (params?.limit != null && params.limit > 0) {
+      qs.set('limit', String(params.limit));
+    }
+    const query = qs.toString();
+    return publicFetch<PublicPhoto[]>(`/photos${query ? `?${query}` : ''}`);
   },
   getPackages: () => publicFetch<PublicPackage[]>('/packages'),
   getPackageCategories: () =>
