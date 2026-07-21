@@ -8,7 +8,7 @@
 
 ## Summary
 
-Not a pure empty-shell CSR risk. Build runs `vite build && node scripts/prerender.mjs`. Live Googlebot fetches unique title/description/canonical/OG/JSON-LD per route, with noscript body copy on service pages. `robots.txt` + `sitemap.xml` are present and accurate.
+Not a pure empty-shell CSR risk. Build runs `vite build && tsx scripts/prerender.ts`. Live Googlebot fetches unique title/description/canonical/OG/JSON-LD per route, with noscript body copy on service pages. `robots.txt` + `sitemap.xml` are present and accurate.
 
 ---
 
@@ -19,7 +19,7 @@ Not a pure empty-shell CSR risk. Build runs `vite build && node scripts/prerende
 | | |
 |--|--|
 | **Severity** | Low |
-| **Reference** | `package.json` build → `vite build && node scripts/prerender.mjs`; live `/wedding-photography-erode` returns unique title, FAQPage + Service JSON-LD, and noscript `<h1>` |
+| **Reference** | `package.json` build → `vite build && tsx scripts/prerender.ts`; live `/wedding-photography-erode` returns unique title, FAQPage + Service JSON-LD, and noscript `<h1>` |
 | **Fix** | Keep prerender in CI; add a smoke check that `dist/{route}/index.html` contains the expected `<title>` after every deploy. |
 
 ### 2. Homepage H1 is brand-poetic, not keyword-aligned

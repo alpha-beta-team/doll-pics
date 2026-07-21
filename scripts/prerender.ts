@@ -12,7 +12,8 @@ import {
   getSiteUrl,
   loadCmsOverlays,
   loadStaticSeoData,
-} from './lib/seo-shared.mjs';
+} from './lib/seo-build';
+import type { CatalogPage } from '../src/lib/seo-core';
 
 loadEnvFiles();
 
@@ -32,7 +33,7 @@ const pages = buildPageCatalog({
 
 const siteName = seoPages.siteName;
 
-function escapeHtml(value) {
+function escapeHtml(value: string) {
   return String(value)
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')
@@ -40,7 +41,7 @@ function escapeHtml(value) {
     .replaceAll('"', '&quot;');
 }
 
-function injectRouteHtml(template, page) {
+function injectRouteHtml(template: string, page: CatalogPage) {
   const path = page.path;
   const url = absoluteUrl(siteUrl, path);
   const title = escapeHtml(page.title);
@@ -54,11 +55,11 @@ function injectRouteHtml(template, page) {
   const webpageJson = JSON.stringify(
     buildWebPageJsonLd(siteUrl, { ...page, siteName }, url),
   );
-  const extraScripts = [];
+  const extraScripts: string[] = [];
 
   if (path !== '/') {
     extraScripts.push(
-      `<script type="application/ld+json" id="seo-jsonld-breadcrumb">${JSON.stringify(buildBreadcrumbJsonLd(siteUrl, page, url))}</script>`,
+      `<script type="application/ld+json" id="seo-jsonld-breadcrumb">${JSON.stringify(buildBreadcrumbJsonLd(siteUrl, page))}</script>`,
     );
   }
 
@@ -73,7 +74,7 @@ function injectRouteHtml(template, page) {
     isService || isPackage
       ? page.faqs
       : path === '/booking'
-        ? seoPages.faqs ?? []
+        ? (seoPages.faqs ?? [])
         : [];
   const faqLd = buildFaqPageJsonLd(faqs);
   if (faqLd) {
@@ -91,7 +92,7 @@ function injectRouteHtml(template, page) {
     `<meta name="description" content="${description}" />`,
   );
 
-  const replacements = [
+  const replacements: Array<[string, string]> = [
     ['og:title', title],
     ['og:description', description],
     ['og:url', url],
@@ -141,15 +142,11 @@ function injectRouteHtml(template, page) {
     ...extraScripts,
   ].join('\n    ');
 
-  // Remove any existing JSON-LD (with or without id attrs), then inject the route block.
   html = html.replace(
     /\s*<script type="application\/ld\+json"[^>]*>[\s\S]*?<\/script>/g,
     '',
   );
-  html = html.replace(
-    '</head>',
-    `    ${jsonLdBlock}\n  </head>`,
-  );
+  html = html.replace('</head>', `    ${jsonLdBlock}\n  </head>`);
 
   const faqNoscript = faqs.length
     ? [
@@ -210,7 +207,7 @@ function injectRouteHtml(template, page) {
   return html;
 }
 
-function writeRoute(path, html) {
+function writeRoute(path: string, html: string) {
   if (path === '/') {
     writeFileSync(join(distDir, 'index.html'), html);
     return join(distDir, 'index.html');
@@ -223,7 +220,7 @@ function writeRoute(path, html) {
   return file;
 }
 
-function inject404Html(template) {
+function inject404Html(template: string) {
   const title = escapeHtml('Page Not Found — DOLL PICTURES');
   const description = escapeHtml(
     'This page could not be found. Return to DOLL PICTURES for cinematic wedding and portrait photography in Erode.',
@@ -270,7 +267,7 @@ function inject404Html(template) {
 }
 
 const template = readFileSync(join(distDir, 'index.html'), 'utf8');
-const written = [];
+const written: string[] = [];
 
 for (const page of Object.values(pages)) {
   if (!page?.path) continue;

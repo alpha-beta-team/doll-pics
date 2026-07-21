@@ -1,7 +1,7 @@
 # Doll Pictures — Site Audit
 
 **Live site:** [https://dollpictures.in](https://dollpictures.in)  
-**Stack:** Vite + React (CSR) with post-build prerender (`scripts/prerender.mjs`)  
+**Stack:** Vite + React (CSR) with post-build prerender (`scripts/prerender.ts`)  
 **Audited:** 12 Jul 2026
 
 ## Verdict
