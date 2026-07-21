@@ -107,6 +107,7 @@ export function mapPackage(doc: Record<string, unknown>): Package {
       ? String((doc.category as { slug: unknown }).slug)
       : '') ||
     '';
+  const locationType = (doc.locationType as Package['locationType']) ?? '';
   return {
     id: base.id,
     name: (doc.name as string) ?? '',
@@ -120,6 +121,17 @@ export function mapPackage(doc: Record<string, unknown>): Package {
     price: doc.price != null ? (doc.price as number) : undefined,
     icon: (doc.icon as string) ?? '',
     imageUrl: (doc.imageUrl as string) ?? '',
+    durationLabel: (doc.durationLabel as string) ?? '',
+    advanceAmount: doc.advanceAmount != null ? (doc.advanceAmount as number) : null,
+    notes: Array.isArray(doc.notes) ? (doc.notes as string[]) : [],
+    slotTimings: Array.isArray(doc.slotTimings) ? (doc.slotTimings as string[]) : [],
+    locationType:
+      locationType === 'studio' ||
+      locationType === 'home' ||
+      locationType === 'outdoor'
+        ? locationType
+        : '',
+    themeGuideUrl: (doc.themeGuideUrl as string) ?? '',
     order: (doc.order as number) ?? 0,
     isPublished: (doc.isPublished as boolean) ?? false,
   };

@@ -119,6 +119,8 @@ export type PublicPackageCategory = {
   order?: number;
 };
 
+export type LocationType = '' | 'studio' | 'home' | 'outdoor';
+
 export type Package = CmsMeta & {
   name: string;
   categoryId: string;
@@ -132,6 +134,12 @@ export type Package = CmsMeta & {
   price?: number;
   icon: string;
   imageUrl: string;
+  durationLabel: string;
+  advanceAmount: number | null;
+  notes: string[];
+  slotTimings: string[];
+  locationType: LocationType;
+  themeGuideUrl: string;
 };
 
 export type PublicPackage = {
@@ -146,6 +154,12 @@ export type PublicPackage = {
   imageUrl?: string;
   pricingMode: string;
   price?: number;
+  durationLabel?: string;
+  advanceAmount?: number | null;
+  notes?: string[];
+  slotTimings?: string[];
+  locationType?: LocationType;
+  themeGuideUrl?: string;
 };
 
 // —— Media ————————————————————————————————————————————————————

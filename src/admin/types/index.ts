@@ -11,6 +11,7 @@ export type {
   Category,
   Enquiry,
   HeroSlide,
+  LocationType,
   Package,
   PackageCategory,
   Photo,

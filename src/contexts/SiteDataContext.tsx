@@ -168,12 +168,24 @@ function normalizePublicPackage(p: PublicPackage): PublicPackage {
   const categorySlug =
     p.categorySlug?.trim().toLowerCase() ||
     categoryName.toLowerCase().replace(/\s+/g, '-');
+  const locationType = p.locationType ?? '';
   return {
     ...p,
     inclusions: Array.isArray(p.inclusions) ? p.inclusions : [],
     categoryName: categoryName || undefined,
     categorySlug: categorySlug || undefined,
     shootType: p.shootType || categoryName || undefined,
+    durationLabel: p.durationLabel ?? '',
+    advanceAmount: p.advanceAmount != null ? p.advanceAmount : null,
+    notes: Array.isArray(p.notes) ? p.notes : [],
+    slotTimings: Array.isArray(p.slotTimings) ? p.slotTimings : [],
+    locationType:
+      locationType === 'studio' ||
+      locationType === 'home' ||
+      locationType === 'outdoor'
+        ? locationType
+        : '',
+    themeGuideUrl: p.themeGuideUrl ?? '',
   };
 }
 

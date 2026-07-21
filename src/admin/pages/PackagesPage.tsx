@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../api/client';
-import type { Package, PackageCategory } from '../types';
+import type { LocationType, Package, PackageCategory } from '../types';
 import {
   GripVertical,
   Pencil,
@@ -16,6 +16,65 @@ import {
 
 const UNCATEGORIZED_KEY = '__uncategorized__';
 const ALL_CATEGORIES_KEY = '__all__';
+
+function StringListEditor({
+  label,
+  items,
+  newItem,
+  placeholder,
+  onNewItemChange,
+  onAdd,
+  onRemove,
+}: {
+  label: string;
+  items: string[];
+  newItem: string;
+  placeholder: string;
+  onNewItemChange: (value: string) => void;
+  onAdd: () => void;
+  onRemove: (index: number) => void;
+}) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+      <div className="space-y-2">
+        {items.map((item, index) => (
+          <div
+            key={`${label}-${index}`}
+            className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg"
+          >
+            <span className="flex-1 text-sm text-gray-700">{item}</span>
+            <button
+              type="button"
+              onClick={() => onRemove(index)}
+              aria-label={`Remove ${label.toLowerCase()}: ${item}`}
+              className="p-1 text-gray-400 hover:text-red-600"
+            >
+              <X className="w-4 h-4" aria-hidden="true" />
+            </button>
+          </div>
+        ))}
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={newItem}
+            onChange={(e) => onNewItemChange(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), onAdd())}
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder={placeholder}
+          />
+          <button
+            type="button"
+            onClick={onAdd}
+            className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium"
+          >
+            Add
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 interface PackageGroup {
   key: string;
@@ -527,6 +586,18 @@ function PackageEditModal({
   const [isPublished, setIsPublished] = useState(pkg?.isPublished ?? true);
   const [icon, setIcon] = useState(pkg?.icon || 'Heart');
   const [imageUrl, setImageUrl] = useState(pkg?.imageUrl || '');
+  const [durationLabel, setDurationLabel] = useState(pkg?.durationLabel || '');
+  const [locationType, setLocationType] = useState<LocationType>(
+    pkg?.locationType || '',
+  );
+  const [advanceAmount, setAdvanceAmount] = useState(
+    pkg?.advanceAmount != null ? String(pkg.advanceAmount) : '',
+  );
+  const [slotTimings, setSlotTimings] = useState<string[]>(pkg?.slotTimings || []);
+  const [newSlotTiming, setNewSlotTiming] = useState('');
+  const [notes, setNotes] = useState<string[]>(pkg?.notes || []);
+  const [newNote, setNewNote] = useState('');
+  const [themeGuideUrl, setThemeGuideUrl] = useState(pkg?.themeGuideUrl || '');
   const [isSaving, setIsSaving] = useState(false);
 
   const selectedCategory = categories.find((c) => c.id === categoryId);
@@ -542,9 +613,32 @@ function PackageEditModal({
     setInclusions((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const handleAddSlotTiming = () => {
+    if (newSlotTiming.trim()) {
+      setSlotTimings((prev) => [...prev, newSlotTiming.trim()]);
+      setNewSlotTiming('');
+    }
+  };
+
+  const handleRemoveSlotTiming = (index: number) => {
+    setSlotTimings((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleAddNote = () => {
+    if (newNote.trim()) {
+      setNotes((prev) => [...prev, newNote.trim()]);
+      setNewNote('');
+    }
+  };
+
+  const handleRemoveNote = (index: number) => {
+    setNotes((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      const parsedAdvance = advanceAmount.trim() === '' ? null : parseFloat(advanceAmount);
       await onSave({
         name,
         categoryId,
@@ -558,6 +652,15 @@ function PackageEditModal({
         isPublished,
         icon,
         imageUrl,
+        durationLabel: durationLabel.trim(),
+        locationType,
+        advanceAmount:
+          parsedAdvance != null && !Number.isNaN(parsedAdvance) && parsedAdvance >= 0
+            ? parsedAdvance
+            : null,
+        slotTimings,
+        notes,
+        themeGuideUrl: themeGuideUrl.trim(),
         order: pkg?.order ?? 0,
       });
     } finally {
@@ -649,48 +752,15 @@ function PackageEditModal({
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Inclusions
-            </label>
-            <div className="space-y-2">
-              {inclusions.map((item, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg"
-                >
-                  <span className="flex-1 text-sm text-gray-700">{item}</span>
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveInclusion(index)}
-                    aria-label={`Remove inclusion: ${item}`}
-                    className="p-1 text-gray-400 hover:text-red-600"
-                  >
-                    <X className="w-4 h-4" aria-hidden="true" />
-                  </button>
-                </div>
-              ))}
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newInclusion}
-                  onChange={(e) => setNewInclusion(e.target.value)}
-                  onKeyDown={(e) =>
-                    e.key === 'Enter' && (e.preventDefault(), handleAddInclusion())
-                  }
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Add an inclusion..."
-                />
-                <button
-                  type="button"
-                  onClick={handleAddInclusion}
-                  className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium"
-                >
-                  Add
-                </button>
-              </div>
-            </div>
-          </div>
+          <StringListEditor
+            label="Inclusions"
+            items={inclusions}
+            newItem={newInclusion}
+            placeholder="Add an inclusion..."
+            onNewItemChange={setNewInclusion}
+            onAdd={handleAddInclusion}
+            onRemove={handleRemoveInclusion}
+          />
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -737,10 +807,11 @@ function PackageEditModal({
                   </label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-                      $
+                      ₹
                     </span>
                     <input
                       type="number"
+                      min={0}
                       value={price}
                       onChange={(e) => setPrice(e.target.value)}
                       className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -750,6 +821,88 @@ function PackageEditModal({
                 </div>
               )}
             </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Duration label
+              </label>
+              <input
+                type="text"
+                value={durationLabel}
+                onChange={(e) => setDurationLabel(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="e.g., 1 Hour Session"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Location type
+              </label>
+              <select
+                value={locationType}
+                onChange={(e) => setLocationType(e.target.value as LocationType)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">None</option>
+                <option value="studio">Studio</option>
+                <option value="home">Home</option>
+                <option value="outdoor">Outdoor</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Advance amount (INR)
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                ₹
+              </span>
+              <input
+                type="number"
+                min={0}
+                value={advanceAmount}
+                onChange={(e) => setAdvanceAmount(e.target.value)}
+                className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Leave empty for none"
+              />
+            </div>
+          </div>
+
+          <StringListEditor
+            label="Slot timings"
+            items={slotTimings}
+            newItem={newSlotTiming}
+            placeholder="Add a slot timing..."
+            onNewItemChange={setNewSlotTiming}
+            onAdd={handleAddSlotTiming}
+            onRemove={handleRemoveSlotTiming}
+          />
+
+          <StringListEditor
+            label="Notes"
+            items={notes}
+            newItem={newNote}
+            placeholder="Add a booking note..."
+            onNewItemChange={setNewNote}
+            onAdd={handleAddNote}
+            onRemove={handleRemoveNote}
+          />
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Theme guide URL
+            </label>
+            <input
+              type="url"
+              value={themeGuideUrl}
+              onChange={(e) => setThemeGuideUrl(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="https://..."
+            />
           </div>
 
           <label className="flex items-center gap-2 cursor-pointer pt-2">

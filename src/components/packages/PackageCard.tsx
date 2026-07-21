@@ -3,6 +3,7 @@ import { Check } from 'lucide-react';
 import type { PublicPackage } from '../../lib/api';
 import { trackWhatsAppClick, type WhatsAppCtaLocation } from '../../lib/analytics';
 import {
+  formatINR,
   formatPackagePrice,
   packageEnquirePath,
   packageWhatsAppUrl,
@@ -16,6 +17,12 @@ interface PackageCardProps {
   ctaLocation?: WhatsAppCtaLocation;
 }
 
+function locationBadgeLabel(locationType?: string): string | null {
+  if (locationType === 'home') return 'At your location';
+  if (locationType === 'studio') return 'Studio';
+  return null;
+}
+
 export function PackageCard({
   pkg,
   whatsapp,
@@ -27,6 +34,12 @@ export function PackageCard({
   const whatsappHref = packageWhatsAppUrl(whatsapp, pkg.name);
   const whatsappAvailable = whatsappHref.startsWith('http');
   const inclusions = pkg.inclusions ?? [];
+  const durationLabel = pkg.durationLabel?.trim() ?? '';
+  const slotTimings = pkg.slotTimings ?? [];
+  const notes = pkg.notes ?? [];
+  const themeGuideUrl = pkg.themeGuideUrl?.trim() ?? '';
+  const locationLabel = locationBadgeLabel(pkg.locationType);
+  const advanceAmount = pkg.advanceAmount;
 
   return (
     <article
@@ -48,16 +61,40 @@ export function PackageCard({
           {pkg.name}
         </h3>
 
+        {durationLabel ? (
+          <p className="mt-2 text-center text-[0.7rem] font-medium tracking-[0.18em] text-ink-200/55">
+            {durationLabel}
+          </p>
+        ) : null}
+
+        {locationLabel ? (
+          <p
+            className={`mt-3 text-center text-[0.65rem] font-medium tracking-[0.16em] ${
+              pkg.locationType === 'home'
+                ? 'text-gold-300/90'
+                : 'text-ink-200/45'
+            }`}
+          >
+            {locationLabel}
+          </p>
+        ) : null}
+
         <p className="mt-4 text-center font-display text-4xl font-light leading-none tracking-tight text-gradient-gold md:text-5xl">
           {priceLabel}
         </p>
+
+        {advanceAmount != null ? (
+          <p className="mt-3 text-center text-[0.7rem] tracking-[0.12em] text-ink-200/55">
+            Advance: {formatINR(advanceAmount)}
+          </p>
+        ) : null}
 
         <div className="mx-auto mt-5 h-px w-12 bg-gradient-to-r from-transparent via-gold-400/60 to-transparent opacity-70 transition-all duration-500 group-hover:w-20 group-hover:opacity-100" />
 
         <ul className="mt-8 flex-1">
           {inclusions.map((item, i) => (
             <li
-              key={`${pkg.name}-${i}`}
+              key={`${pkg.name}-inclusion-${i}`}
               className={`flex items-start gap-3 py-3.5 text-[0.925rem] leading-snug text-ink-200/70 transition-colors duration-300 group-hover:text-ink-100 ${
                 i < inclusions.length - 1 ? 'border-b border-hairline/5' : ''
               }`}
@@ -69,6 +106,49 @@ export function PackageCard({
             </li>
           ))}
         </ul>
+
+        {slotTimings.length > 0 ? (
+          <div className="mt-6">
+            <p className="text-center text-[0.65rem] font-medium tracking-[0.18em] text-ink-200/45">
+              Slots
+            </p>
+            <ul className="mt-3 flex flex-wrap justify-center gap-2">
+              {slotTimings.map((slot, i) => (
+                <li
+                  key={`${pkg.name}-slot-${i}`}
+                  className="border border-hairline/10 px-3 py-1.5 text-[0.7rem] tracking-wide text-ink-200/65"
+                >
+                  {slot}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {notes.length > 0 ? (
+          <ul className="mt-6 space-y-1.5">
+            {notes.map((note, i) => (
+              <li
+                key={`${pkg.name}-note-${i}`}
+                className="text-center text-[0.7rem] leading-relaxed text-ink-200/40"
+              >
+                {note}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+
+        {themeGuideUrl ? (
+          <a
+            href={themeGuideUrl}
+            target="_blank"
+            rel="noreferrer"
+            data-cursor="hover"
+            className="mt-5 text-center text-[0.65rem] font-medium tracking-[0.18em] text-gold-300/80 transition-colors hover:text-gold-300"
+          >
+            Theme guide
+          </a>
+        ) : null}
 
         <div className="mt-9 flex flex-col items-center gap-3">
           <Link
