@@ -152,6 +152,13 @@ export type PublicPackage = {
 
 export type PhotoWidthVariant = { url: string; width: number };
 
+export type ImageTransform = {
+  crop: { x: number; y: number; width: number; height: number } | null;
+  cropPercentages?: { x: number; y: number; width: number; height: number } | null;
+  outputWidth: number;
+  outputHeight: number;
+};
+
 export type PhotoVariants = {
   webp?: string | PhotoWidthVariant[];
   avif?: string | PhotoWidthVariant[];
@@ -180,8 +187,10 @@ export type Photo = {
   variants: {
     webp: string;
     avif: string;
+    original: string;
     sizes: number[];
   };
+  imageTransform: ImageTransform | null;
   width: number;
   height: number;
   order: number;
@@ -239,6 +248,9 @@ export type TeamMember = CmsMeta & {
   role: string;
   bio: string;
   photo: string;
+  photoOriginal: string;
+  photoStorageKey: string;
+  imageTransform: ImageTransform | null;
 };
 
 /** Public list items omit admin meta (API may still send it). */

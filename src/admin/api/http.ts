@@ -23,7 +23,7 @@ export async function request<T>(
   const { auth = false, headers: customHeaders, ...rest } = options;
   const headers = new Headers(customHeaders);
 
-  if (rest.body && !headers.has('Content-Type')) {
+  if (rest.body && !headers.has('Content-Type') && !(rest.body instanceof FormData)) {
     headers.set('Content-Type', 'application/json');
   }
 
