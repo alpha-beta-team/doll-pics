@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
 import type { Enquiry } from '../types';
+import type { ConvertEnquiryState } from './BookingsPage';
 import {
   Mail,
   AlertCircle,
@@ -10,15 +12,22 @@ import {
   CheckCircle,
   Eye,
   Clock,
+  CalendarPlus,
 } from 'lucide-react';
 
 export function EnquiriesPage() {
+  const navigate = useNavigate();
   const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [selectedEnquiry, setSelectedEnquiry] = useState<Enquiry | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+
+  const convertToBooking = (enquiry: Enquiry) => {
+    const state: ConvertEnquiryState = { convertFromEnquiry: enquiry };
+    navigate('/admin/bookings', { state });
+  };
 
   useEffect(() => {
     fetchEnquiries();
@@ -302,6 +311,7 @@ export function EnquiriesPage() {
           enquiry={selectedEnquiry}
           onClose={() => setSelectedEnquiry(null)}
           onStatusChange={handleStatusChange}
+          onConvert={() => convertToBooking(selectedEnquiry)}
         />
       )}
     </div>
@@ -312,9 +322,10 @@ interface EnquiryDrawerProps {
   enquiry: Enquiry;
   onClose: () => void;
   onStatusChange: (id: string, status: 'new' | 'read' | 'responded') => void;
+  onConvert: () => void;
 }
 
-function EnquiryDrawer({ enquiry, onClose, onStatusChange }: EnquiryDrawerProps) {
+function EnquiryDrawer({ enquiry, onClose, onStatusChange, onConvert }: EnquiryDrawerProps) {
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('en-US', {
@@ -360,19 +371,29 @@ function EnquiryDrawer({ enquiry, onClose, onStatusChange }: EnquiryDrawerProps)
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          <div className="flex items-start justify-between">
+          <div className="flex items-start justify-between gap-3">
             <div>
               <h3 className="text-xl font-medium text-gray-900">{enquiry.name}</h3>
               <span className={`inline-block mt-2 text-xs px-2 py-1 rounded-full ${getStatusBadge(enquiry.status).bg} ${getStatusBadge(enquiry.status).text}`}>
                 {getStatusBadge(enquiry.status).label}
               </span>
             </div>
-            <a
-              href={`mailto:${enquiry.email}`}
-              className="px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700"
-            >
-              Reply
-            </a>
+            <div className="flex flex-col gap-2">
+              <a
+                href={`mailto:${enquiry.email}`}
+                className="px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 text-center"
+              >
+                Reply
+              </a>
+              <button
+                type="button"
+                onClick={onConvert}
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50"
+              >
+                <CalendarPlus className="w-4 h-4" />
+                Convert
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -387,18 +408,38 @@ function EnquiryDrawer({ enquiry, onClose, onStatusChange }: EnquiryDrawerProps)
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Phone</label>
-              <a
-                href={`tel:${enquiry.phone}`}
-                className="text-sm text-blue-600 hover:underline"
-              >
-                {enquiry.phone}
-              </a>
+              {enquiry.phone ? (
+                <a
+                  href={`tel:${enquiry.phone}`}
+                  className="text-sm text-blue-600 hover:underline"
+                >
+                  {enquiry.phone}
+                </a>
+              ) : (
+                <span className="text-sm text-gray-400">—</span>
+              )}
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Shoot Type</label>
-              <span className="text-sm text-gray-700">{enquiry.shootType}</span>
+              <span className="text-sm text-gray-700">{enquiry.shootType || '—'}</span>
             </div>
             <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Preferred event</label>
+              <span className="text-sm text-gray-700">{enquiry.preferredEvent || '—'}</span>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Shoot date</label>
+              <span className="text-sm text-gray-700">{enquiry.shootDate || '—'}</span>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Reminder date</label>
+              <span className="text-sm text-gray-700">{enquiry.reminderDate || '—'}</span>
+            </div>
+            <div className="col-span-2">
+              <label className="block text-xs font-medium text-gray-500 mb-1">Location</label>
+              <span className="text-sm text-gray-700">{enquiry.location || '—'}</span>
+            </div>
+            <div className="col-span-2">
               <label className="block text-xs font-medium text-gray-500 mb-1">Submitted</label>
               <span className="text-sm text-gray-700">{formatDate(enquiry.createdAt)}</span>
             </div>
@@ -412,6 +453,15 @@ function EnquiryDrawer({ enquiry, onClose, onStatusChange }: EnquiryDrawerProps)
               </p>
             </div>
           </div>
+
+          {enquiry.notes ? (
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-2">Notes</label>
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <p className="text-sm text-gray-700 whitespace-pre-wrap">{enquiry.notes}</p>
+              </div>
+            </div>
+          ) : null}
 
           <div className="pt-4 border-t border-gray-200">
             <label className="block text-xs font-medium text-gray-500 mb-2">

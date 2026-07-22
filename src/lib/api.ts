@@ -1,9 +1,72 @@
+import type {
+  CreateEnquiryPayload,
+  PublicBehindScene,
+  PublicHeroSlide,
+  PublicPackage,
+  PublicPackageCategory,
+  PublicPhoto,
+  PublicSiteContent,
+  PublicStat,
+  PublicStoryScene,
+  PublicTeamMember,
+  PublicTestimonial,
+} from '../shared/types';
+
+export type {
+  CreateEnquiryPayload,
+  PublicBehindScene,
+  PublicHeroSlide,
+  PublicPackage,
+  PublicPackageCategory,
+  PublicPhoto,
+  PublicSiteContent,
+  PublicStat,
+  PublicStoryScene,
+  PublicTeamMember,
+  PublicTestimonial,
+  ServiceNavLinkInput as PublicServiceNavLink,
+} from '../shared/types';
+
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3001/api';
+
+export class ApiError extends Error {
+  status: number;
+  messages: string[];
+
+  constructor(status: number, messages: string[]) {
+    super(messages.join(', ') || `API error ${status}`);
+    this.name = 'ApiError';
+    this.status = status;
+    this.messages = messages;
+  }
+}
+
+/** Map NestJS/class-validator messages ("email must be an email") to field keys. */
+export function parseApiFieldErrors(
+  messages: string[],
+  fields: readonly string[],
+): Record<string, string> {
+  const errors: Record<string, string> = {};
+  for (const msg of messages) {
+    const field = fields.find((f) => msg === f || msg.startsWith(`${f} `));
+    if (!field || errors[field]) continue;
+    const stripped = msg.startsWith(`${field} `) ? msg.slice(field.length + 1) : msg;
+    errors[field] = stripped.charAt(0).toUpperCase() + stripped.slice(1);
+  }
+  return errors;
+}
 
 export async function publicFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, init);
   if (!res.ok) {
-    throw new Error(`API error ${res.status}`);
+    const body = await res.json().catch(() => null) as { message?: string | string[] } | null;
+    const raw = body?.message;
+    const messages = Array.isArray(raw)
+      ? raw.map(String)
+      : raw
+        ? [String(raw)]
+        : [`API error ${res.status}`];
+    throw new ApiError(res.status, messages);
   }
   if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
@@ -81,121 +144,34 @@ export function getPhotoSources(photo: {
 
   return {
     src,
-    alt: photo.altText?.trim() || photo.title?.trim() || 'Photography by DOLL PICTURES',
+    alt: photo.altText?.trim() || photo.title?.trim() || 'Photography by Doll Pictures',
     avifSrcSet,
     webpSrcSet,
   };
 }
 
-export interface PublicServiceNavLink {
-  _id?: string;
-  id?: string;
-  label: string;
-  path: string;
-  description?: string;
-  icon?: string;
-  imageUrl?: string;
-  order?: number;
-  isPublished?: boolean;
-}
-
-export interface PublicSiteContent {
-  brandName: string;
-  tagline: string;
-  heroHeading: string;
-  heroSubtext: string;
-  about: string;
-  ourStory?: string;
-  mission?: string;
-  aboutHeroSubtext?: string;
-  contactEmail: string;
-  whatsapp: string;
-  phone: string;
-  socials: Record<string, string>;
-  beforeAfter: { before: string; after: string };
-  serviceNavLinks?: PublicServiceNavLink[];
-}
-
-export interface PublicPhoto {
-  _id?: string;
-  id?: string;
-  title: string;
-  altText?: string;
-  location?: string;
-  year?: string;
-  isFeatured?: boolean;
-  variants?: {
-    webp?: string | { url: string; width: number }[];
-    avif?: string | { url: string; width: number }[];
-    original?: { url: string };
-  };
-  categoryIds?: Array<{ name: string; slug: string } | string>;
-}
-
-export interface PublicPackage {
-  name: string;
-  shootType: string;
-  description: string;
-  inclusions: string[];
-  icon?: string;
-  imageUrl?: string;
-  pricingMode: string;
-  price?: number;
-}
-
-export interface PublicHeroSlide {
-  image: string;
-  label: string;
-}
-
-export interface PublicStoryScene {
-  text: string;
-  image: string;
-}
-
-export interface PublicStat {
-  value: number;
-  suffix: string;
-  label: string;
-}
-
-export interface PublicTestimonial {
-  name: string;
-  role: string;
-  avatar: string;
-  rating: number;
-  text: string;
-  likes: number;
-  reply: string;
-}
-
-export interface PublicBehindScene {
-  title: string;
-  image: string;
-}
-
-export interface PublicTeamMember {
-  name: string;
-  role: string;
-  bio: string;
-  photo: string;
-}
-
-export interface CreateEnquiryPayload {
-  name: string;
-  email: string;
-  phone?: string;
-  shootType: string;
-  message: string;
-}
+export type PhotosQuery = {
+  featured?: boolean;
+  /** Cap results (public gallery). Backend clamps to a safe max. */
+  limit?: number;
+  category?: string;
+};
 
 export const publicApi = {
   getSiteContent: () => publicFetch<PublicSiteContent>('/site-content'),
-  getPhotos: (params?: { featured?: boolean }) => {
-    const qs = params?.featured ? '?featured=true' : '';
-    return publicFetch<PublicPhoto[]>(`/photos${qs}`);
+  getPhotos: (params?: PhotosQuery) => {
+    const qs = new URLSearchParams();
+    if (params?.featured) qs.set('featured', 'true');
+    if (params?.category) qs.set('category', params.category);
+    if (params?.limit != null && params.limit > 0) {
+      qs.set('limit', String(params.limit));
+    }
+    const query = qs.toString();
+    return publicFetch<PublicPhoto[]>(`/photos${query ? `?${query}` : ''}`);
   },
   getPackages: () => publicFetch<PublicPackage[]>('/packages'),
+  getPackageCategories: () =>
+    publicFetch<PublicPackageCategory[]>('/package-categories'),
   getHeroSlides: () => publicFetch<PublicHeroSlide[]>('/hero-slides'),
   getStoryScenes: () => publicFetch<PublicStoryScene[]>('/story-scenes'),
   getStats: () => publicFetch<PublicStat[]>('/stats'),

@@ -11,9 +11,9 @@ export function NotFound() {
   useEffect(() => {
     applyPageSeo({
       path: pathname,
-      title: 'Page Not Found — DOLL PICTURES',
+      title: 'Page Not Found — Doll Pictures',
       description:
-        'This page could not be found. Return to DOLL PICTURES for cinematic wedding and portrait photography in Erode.',
+        'This page could not be found. Return to Doll Pictures for cinematic wedding and portrait photography in Erode.',
       noindex: true,
       heading: 'Page not found',
       body: 'The page you are looking for does not exist or has been moved.',

@@ -9,7 +9,7 @@ export function Terms() {
           Agreement
         </h2>
         <p className="mt-3">
-          By using the DOLL PICTURES website (
+          By using the Doll Pictures website (
           <a href="https://dollpictures.in" className="text-gold-400 hover:text-gold-300">
             dollpictures.in
           </a>
@@ -24,7 +24,7 @@ export function Terms() {
           Services
         </h2>
         <p className="mt-3">
-          DOLL PICTURES provides wedding, portrait, commercial, and related
+          Doll Pictures by Ramya Vignesh provides wedding, portrait, commercial, and related
           photography services based in Erode, Tamil Nadu. Package details,
           pricing, and deliverables are described on our site or confirmed in
           writing for your booking. A separate booking agreement or invoice may
@@ -43,9 +43,9 @@ export function Terms() {
             admin areas
           </li>
           <li>
-            Content on this site (text, images, branding) is owned by DOLL
-            PICTURES or its licensors and may not be copied for commercial use
-            without permission
+            Content on this site (text, images, branding) is owned by Doll
+            Pictures by Ramya Vignesh or its licensors and may not be copied
+            for commercial use without permission
           </li>
         </ul>
       </section>
@@ -67,7 +67,7 @@ export function Terms() {
           Image rights
         </h2>
         <p className="mt-3">
-          Unless otherwise agreed in writing, DOLL PICTURES retains copyright in
+          Unless otherwise agreed in writing, Doll Pictures by Ramya Vignesh retains copyright in
           photographs we create. Clients receive usage rights as described in
           their package or contract (for example personal use and sharing). We
           may use selected images for portfolio and marketing unless you request

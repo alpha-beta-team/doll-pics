@@ -50,4 +50,14 @@ export default defineConfig({
   build: {
     cssCodeSplit: false,
   },
+  server: {
+    proxy: {
+      // Local: same-origin /sitemap.xml → CMS API (mirrors Netlify/Vercel rewrite)
+      '/sitemap.xml': {
+        target: process.env.VITE_API_URL?.replace(/\/api\/?$/, '') || 'http://localhost:3001',
+        changeOrigin: true,
+        rewrite: () => '/api/sitemap.xml',
+      },
+    },
+  },
 });

@@ -1,6 +1,6 @@
-# DOLL PICTURES
+# Doll Pictures
 
-Cinematic photography portfolio site for `DOLL PICTURES by Ramya Vignesh`, built as a React single-page experience with animated storytelling sections, immersive transitions, and branded contact/SEO metadata.
+Cinematic photography portfolio site for `Doll Pictures by Ramya Vignesh`, built as a React single-page experience with animated storytelling sections, immersive transitions, and branded contact/SEO metadata.
 
 ## Overview
 
@@ -19,8 +19,8 @@ This project is a Vite + React + TypeScript frontend for a photography studio we
 
 The current branding uses:
 
-- brand name: `DOLL PICTURES`
-- SEO title: `DOLL PICTURES by Ramya Vignesh`
+- display brand: `Doll Pictures`
+- company / GBP name: `Doll Pictures by Ramya Vignesh`
 - contact email: `dollpictures2025@gmail.com`
 - contact phone: `+91 95975 62337`
 - location: `URT TOWERS, 139/4-D, Perundurai Rd, Teachers Colony, Palayapalayam, Erode, Tamil Nadu 638011`
@@ -54,7 +54,6 @@ doll-pics/
 │   │       ├── ScrollStorytelling.tsx
 │   │       ├── FeaturedWork.tsx
 │   │       ├── HorizontalGallery.tsx
-│   │       ├── BeforeAfter.tsx
 │   │       ├── Services.tsx
 │   │       ├── Statistics.tsx
 │   │       ├── Testimonials.tsx
@@ -112,8 +111,8 @@ VITE_SITE_URL=https://dollpictures.in
 
 | Variable | Required | Purpose |
 |----------|----------|---------|
-| `VITE_API_URL` | Yes (prod) | CMS/API base URL (includes `/api`) |
-| `VITE_SITE_URL` | Recommended (prod) | Site origin for sitemap, robots, prerender, and SEO absolute URLs. No trailing slash. Defaults to `https://dollpictures.in` if unset. |
+| `VITE_API_URL` | Yes (prod) | CMS/API base URL (includes `/api`). Build uses it to proxy `/sitemap.xml` → `{API}/sitemap.xml`. |
+| `VITE_SITE_URL` | Recommended (prod) | Site origin for robots.txt, prerender, and SEO absolute URLs. No trailing slash. Defaults to `https://dollpictures.in` if unset. |
 
 Backend: set `CORS_ORIGIN=http://localhost:5173` and change `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
 
@@ -121,32 +120,32 @@ Backend: set `CORS_ORIGIN=http://localhost:5173` and change `ADMIN_EMAIL` / `ADM
 
 | Service | Notes |
 |---------|-------|
-| `photography-cms-backend` | Deploy to Railway/Render/VPS |
+| `photography-cms-backend` | Deploy to Railway/Render/VPS. Serves live `GET /api/sitemap.xml` from CMS data. Set `SITE_URL=https://dollpictures.in`. |
 | `doll-pics` | Deploy to Vercel/Netlify with `VITE_API_URL` and `VITE_SITE_URL` set |
 
-SPA rewrites are configured in `vercel.json` / `netlify.toml`. Admin routes require the same fallback on other hosts.
+SPA rewrites are configured in `vercel.json` / `netlify.toml`. Admin routes require the same fallback on other hosts. `/sitemap.xml` is proxied to the CMS API so new CMS landings appear without a frontend rebuild. Unknown public paths fall through to the SPA shell (200); React resolves CMS landings or shows `NotFound` with `noindex`. Prerendered folders on disk still win via filesystem-first routing.
 
 #### Host environment variables (Step 4)
 
-Set these in your host dashboard so every production build regenerates sitemap/robots correctly:
+Set these in your host dashboard:
 
 **Netlify:** Site configuration → Environment variables → add:
 
-- `VITE_API_URL` = your production API URL (e.g. `https://api.example.com/api`)
+- `VITE_API_URL` = your production API URL (e.g. `https://photography-cms-backend.onrender.com/api`)
 - `VITE_SITE_URL` = `https://dollpictures.in`
 
 Apply to **Production** (and Preview if you want preview builds to use the same origin).
 
 **Vercel:** Project → Settings → Environment Variables → add the same two variables for **Production** (and Preview if desired).
 
-Redeploy after saving so `prebuild` (`generate-sitemap.mjs`) runs with the new values.
+Redeploy after saving so `prebuild` writes `robots.txt` and Netlify `_redirects` for the sitemap proxy.
 
 #### Google Search Console (Step 5)
 
 After deploy:
 
 1. Open `https://dollpictures.in/robots.txt` and confirm it includes `Sitemap: https://dollpictures.in/sitemap.xml`
-2. Open `https://dollpictures.in/sitemap.xml` and confirm all public routes are listed
+2. Open `https://dollpictures.in/sitemap.xml` and confirm it is XML from the API (new CMS paths appear within ~5 minutes of publish, no frontend redeploy)
 3. In [Google Search Console](https://search.google.com/search-console) → **Sitemaps** → submit `https://dollpictures.in/sitemap.xml` (or use **Refresh** if already submitted)
 
 ## Getting Started

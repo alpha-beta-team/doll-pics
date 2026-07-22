@@ -1,57 +1,15 @@
-import { readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+/**
+ * Writes robots.txt and host proxy rules so /sitemap.xml is served by the CMS API.
+ * Live URLs come from GET {VITE_API_URL}/sitemap.xml — no static sitemap.xml at build time.
+ */
+import { writeFileSync, unlinkSync, existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { getApiBase, getSiteUrl, loadEnvFiles, root } from './lib/env.mjs';
 
-const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const siteUrl = (
-  process.env.VITE_SITE_URL || 'https://dollpictures.in'
-).replace(/\/$/, '');
+loadEnvFiles();
 
-const navSource = readFileSync(join(root, 'src/lib/navigation.ts'), 'utf8');
-const paths = [...navSource.matchAll(/path: '([^']+)'/g)].map((match) => match[1]);
-const routes = ['/', ...paths.filter((path, index, all) => all.indexOf(path) === index)];
-
-const routeConfig = {
-  '/': { changefreq: 'weekly', priority: '1.0' },
-  '/packages': { changefreq: 'monthly', priority: '0.8' },
-  '/about': { changefreq: 'monthly', priority: '0.8' },
-  '/booking': { changefreq: 'monthly', priority: '0.8' },
-  '/privacy': { changefreq: 'yearly', priority: '0.3' },
-  '/terms': { changefreq: 'yearly', priority: '0.3' },
-};
-
-const servicePathRe = /-photography-erode$/;
-const lastmod = new Date().toISOString().split('T')[0];
-
-const urlEntries = routes
-  .map((path) => {
-    const isService = servicePathRe.test(path);
-    const config =
-      routeConfig[path] ??
-      (isService
-        ? { changefreq: 'monthly', priority: '0.9' }
-        : { changefreq: 'monthly', priority: '0.7' });
-    // No trailing slash — matches vercel.json trailingSlash:false and seo.ts absoluteUrl
-    const loc = path === '/' ? siteUrl : `${siteUrl}${path}`;
-
-    return [
-      '  <url>',
-      `    <loc>${loc}</loc>`,
-      `    <lastmod>${lastmod}</lastmod>`,
-      `    <changefreq>${config.changefreq}</changefreq>`,
-      `    <priority>${config.priority}</priority>`,
-      '  </url>',
-    ].join('\n');
-  })
-  .join('\n');
-
-const sitemap = [
-  '<?xml version="1.0" encoding="UTF-8"?>',
-  '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-  urlEntries,
-  '</urlset>',
-  '',
-].join('\n');
+const siteUrl = getSiteUrl();
+const apiBase = getApiBase();
 
 const robots = [
   'User-agent: *',
@@ -64,7 +22,35 @@ const robots = [
   '',
 ].join('\n');
 
-writeFileSync(join(root, 'public/sitemap.xml'), sitemap);
 writeFileSync(join(root, 'public/robots.txt'), robots);
 
-console.log(`Generated sitemap with ${routes.length} URLs for ${siteUrl}`);
+const staticSitemap = join(root, 'public/sitemap.xml');
+if (existsSync(staticSitemap)) {
+  unlinkSync(staticSitemap);
+}
+
+if (apiBase) {
+  const sitemapApi = `${apiBase.replace(/\/$/, '')}/sitemap.xml`;
+
+  // Netlify: proxy even if a stale file exists (force)
+  writeFileSync(
+    join(root, 'public/_redirects'),
+    [`/sitemap.xml  ${sitemapApi}  200!`, ''].join('\n'),
+  );
+
+  // Vercel build hint (committed vercel.json also proxies; this keeps CI in sync)
+  writeFileSync(
+    join(root, 'public/_sitemap-proxy.json'),
+    `${JSON.stringify({ source: '/sitemap.xml', destination: sitemapApi }, null, 2)}\n`,
+  );
+
+  console.log(`SEO: robots.txt → Sitemap ${siteUrl}/sitemap.xml`);
+  console.log(`SEO: proxy /sitemap.xml → ${sitemapApi}`);
+} else {
+  console.warn(
+    'SEO: VITE_API_URL not set — robots.txt written, but /sitemap.xml proxy was skipped.',
+  );
+  console.warn(
+    'SEO: Set VITE_API_URL so Netlify/Vercel can proxy sitemap to the CMS API.',
+  );
+}

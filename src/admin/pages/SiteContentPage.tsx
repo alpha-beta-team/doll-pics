@@ -34,7 +34,6 @@ const defaultSiteContent: SiteContent = {
   whatsapp: '',
   phone: '',
   socials: {},
-  beforeAfter: { before: '', after: '' },
   serviceNavLinks: DEFAULT_SERVICE_NAV_LINKS.map((l) => ({ ...l })),
 };
 
@@ -47,6 +46,10 @@ function emptyServiceLink(order: number): ServiceNavLink {
     description: '',
     icon: 'Camera',
     imageUrl: '',
+    seoTitle: '',
+    seoDescription: '',
+    heading: '',
+    lead: '',
     order,
     isPublished: true,
   };
@@ -70,7 +73,6 @@ export function SiteContentPage() {
           mission: data.mission ?? '',
           aboutHeroSubtext: data.aboutHeroSubtext ?? '',
           socials: data.socials ?? {},
-          beforeAfter: data.beforeAfter ?? { before: '', after: '' },
           serviceNavLinks:
             data.serviceNavLinks?.length > 0
               ? data.serviceNavLinks
@@ -94,14 +96,6 @@ export function SiteContentPage() {
     setContent(prev => ({
       ...prev,
       socials: { ...prev.socials, [platform]: value },
-    }));
-    setSuccess(false);
-  };
-
-  const handleBeforeAfterChange = (field: 'before' | 'after', value: string) => {
-    setContent(prev => ({
-      ...prev,
-      beforeAfter: { ...prev.beforeAfter, [field]: value },
     }));
     setSuccess(false);
   };
@@ -565,6 +559,72 @@ export function SiteContentPage() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                     />
                   </div>
+
+                  <div className="md:col-span-2 border-t border-gray-100 pt-3 space-y-3">
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">Landing SEO</p>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        Overrides static JSON when filled. Leave blank to keep defaults.
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        SEO title
+                      </label>
+                      <input
+                        type="text"
+                        value={link.seoTitle ?? ''}
+                        onChange={(e) =>
+                          updateServiceLink(index, { seoTitle: e.target.value })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Maternity Photoshoot in Erode | Doll Pictures"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Meta description
+                      </label>
+                      <textarea
+                        value={link.seoDescription ?? ''}
+                        onChange={(e) =>
+                          updateServiceLink(index, { seoDescription: e.target.value })
+                        }
+                        rows={2}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                        placeholder="Personalized maternity photography in Erode…"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Page heading (H1)
+                      </label>
+                      <input
+                        type="text"
+                        value={link.heading ?? ''}
+                        onChange={(e) =>
+                          updateServiceLink(index, { heading: e.target.value })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Maternity photography in Erode"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Lead paragraph
+                      </label>
+                      <textarea
+                        value={link.lead ?? ''}
+                        onChange={(e) =>
+                          updateServiceLink(index, { lead: e.target.value })
+                        }
+                        rows={2}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                        placeholder="Intro copy under the heading"
+                      />
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Icon</label>
                     <select
@@ -610,30 +670,6 @@ export function SiteContentPage() {
                 </div>
               </div>
             ))}
-          </div>
-        </section>
-
-        <section className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Before / After</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Before Image URL</label>
-              <input
-                type="url"
-                value={content.beforeAfter?.before || ''}
-                onChange={e => handleBeforeAfterChange('before', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">After Image URL</label>
-              <input
-                type="url"
-                value={content.beforeAfter?.after || ''}
-                onChange={e => handleBeforeAfterChange('after', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
           </div>
         </section>
 

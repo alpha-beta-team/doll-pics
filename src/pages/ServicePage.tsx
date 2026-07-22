@@ -1,18 +1,20 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useEffect, useRef } from 'react';
-import { SiteDataProvider, useSiteData } from '../contexts/SiteDataContext';
+import { useSiteData } from '../contexts/SiteDataContext';
 import { CustomCursor } from '../components/CustomCursor';
 import { SmoothScroll } from '../components/SmoothScroll';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/sections/Footer';
 import { ContactFabHost } from '../components/packages/ContactFabs';
 import { ResponsiveImage } from '../components/ResponsiveImage';
-import { usePageSeo } from '../hooks/usePageSeo';
 import { useInView } from '../hooks/useScroll';
 import { trackPhoneClick, trackViewService } from '../lib/analytics';
-import { getServicePage } from '../lib/seo';
+import { applyPageSeo, resolveServicePage } from '../lib/seo';
 import { selectServiceImages, type ServiceImage } from '../lib/serviceImages';
-import { SERVICE_ROUTES } from '../lib/navigation';
+import {
+  getPublishedServiceNavLinks,
+  normalizePathname,
+} from '../lib/navigation';
 import { NotFound } from './NotFound';
 
 const HERO_SIZES = '100vw';
@@ -21,17 +23,41 @@ const INLINE_SIZES = '(max-width: 1024px) 100vw, 70vw';
 
 function ServicePageContent() {
   const { pathname } = useLocation();
-  const path =
-    pathname.endsWith('/') && pathname !== '/' ? pathname.slice(0, -1) : pathname;
+  const path = normalizePathname(pathname);
   const { siteContent, featuredWork, galleryImages } = useSiteData();
-  const page = getServicePage(path);
+  const serviceLinks = getPublishedServiceNavLinks(siteContent.serviceNavLinks);
+  const nav = serviceLinks.find((link) => link.path === path) ?? null;
+  const page = resolveServicePage(path, nav);
   const viewTrackedPath = useRef<string | null>(null);
+  const otherServiceLinks = serviceLinks.filter((link) => link.path !== path);
 
-  usePageSeo({
-    phone: siteContent.phone,
-    email: siteContent.contactEmail,
-    socials: siteContent.socials,
-  });
+  useEffect(() => {
+    if (!page) return;
+    applyPageSeo(
+      {
+        path,
+        title: page.title,
+        description: page.description,
+        heading: page.heading,
+        body: page.body,
+      },
+      {
+        contact: {
+          phone: siteContent.phone,
+          email: siteContent.contactEmail,
+          socials: siteContent.socials,
+        },
+        servicePage: page,
+        faqs: page.faqs.length ? page.faqs : undefined,
+      },
+    );
+  }, [
+    page,
+    path,
+    siteContent.phone,
+    siteContent.contactEmail,
+    siteContent.socials,
+  ]);
 
   useEffect(() => {
     if (!page) return;
@@ -104,7 +130,7 @@ function ServicePageContent() {
                 fetchPriority="high"
                 className="absolute inset-0 h-full w-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
             </div>
           </div>
         ) : null}
@@ -170,7 +196,7 @@ function ServicePageContent() {
                 Studio location
               </h2>
               <p className="mt-5 text-[0.95rem] leading-relaxed text-ink-200/70">
-                DOLL PICTURES by Ramya Vignesh — URT TOWERS, 139/4-D, Perundurai Rd,
+                Doll Pictures by Ramya Vignesh — URT TOWERS, 139/4-D, Perundurai Rd,
                 Teachers Colony, Palayapalayam, Erode, Tamil Nadu 638011.
                 {siteContent.phone ? (
                   <>
@@ -199,23 +225,25 @@ function ServicePageContent() {
               </p>
             </section>
 
-            <section>
-              <h2 className="font-display text-3xl font-light text-ink-50 md:text-4xl">
-                Frequently asked questions
-              </h2>
-              <div className="mt-8 space-y-8">
-                {page.faqs.map((faq) => (
-                  <div key={faq.question}>
-                    <h3 className="text-base font-medium text-ink-50">{faq.question}</h3>
-                    <p className="mt-2 text-[0.95rem] leading-relaxed text-ink-200/70">
-                      {faq.answer}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </section>
+            {page.faqs.length > 0 ? (
+              <section>
+                <h2 className="font-display text-3xl font-light text-ink-50 md:text-4xl">
+                  Frequently asked questions
+                </h2>
+                <div className="mt-8 space-y-8">
+                  {page.faqs.map((faq) => (
+                    <div key={faq.question}>
+                      <h3 className="text-base font-medium text-ink-50">{faq.question}</h3>
+                      <p className="mt-2 text-[0.95rem] leading-relaxed text-ink-200/70">
+                        {faq.answer}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ) : null}
 
-            <section className="border-t border-white/5 pt-14">
+            <section className="border-t border-hairline/5 pt-14">
               <h2 className="font-display text-3xl font-light text-ink-50 md:text-4xl">
                 Ready to plan your session?
               </h2>
@@ -227,14 +255,14 @@ function ServicePageContent() {
                 <Link
                   to="/booking"
                   data-cursor="hover"
-                  className="inline-flex items-center justify-center rounded-sm bg-gold-500 px-6 py-3 text-sm font-medium tracking-wide text-ink-950 transition-colors hover:bg-gold-400"
+                  className="inline-flex items-center justify-center rounded-sm bg-gold-500 px-6 py-3 text-sm font-medium tracking-wide text-on-gold transition-colors hover:bg-gold-400"
                 >
                   Book a session
                 </Link>
                 <Link
                   to="/packages"
                   data-cursor="hover"
-                  className="inline-flex items-center justify-center rounded-sm border border-white/15 px-6 py-3 text-sm tracking-wide text-ink-50 transition-colors hover:border-gold-400/50 hover:text-gold-400"
+                  className="inline-flex items-center justify-center rounded-sm border border-hairline/15 px-6 py-3 text-sm tracking-wide text-ink-50 transition-colors hover:border-gold-400/50 hover:text-gold-400"
                 >
                   View packages
                 </Link>
@@ -258,15 +286,15 @@ function ServicePageContent() {
                   </li>
                 ))}
               </ul>
-              <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-3 border-t border-white/5 pt-6">
-                {SERVICE_ROUTES.filter((route) => route.path !== path).map((route) => (
+              <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-3 border-t border-hairline/5 pt-6">
+                {otherServiceLinks.map((route) => (
                   <li key={route.path}>
                     <Link
                       to={route.path}
                       data-cursor="hover"
                       className="text-sm text-ink-200/50 transition-colors hover:text-gold-400"
                     >
-                      {route.label}
+                      {route.label} Photography
                     </Link>
                   </li>
                 ))}
@@ -312,14 +340,14 @@ function ServiceWorkGrid({ images }: { images: ServiceImage[] }) {
             loading="lazy"
             className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-950/50 via-transparent to-transparent opacity-60" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-60" />
           {image.category || image.title ? (
             <div className="absolute bottom-0 left-0 right-0 p-4">
               {image.category ? (
                 <p className="section-label mb-1 text-gold-300">{image.category}</p>
               ) : null}
               {image.title ? (
-                <p className="font-display text-xl font-light text-ink-50">{image.title}</p>
+                <p className="font-display text-xl font-light text-white">{image.title}</p>
               ) : null}
             </div>
           ) : null}
@@ -331,10 +359,8 @@ function ServiceWorkGrid({ images }: { images: ServiceImage[] }) {
 
 export function ServicePage() {
   return (
-    <SiteDataProvider>
-      <SmoothScroll>
-        <ServicePageContent />
-      </SmoothScroll>
-    </SiteDataProvider>
+    <SmoothScroll>
+      <ServicePageContent />
+    </SmoothScroll>
   );
 }

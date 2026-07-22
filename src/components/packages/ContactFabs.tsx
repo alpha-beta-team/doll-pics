@@ -104,7 +104,7 @@ export function ContactFabs({ phone, whatsapp, email }: ContactFabsProps) {
               className={`fab-item flex items-center gap-3 ${open ? 'fab-item-open' : 'fab-item-closed'}`}
               style={{ transitionDelay: `${open ? openDelay : closeDelay}ms` }}
             >
-              <span className="pointer-events-none whitespace-nowrap rounded-full bg-white px-4 py-2 text-sm font-semibold text-ink-950 shadow-md">
+              <span className="pointer-events-none whitespace-nowrap rounded-full bg-white px-4 py-2 text-sm font-semibold text-on-gold shadow-md">
                 {action.label}
               </span>
               <a

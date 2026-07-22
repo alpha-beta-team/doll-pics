@@ -20,8 +20,8 @@ export function BehindScenesPreview() {
       </div>
 
       <div className="mx-auto grid max-w-7xl grid-cols-2 gap-4 lg:grid-cols-4">
-        {behindScenes.slice(0, 4).map((scene, i) => (
-          <BehindSceneCard key={i} scene={scene} index={i} showPlay={false} />
+        {behindScenes.map((scene, i) => (
+          <BehindSceneCard key={scene.title} scene={scene} index={i} showPlay={false} />
         ))}
       </div>
     </section>

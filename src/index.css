@@ -2,6 +2,85 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+  Theme tokens: dark values match the previous hardcoded hex palette exactly.
+  Light remaps the ink scale so existing bg-ink-950 / text-ink-50 classes keep working.
+*/
+:root,
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --ink-50: 245 245 247;
+  --ink-100: 232 232 236;
+  --ink-200: 201 201 209;
+  --ink-300: 163 163 176;
+  --ink-400: 110 110 124;
+  --ink-500: 74 74 87;
+  --ink-600: 51 51 62;
+  --ink-700: 34 34 43;
+  --ink-800: 22 22 28;
+  --ink-900: 11 11 16;
+  --ink-950: 5 5 8;
+
+  --gold-50: 251 247 238;
+  --gold-100: 246 237 212;
+  --gold-200: 236 217 168;
+  --gold-300: 224 191 118;
+  --gold-400: 212 162 73;
+  --gold-500: 201 138 46;
+  --gold-600: 169 109 35;
+  --gold-700: 133 82 30;
+  --gold-800: 95 60 24;
+  --gold-900: 61 40 18;
+
+  --accent-400: 232 200 121;
+  --accent-500: 212 162 73;
+  --accent-600: 184 134 46;
+
+  --hairline: 255 255 255;
+  --on-gold: 5 5 8;
+  --gold-glow: 212 162 73;
+  --film-grain-opacity: 0.03;
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+
+  /* Surfaces (high numbers) → cool paper; text (low numbers) → deep ink */
+  --ink-50: 11 11 16;
+  --ink-100: 22 22 28;
+  --ink-200: 51 51 62;
+  --ink-300: 74 74 87;
+  --ink-400: 110 110 124;
+  --ink-500: 140 140 152;
+  --ink-600: 163 163 176;
+  --ink-700: 201 201 209;
+  --ink-800: 220 220 226;
+  --ink-900: 232 232 236;
+  --ink-950: 245 245 247;
+
+  /* Rich CTA golds kept; label/text golds shifted darker for contrast */
+  --gold-50: 251 247 238;
+  --gold-100: 246 237 212;
+  --gold-200: 201 138 46;
+  --gold-300: 224 191 118;
+  --gold-400: 169 109 35;
+  --gold-500: 201 138 46;
+  --gold-600: 133 82 30;
+  --gold-700: 95 60 24;
+  --gold-800: 61 40 18;
+  --gold-900: 40 28 12;
+
+  --accent-400: 201 138 46;
+  --accent-500: 169 109 35;
+  --accent-600: 133 82 30;
+
+  --hairline: 11 11 16;
+  --on-gold: 5 5 8;
+  --gold-glow: 169 109 35;
+  --film-grain-opacity: 0.015;
+}
+
 @layer base {
   * {
     -webkit-font-smoothing: antialiased;
@@ -41,11 +120,11 @@
 
 @layer components {
   .glass {
-    @apply bg-ink-900/40 backdrop-blur-xl border border-white/10;
+    @apply bg-ink-900/40 backdrop-blur-xl border border-hairline/10;
   }
 
   .glass-strong {
-    @apply bg-ink-900/60 backdrop-blur-2xl border border-white/15;
+    @apply bg-ink-900/60 backdrop-blur-2xl border border-hairline/15;
   }
 
   .text-gradient-gold {
@@ -56,12 +135,16 @@
     @apply bg-gradient-to-b from-white via-ink-100 to-ink-300 bg-clip-text text-transparent;
   }
 
+  [data-theme='light'] .text-gradient-light {
+    @apply from-ink-50 via-ink-100 to-ink-300;
+  }
+
   .btn-primary {
-    @apply relative inline-flex items-center justify-center gap-2 px-8 py-4 text-sm font-medium tracking-widest uppercase text-ink-950 bg-gradient-to-r from-gold-300 to-gold-500 rounded-full overflow-hidden transition-all duration-500;
+    @apply relative inline-flex items-center justify-center gap-2 px-8 py-4 text-sm font-medium tracking-widest uppercase text-on-gold bg-gradient-to-r from-gold-300 to-gold-500 rounded-full overflow-hidden transition-all duration-500;
   }
 
   .btn-ghost {
-    @apply relative inline-flex items-center justify-center gap-2 px-8 py-4 text-sm font-medium tracking-widest uppercase text-ink-50 border border-white/20 rounded-full transition-all duration-500 hover:border-gold-400/60;
+    @apply relative inline-flex items-center justify-center gap-2 px-8 py-4 text-sm font-medium tracking-widest uppercase text-ink-50 border border-hairline/20 rounded-full transition-all duration-500 hover:border-gold-400/60;
   }
 
   .section-label {
@@ -94,6 +177,10 @@
 
   .text-shadow-cinematic {
     text-shadow: 0 4px 30px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+
+  [data-theme='light'] .text-shadow-cinematic {
+    text-shadow: 0 2px 16px rgba(11, 11, 16, 0.12), 0 1px 2px rgba(11, 11, 16, 0.08);
   }
 
   /* Reveal animations (replacing framer-motion) */
@@ -215,9 +302,13 @@
   inset: 0;
   pointer-events: none;
   z-index: 9998;
-  opacity: 0.03;
+  opacity: var(--film-grain-opacity);
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+[data-theme='light'] .film-grain {
+  mix-blend-mode: multiply;
 }
 
 @media (max-width: 768px), (pointer: coarse) {
@@ -226,13 +317,17 @@
   }
 }
 
-/* Vignette */
+/* Vignette — always dark so photo heroes stay cinematic in both themes */
 .vignette::after {
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.6) 100%);
+  background: radial-gradient(
+    ellipse at center,
+    transparent 40%,
+    rgb(0 0 0 / 0.6) 100%
+  );
 }
 
 @media (prefers-reduced-motion: reduce) {

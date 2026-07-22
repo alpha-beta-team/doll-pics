@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { SiteDataProvider, useSiteData } from '../contexts/SiteDataContext';
+import { useSiteData } from '../contexts/SiteDataContext';
 import { CustomCursor } from '../components/CustomCursor';
 import { SmoothScroll } from '../components/SmoothScroll';
 import { Navbar } from '../components/Navbar';
@@ -35,7 +35,7 @@ function LegalPageContent({ path, children }: LegalPageProps) {
           className="pointer-events-none absolute inset-x-0 top-0 h-[24rem] opacity-50"
           style={{
             background:
-              'radial-gradient(ellipse 70% 60% at 50% 0%, rgba(212,162,73,0.1), transparent)',
+              'radial-gradient(ellipse 70% 60% at 50% 0%, rgb(var(--gold-glow) / 0.1), transparent)',
           }}
         />
 
@@ -80,10 +80,8 @@ function LegalPageContent({ path, children }: LegalPageProps) {
 
 export function LegalPage(props: LegalPageProps) {
   return (
-    <SiteDataProvider>
-      <SmoothScroll>
-        <LegalPageContent {...props} />
-      </SmoothScroll>
-    </SiteDataProvider>
+    <SmoothScroll>
+      <LegalPageContent {...props} />
+    </SmoothScroll>
   );
 }

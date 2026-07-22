@@ -10,6 +10,25 @@ function shouldDisableSmoothScroll() {
   ).matches;
 }
 
+/** Let modals / overflow panels use native wheel scroll. */
+function isInsideNativeScrollTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof Element)) return false;
+  let node: Element | null = target;
+  while (node && node !== document.documentElement) {
+    if (node.hasAttribute('data-smooth-scroll-ignore')) return true;
+    const style = window.getComputedStyle(node);
+    const overflowY = style.overflowY;
+    if (
+      (overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay') &&
+      node.scrollHeight > node.clientHeight + 1
+    ) {
+      return true;
+    }
+    node = node.parentElement;
+  }
+  return false;
+}
+
 // Pure JS smooth scroll — desktop only (replaces Lenis)
 export function SmoothScroll({ children }: { children: ReactNode }) {
   const reduced = useReducedMotion();
@@ -44,6 +63,7 @@ export function SmoothScroll({ children }: { children: ReactNode }) {
 
     const onWheel = (e: WheelEvent) => {
       if (e.ctrlKey) return;
+      if (isInsideNativeScrollTarget(e.target)) return;
       e.preventDefault();
       target = Math.max(
         0,

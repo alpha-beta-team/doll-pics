@@ -158,8 +158,8 @@ export function ScrollStorytelling() {
                 ) : (
                   <div className="w-full h-full bg-ink-950" />
                 )}
-                <div className="absolute inset-0 bg-ink-950/50" />
-                <div className="absolute inset-0 bg-gradient-to-b from-ink-950/40 via-transparent to-ink-950/60" />
+                <div className="absolute inset-0 bg-black/50" />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60" />
               </div>
 
               <div
@@ -169,7 +169,7 @@ export function ScrollStorytelling() {
                 className="relative z-10 h-full flex items-center justify-center px-6"
                 style={{ opacity: 0, willChange: 'opacity, transform' }}
               >
-                <h2 className="font-display text-5xl md:text-7xl lg:text-8xl font-light text-center text-ink-50 text-shadow-cinematic max-w-4xl leading-tight">
+                <h2 className="font-display text-5xl md:text-7xl lg:text-8xl font-light text-center text-white text-shadow-cinematic max-w-4xl leading-tight">
                   {scene.text}
                 </h2>
               </div>

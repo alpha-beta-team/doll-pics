@@ -30,13 +30,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (currentUser) {
             setUser(currentUser);
           } else {
+            setUser(null);
             setToken(null);
             sessionStorage.removeItem('auth_token');
           }
         } catch {
+          setUser(null);
           setToken(null);
           sessionStorage.removeItem('auth_token');
         }
+      } else {
+        setUser(null);
       }
       setIsLoading(false);
     };

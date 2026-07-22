@@ -7,9 +7,11 @@ import { DashboardPage } from './pages/DashboardPage';
 import { PhotosPage } from './pages/PhotosPage';
 import { CategoriesPage } from './pages/CategoriesPage';
 import { PackagesPage } from './pages/PackagesPage';
+import { PackageCategoriesPage } from './pages/PackageCategoriesPage';
 import { SiteContentPage } from './pages/SiteContentPage';
 import { EnquiriesPage } from './pages/EnquiriesPage';
 import { BookingsPage } from './pages/BookingsPage';
+import { BookingDetailPage } from './pages/BookingDetailPage';
 import { HeroSlidesPage } from './pages/HeroSlidesPage';
 import { StoryScenesPage } from './pages/StoryScenesPage';
 import { StatsPage } from './pages/StatsPage';
@@ -22,7 +24,7 @@ function useAdminNoIndex() {
   useEffect(() => {
     applyPageSeo({
       path: '/admin',
-      title: 'Admin — DOLL PICTURES',
+      title: 'Admin — Doll Pictures',
       description: 'Private admin area.',
       noindex: true,
     });
@@ -31,6 +33,16 @@ function useAdminNoIndex() {
 
 export default function AdminApp() {
   useAdminNoIndex();
+
+  // Public site may leave color-scheme=dark on <html>; keep admin form chrome light.
+  useEffect(() => {
+    const root = document.documentElement;
+    const prevScheme = root.style.colorScheme;
+    root.style.colorScheme = 'light';
+    return () => {
+      root.style.colorScheme = prevScheme;
+    };
+  }, []);
 
   return (
     <AuthProvider>
@@ -42,9 +54,11 @@ export default function AdminApp() {
           <Route path="photos" element={<PhotosPage />} />
           <Route path="categories" element={<CategoriesPage />} />
           <Route path="packages" element={<PackagesPage />} />
+          <Route path="package-categories" element={<PackageCategoriesPage />} />
           <Route path="site-content" element={<SiteContentPage />} />
           <Route path="enquiries" element={<EnquiriesPage />} />
           <Route path="bookings" element={<BookingsPage />} />
+          <Route path="bookings/:id" element={<BookingDetailPage />} />
           <Route path="hero-slides" element={<HeroSlidesPage />} />
           <Route path="story-scenes" element={<StoryScenesPage />} />
           <Route path="stats" element={<StatsPage />} />

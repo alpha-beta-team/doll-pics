@@ -199,8 +199,8 @@ export function Hero() {
             </div>
           );
         })}
-        <div className="absolute inset-0 bg-gradient-to-b from-ink-950/50 via-transparent to-ink-950" />
-        <div className="absolute inset-0 bg-gradient-to-r from-ink-950/60 via-transparent to-ink-950/40" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-black/40" />
       </div>
 
       <div
@@ -211,24 +211,29 @@ export function Hero() {
           {slides[active].label} Collection 2026
         </div>
 
-        <h1 className="font-display text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-light leading-[0.95] text-ink-50 text-shadow-cinematic max-w-5xl hero-enter hero-enter-delay-2">
+        <h1 className="font-display text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-light leading-[0.95] text-white text-shadow-cinematic max-w-5xl hero-enter hero-enter-delay-2">
           We don't take
           <br />
           <span className="italic text-gradient-gold font-normal">photographs.</span>
         </h1>
 
-        <p className="mt-8 max-w-xl text-lg md:text-xl text-ink-200/90 font-light leading-relaxed text-shadow-cinematic hero-enter hero-enter-delay-3">
+        <p className="mt-8 max-w-xl text-lg md:text-xl text-white/90 font-light leading-relaxed text-shadow-cinematic hero-enter hero-enter-delay-3">
           We preserve the emotions, the light, and the fleeting moments that
-          deserve to live forever.
+          deserve to live forever — for weddings and baby sessions in Erode
+          & across Tamil Nadu.
         </p>
 
         <div className="mt-12 flex flex-col sm:flex-row items-center gap-4 hero-enter hero-enter-delay-4">
-          <Link to="/work" data-cursor="hover" className="btn-primary group">
-            <span className="relative z-10">Explore Our Work</span>
+          <Link to={BOOKING_ROUTE.path} data-cursor="hover" className="btn-primary group">
+            <span className="relative z-10">Book a Consultation</span>
             <span className="absolute inset-0 bg-gradient-to-r from-gold-400 to-gold-300 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
           </Link>
-          <Link to={BOOKING_ROUTE.path} data-cursor="hover" className="btn-ghost">
-            Book a Consultation
+          <Link
+            to="/work"
+            data-cursor="hover"
+            className="btn-ghost !text-white !border-white/20 hover:!border-gold-400/60"
+          >
+            Explore Our Work
           </Link>
         </div>
       </div>
@@ -249,14 +254,14 @@ export function Hero() {
           >
             <div
               className={`h-px transition-all duration-500 ${
-                i === active ? 'w-12 bg-gold-400' : 'w-6 bg-ink-300/40 group-hover:bg-ink-200/60'
+                i === active ? 'w-12 bg-gold-400' : 'w-6 bg-white/40 group-hover:bg-white/60'
               }`}
             />
           </button>
         ))}
       </div>
 
-      <div className="absolute bottom-10 right-10 z-10 flex flex-col items-center gap-2 text-ink-300/60 hero-enter hero-enter-delay-5">
+      <div className="absolute bottom-10 right-10 z-10 flex flex-col items-center gap-2 text-white/60 hero-enter hero-enter-delay-5">
         <span className="text-[10px] tracking-ultra-wide uppercase rotate-90 origin-center mb-6">
           Scroll
         </span>

@@ -1,17 +1,61 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useInView } from '../../hooks/useScroll';
-import { ArrowRight, X } from 'lucide-react';
-import { publicApi } from '../../lib/api';
+import { ArrowRight, MessageCircle } from 'lucide-react';
 import {
-  trackBookingStart,
-  trackGenerateLead,
-} from '../../lib/analytics';
+  EnquiryModal,
+  type EnquiryPrefill,
+} from '../EnquiryModal';
+import {
+  DEFAULT_SHOOT_TYPE,
+  SHOOT_TYPE_OPTIONS,
+  type ShootTypeOption,
+} from '../../lib/shootTypes';
+import { getGoldGlowRgb } from '../../lib/theme';
+import { enquiryWhatsAppUrl } from '../../lib/pricing';
+import { useSiteData } from '../../contexts/SiteDataContext';
+import { trackWhatsAppClick } from '../../lib/analytics';
+
+export type { EnquiryPrefill };
+
+function resolveShootType(raw: string | null): ShootTypeOption {
+  if (!raw) return DEFAULT_SHOOT_TYPE;
+  const match = SHOOT_TYPE_OPTIONS.find(
+    t => t.toLowerCase() === raw.trim().toLowerCase(),
+  );
+  return match ?? DEFAULT_SHOOT_TYPE;
+}
 
 export function BookingCTA() {
   const bgRef = useRef<HTMLDivElement>(null);
   const { ref, inView } = useInView<HTMLDivElement>();
   const [showForm, setShowForm] = useState(false);
+  const [prefill, setPrefill] = useState<EnquiryPrefill | undefined>();
+  const { siteContent } = useSiteData();
+  const whatsappUrl = enquiryWhatsAppUrl(siteContent.whatsapp);
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const queryConsumed = useRef(false);
+
+  useEffect(() => {
+    if (queryConsumed.current) return;
+    const packageName = searchParams.get('package')?.trim() || '';
+    const shootTypeParam = searchParams.get('shootType');
+    if (!packageName && !shootTypeParam) return;
+
+    queryConsumed.current = true;
+    const shootType = resolveShootType(shootTypeParam);
+    setPrefill({
+      packageName: packageName || undefined,
+      shootType,
+      preferredEvent: packageName || undefined,
+      message: packageName
+        ? `I'm interested in the "${packageName}" package.`
+        : undefined,
+    });
+    setShowForm(true);
+    navigate('/booking', { replace: true });
+  }, [searchParams, navigate]);
 
   useEffect(() => {
     // Skip parallax on mobile — PSI / touch devices don't need it
@@ -35,21 +79,29 @@ export function BookingCTA() {
     return () => { window.removeEventListener('scroll', onScroll); cancelAnimationFrame(raf); };
   }, []);
 
-  const openForm = () => setShowForm(true);
+  const openForm = () => {
+    setPrefill(undefined);
+    setShowForm(true);
+  };
+
+  const openWhatsApp = () => {
+    trackWhatsAppClick({ cta_location: 'booking_page' });
+    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+  };
 
   return (
     <section id="booking" className="relative min-h-screen flex items-center justify-center overflow-hidden px-6">
       <div ref={bgRef} className="absolute inset-0 will-change-transform">
         <img
           src="https://images.pexels.com/photos/1024993/pexels-photo-1024993.jpeg?auto=compress&cs=tinysrgb&w=800&fm=webp"
-          alt="Couple portrait — book a photography session with DOLL PICTURES"
+          alt="Couple portrait — book a photography session with Doll Pictures"
           width={800}
           height={450}
           className="w-full h-full object-cover"
           loading="lazy"
           decoding="async"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-ink-950/80 via-ink-950/60 to-ink-950/90" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/90" />
       </div>
 
       <CTAParticles />
@@ -63,7 +115,7 @@ export function BookingCTA() {
         </div>
 
         <h2
-          className={`font-display text-6xl md:text-8xl font-light text-ink-50 leading-[0.95] text-shadow-cinematic ${inView ? 'fade-in-up stagger-2' : ''}`}
+          className={`font-display text-6xl md:text-8xl font-light text-white leading-[0.95] text-shadow-cinematic ${inView ? 'fade-in-up stagger-2' : ''}`}
           style={{ opacity: inView ? undefined : 0.001 }}
         >
           Let's create
@@ -72,7 +124,7 @@ export function BookingCTA() {
         </h2>
 
         <p
-          className={`mt-8 text-lg md:text-xl text-ink-200/80 font-light max-w-xl mx-auto ${inView ? 'fade-in-up stagger-3' : ''}`}
+          className={`mt-8 text-lg md:text-xl text-white/80 font-light max-w-xl mx-auto ${inView ? 'fade-in-up stagger-3' : ''}`}
           style={{ opacity: inView ? undefined : 0.001 }}
         >
           Book a free consultation and let's craft something unforgettable together.
@@ -89,149 +141,30 @@ export function BookingCTA() {
             </span>
             <span className="absolute inset-0 bg-gradient-to-r from-gold-400 to-gold-300 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
           </button>
-          <button data-cursor="hover" className="btn-ghost" onClick={openForm}>
-            Book a Free Consultation
+          <button
+            data-cursor="hover"
+            type="button"
+            className="btn-ghost !text-white !border-white/20 hover:!border-gold-400/60"
+            onClick={openWhatsApp}
+          >
+            <span className="flex items-center gap-2">
+              <MessageCircle className="w-4 h-4" />
+              Chat on WhatsApp
+            </span>
           </button>
         </div>
       </div>
 
-      {showForm && <EnquiryModal onClose={() => setShowForm(false)} />}
+      {showForm && (
+        <EnquiryModal
+          prefill={prefill}
+          onClose={() => {
+            setShowForm(false);
+            setPrefill(undefined);
+          }}
+        />
+      )}
     </section>
-  );
-}
-
-function EnquiryModal({ onClose }: { onClose: () => void }) {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [shootType, setShootType] = useState('Wedding');
-  const [message, setMessage] = useState('');
-  const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
-  const [errorMsg, setErrorMsg] = useState('');
-  // One booking_start per modal open (not per field change).
-  const bookingStartSent = useRef(false);
-  const leadSent = useRef(false);
-
-  useEffect(() => {
-    if (bookingStartSent.current) return;
-    bookingStartSent.current = true;
-    trackBookingStart({ service_name: shootType });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- fire once on open with initial shoot type
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setStatus('sending');
-    setErrorMsg('');
-    try {
-      await publicApi.createEnquiry({ name, email, phone, shootType, message });
-      setStatus('success');
-      if (!leadSent.current) {
-        leadSent.current = true;
-        trackGenerateLead({
-          method: 'booking_form',
-          service_name: shootType,
-        });
-      }
-    } catch (err) {
-      setStatus('error');
-      setErrorMsg(err instanceof Error ? err.message : 'Failed to send enquiry');
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-[2000] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-ink-900 border border-white/10 rounded-2xl w-full max-w-md p-6 relative">
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close booking form"
-          className="absolute top-4 right-4 text-ink-200 hover:text-white"
-        >
-          <X className="w-5 h-5" aria-hidden="true" />
-        </button>
-
-        {status === 'success' ? (
-          <div className="text-center py-8">
-            <h3 className="font-display text-2xl text-ink-50 mb-2">Thank you!</h3>
-            <p className="text-ink-200/70">We'll be in touch shortly.</p>
-          </div>
-        ) : (
-          <>
-            <h3 className="font-display text-2xl text-ink-50 mb-6">Book a Consultation</h3>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <input
-                required
-                value={name}
-                onChange={e => setName(e.target.value)}
-                placeholder="Your name"
-                className="w-full px-4 py-3 bg-ink-950 border border-white/10 rounded-lg text-ink-50 placeholder:text-ink-300/40 focus:outline-none focus:ring-2 focus:ring-gold-400"
-              />
-              <input
-                required
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="Email"
-                className="w-full px-4 py-3 bg-ink-950 border border-white/10 rounded-lg text-ink-50 placeholder:text-ink-300/40 focus:outline-none focus:ring-2 focus:ring-gold-400"
-              />
-              <input
-                value={phone}
-                onChange={e => setPhone(e.target.value)}
-                placeholder="Phone (optional)"
-                className="w-full px-4 py-3 bg-ink-950 border border-white/10 rounded-lg text-ink-50 placeholder:text-ink-300/40 focus:outline-none focus:ring-2 focus:ring-gold-400"
-              />
-              <select
-                value={shootType}
-                onChange={e => setShootType(e.target.value)}
-                className="w-full px-4 py-3 bg-ink-950 border border-white/10 rounded-lg text-ink-50 focus:outline-none focus:ring-2 focus:ring-gold-400"
-              >
-                {['Wedding', 'Pre-Wedding', 'Portrait', 'Maternity', 'Commercial', 'Other'].map(t => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
-              </select>
-              <textarea
-                required
-                value={message}
-                onChange={e => setMessage(e.target.value)}
-                placeholder="Tell us about your event..."
-                rows={4}
-                className="w-full px-4 py-3 bg-ink-950 border border-white/10 rounded-lg text-ink-50 placeholder:text-ink-300/40 focus:outline-none focus:ring-2 focus:ring-gold-400 resize-none"
-              />
-              {status === 'error' && (
-                <p className="text-red-400 text-sm">{errorMsg}</p>
-              )}
-              <p className="text-xs leading-relaxed text-ink-200/50">
-                By submitting, you agree to our{' '}
-                <Link
-                  to="/terms"
-                  className="text-gold-400/80 underline-offset-2 hover:text-gold-300 hover:underline"
-                  onClick={onClose}
-                >
-                  Terms and Conditions
-                </Link>
-                {' '}and{' '}
-                <Link
-                  to="/privacy"
-                  className="text-gold-400/80 underline-offset-2 hover:text-gold-300 hover:underline"
-                  onClick={onClose}
-                >
-                  Privacy Policy
-                </Link>
-                .
-              </p>
-              <button
-                type="submit"
-                disabled={status === 'sending'}
-                className="w-full py-3 bg-gradient-to-r from-gold-300 to-gold-500 text-ink-950 font-medium rounded-lg hover:shadow-lg transition-all disabled:opacity-50"
-              >
-                {status === 'sending' ? 'Sending...' : 'Send Enquiry'}
-              </button>
-            </form>
-          </>
-        )}
-      </div>
-    </div>
   );
 }
 
@@ -265,6 +198,7 @@ function CTAParticles() {
     const render = () => {
       if (!visible) return;
       ctx.clearRect(0, 0, w, h);
+      const [gr, gg, gb] = getGoldGlowRgb().split(/\s+/);
       for (const p of particles) {
         p.y += p.vy;
         if (p.y < -10) {
@@ -273,7 +207,7 @@ function CTAParticles() {
         }
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(212, 162, 73, ${p.a})`;
+        ctx.fillStyle = `rgba(${gr}, ${gg}, ${gb}, ${p.a})`;
         ctx.fill();
       }
       raf = requestAnimationFrame(render);
@@ -314,4 +248,3 @@ function CTAParticles() {
     />
   );
 }
-

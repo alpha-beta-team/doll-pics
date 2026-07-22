@@ -11,7 +11,7 @@ export function BookingFaq() {
   return (
     <section
       id="booking-faq"
-      className="relative border-t border-white/5 bg-ink-950 px-6 py-24 lg:px-10"
+      className="relative border-t border-hairline/5 bg-ink-950 px-6 py-24 lg:px-10"
       aria-labelledby="booking-faq-heading"
     >
       <div
@@ -34,7 +34,7 @@ export function BookingFaq() {
           {faqs.map((faq) => (
             <details
               key={faq.question}
-              className="group rounded-2xl border border-white/10 bg-ink-900/40 px-5 py-4 open:border-gold-400/30"
+              className="group rounded-2xl border border-hairline/10 bg-ink-900/40 px-5 py-4 open:border-gold-400/30"
             >
               <summary className="cursor-pointer list-none font-display text-xl font-light text-ink-50 marker:content-none [&::-webkit-details-marker]:hidden">
                 <span className="flex items-start justify-between gap-4">

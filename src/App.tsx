@@ -1,8 +1,10 @@
 import { Suspense, lazy } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import { GoogleAnalytics } from './components/GoogleAnalytics';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { SiteDataProvider } from './contexts/SiteDataContext';
 import { Site } from './pages/Site';
-import { SECTION_PATHS, SERVICE_PATHS } from './lib/navigation';
+import { SECTION_PATHS } from './lib/navigation';
 
 const Packages = lazy(() =>
   import('./pages/Packages').then((m) => ({ default: m.Packages })),
@@ -16,11 +18,10 @@ const Privacy = lazy(() =>
 const Terms = lazy(() =>
   import('./pages/Terms').then((m) => ({ default: m.Terms })),
 );
-const ServicePage = lazy(() =>
-  import('./pages/ServicePage').then((m) => ({ default: m.ServicePage })),
-);
-const NotFound = lazy(() =>
-  import('./pages/NotFound').then((m) => ({ default: m.NotFound })),
+const LandingResolver = lazy(() =>
+  import('./pages/LandingResolver').then((m) => ({
+    default: m.LandingResolver,
+  })),
 );
 const AdminApp = lazy(() => import('./admin/AdminApp'));
 
@@ -40,58 +41,21 @@ function PublicLoading() {
   );
 }
 
+function PublicLayout() {
+  return (
+    <ThemeProvider>
+      <SiteDataProvider>
+        <Outlet />
+      </SiteDataProvider>
+    </ThemeProvider>
+  );
+}
+
 function App() {
   return (
     <BrowserRouter>
       <GoogleAnalytics />
       <Routes>
-        <Route path="/" element={<Site />} />
-        <Route
-          path="/packages"
-          element={
-            <Suspense fallback={<PublicLoading />}>
-              <Packages />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/about"
-          element={
-            <Suspense fallback={<PublicLoading />}>
-              <About />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/privacy"
-          element={
-            <Suspense fallback={<PublicLoading />}>
-              <Privacy />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/terms"
-          element={
-            <Suspense fallback={<PublicLoading />}>
-              <Terms />
-            </Suspense>
-          }
-        />
-        {SECTION_PATHS.map((path) => (
-          <Route key={path} path={path} element={<Site />} />
-        ))}
-        {SERVICE_PATHS.map((path) => (
-          <Route
-            key={path}
-            path={path}
-            element={
-              <Suspense fallback={<PublicLoading />}>
-                <ServicePage />
-              </Suspense>
-            }
-          />
-        ))}
         <Route
           path="/admin/*"
           element={
@@ -100,14 +64,52 @@ function App() {
             </Suspense>
           }
         />
-        <Route
-          path="*"
-          element={
-            <Suspense fallback={<PublicLoading />}>
-              <NotFound />
-            </Suspense>
-          }
-        />
+        <Route element={<PublicLayout />}>
+          <Route path="/" element={<Site />} />
+          <Route
+            path="/packages"
+            element={
+              <Suspense fallback={<PublicLoading />}>
+                <Packages />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/about"
+            element={
+              <Suspense fallback={<PublicLoading />}>
+                <About />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/privacy"
+            element={
+              <Suspense fallback={<PublicLoading />}>
+                <Privacy />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/terms"
+            element={
+              <Suspense fallback={<PublicLoading />}>
+                <Terms />
+              </Suspense>
+            }
+          />
+          {SECTION_PATHS.map((path) => (
+            <Route key={path} path={path} element={<Site />} />
+          ))}
+          <Route
+            path="*"
+            element={
+              <Suspense fallback={<PublicLoading />}>
+                <LandingResolver />
+              </Suspense>
+            }
+          />
+        </Route>
       </Routes>
     </BrowserRouter>
   );

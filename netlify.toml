@@ -17,15 +17,24 @@
   status = 301
   force = true
 
+# Live sitemap from CMS API (CMS publish — no frontend rebuild).
+# public/_redirects is also written at prebuild from VITE_API_URL.
+[[redirects]]
+  from = "/sitemap.xml"
+  to = "https://photography-cms-backend.onrender.com/api/sitemap.xml"
+  status = 200
+  force = true
+
 # Admin SPA: client routes need the app shell.
 [[redirects]]
   from = "/admin/*"
   to = "/index.html"
   status = 200
 
-# Static files (e.g. /work/index.html) are served first.
-# Unknown paths return the 404 page with a real HTTP 404 status.
+# SPA fallback: prerendered folders (filesystem) win first.
+# Unknown paths — including new CMS landings — get the app shell (200).
+# React LandingResolver renders the page or NotFound (noindex).
 [[redirects]]
   from = "/*"
-  to = "/404.html"
-  status = 404
+  to = "/index.html"
+  status = 200

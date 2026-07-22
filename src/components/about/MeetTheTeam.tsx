@@ -12,7 +12,7 @@ export function MeetTheTeam() {
         className="pointer-events-none absolute inset-x-0 top-1/3 h-64 opacity-40"
         style={{
           background:
-            'radial-gradient(ellipse 50% 80% at 50% 50%, rgba(212,162,73,0.08), transparent)',
+            'radial-gradient(ellipse 50% 80% at 50% 50%, rgb(var(--gold-glow) / 0.08), transparent)',
         }}
       />
 
