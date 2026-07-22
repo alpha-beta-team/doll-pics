@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { api } from '../api/client';
-import type { Photo, Category } from '../types';
+import type { ImageTransform, Photo, Category } from '../types';
+import { ImageCropUpload, type ImageCropResult } from '../components/ImageCropUpload';
 import {
   Search,
   Filter,
@@ -31,12 +32,17 @@ function getPhotoSrc(photo: Photo): string {
   return resolvePhotoUrl(photo.variants.webp || photo.variants.avif);
 }
 
+function getPhotoEditSrc(photo: Photo): string {
+  return resolvePhotoUrl(photo.variants.original || getPhotoSrc(photo));
+}
+
 interface UploadingFile {
   id: string;
   file: File;
   progress: number;
   preview: string;
-  status: 'uploading' | 'complete' | 'error';
+  transform: ImageTransform | null;
+  status: 'ready' | 'uploading' | 'complete' | 'error';
 }
 
 interface PhotoEdit extends Photo {
@@ -61,6 +67,8 @@ export function PhotosPage() {
   const [showBulkActions, setShowBulkActions] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [draggedPhotoId, setDraggedPhotoId] = useState<string | null>(null);
+  const [activeCropId, setActiveCropId] = useState<string | null>(null);
+  const [cropError, setCropError] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -114,43 +122,97 @@ export function PhotosPage() {
       file,
       progress: 0,
       preview: URL.createObjectURL(file),
-      status: 'uploading' as const,
+      transform: null,
+      status: 'ready' as const,
     }));
 
     setUploadingFiles(uploadFiles);
     setShowUploadModal(true);
-    setIsUploading(true);
-
-    try {
-      await api.uploadFiles(
-        files,
-        (fileId, progress) => {
-          setUploadingFiles(prev =>
-            prev.map(f => (f.id === fileId ? { ...f, progress } : f))
-          );
-        }
-      );
-
-      setUploadingFiles(prev =>
-        prev.map(f => ({ ...f, status: 'complete' as const, progress: 100 }))
-      );
-
-      await fetchPhotos();
-
-      setTimeout(() => {
-        setShowUploadModal(false);
-        setUploadingFiles([]);
-        setIsUploading(false);
-      }, 1500);
-    } catch (err) {
-      setUploadingFiles(prev =>
-        prev.map(f => ({ ...f, status: 'error' as const }))
-      );
-    }
+    setIsUploading(false);
 
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  };
+
+  const handleCropStart = (file: UploadingFile) => {
+    setActiveCropId(file.id);
+    setCropError(null);
+  };
+
+  const handleCropSave = async ({ file: previewFile, transform }: ImageCropResult) => {
+    const activeFile = uploadingFiles.find(file => file.id === activeCropId);
+    if (!activeFile) return;
+
+    try {
+      const preview = URL.createObjectURL(previewFile);
+      URL.revokeObjectURL(activeFile.preview);
+      setUploadingFiles(prev =>
+        prev.map(file =>
+          file.id === activeFile.id
+            ? {
+                ...file,
+                preview,
+                transform,
+              }
+            : file,
+        ),
+      );
+      setActiveCropId(null);
+      setCropError(null);
+    } catch (err) {
+      setCropError(err instanceof Error ? err.message : 'Failed to crop image');
+    }
+  };
+
+  const handleUploadSubmit = async () => {
+    if (uploadingFiles.length === 0 || isUploading || activeCropId) return;
+
+    setIsUploading(true);
+    setUploadingFiles(prev => prev.map(file => ({ ...file, status: 'uploading' as const })));
+
+    try {
+      await api.uploadFiles(
+        uploadingFiles.map(file => file.file),
+        uploadingFiles.map(file => file.transform),
+        (_fileId, progress) => {
+          setUploadingFiles(prev => prev.map(file => ({ ...file, progress })));
+        },
+      );
+
+      setUploadingFiles(prev =>
+        prev.map(file => ({ ...file, status: 'complete' as const, progress: 100 })),
+      );
+      await fetchPhotos();
+
+      setTimeout(() => {
+        uploadingFiles.forEach(file => URL.revokeObjectURL(file.preview));
+        setShowUploadModal(false);
+        setUploadingFiles([]);
+        setIsUploading(false);
+      }, 1000);
+    } catch (err) {
+      setUploadingFiles(prev => prev.map(file => ({ ...file, status: 'error' as const })));
+      setError(err instanceof Error ? err.message : 'Failed to upload photos');
+      setIsUploading(false);
+    }
+  };
+
+  const handleUploadCancel = () => {
+    if (isUploading) return;
+    uploadingFiles.forEach(file => URL.revokeObjectURL(file.preview));
+    setShowUploadModal(false);
+    setUploadingFiles([]);
+    setActiveCropId(null);
+    setCropError(null);
+  };
+
+  const handleUploadRemove = (id: string) => {
+    if (isUploading) return;
+    const file = uploadingFiles.find(item => item.id === id);
+    if (file) URL.revokeObjectURL(file.preview);
+    setUploadingFiles(prev => prev.filter(item => item.id !== id));
+    if (activeCropId === id) setActiveCropId(null);
   };
 
   const handleBulkPublish = async (isPublished: boolean) => {
@@ -549,22 +611,25 @@ export function PhotosPage() {
 
       {showUploadModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
             <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">Uploading Photos</h2>
-              {!isUploading && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowUploadModal(false);
-                    setUploadingFiles([]);
-                  }}
-                  aria-label="Close"
-                  className="p-1 hover:bg-gray-100 rounded"
-                >
-                  <X className="w-5 h-5 text-gray-500" aria-hidden="true" />
-                </button>
-              )}
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {isUploading ? 'Uploading Photos' : 'Review and Crop Photos'}
+                </h2>
+                {!isUploading && (
+                  <p className="text-sm text-gray-500 mt-1">Crop any image, then submit when ready.</p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={handleUploadCancel}
+                disabled={isUploading}
+                aria-label="Close"
+                className="p-1 hover:bg-gray-100 rounded disabled:opacity-40"
+              >
+                <X className="w-5 h-5 text-gray-500" aria-hidden="true" />
+              </button>
             </div>
             <div className="p-4 max-h-96 overflow-y-auto">
               <div className="grid grid-cols-3 gap-4">
@@ -576,6 +641,15 @@ export function PhotosPage() {
                         alt={file.file.name}
                         className="w-full h-full object-cover"
                       />
+                      {!isUploading && (
+                        <button
+                          type="button"
+                          onClick={() => handleCropStart(file)}
+                          className="absolute inset-x-2 bottom-2 py-1.5 bg-black/70 text-white text-xs rounded hover:bg-black/80"
+                        >
+                          Crop image
+                        </button>
+                      )}
                       {file.status === 'complete' && (
                         <div className="absolute inset-0 bg-green-500/20 flex items-center justify-center">
                           <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
@@ -592,7 +666,19 @@ export function PhotosPage() {
                       )}
                     </div>
                     <div className="mt-2">
-                      <p className="text-xs text-gray-600 truncate">{file.file.name}</p>
+                      <div className="flex items-center gap-1">
+                        <p className="text-xs text-gray-600 truncate flex-1">{file.file.name}</p>
+                        {!isUploading && (
+                          <button
+                            type="button"
+                            onClick={() => handleUploadRemove(file.id)}
+                            className="text-gray-400 hover:text-red-600"
+                            aria-label={`Remove ${file.file.name}`}
+                          >
+                            <X className="w-4 h-4" aria-hidden="true" />
+                          </button>
+                        )}
+                      </div>
                       <div className="mt-1 h-1 bg-gray-200 rounded-full overflow-hidden">
                         <div
                           className={`h-full transition-all ${
@@ -609,9 +695,40 @@ export function PhotosPage() {
                   </div>
                 ))}
               </div>
+              {cropError && <p className="mt-3 text-sm text-red-600">{cropError}</p>}
             </div>
+            {!isUploading && (
+              <div className="p-4 border-t border-gray-200 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={handleUploadCancel}
+                  className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleUploadSubmit}
+                  disabled={uploadingFiles.length === 0 || Boolean(activeCropId)}
+                  className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Submit {uploadingFiles.length > 0 ? `(${uploadingFiles.length})` : ''}
+                </button>
+              </div>
+            )}
           </div>
         </div>
+      )}
+
+      {activeCropId && (
+        <ImageCropUpload
+          source={uploadingFiles.find(file => file.id === activeCropId)!.file}
+          onCancel={() => {
+            setActiveCropId(null);
+            setCropError(null);
+          }}
+          onApply={handleCropSave}
+        />
       )}
 
       {previewPhoto && (
@@ -637,11 +754,165 @@ export function PhotosPage() {
               setError(err instanceof Error ? err.message : 'Failed to update photo');
             }
           }}
+          onSaveImage={async transform => {
+            try {
+              const updatedPhoto = await api.updatePhotoTransform(editingPhoto.id, transform);
+              await fetchPhotos();
+              setEditingPhoto(updatedPhoto);
+            } catch (err) {
+              setError(err instanceof Error ? err.message : 'Failed to replace photo image');
+              throw err;
+            }
+          }}
         />
       )}
     </div>
   );
 }
+
+/* Legacy crop modal replaced by ImageCropUpload. */
+/*
+interface CropImageModalProps {
+  file: Pick<UploadingFile, 'file' | 'preview'>;
+  initialCrop?: PixelCrop | null;
+  onCropComplete: (pixels: PixelCrop) => void;
+  onCropPixelsChange?: (pixels: PixelCrop) => void;
+  onCancel: () => void;
+  onSave: () => void;
+  outputWidth?: number;
+  outputHeight?: number;
+  maxOutputWidth?: number;
+  maxOutputHeight?: number;
+  onOutputWidthChange?: (width: number) => void;
+  onOutputHeightChange?: (height: number) => void;
+}
+
+function CropImageModal({
+  file,
+  initialCrop,
+  onCropComplete,
+  onCropPixelsChange,
+  onCancel,
+  onSave,
+  outputWidth,
+  outputHeight,
+  maxOutputWidth,
+  maxOutputHeight,
+  onOutputWidthChange,
+  onOutputHeightChange,
+}: CropImageModalProps) {
+  const [crop, setCrop] = useState<Crop>({ unit: 'px', x: 0, y: 0, width: 0, height: 0 });
+  const [sourceSize, setSourceSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    const image = new Image();
+    image.onload = () => {
+      const imageWidth = image.naturalWidth;
+      const imageHeight = image.naturalHeight;
+      setSourceSize({ width: imageWidth, height: imageHeight });
+      const width = Math.min(imageWidth, Math.max(1, Math.round(initialCrop?.width ?? imageWidth)));
+      const height = Math.min(imageHeight, Math.max(1, Math.round(initialCrop?.height ?? imageHeight)));
+      const x = Math.max(0, Math.min(imageWidth - width, Math.round(initialCrop?.x ?? 0)));
+      const y = Math.max(0, Math.min(imageHeight - height, Math.round(initialCrop?.y ?? 0)));
+      setCrop({ unit: 'px', x, y, width, height });
+    };
+    image.src = file.preview;
+  }, [
+    file.preview,
+    initialCrop?.x,
+    initialCrop?.y,
+    initialCrop?.width,
+    initialCrop?.height,
+  ]);
+
+  const handleCropComplete = (
+    _pixelCrop: PixelCrop,
+    percentCrop: { x: number; y: number; width: number; height: number },
+  ) => {
+    if (!sourceSize.width || !sourceSize.height) return;
+
+    const width = Math.max(1, Math.min(
+      sourceSize.width,
+      Math.round((percentCrop.width / 100) * sourceSize.width),
+    ));
+    const height = Math.max(1, Math.min(
+      sourceSize.height,
+      Math.round((percentCrop.height / 100) * sourceSize.height),
+    ));
+    const x = Math.max(0, Math.min(
+      sourceSize.width - width,
+      Math.round((percentCrop.x / 100) * sourceSize.width),
+    ));
+    const y = Math.max(0, Math.min(
+      sourceSize.height - height,
+      Math.round((percentCrop.y / 100) * sourceSize.height),
+    ));
+    const normalizedCrop: PixelCrop = { unit: 'px', x, y, width, height };
+    onCropComplete(normalizedCrop);
+    onCropPixelsChange?.(normalizedCrop);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60] p-4">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-xl overflow-hidden">
+        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-900">Crop image</h2>
+          <button type="button" onClick={onCancel} className="p-1 hover:bg-gray-100 rounded" aria-label="Close crop editor">
+            <X className="w-5 h-5 text-gray-500" aria-hidden="true" />
+          </button>
+        </div>
+        <div className="relative h-[min(60vh,420px)] bg-gray-900">
+          <ReactCrop
+            crop={crop}
+            onChange={nextCrop => setCrop(nextCrop)}
+            onComplete={handleCropComplete}
+            keepSelection
+          >
+            <img src={file.preview} alt="Crop preview" className="max-h-[420px] max-w-full object-contain" />
+          </ReactCrop>
+        </div>
+        <div className="p-4">
+          {outputWidth !== undefined && outputHeight !== undefined && onOutputWidthChange && onOutputHeightChange && (
+            <div className="grid grid-cols-2 gap-3 mt-4">
+              <label className="text-sm text-gray-700">
+                Output width
+                <input
+                  type="number"
+                  min={100}
+                  max={maxOutputWidth}
+                  value={outputWidth}
+                  onChange={event => onOutputWidthChange(Math.min(maxOutputWidth ?? Number.MAX_SAFE_INTEGER, Math.max(1, Number(event.target.value))))}
+                  className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg"
+                />
+              </label>
+              <label className="text-sm text-gray-700">
+                Output height
+                <input
+                  type="number"
+                  min={100}
+                  max={maxOutputHeight}
+                  value={outputHeight}
+                  onChange={event => onOutputHeightChange(Math.min(maxOutputHeight ?? Number.MAX_SAFE_INTEGER, Math.max(1, Number(event.target.value))))}
+                  className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg"
+                />
+              </label>
+            </div>
+          )}
+          <div className="flex justify-end gap-3 mt-4">
+            <button type="button" onClick={onCancel} className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg">
+              Cancel
+            </button>
+            <button type="button" onClick={onSave} className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+              Apply crop
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+*/
 
 interface PhotoThumbnailProps {
   photo: Photo;
@@ -780,9 +1051,10 @@ interface PhotoEditModalProps {
   categories: Category[];
   onClose: () => void;
   onSave: (data: Partial<Photo>) => Promise<void>;
+  onSaveImage: (transform: ImageTransform | null) => Promise<void>;
 }
 
-function PhotoEditModal({ photo, categories, onClose, onSave }: PhotoEditModalProps) {
+function PhotoEditModal({ photo, categories, onClose, onSave, onSaveImage }: PhotoEditModalProps) {
   const [title, setTitle] = useState(photo.title);
   const [altText, setAltText] = useState(photo.altText);
   const [selectedCategories, setSelectedCategories] = useState<string[]>(photo.categories);
@@ -791,11 +1063,76 @@ function PhotoEditModal({ photo, categories, onClose, onSave }: PhotoEditModalPr
   const [location, setLocation] = useState(photo.location);
   const [year, setYear] = useState(photo.year);
   const [isSaving, setIsSaving] = useState(false);
+  const [imageFile, setImageFile] = useState<UploadingFile | null>(null);
+  const [imageWidth, setImageWidth] = useState(1200);
+  const [imageHeight, setImageHeight] = useState(900);
+  const [isImageLoading, setIsImageLoading] = useState(false);
+  const [isImageSaving, setIsImageSaving] = useState(false);
+  const [imageError, setImageError] = useState<string | null>(null);
 
   const handleCategoryToggle = (catId: string) => {
     setSelectedCategories(prev =>
       prev.includes(catId) ? prev.filter(id => id !== catId) : [...prev, catId]
     );
+  };
+
+  const handleImageEditStart = async () => {
+    const source = getPhotoEditSrc(photo);
+    if (!source) {
+      setImageError('This photo has no editable source image.');
+      return;
+    }
+
+    setIsImageLoading(true);
+    setImageError(null);
+    try {
+      const response = await fetch(source);
+      if (!response.ok) throw new Error('Unable to load the original image');
+      const blob = await response.blob();
+      const file = new File([blob], `${photo.title || 'photo'}.jpg`, {
+        type: blob.type || 'image/jpeg',
+      });
+      setImageFile({
+        id: photo.id,
+        file,
+        preview: source,
+        progress: 0,
+        transform: photo.imageTransform,
+        status: 'ready',
+      });
+      setImageWidth(Math.min(photo.imageTransform?.outputWidth ?? photo.width ?? 1200, photo.width || 1200));
+      setImageHeight(Math.min(photo.imageTransform?.outputHeight ?? photo.height ?? 900, photo.height || 900));
+    } catch (err) {
+      setImageError(err instanceof Error ? err.message : 'Unable to load image');
+    } finally {
+      setIsImageLoading(false);
+    }
+  };
+
+  const handleImageSave = async ({ transform }: ImageCropResult) => {
+    if (!imageFile) return;
+    setIsImageSaving(true);
+    setImageError(null);
+    try {
+      await onSaveImage(transform);
+      setImageFile(null);
+    } catch (err) {
+      setImageError(err instanceof Error ? err.message : 'Failed to save image');
+    } finally {
+      setIsImageSaving(false);
+    }
+  };
+
+  const handleRestoreOriginal = async () => {
+    setIsImageSaving(true);
+    setImageError(null);
+    try {
+      await onSaveImage(null);
+    } catch (err) {
+      setImageError(err instanceof Error ? err.message : 'Failed to restore original image');
+    } finally {
+      setIsImageSaving(false);
+    }
   };
 
   const handleSave = async () => {
@@ -808,7 +1145,7 @@ function PhotoEditModal({ photo, categories, onClose, onSave }: PhotoEditModalPr
       isPublished,
       location,
       year,
-    });
+      });
     setIsSaving(false);
   };
 
@@ -836,6 +1173,26 @@ function PhotoEditModal({ photo, categories, onClose, onSave }: PhotoEditModalPr
               </div>
             )}
           </div>
+
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={handleImageEditStart}
+              disabled={isImageLoading || isImageSaving}
+              className="flex-1 px-3 py-2 text-sm font-medium text-blue-700 border border-blue-200 bg-blue-50 hover:bg-blue-100 rounded-lg disabled:opacity-50"
+            >
+              {isImageLoading ? 'Loading image...' : 'Crop / Resize Image'}
+            </button>
+            <button
+              type="button"
+              onClick={handleRestoreOriginal}
+              disabled={isImageLoading || isImageSaving || !photo.imageTransform}
+              className="px-3 py-2 text-sm font-medium text-gray-700 border border-gray-300 hover:bg-gray-50 rounded-lg disabled:opacity-50"
+            >
+              Restore Original
+            </button>
+          </div>
+          {imageError && <p className="text-sm text-red-600">{imageError}</p>}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
@@ -946,6 +1303,25 @@ function PhotoEditModal({ photo, categories, onClose, onSave }: PhotoEditModalPr
           </button>
         </div>
       </div>
+      {imageFile && (
+        <ImageCropUpload
+          source={imageFile.file}
+          initialCrop={
+            photo.imageTransform?.crop
+              ? { ...photo.imageTransform.crop, unit: 'px' }
+              : null
+          }
+          onCancel={() => {
+            if (!isImageSaving) setImageFile(null);
+          }}
+          onApply={handleImageSave}
+          outputWidth={imageWidth}
+          outputHeight={imageHeight}
+          showOutputSize
+          maxOutputWidth={photo.width || undefined}
+          maxOutputHeight={photo.height || undefined}
+        />
+      )}
     </div>
   );
 }
