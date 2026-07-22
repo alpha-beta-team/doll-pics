@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useSiteData } from '../../contexts/SiteDataContext';
 import { trackPhoneClick } from '../../lib/analytics';
 import { getPublishedServiceNavLinks } from '../../lib/navigation';
+import { BUSINESS_NAME } from '../../lib/seo';
 import { Instagram, Facebook, Youtube, Mail, Phone, MapPin } from 'lucide-react';
 
 const staticFooterLinks: Record<
@@ -32,7 +33,8 @@ const socialIcons = [
 
 export function Footer() {
   const { siteContent } = useSiteData();
-  const brand = siteContent.brandName || 'DOLL PICTURES';
+  const brand = siteContent.brandName || 'Doll Pictures';
+  const companyName = BUSINESS_NAME;
   const serviceLinks = getPublishedServiceNavLinks(siteContent.serviceNavLinks).map(
     (link) => ({ label: link.label, to: link.path }),
   );
@@ -127,7 +129,7 @@ export function Footer() {
 
         <div className="flex flex-col items-center justify-between gap-4 border-t border-hairline/5 pt-8 pr-20 md:flex-row md:pr-24">
           <p className="text-xs tracking-wide text-ink-300/40">
-            © 2026 {brand}. All rights reserved. Crafted with devotion.
+            © 2026 {companyName}. All rights reserved. Crafted with devotion.
           </p>
           <div className="relative z-10 flex gap-6 text-xs text-ink-300/40">
             <Link

@@ -107,7 +107,7 @@ export const featuredWork = [
 export const galleryImages = [
   {
     src: "https://images.pexels.com/photos/1024960/pexels-photo-1024960.jpeg?auto=compress&cs=tinysrgb&w=640",
-    alt: "Cinematic wedding moment by DOLL PICTURES",
+    alt: "Cinematic wedding moment by Doll Pictures",
   },
   {
     src: "https://images.pexels.com/photos/1024993/pexels-photo-1024993.jpeg?auto=compress&cs=tinysrgb&w=640",
@@ -151,7 +151,7 @@ export const galleryImages = [
   },
   {
     src: "https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=640",
-    alt: "Timeless couple portrait by DOLL PICTURES",
+    alt: "Timeless couple portrait by Doll Pictures",
   },
 ];
 

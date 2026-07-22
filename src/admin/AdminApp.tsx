@@ -24,7 +24,7 @@ function useAdminNoIndex() {
   useEffect(() => {
     applyPageSeo({
       path: '/admin',
-      title: 'Admin — DOLL PICTURES',
+      title: 'Admin — Doll Pictures',
       description: 'Private admin area.',
       noindex: true,
     });

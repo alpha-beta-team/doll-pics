@@ -28,7 +28,7 @@ Not a pure empty-shell CSR risk. Build runs `vite build && tsx scripts/prerender
 |--|--|
 | **Severity** | Medium |
 | **Reference** | [https://dollpictures.in/](https://dollpictures.in/) — H1 “We don't take photographs.” (`src/components/sections/Hero.tsx` ~214–218). Title tag is strong: “Wedding & Baby Photography in Erode”. |
-| **Fix** | Keep the poetic line as a display span, but make H1 (or a visually hidden H1) match the SEO heading in `src/data/seo-pages.json` (“DOLL PICTURES” / wedding & baby photography in Erode). |
+| **Fix** | Keep the poetic line as a display span, but make H1 (or a visually hidden H1) match the SEO heading in `src/data/seo-pages.json` (“Doll Pictures” / wedding & baby photography in Erode). |
 
 ### 3. Meta, canonical, OG, Twitter are unique per route
 

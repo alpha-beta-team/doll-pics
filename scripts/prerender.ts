@@ -221,9 +221,9 @@ function writeRoute(path: string, html: string) {
 }
 
 function inject404Html(template: string) {
-  const title = escapeHtml('Page Not Found — DOLL PICTURES');
+  const title = escapeHtml('Page Not Found — Doll Pictures');
   const description = escapeHtml(
-    'This page could not be found. Return to DOLL PICTURES for cinematic wedding and portrait photography in Erode.',
+    'This page could not be found. Return to Doll Pictures for cinematic wedding and portrait photography in Erode.',
   );
   const heading = escapeHtml('Page not found');
   const body = escapeHtml(

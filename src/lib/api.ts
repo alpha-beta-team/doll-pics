@@ -144,7 +144,7 @@ export function getPhotoSources(photo: {
 
   return {
     src,
-    alt: photo.altText?.trim() || photo.title?.trim() || 'Photography by DOLL PICTURES',
+    alt: photo.altText?.trim() || photo.title?.trim() || 'Photography by Doll Pictures',
     avifSrcSet,
     webpSrcSet,
   };

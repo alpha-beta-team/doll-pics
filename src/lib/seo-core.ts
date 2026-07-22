@@ -175,7 +175,7 @@ export function resolveServicePage(
           title: `${nav.label} Photography in Erode | Doll Pictures`,
           description:
             nav.description ||
-            `${nav.label} photography in Erode from DOLL PICTURES.`,
+            `${nav.label} photography in Erode from Doll Pictures.`,
           heading: `${nav.label} photography in Erode`,
           body:
             nav.description ||
@@ -184,7 +184,7 @@ export function resolveServicePage(
           label: nav.label,
           lead:
             nav.description ||
-            `Book a ${nav.label.toLowerCase()} session with DOLL PICTURES in Erode.`,
+            `Book a ${nav.label.toLowerCase()} session with Doll Pictures in Erode.`,
           sections: [],
           faqs: [],
           related: [
@@ -237,7 +237,7 @@ export function resolvePackagePage(
           title: `${nav.label} Photography Packages | Doll Pictures`,
           description:
             nav.description ||
-            `${nav.label} photography packages in Erode from DOLL PICTURES.`,
+            `${nav.label} photography packages in Erode from Doll Pictures.`,
           heading: `${nav.label} packages`,
           body:
             nav.description ||
@@ -418,7 +418,7 @@ export function buildWebPageJsonLd(
     isPartOf: {
       '@type': 'WebSite',
       '@id': `${siteUrl}/#website`,
-      name: page.siteName || 'DOLL PICTURES',
+      name: page.siteName || 'Doll Pictures',
       url: siteUrl,
     },
     about: { '@id': `${siteUrl}/#studio` },

@@ -37,6 +37,8 @@ export const SITE_URL = (
 )?.replace(/\/$/, '') || 'https://dollpictures.in';
 
 export const SITE_NAME = seoData.siteName;
+export const BUSINESS_NAME =
+  seoData.businessName || seoData.brandByline || seoData.siteName;
 export const SITE_TAGLINE = seoPages.tagline;
 export const DEFAULT_OG_IMAGE = `${SITE_URL}/og-share.jpg`;
 export const SITE_LOGO = `${SITE_URL}/logo-doll.png`;
@@ -246,7 +248,7 @@ export function applyPageSeo(
   upsertMeta('property', 'og:type', type);
   upsertMeta('property', 'og:url', url);
   upsertMeta('property', 'og:image', image);
-  upsertMeta('property', 'og:site_name', SITE_NAME);
+  upsertMeta('property', 'og:site_name', BUSINESS_NAME);
   upsertMeta('property', 'og:locale', 'en_IN');
 
   upsertMeta('name', 'twitter:card', 'summary_large_image');

@@ -123,7 +123,7 @@ const fallbackPackageCategories: PublicPackageCategory[] =
   }));
 
 const defaultSiteContent: PublicSiteContent = {
-  brandName: 'DOLL PICTURES',
+  brandName: 'Doll Pictures',
   tagline: 'Cinematic Wedding & Portrait Photography',
   heroHeading: 'We don\u2019t just take photos \u2014 we preserve emotions.',
   heroSubtext:
@@ -133,7 +133,7 @@ const defaultSiteContent: PublicSiteContent = {
   ourStory:
     'What began as a passion for capturing fleeting moments has grown into a studio devoted to cinematic storytelling. ' +
     'From intimate portraits to grand celebrations, we approach every frame with patience, warmth, and an eye for the details that matter most.\n\n' +
-    'Rooted in Erode and serving couples and brands across Tamil Nadu and beyond, DOLL PICTURES blends editorial craft with heartfelt connection — ' +
+    'Rooted in Erode and serving couples and brands across Tamil Nadu and beyond, Doll Pictures by Ramya Vignesh blends editorial craft with heartfelt connection — ' +
     'so your gallery feels less like documentation and more like a film you can hold.',
   mission:
     'To preserve emotion with elegance — crafting warm, whimsical, and timeless imagery that feels like cinema and lasts a lifetime.',
@@ -196,7 +196,7 @@ const normalizedFallbackFeatured: FeaturedWorkItem[] = fallbackFeaturedWork.map(
 const normalizedFallbackGallery: GalleryImageItem[] = fallbackGalleryImages.map(
   (item) =>
     typeof item === 'string'
-      ? { src: item, alt: 'Cinematic photography by DOLL PICTURES' }
+      ? { src: item, alt: 'Cinematic photography by Doll Pictures' }
       : item,
 );
 

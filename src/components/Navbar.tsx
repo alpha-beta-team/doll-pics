@@ -13,7 +13,7 @@ export function Navbar() {
   const { siteContent, packageNavLinks } = useSiteData();
   const { theme, toggleTheme } = useTheme();
   const { pathname } = useLocation();
-  const brand = siteContent.brandName || 'DOLL PICTURES';
+  const brand = siteContent.brandName || 'Doll Pictures';
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);

@@ -43,7 +43,7 @@ export function enquiryWhatsAppUrl(
   if (!digits) return '/booking';
 
   const lines = [
-    "Hi! I'd like to book a consultation with DOLL PICTURES.",
+    "Hi! I'd like to book a consultation with Doll Pictures.",
     ctx.name?.trim() ? `Name: ${ctx.name.trim()}` : null,
     ctx.shootType?.trim() ? `Shoot type: ${ctx.shootType.trim()}` : null,
     ctx.preferredEvent?.trim() ? `Event: ${ctx.preferredEvent.trim()}` : null,
@@ -93,7 +93,7 @@ export function deliveryWhatsAppUrl(
   const lines = [
     `Hi ${name},`,
     '',
-    'Your photos from DOLL PICTURES are ready.',
+    'Your photos from Doll Pictures are ready.',
     '',
     gallery ? `Gallery: ${gallery}` : null,
     edited ? `Edited: ${edited}` : null,

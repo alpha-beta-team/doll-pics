@@ -1,6 +1,6 @@
-# DOLL PICTURES
+# Doll Pictures
 
-Cinematic photography portfolio site for `DOLL PICTURES by Ramya Vignesh`, built as a React single-page experience with animated storytelling sections, immersive transitions, and branded contact/SEO metadata.
+Cinematic photography portfolio site for `Doll Pictures by Ramya Vignesh`, built as a React single-page experience with animated storytelling sections, immersive transitions, and branded contact/SEO metadata.
 
 ## Overview
 
@@ -19,8 +19,8 @@ This project is a Vite + React + TypeScript frontend for a photography studio we
 
 The current branding uses:
 
-- brand name: `DOLL PICTURES`
-- SEO title: `DOLL PICTURES by Ramya Vignesh`
+- display brand: `Doll Pictures`
+- company / GBP name: `Doll Pictures by Ramya Vignesh`
 - contact email: `dollpictures2025@gmail.com`
 - contact phone: `+91 95975 62337`
 - location: `URT TOWERS, 139/4-D, Perundurai Rd, Teachers Colony, Palayapalayam, Erode, Tamil Nadu 638011`

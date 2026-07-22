@@ -9,7 +9,7 @@ export function Privacy() {
         </h2>
         <p className="mt-3">
           This Privacy Policy describes how Doll Pictures by Ramya Vignesh
-          (&quot;DOLL PICTURES&quot;, &quot;we&quot;, &quot;us&quot;) collects and
+          (&quot;Doll Pictures&quot;, &quot;we&quot;, &quot;us&quot;) collects and
           uses information when you visit{' '}
           <a href="https://dollpictures.in" className="text-gold-400 hover:text-gold-300">
             dollpictures.in

@@ -196,7 +196,7 @@ function ServicePageContent() {
                 Studio location
               </h2>
               <p className="mt-5 text-[0.95rem] leading-relaxed text-ink-200/70">
-                DOLL PICTURES by Ramya Vignesh — URT TOWERS, 139/4-D, Perundurai Rd,
+                Doll Pictures by Ramya Vignesh — URT TOWERS, 139/4-D, Perundurai Rd,
                 Teachers Colony, Palayapalayam, Erode, Tamil Nadu 638011.
                 {siteContent.phone ? (
                   <>

@@ -20,7 +20,7 @@ Service landing pages (`*-photography-erode`) have solid local keyword depth. Ho
 |--|--|
 | **Severity** | Critical |
 | **Reference** | `src/data/content.ts` `featuredWork`: locations “Tuscany, Italy”, “Santorini, Greece”, “Paris, France”. Service fallbacks also use Pexels. Live site renders these titles. |
-| **Fix** | Replace with real DOLL PICTURES shoots; set location to Erode / TN cities; keep Pexels only as temporary CMS-empty fallbacks. |
+| **Fix** | Replace with real Doll Pictures shoots; set location to Erode / TN cities; keep Pexels only as temporary CMS-empty fallbacks. |
 
 ### 2. “Worldwide / brands” copy fights local SEO positioning
 
