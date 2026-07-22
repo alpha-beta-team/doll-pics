@@ -155,13 +155,6 @@ export const galleryImages = [
   },
 ];
 
-export const beforeAfter = {
-  before:
-    "https://images.pexels.com/photos/1024960/pexels-photo-1024960.jpeg?auto=compress&cs=tinysrgb&w=800",
-  after:
-    "https://images.pexels.com/photos/1024960/pexels-photo-1024960.jpeg?auto=compress&cs=tinysrgb&w=800&dpr=2&sat=-100",
-};
-
 export const services = [
   {
     title: "Wedding Photography",

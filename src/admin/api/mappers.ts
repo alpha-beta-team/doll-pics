@@ -264,10 +264,6 @@ export function mapSiteContent(doc: Record<string, unknown>): SiteContent {
     whatsapp: (doc.whatsapp as string) ?? '',
     phone: (doc.phone as string) ?? '',
     socials: (doc.socials as SiteContent['socials']) ?? {},
-    beforeAfter: (doc.beforeAfter as SiteContent['beforeAfter']) ?? {
-      before: '',
-      after: '',
-    },
     serviceNavLinks: links.map((raw, index) => {
       const link = raw as Record<string, unknown>;
       return {

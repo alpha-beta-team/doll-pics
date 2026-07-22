@@ -70,15 +70,7 @@ Not a pure empty-shell CSR risk. Build runs `vite build && tsx scripts/prerender
 | **Reference** | Hero preload to `images.pexels.com` (`index.html` L30–38); main bundle `/assets/index-*.js` ~273KB. Route/section lazy loading exists in `App.tsx` + `Site.tsx`. |
 | **Fix** | Self-host the LCP hero WebP on `dollpictures.in` (same sizes as preload); enable Brotli/gzip if not already at CDN edge. |
 
-### 8. Generic before/after alt text
-
-| | |
-|--|--|
-| **Severity** | Low |
-| **Reference** | `src/components/sections/BeforeAfter.tsx` — `alt="Before"` / `alt="After"` |
-| **Fix** | Use descriptive alts, e.g. “Unedited wedding portrait” / “Color-graded wedding portrait by DOLL PICTURES”. |
-
-### 9. Homepage prerender body is noscript-only (empty `#root`)
+### 8. Homepage prerender body is noscript-only (empty `#root`)
 
 | | |
 |--|--|

@@ -28,19 +28,9 @@ const HorizontalGallery = lazy(() =>
     default: m.HorizontalGallery,
   })),
 );
-const BeforeAfter = lazy(() =>
-  import('../components/sections/BeforeAfter').then((m) => ({
-    default: m.BeforeAfter,
-  })),
-);
 const Services = lazy(() =>
   import('../components/sections/Services').then((m) => ({
     default: m.Services,
-  })),
-);
-const PackagesPreview = lazy(() =>
-  import('../components/sections/PackagesPreview').then((m) => ({
-    default: m.PackagesPreview,
   })),
 );
 const Statistics = lazy(() =>
@@ -243,9 +233,7 @@ function HomeView() {
           <ScrollStorytelling />
           <FeaturedWork />
           <HorizontalGallery />
-          <BeforeAfter />
           <Services />
-          <PackagesPreview />
           <Statistics />
           <Testimonials />
           <BehindScenes />

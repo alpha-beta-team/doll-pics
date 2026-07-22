@@ -71,7 +71,6 @@ export type SiteContent = {
   whatsapp: string;
   phone: string;
   socials: SiteSocials;
-  beforeAfter: { before: string; after: string };
   serviceNavLinks: ServiceNavLink[];
 };
 
@@ -89,7 +88,6 @@ export type PublicSiteContent = {
   whatsapp: string;
   phone: string;
   socials: Record<string, string>;
-  beforeAfter: { before: string; after: string };
   serviceNavLinks?: ServiceNavLinkInput[];
 };
 

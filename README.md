@@ -54,7 +54,6 @@ doll-pics/
 │   │       ├── ScrollStorytelling.tsx
 │   │       ├── FeaturedWork.tsx
 │   │       ├── HorizontalGallery.tsx
-│   │       ├── BeforeAfter.tsx
 │   │       ├── Services.tsx
 │   │       ├── Statistics.tsx
 │   │       ├── Testimonials.tsx

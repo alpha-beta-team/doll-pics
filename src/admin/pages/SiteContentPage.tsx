@@ -34,7 +34,6 @@ const defaultSiteContent: SiteContent = {
   whatsapp: '',
   phone: '',
   socials: {},
-  beforeAfter: { before: '', after: '' },
   serviceNavLinks: DEFAULT_SERVICE_NAV_LINKS.map((l) => ({ ...l })),
 };
 
@@ -74,7 +73,6 @@ export function SiteContentPage() {
           mission: data.mission ?? '',
           aboutHeroSubtext: data.aboutHeroSubtext ?? '',
           socials: data.socials ?? {},
-          beforeAfter: data.beforeAfter ?? { before: '', after: '' },
           serviceNavLinks:
             data.serviceNavLinks?.length > 0
               ? data.serviceNavLinks
@@ -98,14 +96,6 @@ export function SiteContentPage() {
     setContent(prev => ({
       ...prev,
       socials: { ...prev.socials, [platform]: value },
-    }));
-    setSuccess(false);
-  };
-
-  const handleBeforeAfterChange = (field: 'before' | 'after', value: string) => {
-    setContent(prev => ({
-      ...prev,
-      beforeAfter: { ...prev.beforeAfter, [field]: value },
     }));
     setSuccess(false);
   };
@@ -680,30 +670,6 @@ export function SiteContentPage() {
                 </div>
               </div>
             ))}
-          </div>
-        </section>
-
-        <section className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Before / After</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Before Image URL</label>
-              <input
-                type="url"
-                value={content.beforeAfter?.before || ''}
-                onChange={e => handleBeforeAfterChange('before', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">After Image URL</label>
-              <input
-                type="url"
-                value={content.beforeAfter?.after || ''}
-                onChange={e => handleBeforeAfterChange('after', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
           </div>
         </section>
 

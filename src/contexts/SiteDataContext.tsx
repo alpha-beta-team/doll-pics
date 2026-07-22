@@ -29,7 +29,6 @@ import {
   storyScenes as fallbackStoryScenes,
   featuredWork as fallbackFeaturedWork,
   galleryImages as fallbackGalleryImages,
-  beforeAfter as fallbackBeforeAfter,
   stats as fallbackStats,
   testimonials as fallbackTestimonials,
   behindScenes as fallbackBehindScenes,
@@ -83,7 +82,6 @@ export interface SiteData {
   storyScenes: PublicStoryScene[];
   featuredWork: FeaturedWorkItem[];
   galleryImages: GalleryImageItem[];
-  beforeAfter: { before: string; after: string };
   services: ServiceItem[];
   packages: PublicPackage[];
   packageCategories: PublicPackageCategory[];
@@ -147,7 +145,6 @@ const defaultSiteContent: PublicSiteContent = {
   socials: {
     instagram: 'https://www.instagram.com/dollpictures_studio/',
   },
-  beforeAfter: fallbackBeforeAfter,
   serviceNavLinks: DEFAULT_SERVICE_NAV_LINKS,
 };
 
@@ -271,7 +268,6 @@ const fallbackData: Omit<SiteData, 'loading' | 'fromApi'> = {
   storyScenes: fallbackStoryScenes,
   featuredWork: normalizedFallbackFeatured,
   galleryImages: normalizedFallbackGallery,
-  beforeAfter: fallbackBeforeAfter,
   services: servicesFromNavLinks(DEFAULT_SERVICE_NAV_LINKS),
   packages: [],
   packageCategories: fallbackPackageCategories,
@@ -372,16 +368,10 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
             mission: siteContent.mission || defaultSiteContent.mission,
             aboutHeroSubtext:
               siteContent.aboutHeroSubtext || defaultSiteContent.aboutHeroSubtext,
-            beforeAfter: siteContent.beforeAfter?.before
-              ? siteContent.beforeAfter
-              : fallbackBeforeAfter,
             serviceNavLinks,
           },
           services,
           heroSlides: nextHero,
-          beforeAfter: siteContent.beforeAfter?.before
-            ? siteContent.beforeAfter
-            : fallbackBeforeAfter,
           packageCategories: categories,
           packageNavLinks,
           loading: false,
