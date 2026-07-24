@@ -5,6 +5,7 @@ import type {
   Category,
   Enquiry,
   HeroSlide,
+  ImageTransform,
   Package,
   PackageCategory,
   Photo,
@@ -22,6 +23,7 @@ export function mapPhoto(doc: Record<string, unknown>): Photo {
   const variants = (doc.variants ?? {}) as {
     webp?: { url: string; width: number }[];
     avif?: { url: string; width: number }[];
+    original?: { url: string };
   };
   const webpVariants = variants.webp ?? [];
   const avifVariants = variants.avif ?? [];
@@ -34,7 +36,13 @@ export function mapPhoto(doc: Record<string, unknown>): Photo {
     title: (doc.title as string) ?? '',
     altText: (doc.altText as string) ?? '',
     categories: ((doc.categoryIds as string[]) ?? []).map(String),
-    variants: { webp: webpUrl, avif: avifUrl, sizes },
+    variants: {
+      webp: webpUrl,
+      avif: avifUrl,
+      original: variants.original?.url ?? '',
+      sizes,
+    },
+    imageTransform: (doc.imageTransform as ImageTransform | null) ?? null,
     width: (doc.width as number) ?? 0,
     height: (doc.height as number) ?? 0,
     order: (doc.order as number) ?? 0,

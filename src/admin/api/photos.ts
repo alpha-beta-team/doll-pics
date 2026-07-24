@@ -1,4 +1,4 @@
-import type { Photo } from '../types';
+import type { ImageTransform, Photo } from '../types';
 import { request } from './http';
 import { mapPhoto } from './mappers';
 
@@ -59,6 +59,21 @@ export const photosApi = {
     return mapPhoto(doc);
   },
 
+  async updatePhotoTransform(
+    id: string,
+    transform: ImageTransform | null,
+  ): Promise<Photo> {
+    const doc = await request<Record<string, unknown>>(
+      `/admin/photos/${id}/transform`,
+      {
+        method: 'PATCH',
+        auth: true,
+        body: JSON.stringify({ imageTransform: transform }),
+      },
+    );
+    return mapPhoto(doc);
+  },
+
   async deletePhoto(id: string): Promise<void> {
     await request(`/admin/photos/${id}`, { method: 'DELETE', auth: true });
   },
@@ -96,10 +111,12 @@ export const photosApi = {
 
   async uploadFiles(
     files: File[],
+    transforms: (ImageTransform | null)[] = [],
     onProgress?: (fileId: string, progress: number) => void,
   ): Promise<Photo[]> {
     const formData = new FormData();
     files.forEach((f) => formData.append('files', f));
+    formData.append('transforms', JSON.stringify(transforms));
 
     const token = sessionStorage.getItem('auth_token');
     const res = await fetch(
