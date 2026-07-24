@@ -186,6 +186,9 @@ export type PublicPhoto = {
   location?: string;
   year?: string;
   isFeatured?: boolean;
+  storageKey?: string;
+  width?: number;
+  height?: number;
   variants?: PhotoVariants;
   categoryIds?: Array<{ name: string; slug: string } | string>;
 };

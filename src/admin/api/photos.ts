@@ -110,31 +110,79 @@ export const photosApi = {
   },
 
   async uploadFiles(
-    files: File[],
-    transforms: (ImageTransform | null)[] = [],
+    uploads: {
+      file: File;
+      title: string;
+      altText: string;
+      categoryId: string;
+      width: number;
+      height: number;
+    }[],
     onProgress?: (fileId: string, progress: number) => void,
   ): Promise<Photo[]> {
-    const formData = new FormData();
-    files.forEach((f) => formData.append('files', f));
-    formData.append('transforms', JSON.stringify(transforms));
-
-    const token = sessionStorage.getItem('auth_token');
-    const res = await fetch(
-      `${import.meta.env.VITE_API_URL ?? 'http://localhost:3001/api'}/admin/photos/upload`,
-      {
+    const docs: Record<string, unknown>[] = [];
+    for (const upload of uploads) {
+      const signed = await request<{
+        storageKey: string;
+        uploadUrl: string;
+        headers: { 'Content-Type': string };
+      }>('/admin/photos/uploads/presign', {
         method: 'POST',
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        body: formData,
-      },
-    );
+        auth: true,
+        body: JSON.stringify({
+          originalFilename: upload.file.name,
+          mimeType: upload.file.type,
+          categoryId: upload.categoryId,
+        }),
+      });
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ message: res.statusText }));
-      throw new Error(err.message ?? 'Upload failed');
+      await putWithProgress(
+        signed.uploadUrl,
+        upload.file,
+        signed.headers['Content-Type'],
+        (progress) => onProgress?.(upload.file.name, progress),
+      );
+
+      const doc = await request<Record<string, unknown>>('/admin/photos/uploads/confirm', {
+        method: 'POST',
+        auth: true,
+        body: JSON.stringify({
+          storageKey: signed.storageKey,
+          originalFilename: upload.file.name,
+          title: upload.title,
+          altText: upload.altText,
+          categoryId: upload.categoryId,
+          mimeType: upload.file.type,
+          size: upload.file.size,
+          width: upload.width,
+          height: upload.height,
+        }),
+      });
+      docs.push(doc);
+      onProgress?.(upload.file.name, 100);
     }
-
-    const docs = (await res.json()) as Record<string, unknown>[];
-    docs.forEach((doc, i) => onProgress?.(String(doc._id ?? i), 100));
     return docs.map(mapPhoto);
   },
 };
+
+function putWithProgress(
+  url: string,
+  file: File,
+  contentType: string,
+  onProgress: (progress: number) => void,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('PUT', url);
+    xhr.setRequestHeader('Content-Type', contentType);
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) onProgress(Math.round((event.loaded / event.total) * 100));
+    };
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) resolve();
+      else reject(new Error(`Storage upload failed (${xhr.status})`));
+    };
+    xhr.onerror = () => reject(new Error('Storage upload failed. Check the R2 CORS policy.'));
+    xhr.send(file);
+  });
+}

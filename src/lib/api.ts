@@ -28,6 +28,8 @@ export type {
 } from '../shared/types';
 
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3001/api';
+const IMAGEKIT_ENDPOINT = 'https://ik.imagekit.io/dollpictures';
+const IMAGEKIT_WIDTHS = [400, 800, 1200, 1600] as const;
 
 export class ApiError extends Error {
   status: number;
@@ -128,12 +130,23 @@ export type PhotoSources = {
 export function getPhotoSources(photo: {
   title?: string;
   altText?: string;
+  storageKey?: string;
   variants?: {
     webp?: PhotoVariantList;
     avif?: PhotoVariantList;
     original?: { url: string };
   };
 }): PhotoSources | null {
+  if (photo.storageKey) {
+    const path = photo.storageKey.split('/').map(encodeURIComponent).join('/');
+    const transformed = (width: number) =>
+      `${IMAGEKIT_ENDPOINT}/tr:w-${width},q-78,f-auto/${path}`;
+    return {
+      src: transformed(1200),
+      alt: photo.altText?.trim() || photo.title?.trim() || 'Photography by Doll Pictures',
+      webpSrcSet: IMAGEKIT_WIDTHS.map(width => `${transformed(width)} ${width}w`).join(', '),
+    };
+  }
   const src = getPhotoUrl(photo);
   if (!src) return null;
 

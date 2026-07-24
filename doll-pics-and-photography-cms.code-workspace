@@ -1,0 +1,13 @@
+{
+  "folders": [
+    {
+      "name": "doll-pics",
+      "path": "."
+    },
+    {
+      "name": "photography-cms-backend",
+      "path": "../photography-cms-backend"
+    }
+  ],
+  "settings": {}
+}

@@ -42,7 +42,32 @@ interface UploadingFile {
   progress: number;
   preview: string;
   transform: ImageTransform | null;
+  title: string;
+  altText: string;
+  categoryId: string;
+  width: number;
+  height: number;
   status: 'ready' | 'uploading' | 'complete' | 'error';
+}
+
+const SUPPORTED_UPLOAD_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'];
+const MAX_UPLOAD_SIZE_MB = Number(import.meta.env.VITE_MAX_UPLOAD_SIZE_MB ?? '25');
+const MAX_UPLOAD_SIZE = MAX_UPLOAD_SIZE_MB * 1024 * 1024;
+
+function readImageDimensions(file: File): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => {
+      resolve({ width: image.naturalWidth, height: image.naturalHeight });
+      URL.revokeObjectURL(url);
+    };
+    image.onerror = () => {
+      reject(new Error(`Could not read image dimensions for ${file.name}`));
+      URL.revokeObjectURL(url);
+    };
+    image.src = url;
+  });
 }
 
 interface PhotoEdit extends Photo {
@@ -117,27 +142,43 @@ export function PhotosPage() {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
-    const uploadFiles: UploadingFile[] = files.map(file => ({
-      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      file,
-      progress: 0,
-      preview: URL.createObjectURL(file),
-      transform: null,
-      status: 'ready' as const,
-    }));
+    const invalidType = files.find(file => !SUPPORTED_UPLOAD_TYPES.includes(file.type));
+    if (invalidType) {
+      setError(`${invalidType.name}: only JPEG, PNG, WebP and AVIF are supported`);
+      return;
+    }
+    const tooLarge = files.find(file => file.size > MAX_UPLOAD_SIZE);
+    if (tooLarge) {
+      setError(`${tooLarge.name}: maximum upload size is ${MAX_UPLOAD_SIZE_MB} MB`);
+      return;
+    }
 
-    setUploadingFiles(uploadFiles);
-    setShowUploadModal(true);
-    setIsUploading(false);
+    try {
+      const dimensions = await Promise.all(files.map(readImageDimensions));
+      const uploadFiles: UploadingFile[] = files.map((file, index) => ({
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
+        file,
+        progress: 0,
+        preview: URL.createObjectURL(file),
+        transform: null,
+        title: file.name.replace(/\.[^.]+$/, ''),
+        altText: '',
+        categoryId: selectedCategory || categories[0]?.id || '',
+        width: dimensions[index].width,
+        height: dimensions[index].height,
+        status: 'ready' as const,
+      }));
+
+      setUploadingFiles(uploadFiles);
+      setShowUploadModal(true);
+      setIsUploading(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not inspect selected images');
+    }
 
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-  };
-
-  const handleCropStart = (file: UploadingFile) => {
-    setActiveCropId(file.id);
-    setCropError(null);
   };
 
   const handleCropSave = async ({ file: previewFile, transform }: ImageCropResult) => {
@@ -168,15 +209,31 @@ export function PhotosPage() {
   const handleUploadSubmit = async () => {
     if (uploadingFiles.length === 0 || isUploading || activeCropId) return;
 
+    const incomplete = uploadingFiles.find(
+      file => !file.title.trim() || !file.altText.trim() || !file.categoryId,
+    );
+    if (incomplete) {
+      setError('Every image needs a title, accurate alt text and category');
+      return;
+    }
+
     setIsUploading(true);
     setUploadingFiles(prev => prev.map(file => ({ ...file, status: 'uploading' as const })));
 
     try {
       await api.uploadFiles(
-        uploadingFiles.map(file => file.file),
-        uploadingFiles.map(file => file.transform),
-        (_fileId, progress) => {
-          setUploadingFiles(prev => prev.map(file => ({ ...file, progress })));
+        uploadingFiles.map(file => ({
+          file: file.file,
+          title: file.title.trim(),
+          altText: file.altText.trim(),
+          categoryId: file.categoryId,
+          width: file.width,
+          height: file.height,
+        })),
+        (fileName, progress) => {
+          setUploadingFiles(prev =>
+            prev.map(file => file.file.name === fileName ? { ...file, progress } : file),
+          );
         },
       );
 
@@ -342,7 +399,7 @@ export function PhotosPage() {
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/png,image/webp,image/avif"
             multiple
             onChange={handleFileSelect}
             className="hidden"
@@ -615,10 +672,12 @@ export function PhotosPage() {
             <div className="p-4 border-b border-gray-200 flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-gray-900">
-                  {isUploading ? 'Uploading Photos' : 'Review and Crop Photos'}
+                  {isUploading ? 'Uploading Photos' : 'Review Photos'}
                 </h2>
                 {!isUploading && (
-                  <p className="text-sm text-gray-500 mt-1">Crop any image, then submit when ready.</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Add useful metadata before uploading directly to secure storage.
+                  </p>
                 )}
               </div>
               <button
@@ -632,24 +691,15 @@ export function PhotosPage() {
               </button>
             </div>
             <div className="p-4 max-h-96 overflow-y-auto">
-              <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-4">
                 {uploadingFiles.map(file => (
-                  <div key={file.id} className="relative">
-                    <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                  <div key={file.id} className="relative grid grid-cols-[8rem_1fr] gap-4 rounded-lg border border-gray-200 p-3">
+                    <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden relative">
                       <img
                         src={file.preview}
                         alt={file.file.name}
                         className="w-full h-full object-cover"
                       />
-                      {!isUploading && (
-                        <button
-                          type="button"
-                          onClick={() => handleCropStart(file)}
-                          className="absolute inset-x-2 bottom-2 py-1.5 bg-black/70 text-white text-xs rounded hover:bg-black/80"
-                        >
-                          Crop image
-                        </button>
-                      )}
                       {file.status === 'complete' && (
                         <div className="absolute inset-0 bg-green-500/20 flex items-center justify-center">
                           <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
@@ -665,7 +715,7 @@ export function PhotosPage() {
                         </div>
                       )}
                     </div>
-                    <div className="mt-2">
+                    <div className="min-w-0 space-y-2">
                       <div className="flex items-center gap-1">
                         <p className="text-xs text-gray-600 truncate flex-1">{file.file.name}</p>
                         {!isUploading && (
@@ -679,6 +729,43 @@ export function PhotosPage() {
                           </button>
                         )}
                       </div>
+                      <input
+                        value={file.title}
+                        onChange={event => setUploadingFiles(prev => prev.map(item =>
+                          item.id === file.id ? { ...item, title: event.target.value } : item,
+                        ))}
+                        disabled={isUploading}
+                        placeholder="Title"
+                        aria-label={`Title for ${file.file.name}`}
+                        className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm text-gray-900"
+                      />
+                      <input
+                        value={file.altText}
+                        onChange={event => setUploadingFiles(prev => prev.map(item =>
+                          item.id === file.id ? { ...item, altText: event.target.value } : item,
+                        ))}
+                        disabled={isUploading}
+                        placeholder="Describe what is visible (alt text)"
+                        aria-label={`Alt text for ${file.file.name}`}
+                        className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm text-gray-900"
+                      />
+                      <select
+                        value={file.categoryId}
+                        onChange={event => setUploadingFiles(prev => prev.map(item =>
+                          item.id === file.id ? { ...item, categoryId: event.target.value } : item,
+                        ))}
+                        disabled={isUploading}
+                        aria-label={`Category for ${file.file.name}`}
+                        className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm text-gray-900"
+                      >
+                        <option value="">Select category</option>
+                        {categories.map(category => (
+                          <option key={category.id} value={category.id}>{category.name}</option>
+                        ))}
+                      </select>
+                      <p className="text-xs text-gray-500">
+                        {file.width} × {file.height}px · {(file.file.size / 1024 / 1024).toFixed(1)} MB
+                      </p>
                       <div className="mt-1 h-1 bg-gray-200 rounded-full overflow-hidden">
                         <div
                           className={`h-full transition-all ${
@@ -1098,6 +1185,11 @@ function PhotoEditModal({ photo, categories, onClose, onSave, onSaveImage }: Pho
         preview: source,
         progress: 0,
         transform: photo.imageTransform,
+        title: photo.title,
+        altText: photo.altText,
+        categoryId: photo.categories[0] ?? '',
+        width: photo.width,
+        height: photo.height,
         status: 'ready',
       });
       setImageWidth(Math.min(photo.imageTransform?.outputWidth ?? photo.width ?? 1200, photo.width || 1200));
