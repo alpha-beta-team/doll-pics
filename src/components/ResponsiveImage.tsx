@@ -1,4 +1,5 @@
 import type { ImgHTMLAttributes } from 'react';
+import { isPexelsUrl, mediaSrcSet, mediaUrl } from '../lib/images';
 
 export type ResponsiveImageProps = {
   src: string;
@@ -29,13 +30,20 @@ export function ResponsiveImage({
   fetchPriority,
   style,
 }: ResponsiveImageProps) {
+  const responsivePexels = !avifSrcSet && !webpSrcSet && isPexelsUrl(src);
+  const resolvedWebpSrcSet = responsivePexels
+    ? mediaSrcSet(src, [480, 800, 1200, 1600], 'webp')
+    : webpSrcSet;
+  const resolvedSrc = responsivePexels
+    ? mediaUrl(src, Math.min(Math.max(width ?? 1200, 480), 1600))
+    : src;
   const img = (
     <img
-      src={src}
+      src={resolvedSrc}
       alt={alt}
       width={width}
       height={height}
-      sizes={avifSrcSet || webpSrcSet ? sizes : undefined}
+      sizes={avifSrcSet || resolvedWebpSrcSet ? sizes : undefined}
       loading={loading}
       decoding={decoding}
       fetchPriority={fetchPriority}
@@ -44,7 +52,7 @@ export function ResponsiveImage({
     />
   );
 
-  if (!avifSrcSet && !webpSrcSet) {
+  if (!avifSrcSet && !resolvedWebpSrcSet) {
     return img;
   }
 
@@ -53,8 +61,8 @@ export function ResponsiveImage({
       {avifSrcSet ? (
         <source type="image/avif" srcSet={avifSrcSet} sizes={sizes} />
       ) : null}
-      {webpSrcSet ? (
-        <source type="image/webp" srcSet={webpSrcSet} sizes={sizes} />
+      {resolvedWebpSrcSet ? (
+        <source type="image/webp" srcSet={resolvedWebpSrcSet} sizes={sizes} />
       ) : null}
       {img}
     </picture>

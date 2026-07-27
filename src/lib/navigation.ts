@@ -6,7 +6,6 @@ export type { ServiceNavLink, ServiceNavLinkInput };
 export type NavLink = { label: string; path: string; sectionId?: string };
 
 export const NAV_LINKS: NavLink[] = [
-  { label: 'Work', path: '/work', sectionId: 'work' },
   { label: 'Gallery', path: '/gallery', sectionId: 'gallery' },
   { label: 'Services', path: '/services', sectionId: 'services' },
   { label: 'Packages', path: '/packages' },
@@ -24,7 +23,7 @@ export const DEFAULT_SERVICE_NAV_LINKS: ServiceNavLink[] = [
     description: 'Full-day cinematic coverage from first look to last dance.',
     icon: 'Heart',
     imageUrl:
-      'https://images.pexels.com/photos/169198/pexels-photo-169198.jpeg?auto=compress&cs=tinysrgb&w=640',
+      'https://images.pexels.com/photos/5759215/pexels-photo-5759215.jpeg?auto=compress&cs=tinysrgb&w=1200',
     order: 0,
     isPublished: true,
   },
@@ -34,7 +33,7 @@ export const DEFAULT_SERVICE_NAV_LINKS: ServiceNavLink[] = [
     description: 'Safe, baby-friendly newborn sessions with gentle posing.',
     icon: 'Baby',
     imageUrl:
-      'https://images.pexels.com/photos/3662667/pexels-photo-3662667.jpeg?auto=compress&cs=tinysrgb&w=640',
+      'https://images.pexels.com/photos/8765030/pexels-photo-8765030.jpeg?auto=compress&cs=tinysrgb&w=1200',
     order: 1,
     isPublished: true,
   },
@@ -44,7 +43,7 @@ export const DEFAULT_SERVICE_NAV_LINKS: ServiceNavLink[] = [
     description: 'Tender, timeless portraits celebrating new beginnings.',
     icon: 'Baby',
     imageUrl:
-      'https://images.pexels.com/photos/2958995/pexels-photo-2958995.jpeg?auto=compress&cs=tinysrgb&w=640',
+      'https://images.pexels.com/photos/2958995/pexels-photo-2958995.jpeg?auto=compress&cs=tinysrgb&w=1200',
     order: 2,
     isPublished: true,
   },
@@ -54,7 +53,7 @@ export const DEFAULT_SERVICE_NAV_LINKS: ServiceNavLink[] = [
     description: 'Joyful coverage of life’s early milestone celebrations.',
     icon: 'Gift',
     imageUrl:
-      'https://images.pexels.com/photos/796444/pexels-photo-796444.jpeg?auto=compress&cs=tinysrgb&w=640',
+      'https://images.pexels.com/photos/16381747/pexels-photo-16381747.jpeg?auto=compress&cs=tinysrgb&w=1200',
     order: 3,
     isPublished: true,
   },
@@ -74,7 +73,7 @@ export const DEFAULT_SERVICE_NAV_LINKS: ServiceNavLink[] = [
     description: 'Warm family portraits for every generation together.',
     icon: 'Camera',
     imageUrl:
-      'https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=640',
+      'https://images.pexels.com/photos/34572616/pexels-photo-34572616.jpeg?auto=compress&cs=tinysrgb&w=1200',
     order: 5,
     isPublished: true,
   },

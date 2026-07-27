@@ -202,8 +202,25 @@ const normalizedFallbackGallery: GalleryImageItem[] = fallbackGalleryImages.map(
 
 const HOME_PATHS = new Set<string>(['/', ...SECTION_PATHS]);
 
+function isPlaceholderPhoto(photo: PublicPhoto): boolean {
+  const original = photo.variants?.original?.url ?? '';
+  return (
+    photo.storageKey?.startsWith('seed/') === true ||
+    original.includes('picsum.photos')
+  );
+}
+
+function isLegacyHeroSlide(slide: PublicHeroSlide): boolean {
+  return [
+    '/photos/265722/',
+    '/photos/1024993/',
+    '/photos/1779415/',
+  ].some((legacyPath) => slide.image.includes(legacyPath));
+}
+
 function featuredFromPhotos(photos: PublicPhoto[]): FeaturedWorkItem[] {
   return photos
+    .filter((photo) => !isPlaceholderPhoto(photo))
     .map((p) => {
       const sources = getPhotoSources(p);
       if (!sources) return null;
@@ -226,6 +243,7 @@ function featuredFromPhotos(photos: PublicPhoto[]): FeaturedWorkItem[] {
 
 function galleryFromPhotos(photos: PublicPhoto[]): GalleryImageItem[] {
   return photos
+    .filter((photo) => !isPlaceholderPhoto(photo))
     .map((p) => getPhotoSources(p))
     .filter((s): s is PhotoSources => s !== null)
     .map((s) => ({
@@ -325,8 +343,13 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
 
         if (cancelled || cancelledRef.current) return;
 
+        const productionHeroSlides = heroSlides.filter(
+          (slide) => !isLegacyHeroSlide(slide),
+        );
         const nextHero =
-          heroSlides.length > 0 ? heroSlides : fallbackHeroSlides;
+          productionHeroSlides.length > 0
+            ? productionHeroSlides
+            : fallbackHeroSlides;
 
         const serviceNavLinks = normalizeServiceNavLinks(
           siteContent.serviceNavLinks,

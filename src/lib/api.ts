@@ -137,8 +137,12 @@ export function getPhotoSources(photo: {
     original?: { url: string };
   };
 }): PhotoSources | null {
-  if (photo.storageKey) {
-    const path = photo.storageKey.split('/').map(encodeURIComponent).join('/');
+  // Seed keys are database placeholders, not real R2 objects. Sending them to
+  // ImageKit produces a 404 and hides the usable original/fallback URL.
+  const storageKey = photo.storageKey?.trim();
+  const hasRealStorageKey = storageKey && !storageKey.startsWith('seed/');
+  if (hasRealStorageKey) {
+    const path = storageKey.split('/').map(encodeURIComponent).join('/');
     const transformed = (width: number) =>
       `${IMAGEKIT_ENDPOINT}/tr:w-${width},q-78,f-auto/${path}`;
     return {

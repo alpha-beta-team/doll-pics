@@ -1,21 +1,21 @@
-// Curated Pexels stock photography for cinematic wedding/portrait portfolio
-// All URLs are verified Pexels CDN links
+// Curated, regionally relevant Pexels fallbacks used until real CMS/R2 work is published.
+// Keep these cohesive: the homepage should never fall back to generic demo imagery.
 
 export const heroSlides = [
   {
     image:
-      "https://images.pexels.com/photos/265722/pexels-photo-265722.jpeg?auto=compress&cs=tinysrgb&w=750",
-    label: "Weddings",
+      "https://images.pexels.com/photos/5759215/pexels-photo-5759215.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    label: "Wedding Stories",
   },
   {
     image:
-      "https://images.pexels.com/photos/1024993/pexels-photo-1024993.jpeg?auto=compress&cs=tinysrgb&w=750",
-    label: "Portraits",
+      "https://images.pexels.com/photos/8765030/pexels-photo-8765030.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    label: "Newborn",
   },
   {
     image:
-      "https://images.pexels.com/photos/1779415/pexels-photo-1779415.jpeg?auto=compress&cs=tinysrgb&w=750",
-    label: "Cinematic",
+      "https://images.pexels.com/photos/19780151/pexels-photo-19780151.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    label: "Celebrations",
   },
 ];
 
@@ -49,109 +49,109 @@ export const storyScenes = [
 
 export const featuredWork = [
   {
-    title: "Eternal Vows",
+    title: "Timeless Traditions",
     category: "Wedding",
     image:
-      "https://images.pexels.com/photos/169198/pexels-photo-169198.jpeg?auto=compress&cs=tinysrgb&w=640",
-    alt: "Bride and groom wedding portrait — Eternal Vows",
-    location: "Tuscany, Italy",
-    year: "2024",
+      "https://images.pexels.com/photos/32114153/pexels-photo-32114153.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    alt: "South Indian newlyweds in traditional wedding attire",
+    location: "Tamil Nadu",
+    year: "2026",
   },
   {
-    title: "Golden Hour",
-    category: "Pre-Wedding",
+    title: "Quiet Vows",
+    category: "Wedding",
     image:
-      "https://images.pexels.com/photos/1024968/pexels-photo-1024968.jpeg?auto=compress&cs=tinysrgb&w=640",
-    alt: "Couple at golden hour — pre-wedding portrait",
-    location: "Santorini, Greece",
-    year: "2025",
+      "https://images.pexels.com/photos/18362001/pexels-photo-18362001.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    alt: "Newlywed couple sharing a quiet embrace",
+    location: "South India",
+    year: "2026",
   },
   {
-    title: "Silk & Smoke",
-    category: "Fashion",
+    title: "Little Beginnings",
+    category: "Newborn",
     image:
-      "https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=640",
-    alt: "Editorial fashion portrait — Silk and Smoke",
-    location: "Paris, France",
-    year: "2023",
+      "https://images.pexels.com/photos/8765030/pexels-photo-8765030.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    alt: "Newborn baby sleeping in a softly styled studio basket",
+    location: "Erode",
+    year: "2026",
+  },
+  {
+    title: "A Joyful Yes",
+    category: "Wedding",
+    image:
+      "https://images.pexels.com/photos/5759215/pexels-photo-5759215.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    alt: "Joyful candid moment at an Indian wedding ceremony",
+    location: "India",
+    year: "2026",
   },
   {
     title: "First Light",
     category: "Maternity",
     image:
-      "https://images.pexels.com/photos/2958995/pexels-photo-2958995.jpeg?auto=compress&cs=tinysrgb&w=640",
-    alt: "Maternity portrait in soft morning light",
-    location: "Kyoto, Japan",
+      "https://images.pexels.com/photos/2958995/pexels-photo-2958995.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    alt: "Expectant mother holding her baby bump in soft natural light",
+    location: "Erode",
     year: "2026",
   },
   {
-    title: "Aerial Dreams",
-    category: "Drone",
+    title: "Generations",
+    category: "Family",
     image:
-      "https://images.pexels.com/photos/1000653/pexels-photo-1000653.jpeg?auto=compress&cs=tinysrgb&w=640",
-    alt: "Aerial drone landscape of a coastal celebration",
-    location: "Amalfi Coast",
-    year: "2023",
-  },
-  {
-    title: "The Celebration",
-    category: "Birthday",
-    image:
-      "https://images.pexels.com/photos/796444/pexels-photo-796444.jpeg?auto=compress&cs=tinysrgb&w=640",
-    alt: "Birthday celebration candid photography",
-    location: "New York, USA",
+      "https://images.pexels.com/photos/34572616/pexels-photo-34572616.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    alt: "Family sharing a warm moment together",
+    location: "India",
     year: "2026",
   },
 ];
 
 export const galleryImages = [
   {
-    src: "https://images.pexels.com/photos/1024960/pexels-photo-1024960.jpeg?auto=compress&cs=tinysrgb&w=640",
-    alt: "Cinematic wedding moment by Doll Pictures",
+    src: "https://images.pexels.com/photos/5759215/pexels-photo-5759215.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    alt: "Joyful candid at an Indian wedding",
   },
   {
-    src: "https://images.pexels.com/photos/1024993/pexels-photo-1024993.jpeg?auto=compress&cs=tinysrgb&w=640",
-    alt: "Romantic couple portrait photography",
+    src: "https://images.pexels.com/photos/32114153/pexels-photo-32114153.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    alt: "Traditional South Indian wedding portrait",
   },
   {
-    src: "https://images.pexels.com/photos/1779415/pexels-photo-1779415.jpeg?auto=compress&cs=tinysrgb&w=640",
-    alt: "Cinematic celebration photography",
+    src: "https://images.pexels.com/photos/8765030/pexels-photo-8765030.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    alt: "Newborn sleeping in a styled studio setting",
   },
   {
-    src: "https://images.pexels.com/photos/169198/pexels-photo-169198.jpeg?auto=compress&cs=tinysrgb&w=640",
-    alt: "Wedding ceremony photography in soft light",
+    src: "https://images.pexels.com/photos/18362001/pexels-photo-18362001.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    alt: "Indian newlyweds sharing a quiet embrace",
   },
   {
-    src: "https://images.pexels.com/photos/1024968/pexels-photo-1024968.jpeg?auto=compress&cs=tinysrgb&w=640",
-    alt: "Pre-wedding couple portrait at golden hour",
+    src: "https://images.pexels.com/photos/19780151/pexels-photo-19780151.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    alt: "Indian couple celebrating their wedding",
   },
   {
-    src: "https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=640",
-    alt: "Fashion and editorial portrait photography",
+    src: "https://images.pexels.com/photos/17910665/pexels-photo-17910665.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    alt: "Indian bride in traditional wedding jewellery",
   },
   {
-    src: "https://images.pexels.com/photos/2958995/pexels-photo-2958995.jpeg?auto=compress&cs=tinysrgb&w=640",
+    src: "https://images.pexels.com/photos/2958995/pexels-photo-2958995.jpeg?auto=compress&cs=tinysrgb&w=1200",
     alt: "Maternity portrait photography",
   },
   {
-    src: "https://images.pexels.com/photos/1000653/pexels-photo-1000653.jpeg?auto=compress&cs=tinysrgb&w=640",
-    alt: "Aerial drone photography of a scenic coast",
+    src: "https://images.pexels.com/photos/34572616/pexels-photo-34572616.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    alt: "Warm family portrait session",
   },
   {
-    src: "https://images.pexels.com/photos/796444/pexels-photo-796444.jpeg?auto=compress&cs=tinysrgb&w=640",
-    alt: "Birthday and celebration photography",
+    src: "https://images.pexels.com/photos/16381747/pexels-photo-16381747.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    alt: "Wrapped newborn baby portrait",
   },
   {
-    src: "https://images.pexels.com/photos/265722/pexels-photo-265722.jpeg?auto=compress&cs=tinysrgb&w=640",
-    alt: "Wedding reception photography",
+    src: "https://images.pexels.com/photos/32379184/pexels-photo-32379184.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    alt: "Elegant couple portrait in natural light",
   },
   {
-    src: "https://images.pexels.com/photos/2253870/pexels-photo-2253870.jpeg?auto=compress&cs=tinysrgb&w=640",
-    alt: "Emotional wedding day portrait",
+    src: "https://images.pexels.com/photos/34223575/pexels-photo-34223575.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    alt: "Bride preparing for her wedding ceremony",
   },
   {
-    src: "https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=640",
-    alt: "Timeless couple portrait by Doll Pictures",
+    src: "https://images.pexels.com/photos/34653644/pexels-photo-34653644.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    alt: "Family sharing a candid moment outdoors",
   },
 ];
 
