@@ -254,6 +254,9 @@ export function mapTeamMember(doc: Record<string, unknown>): TeamMember {
     role: (doc.role as string) ?? '',
     bio: (doc.bio as string) ?? '',
     photo: (doc.photo as string) ?? '',
+    photoOriginal: (doc.photoOriginal as string) ?? '',
+    photoStorageKey: (doc.photoStorageKey as string) ?? '',
+    imageTransform: (doc.imageTransform as ImageTransform | null) ?? null,
   }));
 }
 

@@ -1,6 +1,7 @@
 import type {
   BehindScene,
   HeroSlide,
+  ImageTransform,
   Stat,
   StoryScene,
   TeamMember,
@@ -15,6 +16,14 @@ import {
   mapTestimonial,
 } from './mappers';
 import { orderedCrud } from './orderedCrud';
+import { request } from './http';
+
+type TeamMemberImageResult = {
+  url: string;
+  originalUrl: string;
+  storageKey: string;
+  imageTransform: ImageTransform | null;
+};
 
 const heroSlides = orderedCrud('hero-slides', mapHeroSlide);
 const storyScenes = orderedCrud('story-scenes', mapStoryScene);
@@ -66,4 +75,28 @@ export const orderedContentApi = {
     teamMembers.update(id, data),
   deleteTeamMember: (id: string) => teamMembers.delete(id),
   reorderTeamMembers: (ids: string[]) => teamMembers.reorder(ids),
+
+  uploadTeamMemberImage: (
+    file: File,
+    transform: ImageTransform | null = null,
+  ) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('imageTransform', JSON.stringify(transform));
+    return request<TeamMemberImageResult>('/admin/media/team-member', {
+      method: 'POST',
+      auth: true,
+      body: formData,
+    });
+  },
+
+  updateTeamMemberImage: (
+    id: string,
+    transform: ImageTransform | null,
+  ) =>
+    request<TeamMemberImageResult>(`/admin/team-members/${id}/image`, {
+      method: 'PATCH',
+      auth: true,
+      body: JSON.stringify({ imageTransform: transform }),
+    }),
 };
