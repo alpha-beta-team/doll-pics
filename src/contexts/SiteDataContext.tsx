@@ -48,7 +48,7 @@ import {
 /** Max published photos for the horizontal gallery / landing imagery. */
 const GALLERY_PHOTO_LIMIT = 24;
 
-type DataBucket = 'home' | 'media' | 'packages' | 'about';
+type DataBucket = 'home' | 'reviews' | 'media' | 'packages' | 'about';
 
 export interface FeaturedWorkItem {
   title: string;
@@ -267,6 +267,9 @@ function bucketsForPath(
     buckets.add('media');
     buckets.add('packages');
   }
+  if (path === '/stories') {
+    buckets.add('reviews');
+  }
   if (path === '/about') {
     buckets.add('about');
   }
@@ -434,7 +437,6 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
         ? (cb: () => void) => requestIdleCallback(cb, { timeout: 2500 })
         : (cb: () => void) => setTimeout(cb, 1);
 
-    let idleId: number | ReturnType<typeof setTimeout> | undefined;
     let started = false;
     let effectCancelled = false;
 
@@ -471,6 +473,14 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
                 patch.behindScenes = behindScenes.length
                   ? behindScenes
                   : fallbackBehindScenes;
+              }
+
+              if (bucket === 'reviews') {
+                const testimonials = await publicApi.getTestimonials();
+                if (cancelledRef.current || effectCancelled) return;
+                patch.testimonials = testimonials.length
+                  ? testimonials
+                  : fallbackTestimonials;
               }
 
               if (bucket === 'media') {
@@ -550,7 +560,7 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
       })();
     };
 
-    idleId = defer(run);
+    const idleId: number | ReturnType<typeof setTimeout> | undefined = defer(run);
 
     return () => {
       effectCancelled = true;

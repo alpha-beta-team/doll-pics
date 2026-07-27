@@ -16,7 +16,7 @@ function inlineCss(): Plugin {
           (item) => item.type === 'asset' && item.fileName.endsWith('.css'),
         );
 
-        let next = html.replace(
+        const next = html.replace(
           /<link rel="stylesheet"[^>]*href="([^"]+\.css)"[^>]*>/g,
           (_match, href: string) => {
             const fileName = href.replace(/^\//, '');

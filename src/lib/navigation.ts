@@ -10,7 +10,7 @@ export const NAV_LINKS: NavLink[] = [
   { label: 'Services', path: '/services', sectionId: 'services' },
   { label: 'Packages', path: '/packages' },
   { label: 'About', path: '/about' },
-  { label: 'Stories', path: '/stories', sectionId: 'testimonials' },
+  { label: 'Stories', path: '/stories' },
 ];
 
 export const BOOKING_ROUTE = { path: '/booking', sectionId: 'booking' };
