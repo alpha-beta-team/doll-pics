@@ -229,23 +229,27 @@ export const testimonials: Array<{
 export const behindScenes = [
   {
     title: "Camera Setup",
-    image:
-      "https://images.pexels.com/photos/279053/pexels-photo-279053.jpeg?auto=compress&cs=tinysrgb&w=640",
+    image: "/videos/behind-scenes/camera-setup.jpg",
+    video: "/videos/behind-scenes/camera-setup.mp4",
+    description: "The crew rigs, balances, and checks every frame before the shoot.",
   },
   {
     title: "Drone Operation",
-    image:
-      "https://images.pexels.com/photos/313707/pexels-photo-313707.jpeg?auto=compress&cs=tinysrgb&w=640",
+    image: "/videos/behind-scenes/drone-operation.jpg",
+    video: "/videos/behind-scenes/drone-operation.mp4",
+    description: "Pre-flight checks and our drone team at work in the field.",
   },
   {
     title: "Lighting",
-    image:
-      "https://images.pexels.com/photos/1051838/pexels-photo-1051838.jpeg?auto=compress&cs=tinysrgb&w=640",
+    image: "/videos/behind-scenes/lighting.jpg",
+    video: "/videos/behind-scenes/lighting.mp4",
+    description: "Shaping and checking the light until the scene feels just right.",
   },
   {
     title: "Editing",
-    image:
-      "https://images.pexels.com/photos/325153/pexels-photo-325153.jpeg?auto=compress&cs=tinysrgb&w=640",
+    image: "/videos/behind-scenes/editing.jpg",
+    video: "/videos/behind-scenes/editing.mp4",
+    description: "Inside the office as the team cuts and colours the final story.",
   },
 ];
 

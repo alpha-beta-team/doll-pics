@@ -12,10 +12,11 @@ export function BehindScenes() {
         <div className="section-label mb-4">The Process</div>
         <h2 className="font-display text-5xl md:text-7xl font-light text-ink-50 max-w-3xl leading-tight">
           Behind the
-          <span className="italic text-gradient-gold"> lens.</span>
+          <span className="italic text-gradient-gold"> scenes.</span>
         </h2>
         <p className="mt-6 text-ink-200/70 max-w-xl">
-          Every great image begins with preparation, precision, and a team obsessed with the details.
+          Meet the team behind every frame — setting the camera, flying the drone,
+          shaping the light, and bringing it all together in the edit.
         </p>
       </div>
 

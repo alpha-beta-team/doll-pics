@@ -15,13 +15,14 @@ export function BehindScenesPreview() {
           <span className="italic text-gradient-gold"> scenes.</span>
         </h2>
         <p className="mt-5 max-w-xl text-[0.95rem] leading-relaxed text-ink-200/70">
-          A glimpse into the craft — preparation, light, and the quiet work that shapes every gallery.
+          Meet the team behind every frame — setting the camera, flying the drone,
+          shaping the light, and bringing it all together in the edit.
         </p>
       </div>
 
       <div className="mx-auto grid max-w-7xl grid-cols-2 gap-4 lg:grid-cols-4">
         {behindScenes.map((scene, i) => (
-          <BehindSceneCard key={scene.title} scene={scene} index={i} showPlay={false} />
+          <BehindSceneCard key={scene.title} scene={scene} index={i} />
         ))}
       </div>
     </section>

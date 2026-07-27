@@ -244,6 +244,8 @@ export function mapBehindScene(doc: Record<string, unknown>): BehindScene {
     ...base,
     title: (doc.title as string) ?? '',
     image: (doc.image as string) ?? '',
+    video: (doc.video as string) ?? '',
+    description: (doc.description as string) ?? '',
   }));
 }
 

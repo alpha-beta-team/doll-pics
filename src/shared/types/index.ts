@@ -256,6 +256,8 @@ export type Testimonial = CmsMeta & {
 export type BehindScene = CmsMeta & {
   title: string;
   image: string;
+  video?: string;
+  description?: string;
 };
 
 export type TeamMember = CmsMeta & {
@@ -276,7 +278,10 @@ export type PublicTestimonial = Pick<
   Testimonial,
   'name' | 'role' | 'avatar' | 'rating' | 'text' | 'likes' | 'reply'
 >;
-export type PublicBehindScene = Pick<BehindScene, 'title' | 'image'>;
+export type PublicBehindScene = Pick<
+  BehindScene,
+  'title' | 'image' | 'video' | 'description'
+>;
 export type PublicTeamMember = Pick<TeamMember, 'name' | 'role' | 'bio' | 'photo'>;
 
 // —— Ops ——————————————————————————————————————————————————————
