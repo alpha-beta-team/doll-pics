@@ -1,149 +1,32 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect } from 'react';
 
-type Variant = 'default' | 'hover' | 'view' | 'drag';
-
-/** Desktop-only custom cursor; deferred so it never competes with LCP / mobile PSI. */
+/** Enables the lightweight branded cursor on desktop fine-pointer devices. */
 export function CustomCursor() {
-  const [enabled, setEnabled] = useState(false);
-  const [variant, setVariant] = useState<Variant>('default');
-  const [hidden, setHidden] = useState(false);
-  const ringRef = useRef<HTMLDivElement>(null);
-  const dotRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
-    if (window.matchMedia('(max-width: 768px), (pointer: coarse)').matches) {
-      return;
+    const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+    const syncCursor = () => {
+      document.body.classList.toggle(
+        'custom-cursor-active',
+        finePointer.matches,
+      );
+    };
+
+    syncCursor();
+    if (typeof finePointer.addEventListener === 'function') {
+      finePointer.addEventListener('change', syncCursor);
+    } else {
+      finePointer.addListener(syncCursor);
     }
 
-    const enable = () => setEnabled(true);
-    const idle =
-      typeof requestIdleCallback === 'function'
-        ? requestIdleCallback(enable, { timeout: 3000 })
-        : window.setTimeout(enable, 1500);
-
     return () => {
-      if (typeof cancelIdleCallback === 'function' && typeof idle === 'number') {
-        cancelIdleCallback(idle);
+      document.body.classList.remove('custom-cursor-active');
+      if (typeof finePointer.removeEventListener === 'function') {
+        finePointer.removeEventListener('change', syncCursor);
       } else {
-        clearTimeout(idle as number);
+        finePointer.removeListener(syncCursor);
       }
     };
   }, []);
 
-  useEffect(() => {
-    if (!enabled) return;
-
-    document.body.classList.add('custom-cursor-active');
-
-    let mouseX = -100,
-      mouseY = -100;
-    let ringX = -100,
-      ringY = -100;
-    let raf = 0;
-    let running = true;
-
-    const animate = () => {
-      if (!running) return;
-      ringX += (mouseX - ringX) * 0.15;
-      ringY += (mouseY - ringY) * 0.15;
-      if (ringRef.current) {
-        ringRef.current.style.transform = `translate(${ringX}px, ${ringY}px) translate(-50%, -50%)`;
-      }
-      if (dotRef.current) {
-        dotRef.current.style.transform = `translate(${mouseX}px, ${mouseY}px) translate(-50%, -50%)`;
-      }
-      raf = requestAnimationFrame(animate);
-    };
-
-    const onMove = (e: MouseEvent) => {
-      mouseX = e.clientX;
-      mouseY = e.clientY;
-      setHidden(false);
-    };
-
-    const onOver = (e: MouseEvent) => {
-      const t = e.target as HTMLElement;
-      if (t.closest('[data-cursor="view"]')) setVariant('view');
-      else if (t.closest('[data-cursor="drag"]')) setVariant('drag');
-      else if (
-        t.closest('a, button, [data-cursor="hover"], [role="button"]')
-      )
-        setVariant('hover');
-      else setVariant('default');
-    };
-
-    const onLeave = () => setHidden(true);
-    const onEnter = () => setHidden(false);
-
-    window.addEventListener('mousemove', onMove, { passive: true });
-    window.addEventListener('mouseover', onOver, { passive: true });
-    document.addEventListener('mouseleave', onLeave);
-    document.addEventListener('mouseenter', onEnter);
-    raf = requestAnimationFrame(animate);
-
-    return () => {
-      running = false;
-      document.body.classList.remove('custom-cursor-active');
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseover', onOver);
-      document.removeEventListener('mouseleave', onLeave);
-      document.removeEventListener('mouseenter', onEnter);
-      cancelAnimationFrame(raf);
-    };
-  }, [enabled]);
-
-  if (!enabled || hidden) return null;
-
-  const sizes: Record<Variant, number> = {
-    default: 12,
-    hover: 56,
-    view: 80,
-    drag: 64,
-  };
-  const size = sizes[variant];
-  const showLabel = variant === 'view' || variant === 'drag';
-
-  return (
-    <>
-      <div
-        ref={ringRef}
-        className="pointer-events-none fixed top-0 left-0 z-[9999] flex items-center justify-center"
-        style={{ willChange: 'transform' }}
-      >
-        <div
-          className="rounded-full border-2 flex items-center justify-center transition-all duration-300"
-          style={{
-            width: size,
-            height: size,
-            borderColor:
-              variant === 'default'
-                ? 'rgb(var(--gold-glow) / 0.85)'
-                : 'rgb(var(--gold-glow) / 1)',
-            backgroundColor:
-              variant === 'default'
-                ? 'rgb(var(--gold-glow) / 0.2)'
-                : 'rgb(var(--gold-glow) / 0.08)',
-            boxShadow:
-              '0 0 0 1px rgb(var(--on-gold) / 0.35), 0 2px 12px rgb(var(--gold-glow) / 0.35)',
-          }}
-        >
-          {showLabel && (
-            <span className="text-[9px] tracking-widest uppercase text-gold-300 font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-              {variant === 'view' ? 'View' : 'Drag'}
-            </span>
-          )}
-        </div>
-      </div>
-      <div
-        ref={dotRef}
-        className="pointer-events-none fixed top-0 left-0 z-[9999] w-2 h-2 rounded-full bg-gold-400 transition-opacity duration-300"
-        style={{
-          willChange: 'transform',
-          opacity: variant === 'default' ? 1 : 0,
-          boxShadow:
-            '0 0 0 1.5px rgb(var(--on-gold) / 0.5), 0 0 8px rgb(var(--gold-glow) / 0.6)',
-        }}
-      />
-    </>
-  );
+  return null;
 }

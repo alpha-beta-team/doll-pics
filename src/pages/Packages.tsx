@@ -19,31 +19,25 @@ function PackagesContent() {
   });
 
   return (
-    <div className="relative bg-ink-950">
+    <div className="packages-editorial relative bg-ink-950">
       <CustomCursor />
       <div className="film-grain" />
       <Navbar />
 
       <main className="relative overflow-hidden bg-ink-950 pt-20">
-        <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-[32rem] opacity-50"
-          style={{
-            background:
-              'radial-gradient(ellipse 70% 60% at 50% 0%, rgb(var(--gold-glow) / 0.12), transparent)',
-          }}
-        />
+        <div className="packages-editorial-glow pointer-events-none absolute inset-x-0 top-0 h-[34rem]" />
 
-        <section className="relative px-6 py-32 lg:px-10">
+        <section className="relative px-6 py-24 lg:px-10 lg:py-28">
           <div
             ref={ref}
-            className={`mx-auto mb-20 max-w-7xl reveal ${inView ? 'in' : ''}`}
+            className={`mx-auto mb-14 max-w-7xl reveal ${inView ? 'in' : ''}`}
           >
             <div className="section-label mb-4">Pricing</div>
-            <h1 className="max-w-3xl font-display text-5xl font-light leading-tight text-ink-50 md:text-7xl">
+            <h1 className="max-w-4xl font-display text-5xl font-light leading-[1.02] text-ink-50 md:text-7xl">
               Packages for every
-              <span className="italic text-gradient-gold"> celebration.</span>
+              <span className="italic text-gold-300"> celebration.</span>
             </h1>
-            <p className="mt-6 max-w-xl text-[0.95rem] leading-relaxed text-ink-200/70">
+            <p className="mt-6 max-w-2xl text-base leading-relaxed text-ink-100/75">
               Choose a category to compare inclusions and pricing — wedding, maternity,
               newborn and more, each with packages curated for cinematic coverage.
             </p>
@@ -61,21 +55,23 @@ function PackagesContent() {
                     <Link
                       to={link.path}
                       data-cursor="hover"
-                      className="group block border border-hairline/10 bg-ink-900/30 p-8 transition-all duration-400 hover:border-gold-400/40 hover:bg-ink-900/50"
+                      className="group block rounded-2xl border border-hairline/10 bg-ink-900/70 p-7 transition-all duration-400 hover:-translate-y-1 hover:border-gold-400/40 hover:bg-ink-800/75 hover:shadow-xl hover:shadow-black/20 sm:p-8"
                       style={{
                         animation: `fadeInUp 0.7s ${index * 0.06}s ease-out both`,
                       }}
                     >
-                      <p className="section-label mb-3 text-gold-400/80">{link.label}</p>
-                      <h2 className="font-display text-2xl font-light text-ink-50 transition-colors group-hover:text-gold-300">
+                      <p className="mb-3 text-[0.65rem] font-semibold uppercase tracking-[0.22em] text-gold-400">
+                        {link.label}
+                      </p>
+                      <h2 className="font-display text-[1.75rem] font-light leading-tight text-ink-50 transition-colors group-hover:text-gold-300">
                         {link.label} packages
                       </h2>
-                      <p className="mt-3 text-[0.9rem] leading-relaxed text-ink-200/60">
+                      <p className="mt-3 text-[0.9rem] leading-relaxed text-ink-100/75">
                         {link.description}
                       </p>
-                      <span className="mt-6 inline-flex items-center gap-2 text-[0.65rem] font-medium uppercase tracking-[0.2em] text-gold-400">
-                        View packages
-                        <span className="h-px w-6 bg-current transition-all duration-400 group-hover:w-10" />
+                      <span className="mt-7 inline-flex min-h-11 items-center gap-3 text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold-300">
+                        Compare packages
+                        <span className="h-px w-7 bg-current transition-all duration-400 group-hover:w-11" />
                       </span>
                     </Link>
                   </li>
@@ -87,7 +83,7 @@ function PackagesContent() {
       </main>
 
       <Footer />
-      <ContactFabHost />
+      <ContactFabHost presentation="editorial" />
     </div>
   );
 }

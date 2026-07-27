@@ -8,6 +8,7 @@ interface ContactFabsProps {
   phone: string;
   whatsapp: string;
   email: string;
+  presentation?: 'default' | 'editorial';
 }
 
 interface ContactAction {
@@ -27,12 +28,18 @@ function WhatsAppIcon({ className }: { className?: string }) {
   );
 }
 
-export function ContactFabs({ phone, whatsapp, email }: ContactFabsProps) {
+export function ContactFabs({
+  phone,
+  whatsapp,
+  email,
+  presentation = 'default',
+}: ContactFabsProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const tel = phone.replace(/\s/g, '');
   const wa = whatsappDigits(whatsapp);
+  const isEditorial = presentation === 'editorial';
 
   const actions: ContactAction[] = [];
   if (tel) {
@@ -104,7 +111,13 @@ export function ContactFabs({ phone, whatsapp, email }: ContactFabsProps) {
               className={`fab-item flex items-center gap-3 ${open ? 'fab-item-open' : 'fab-item-closed'}`}
               style={{ transitionDelay: `${open ? openDelay : closeDelay}ms` }}
             >
-              <span className="pointer-events-none whitespace-nowrap rounded-full bg-white px-4 py-2 text-sm font-semibold text-on-gold shadow-md">
+              <span
+                className={`pointer-events-none whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold shadow-md ${
+                  isEditorial
+                    ? 'border border-hairline/10 bg-ink-900 text-ink-50'
+                    : 'bg-white text-on-gold'
+                }`}
+              >
                 {action.label}
               </span>
               <a
@@ -141,10 +154,18 @@ export function ContactFabs({ phone, whatsapp, email }: ContactFabsProps) {
         aria-label={open ? 'Close contact menu' : 'Open contact menu'}
         aria-expanded={open}
         onClick={() => setOpen(prev => !prev)}
-        className="pointer-events-auto relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-b from-cyan-400 to-blue-500 text-white shadow-lg shadow-blue-500/30 transition-transform duration-300 hover:scale-110 hover:-translate-y-0.5 active:scale-95"
+        className={`pointer-events-auto relative flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-300 hover:scale-105 hover:-translate-y-0.5 active:scale-95 ${
+          isEditorial
+            ? 'package-primary-action border border-gold-300/40 shadow-black/30'
+            : 'bg-gradient-to-b from-cyan-400 to-blue-500 text-white shadow-blue-500/30 hover:scale-110'
+        }`}
       >
         {!open && (
-          <span className="absolute right-0.5 top-0.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-ink-950" />
+          <span
+            className={`absolute right-0.5 top-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-ink-950 ${
+              isEditorial ? 'bg-ink-50' : 'bg-red-500'
+            }`}
+          />
         )}
         <span className="relative flex h-6 w-6 items-center justify-center">
           <MessageCircle
@@ -165,13 +186,18 @@ export function ContactFabs({ phone, whatsapp, email }: ContactFabsProps) {
   );
 }
 
-export function ContactFabHost() {
+export function ContactFabHost({
+  presentation = 'default',
+}: {
+  presentation?: 'default' | 'editorial';
+}) {
   const { siteContent } = useSiteData();
   return (
     <ContactFabs
       phone={siteContent.phone}
       whatsapp={siteContent.whatsapp}
       email={siteContent.contactEmail}
+      presentation={presentation}
     />
   );
 }

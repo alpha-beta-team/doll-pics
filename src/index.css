@@ -81,6 +81,78 @@
   --film-grain-opacity: 0.015;
 }
 
+/*
+  Package routes use a warmer editorial palette without changing the shared site theme.
+  The existing ink/gold utilities inherit these scoped values from the route wrapper.
+*/
+.packages-editorial {
+  --ink-50: 247 241 232;
+  --ink-100: 235 226 215;
+  --ink-200: 185 170 157;
+  --ink-300: 145 128 113;
+  --ink-400: 105 90 78;
+  --ink-500: 77 65 55;
+  --ink-600: 58 48 40;
+  --ink-700: 47 39 33;
+  --ink-800: 33 27 22;
+  --ink-900: 25 22 19;
+  --ink-950: 16 14 12;
+
+  --gold-50: 252 248 238;
+  --gold-100: 247 237 213;
+  --gold-200: 235 211 160;
+  --gold-300: 226 188 114;
+  --gold-400: 207 166 90;
+  --gold-500: 190 139 63;
+  --gold-600: 157 106 42;
+  --gold-700: 121 78 31;
+  --gold-800: 87 55 24;
+  --gold-900: 56 37 20;
+
+  --accent-400: 226 188 114;
+  --accent-500: 207 166 90;
+  --accent-600: 190 139 63;
+
+  --hairline: 247 241 232;
+  --on-gold: 24 17 10;
+  --gold-glow: 207 166 90;
+  --film-grain-opacity: 0.022;
+}
+
+[data-theme='light'] .packages-editorial {
+  --ink-50: 33 27 23;
+  --ink-100: 51 43 37;
+  --ink-200: 111 98 87;
+  --ink-300: 143 129 117;
+  --ink-400: 168 154 140;
+  --ink-500: 190 177 163;
+  --ink-600: 211 199 185;
+  --ink-700: 226 216 204;
+  --ink-800: 239 231 220;
+  --ink-900: 255 253 248;
+  --ink-950: 246 241 233;
+
+  --gold-50: 252 248 238;
+  --gold-100: 247 237 213;
+  --gold-200: 190 139 63;
+  --gold-300: 156 107 38;
+  --gold-400: 143 94 30;
+  --gold-500: 171 116 42;
+  --gold-600: 121 78 31;
+  --gold-700: 87 55 24;
+  --gold-800: 56 37 20;
+  --gold-900: 38 26 16;
+
+  --accent-400: 171 116 42;
+  --accent-500: 143 94 30;
+  --accent-600: 121 78 31;
+
+  --hairline: 33 27 23;
+  --on-gold: 24 17 10;
+  --gold-glow: 156 107 38;
+  --film-grain-opacity: 0.012;
+}
+
 @layer base {
   * {
     -webkit-font-smoothing: antialiased;
@@ -95,16 +167,61 @@
     @apply bg-ink-950 text-ink-50 font-sans antialiased overflow-x-hidden;
   }
 
-  /* Only hide the OS cursor when CustomCursor is mounted (desktop). */
-  body.custom-cursor-active,
-  body.custom-cursor-active * {
-    cursor: none !important;
-  }
+  /* Branded arrow for the visitor site; native cursors retain clear affordances. */
+  @media (hover: hover) and (pointer: fine) {
+    body.custom-cursor-active {
+      cursor: url('/cursor-gold.svg') 2 2, auto;
+    }
 
-  @media (max-width: 768px) {
-    body.custom-cursor-active,
-    body.custom-cursor-active * {
-      cursor: auto !important;
+    body.custom-cursor-active :where(
+      a,
+      button,
+      [role='button'],
+      [data-cursor='hover'],
+      .cursor-pointer,
+      label[for]
+    ) {
+      cursor: pointer;
+    }
+
+    body.custom-cursor-active :where(
+      input:not(
+        [type='button'],
+        [type='checkbox'],
+        [type='color'],
+        [type='file'],
+        [type='radio'],
+        [type='range'],
+        [type='reset'],
+        [type='submit']
+      ),
+      textarea,
+      [contenteditable='true']
+    ) {
+      cursor: text;
+    }
+
+    body.custom-cursor-active :where(
+      input[type='button'],
+      input[type='checkbox'],
+      input[type='color'],
+      input[type='file'],
+      input[type='radio'],
+      input[type='range'],
+      input[type='reset'],
+      input[type='submit']
+    ) {
+      cursor: pointer;
+    }
+
+    body.custom-cursor-active :where(
+      button:disabled,
+      input:disabled,
+      select:disabled,
+      textarea:disabled,
+      [aria-disabled='true']
+    ) {
+      cursor: not-allowed;
     }
   }
 
@@ -149,6 +266,29 @@
 
   .section-label {
     @apply text-xs font-medium tracking-ultra-wide uppercase text-gold-400;
+  }
+
+  .packages-editorial-glow {
+    background:
+      radial-gradient(
+        ellipse 70% 62% at 18% 0%,
+        rgb(var(--gold-glow) / 0.13),
+        transparent 68%
+      ),
+      radial-gradient(
+        ellipse 45% 50% at 82% 12%,
+        rgb(var(--gold-glow) / 0.055),
+        transparent 72%
+      );
+  }
+
+  .package-primary-action {
+    color: rgb(24 17 10);
+    background-color: rgb(207 166 90);
+  }
+
+  .package-primary-action:hover {
+    background-color: rgb(226 188 114);
   }
 }
 

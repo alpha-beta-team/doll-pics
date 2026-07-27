@@ -34,6 +34,7 @@ export function Navbar() {
   const packagesActive =
     pathname === '/packages' ||
     packageNavLinks.some((link) => link.path === pathname);
+  const editorialPackageRoute = packagesActive;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
@@ -102,7 +103,13 @@ export function Navbar() {
 
       {isOpen ? (
         <div className="absolute left-1/2 top-full z-50 pt-3 -translate-x-1/2">
-          <div className="min-w-[14rem] rounded-xl border border-hairline/10 bg-ink-950/95 p-3 shadow-2xl shadow-black/50 backdrop-blur-xl">
+          <div
+            className={`min-w-[14rem] rounded-xl border p-3 shadow-2xl backdrop-blur-xl ${
+              active
+                ? 'border-hairline/15 bg-ink-950 shadow-black/70'
+                : 'border-hairline/10 bg-ink-950/95 shadow-black/50'
+            }`}
+          >
             <ul className="space-y-1">
               {items.map((item) => (
                 <li key={item.path}>
@@ -111,8 +118,12 @@ export function Navbar() {
                     data-cursor="hover"
                     className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
                       pathname === item.path
-                        ? 'bg-hairline/5 text-gold-400'
-                        : 'text-ink-200/80 hover:bg-hairline/5 hover:text-ink-50'
+                        ? active
+                          ? 'border-l-2 border-gold-400 bg-gold-400/10 pl-2.5 text-gold-300'
+                          : 'bg-hairline/5 text-gold-400'
+                        : active
+                          ? 'text-ink-100/75 hover:bg-hairline/5 hover:text-ink-50'
+                          : 'text-ink-200/80 hover:bg-hairline/5 hover:text-ink-50'
                     }`}
                     onClick={() => setIsOpen(false)}
                   >
@@ -126,7 +137,11 @@ export function Navbar() {
                 <Link
                   to={showAllLink.path}
                   data-cursor="hover"
-                  className="block rounded-lg px-3 py-2 text-xs uppercase tracking-widest text-gold-400 transition-colors hover:bg-hairline/5"
+                  className={`block rounded-lg px-3 py-2 text-xs uppercase tracking-widest transition-colors hover:bg-hairline/5 ${
+                    pathname === showAllLink.path
+                      ? 'bg-gold-400/10 text-gold-300'
+                      : 'text-gold-400'
+                  }`}
                   onClick={() => setIsOpen(false)}
                 >
                   {showAllLink.label}
@@ -195,6 +210,7 @@ export function Navbar() {
                         packagesOpen,
                         setPackagesOpen,
                         packageNavLinks,
+                        { path: '/packages', label: 'All packages' },
                       )}
                     </div>
                   );
@@ -231,7 +247,11 @@ export function Navbar() {
                 type="button"
                 onClick={openBookingModal}
                 data-cursor="hover"
-                className="hidden sm:inline-flex items-center px-6 py-2.5 text-xs font-medium tracking-widest uppercase text-on-gold bg-gradient-to-r from-gold-300 to-gold-500 rounded-full hover:shadow-lg hover:shadow-gold-500/30 transition-all duration-400"
+                className={`hidden items-center rounded-full px-6 py-2.5 text-xs font-medium uppercase tracking-widest transition-all duration-400 hover:shadow-lg sm:inline-flex ${
+                  editorialPackageRoute
+                    ? 'package-primary-action hover:shadow-black/20'
+                    : 'bg-gradient-to-r from-gold-300 to-gold-500 text-on-gold hover:shadow-gold-500/30'
+                }`}
               >
                 Book Now
               </button>
@@ -365,7 +385,11 @@ export function Navbar() {
           <button
             type="button"
             onClick={openBookingModal}
-            className="mt-4 px-8 py-4 text-sm tracking-widest uppercase text-on-gold bg-gradient-to-r from-gold-300 to-gold-500 rounded-full"
+            className={`mt-4 rounded-full px-8 py-4 text-sm uppercase tracking-widest ${
+              editorialPackageRoute
+                ? 'package-primary-action'
+                : 'bg-gradient-to-r from-gold-300 to-gold-500 text-on-gold'
+            }`}
             style={{ animation: 'fadeInUp 0.5s 0.4s ease-out both' }}
           >
             Book Now

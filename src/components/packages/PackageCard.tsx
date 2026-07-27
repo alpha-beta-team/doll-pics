@@ -13,6 +13,7 @@ interface PackageCardProps {
   pkg: PublicPackage;
   whatsapp: string;
   index?: number;
+  presentation?: 'preview' | 'comparison';
   /** Where this card appears; package WhatsApp CTAs map to booking intent. */
   ctaLocation?: WhatsAppCtaLocation;
 }
@@ -35,6 +36,7 @@ export function PackageCard({
   pkg,
   whatsapp,
   index = 0,
+  presentation = 'preview',
   ctaLocation = 'booking_page',
 }: PackageCardProps) {
   const priceLabel = formatPackagePrice(pkg.pricingMode, pkg.price);
@@ -48,10 +50,16 @@ export function PackageCard({
   const themeGuideUrl = pkg.themeGuideUrl?.trim() ?? '';
   const locationLabel = locationBadgeLabel(pkg.locationType);
   const advanceAmount = pkg.advanceAmount;
+  const description = pkg.description?.trim() ?? '';
+  const isComparison = presentation === 'comparison';
 
   return (
     <article
-      className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-hairline/5 bg-ink-900/40 px-8 py-10 backdrop-blur-xl transition-all duration-500 ease-out hover:-translate-y-2 hover:border-gold-400/30 hover:shadow-2xl hover:shadow-black/40"
+      className={`group relative flex flex-col overflow-hidden rounded-2xl border backdrop-blur-xl transition-all duration-500 ease-out ${
+        isComparison
+          ? 'border-hairline/10 bg-ink-900/75 px-6 py-7 hover:-translate-y-1 hover:border-gold-400/35 hover:shadow-xl hover:shadow-black/25 sm:px-7 sm:py-8'
+          : 'h-full border-hairline/5 bg-ink-900/40 px-8 py-10 hover:-translate-y-2 hover:border-gold-400/30 hover:shadow-2xl hover:shadow-black/40'
+      }`}
       style={{
         animation: `fadeInUp 0.7s ${index * 0.08}s ease-out both`,
       }}
@@ -64,50 +72,97 @@ export function PackageCard({
         }}
       />
 
-      <div className="relative flex h-full flex-col">
-        <h3 className="text-center font-display text-2xl font-light tracking-wide text-ink-50 transition-colors duration-300 group-hover:text-gold-300">
+      <div className={`relative flex flex-col ${isComparison ? '' : 'h-full'}`}>
+        <h3
+          className={`font-display font-light text-ink-50 transition-colors duration-300 group-hover:text-gold-300 ${
+            isComparison
+              ? 'text-left text-[1.75rem] leading-tight'
+              : 'text-center text-2xl tracking-wide'
+          }`}
+        >
           {pkg.name}
         </h3>
 
         {durationLabel ? (
-          <p className="mt-2 text-center text-[0.7rem] font-medium tracking-[0.18em] text-ink-200/55">
+          <p
+            className={`mt-2 text-[0.7rem] font-medium uppercase tracking-[0.16em] ${
+              isComparison ? 'text-left text-ink-200/75' : 'text-center text-ink-200/55'
+            }`}
+          >
             {durationLabel}
           </p>
         ) : null}
 
         {locationLabel ? (
           <p
-            className={`mt-3 text-center text-[0.65rem] font-medium tracking-[0.16em] ${
+            className={`mt-3 text-[0.65rem] font-medium uppercase tracking-[0.16em] ${
+              isComparison ? 'text-left' : 'text-center'
+            } ${
               pkg.locationType === 'home'
                 ? 'text-gold-300/90'
-                : 'text-ink-200/45'
+                : isComparison
+                  ? 'text-ink-200/70'
+                  : 'text-ink-200/45'
             }`}
           >
             {locationLabel}
           </p>
         ) : null}
 
-        <p className="mt-4 text-center font-display text-4xl font-light leading-none tracking-tight text-gradient-gold md:text-5xl">
+        {isComparison && description ? (
+          <div className="mt-5 border-y border-hairline/10 py-4">
+            <p className="text-[0.625rem] font-semibold uppercase tracking-[0.2em] text-gold-400">
+              Best for
+            </p>
+            <p className="mt-2 text-[0.875rem] leading-relaxed text-ink-100/80">
+              {description}
+            </p>
+          </div>
+        ) : null}
+
+        <p
+          className={`font-display font-light tracking-tight ${
+            isComparison
+              ? 'mt-6 text-left text-[2.65rem] leading-[0.95] text-gold-300 md:text-5xl'
+              : 'mt-4 text-center text-4xl leading-none text-gradient-gold md:text-5xl'
+          }`}
+        >
           {priceLabel}
         </p>
 
         {advanceAmount != null ? (
-          <p className="mt-3 text-center text-[0.7rem] tracking-[0.12em] text-ink-200/55">
+          <p
+            className={`mt-3 text-[0.7rem] tracking-[0.1em] ${
+              isComparison ? 'text-left text-ink-200/75' : 'text-center text-ink-200/55'
+            }`}
+          >
             Advance: {formatINR(advanceAmount)}
           </p>
         ) : null}
 
-        <div className="mx-auto mt-5 h-px w-12 bg-gradient-to-r from-transparent via-gold-400/60 to-transparent opacity-70 transition-all duration-500 group-hover:w-20 group-hover:opacity-100" />
+        <div
+          className={`mt-5 h-px bg-gradient-to-r from-transparent via-gold-400/60 to-transparent opacity-70 transition-all duration-500 group-hover:opacity-100 ${
+            isComparison ? 'w-16 group-hover:w-24' : 'mx-auto w-12 group-hover:w-20'
+          }`}
+        />
 
-        <ul className="mt-8 flex-1">
+        <ul className={`${isComparison ? 'mt-6' : 'mt-8 flex-1'}`}>
           {inclusions.map((item, i) => (
             <li
               key={`${pkg.name}-inclusion-${i}`}
-              className={`flex items-start gap-3 py-3.5 text-[0.925rem] leading-snug text-ink-200/70 transition-colors duration-300 group-hover:text-ink-100 ${
-                i < inclusions.length - 1 ? 'border-b border-hairline/5' : ''
+              className={`flex items-start gap-3 text-[0.925rem] leading-snug transition-colors duration-300 group-hover:text-ink-100 ${
+                isComparison
+                  ? 'py-3 text-ink-100/80'
+                  : 'py-3.5 text-ink-200/70'
+              } ${
+                i < inclusions.length - 1
+                  ? isComparison
+                    ? 'border-b border-hairline/10'
+                    : 'border-b border-hairline/5'
+                  : ''
               }`}
             >
-              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-gold-400/30 bg-gold-400/10 text-gold-400 transition-colors duration-300 group-hover:border-gold-400/50 group-hover:bg-gold-400/20">
+              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-gold-400/40 bg-gold-400/10 text-gold-400 transition-colors duration-300 group-hover:border-gold-400/60 group-hover:bg-gold-400/20">
                 <Check className="h-3 w-3" strokeWidth={2.5} aria-hidden />
               </span>
               <span>{item}</span>
@@ -117,14 +172,24 @@ export function PackageCard({
 
         {slotTimings.length > 0 ? (
           <div className="mt-6">
-            <p className="text-center text-[0.65rem] font-medium tracking-[0.18em] text-ink-200/45">
+            <p
+              className={`text-[0.65rem] font-medium uppercase tracking-[0.18em] ${
+                isComparison ? 'text-left text-ink-200/70' : 'text-center text-ink-200/45'
+              }`}
+            >
               Slots
             </p>
-            <ul className="mt-3 flex flex-wrap justify-center gap-2">
+            <ul
+              className={`mt-3 flex flex-wrap gap-2 ${
+                isComparison ? 'justify-start' : 'justify-center'
+              }`}
+            >
               {slotTimings.map((slot, i) => (
                 <li
                   key={`${pkg.name}-slot-${i}`}
-                  className="border border-hairline/10 px-3 py-1.5 text-[0.7rem] tracking-wide text-ink-200/65"
+                  className={`border border-hairline/10 px-3 py-1.5 text-[0.7rem] tracking-wide ${
+                    isComparison ? 'rounded-full text-ink-100/75' : 'text-ink-200/65'
+                  }`}
                 >
                   {slot}
                 </li>
@@ -138,7 +203,11 @@ export function PackageCard({
             {notes.map((note, i) => (
               <li
                 key={`${pkg.name}-note-${i}`}
-                className="text-center text-[0.7rem] leading-relaxed text-ink-200/40"
+                className={`leading-relaxed ${
+                  isComparison
+                    ? 'text-left text-xs text-ink-200/90'
+                    : 'text-center text-[0.7rem] text-ink-200/40'
+                }`}
               >
                 {note}
               </li>
@@ -152,20 +221,36 @@ export function PackageCard({
             target="_blank"
             rel="noreferrer"
             data-cursor="hover"
-            className="mt-5 text-center text-[0.65rem] font-medium tracking-[0.18em] text-gold-300/80 transition-colors hover:text-gold-300"
+            className={`mt-5 text-[0.65rem] font-medium uppercase tracking-[0.18em] text-gold-300/80 transition-colors hover:text-gold-300 ${
+              isComparison ? 'text-left' : 'text-center'
+            }`}
           >
             Theme guide
           </a>
         ) : null}
 
-        <div className="mt-9 flex items-center justify-center gap-3">
+        <div
+          className={`mt-8 ${
+            isComparison
+              ? 'grid grid-cols-1 gap-3'
+              : 'flex items-center justify-center gap-3'
+          }`}
+        >
           <Link
             to={enquireHref}
             data-cursor="hover"
-            className="group/btn relative inline-flex items-center justify-center overflow-hidden border border-hairline/20 px-9 py-3 text-[0.7rem] font-medium tracking-[0.22em] text-ink-50 transition-all duration-400 hover:border-gold-400/60 hover:text-gold-300"
+            className={`group/btn relative inline-flex min-h-11 items-center justify-center overflow-hidden font-medium transition-all duration-400 ${
+              isComparison
+                ? 'package-primary-action w-full rounded-sm px-5 py-3 text-center text-[0.75rem] tracking-[0.12em] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-300'
+                : 'border border-hairline/20 px-9 py-3 text-[0.7rem] tracking-[0.22em] text-ink-50 hover:border-gold-400/60 hover:text-gold-300'
+            }`}
           >
-            <span className="relative z-10">ENQUIRE</span>
-            <span className="absolute inset-0 origin-left scale-x-0 bg-gradient-to-r from-gold-400/20 to-gold-500/10 transition-transform duration-400 group-hover/btn:scale-x-100" />
+            <span className="relative z-10">
+              {isComparison ? 'ENQUIRE' : 'ENQUIRE'}
+            </span>
+            {!isComparison ? (
+              <span className="absolute inset-0 origin-left scale-x-0 bg-gradient-to-r from-gold-400/20 to-gold-500/10 transition-transform duration-400 group-hover/btn:scale-x-100" />
+            ) : null}
           </Link>
           {whatsappAvailable ? (
             <a
@@ -180,9 +265,14 @@ export function PackageCard({
                   service_name: pkg.name,
                 });
               }}
-              className="inline-flex h-11 w-11 items-center justify-center text-ink-200/55 transition-colors hover:text-gold-300"
+              className={`inline-flex min-h-11 items-center justify-center transition-colors ${
+                isComparison
+                  ? 'w-full gap-2 rounded-sm border border-hairline/15 px-5 py-3 text-[0.75rem] font-medium tracking-[0.08em] text-ink-100/80 hover:border-gold-400/50 hover:text-gold-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-300'
+                  : 'h-11 w-11 text-ink-200/55 hover:text-gold-300'
+              }`}
             >
               <WhatsAppIcon className="h-5 w-5" />
+              {isComparison ? <span>Ask on WhatsApp</span> : null}
             </a>
           ) : null}
         </div>

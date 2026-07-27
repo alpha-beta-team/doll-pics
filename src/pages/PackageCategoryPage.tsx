@@ -104,17 +104,19 @@ function PackageCategoryPageContent() {
     : undefined;
 
   return (
-    <div className="relative bg-ink-950">
+    <div className="packages-editorial relative bg-ink-950">
       <CustomCursor />
       <div className="film-grain" />
       <Navbar />
 
       <main className="relative overflow-hidden bg-ink-950 pt-20">
-        <section id="packages" className="relative px-6 pb-16 pt-12 lg:px-10">
-          <div className="mx-auto mb-10 max-w-7xl">
+        <div className="packages-editorial-glow pointer-events-none absolute inset-x-0 top-0 h-[34rem]" />
+
+        <section id="packages" className="relative px-6 pb-20 pt-12 lg:px-10 lg:pt-16">
+          <div className="mx-auto mb-12 max-w-7xl">
             <nav
               aria-label="Breadcrumb"
-              className="mb-6 flex flex-wrap items-center gap-2 text-xs tracking-wide text-ink-300/50"
+              className="mb-7 flex flex-wrap items-center gap-2 text-xs tracking-wide text-ink-300/70"
             >
               <Link to="/" className="transition-colors hover:text-gold-400">
                 Home
@@ -126,10 +128,11 @@ function PackageCategoryPageContent() {
               <span aria-hidden="true">/</span>
               <span className="text-ink-200/70">{page.label}</span>
             </nav>
-            <h1 className="max-w-3xl font-display text-4xl font-light leading-tight text-ink-50 md:text-5xl">
+            <p className="section-label mb-4">Curated coverage</p>
+            <h1 className="max-w-4xl font-display text-4xl font-light leading-[1.05] text-ink-50 md:text-6xl">
               {page.heading}
             </h1>
-            <p className="mt-4 max-w-xl text-[0.95rem] leading-relaxed text-ink-200/70">
+            <p className="mt-5 max-w-2xl text-base leading-relaxed text-ink-100/75">
               {page.lead}
             </p>
           </div>
@@ -142,6 +145,7 @@ function PackageCategoryPageContent() {
               <PackagesGrid
                 packages={categoryPackages}
                 whatsapp={siteContent.whatsapp}
+                presentation="comparison"
               />
             )}
           </div>
@@ -251,7 +255,7 @@ function PackageCategoryPageContent() {
                 <Link
                   to="/booking"
                   data-cursor="hover"
-                  className="inline-flex items-center justify-center rounded-sm bg-gold-500 px-6 py-3 text-sm font-medium tracking-wide text-on-gold transition-colors hover:bg-gold-400"
+                  className="package-primary-action inline-flex items-center justify-center rounded-sm px-6 py-3 text-sm font-medium tracking-wide transition-colors"
                 >
                   Book a consultation
                 </Link>
@@ -301,7 +305,7 @@ function PackageCategoryPageContent() {
       </main>
 
       <Footer />
-      <ContactFabHost />
+      <ContactFabHost presentation="editorial" />
     </div>
   );
 }
