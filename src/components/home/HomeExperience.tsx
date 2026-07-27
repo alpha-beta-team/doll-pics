@@ -1,14 +1,12 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowDown,
   ArrowRight,
   Camera,
-  Check,
   ChevronLeft,
   ChevronRight,
   MapPin,
-  Quote,
   Sparkles,
 } from 'lucide-react';
 import {
@@ -65,8 +63,6 @@ export function HomeExperience() {
       <StudioManifesto />
       <SelectedStories />
       <ServiceJournal />
-      <ExperienceProcess />
-      <ClientLove />
       <ClosingInvitation />
     </>
   );
@@ -353,7 +349,7 @@ function StudioManifesto() {
 }
 
 function SelectedStories() {
-  const { featuredWork } = useSiteData();
+  const { featuredWork, services } = useSiteData();
   const items = featuredWork.slice(0, 5);
 
   return (
@@ -374,7 +370,12 @@ function SelectedStories() {
 
         <div className="grid grid-cols-1 gap-5 md:grid-cols-12 md:gap-6">
           {items.map((work, index) => (
-            <StoryTile key={`${work.title}-${index}`} work={work} index={index} />
+            <StoryTile
+              key={`${work.title}-${index}`}
+              work={work}
+              index={index}
+              path={storyServicePath(work.category, services)}
+            />
           ))}
         </div>
       </div>
@@ -385,9 +386,11 @@ function SelectedStories() {
 function StoryTile({
   work,
   index,
+  path,
 }: {
   work: FeaturedWorkItem;
   index: number;
+  path: string;
 }) {
   const layouts = [
     'md:col-span-7 md:row-span-2 aspect-[4/5] md:aspect-[7/8]',
@@ -399,43 +402,86 @@ function StoryTile({
 
   return (
     <Reveal
-      className={`group relative overflow-hidden bg-ink-800 ${layouts[index] || 'md:col-span-6 aspect-[4/3]'}`}
+      className={`group relative overflow-hidden bg-ink-800 focus-within:ring-2 focus-within:ring-gold-300 focus-within:ring-offset-4 focus-within:ring-offset-ink-900 ${layouts[index] || 'md:col-span-6 aspect-[4/3]'}`}
       delay={(index % 3) * 80}
     >
-      <ResponsiveImage
-        src={work.image}
-        alt={work.alt}
-        avifSrcSet={work.avifSrcSet}
-        webpSrcSet={work.webpSrcSet}
-        sizes="(max-width: 768px) 100vw, 58vw"
-        width={1200}
-        height={1400}
-        className="h-full w-full object-cover transition-transform duration-[1100ms] ease-out group-hover:scale-[1.045]"
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/5 to-transparent opacity-80 transition-opacity group-hover:opacity-95" />
-      <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-6 sm:p-8">
-        <div>
-          <p className="mb-2 text-[0.6rem] font-semibold uppercase tracking-[0.28em] text-gold-300">
-            {work.category}
-          </p>
-          <h3 className="font-display text-3xl font-light text-white sm:text-4xl">
-            {work.title}
-          </h3>
-          {(work.location || work.year) && (
-            <p className="mt-2 text-xs tracking-wide text-white/60">
-              {[work.location, work.year].filter(Boolean).join(' · ')}
+      <Link
+        to={path}
+        aria-label={`View ${work.category} photography services: ${work.title}`}
+        className="relative block h-full w-full outline-none"
+      >
+        <ResponsiveImage
+          src={work.image}
+          alt={work.alt}
+          avifSrcSet={work.avifSrcSet}
+          webpSrcSet={work.webpSrcSet}
+          sizes="(max-width: 768px) 100vw, 58vw"
+          width={1200}
+          height={1400}
+          className="h-full w-full object-cover transition-transform duration-[1100ms] ease-out group-hover:scale-[1.045]"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/5 to-transparent opacity-80 transition-opacity group-hover:opacity-95" />
+        <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-6 sm:p-8">
+          <div>
+            <p className="mb-2 text-[0.6rem] font-semibold uppercase tracking-[0.28em] text-gold-300">
+              {work.category}
             </p>
-          )}
+            <h3 className="font-display text-3xl font-light text-white sm:text-4xl">
+              {work.title}
+            </h3>
+            {(work.location || work.year) && (
+              <p className="mt-2 text-xs tracking-wide text-white/60">
+                {[work.location, work.year].filter(Boolean).join(' · ')}
+              </p>
+            )}
+          </div>
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-white/25 text-white transition-all duration-300 group-hover:border-gold-300 group-hover:bg-gold-300 group-hover:text-black">
+            <ArrowRight className="h-4 w-4" />
+          </span>
         </div>
-        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-white/25 text-white transition-all duration-300 group-hover:border-gold-300 group-hover:bg-gold-300 group-hover:text-black">
-          <ArrowRight className="h-4 w-4" />
+        <span className="absolute right-5 top-5 text-[0.6rem] uppercase tracking-[0.25em] text-white/55">
+          {String(index + 1).padStart(2, '0')}
         </span>
-      </div>
-      <span className="absolute right-5 top-5 text-[0.6rem] uppercase tracking-[0.25em] text-white/55">
-        {String(index + 1).padStart(2, '0')}
-      </span>
+      </Link>
     </Reveal>
   );
+}
+
+function storyServicePath(category: string, services: ServiceItem[]): string {
+  const normalizedCategory = category
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+
+  const targets = normalizedCategory.includes('newborn')
+    ? ['newborn']
+    : normalizedCategory.includes('maternity') ||
+        normalizedCategory.includes('pregnancy')
+      ? ['maternity']
+      : normalizedCategory.includes('cake') ||
+          normalizedCategory.includes('birthday')
+        ? ['cake smash', 'baby milestone']
+        : normalizedCategory.includes('family')
+          ? ['family']
+          : normalizedCategory.includes('wedding') ||
+              normalizedCategory.includes('engagement') ||
+              normalizedCategory.includes('couple')
+            ? ['wedding']
+            : [normalizedCategory];
+
+  const service = services.find((item) => {
+    const title = item.title
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim();
+    return targets.some(
+      (target) => title === target || title.includes(target) || target.includes(title),
+    );
+  });
+
+  return service?.path || '/services';
 }
 
 function ServiceJournal() {
@@ -550,123 +596,6 @@ function ServiceRow({
         </span>
       </Link>
     </Reveal>
-  );
-}
-
-function ExperienceProcess() {
-  const steps = [
-    {
-      title: 'A thoughtful hello',
-      text: 'We begin with a relaxed conversation about your people, your priorities, and how you want the photographs to feel.',
-    },
-    {
-      title: 'Calm, guided coverage',
-      text: 'On the day, we blend gentle direction with documentary observation so you can stay present while nothing important is missed.',
-    },
-    {
-      title: 'Your story, finished',
-      text: 'Every frame is carefully selected and hand-finished into a timeless gallery designed to be revisited for generations.',
-    },
-  ];
-
-  return (
-    <section className="bg-[#d7c7ae] px-5 py-24 text-[#17140f] sm:px-8 md:py-32 lg:px-12 lg:py-40">
-      <div className="mx-auto max-w-[1480px]">
-        <Reveal className="grid gap-8 border-b border-black/15 pb-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
-          <div className="text-[0.65rem] font-semibold uppercase tracking-[0.32em] text-black/60">
-            The Doll Pictures experience
-          </div>
-          <h2 className="font-display text-[clamp(3.1rem,5.5vw,6rem)] font-light leading-[0.9] tracking-[-0.035em]">
-            Beautifully simple,
-            <span className="italic"> from start to finish.</span>
-          </h2>
-        </Reveal>
-
-        <div className="mt-12 grid gap-10 md:grid-cols-3 md:gap-0">
-          {steps.map((step, index) => (
-            <Reveal
-              key={step.title}
-              delay={index * 90}
-              className="relative border-black/15 md:border-l md:px-8 md:first:border-l-0 md:first:pl-0"
-            >
-              <div className="mb-12 flex items-center justify-between md:mb-20">
-                <span className="font-display text-5xl font-light text-black/30">
-                  {String(index + 1).padStart(2, '0')}
-                </span>
-                <span className="grid h-9 w-9 place-items-center rounded-full border border-black/20">
-                  <Check className="h-3.5 w-3.5" />
-                </span>
-              </div>
-              <h3 className="font-display text-3xl font-normal">{step.title}</h3>
-              <p className="mt-4 max-w-sm text-sm leading-7 text-black/65">
-                {step.text}
-              </p>
-            </Reveal>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function ClientLove() {
-  const { testimonials } = useSiteData();
-  const items = testimonials.slice(0, 6);
-  const [active, setActive] = useState(0);
-  const testimonial = items[active];
-
-  const stars = useMemo(
-    () => Array.from({ length: Math.max(0, testimonial?.rating || 5) }),
-    [testimonial?.rating],
-  );
-
-  if (!testimonial) return null;
-
-  return (
-    <section
-      id="testimonials"
-      className="overflow-hidden bg-ink-950 px-5 py-24 sm:px-8 md:py-32 lg:px-12 lg:py-40"
-    >
-      <div className="mx-auto max-w-[1180px]">
-        <Reveal className="text-center">
-          <SectionEyebrow>Kind words</SectionEyebrow>
-          <Quote className="mx-auto h-10 w-10 text-gold-400/45" strokeWidth={1} />
-          <blockquote className="mx-auto mt-8 max-w-5xl font-display text-[clamp(2.4rem,4.8vw,5.1rem)] font-light leading-[1.02] tracking-[-0.025em] text-ink-50">
-            “{testimonial.text}”
-          </blockquote>
-          <div className="mt-9 flex items-center justify-center gap-1 text-gold-400">
-            {stars.map((_, index) => (
-              <Sparkles key={index} className="h-3.5 w-3.5" />
-            ))}
-          </div>
-          <div className="mt-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ink-100">
-              {testimonial.name}
-            </p>
-            <p className="mt-2 text-xs text-ink-400">{testimonial.role}</p>
-          </div>
-        </Reveal>
-
-        {items.length > 1 ? (
-          <div className="mt-12 flex items-center justify-center gap-2">
-            {items.map((item, index) => (
-              <button
-                key={`${item.name}-${index}`}
-                type="button"
-                aria-label={`Show testimonial from ${item.name}`}
-                aria-current={index === active ? 'true' : undefined}
-                onClick={() => setActive(index)}
-                className={`h-1 transition-all duration-300 ${
-                  index === active
-                    ? 'w-12 bg-gold-400'
-                    : 'w-5 bg-hairline/20 hover:bg-hairline/40'
-                }`}
-              />
-            ))}
-          </div>
-        ) : null}
-      </div>
-    </section>
   );
 }
 
