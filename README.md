@@ -111,8 +111,9 @@ VITE_SITE_URL=https://dollpictures.in
 
 | Variable | Required | Purpose |
 |----------|----------|---------|
-| `VITE_API_URL` | Yes (prod) | CMS/API base URL (includes `/api`). Build uses it to proxy `/sitemap.xml` → `{API}/sitemap.xml`. |
+| `VITE_API_URL` | Yes (prod) | CMS/API base URL (includes `/api`). Runtime and prerender builds load published CMS content from it. |
 | `VITE_SITE_URL` | Recommended (prod) | Site origin for robots.txt, prerender, and SEO absolute URLs. No trailing slash. Defaults to `https://dollpictures.in` if unset. |
+| `SEO_REQUIRE_CMS` | Yes (prod) | Set to `true` so a production build fails instead of silently omitting unavailable CMS SEO data. |
 
 Backend: set `CORS_ORIGIN=http://localhost:5173` and change `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
 
@@ -123,7 +124,7 @@ Backend: set `CORS_ORIGIN=http://localhost:5173` and change `ADMIN_EMAIL` / `ADM
 | `photography-cms-backend` | Deploy to Railway/Render/VPS. Serves live `GET /api/sitemap.xml` from CMS data. Set `SITE_URL=https://dollpictures.in`. |
 | `doll-pics` | Deploy to Vercel/Netlify with `VITE_API_URL` and `VITE_SITE_URL` set |
 
-SPA rewrites are configured in `vercel.json` / `netlify.toml`. Admin routes require the same fallback on other hosts. `/sitemap.xml` is proxied to the CMS API so new CMS landings appear without a frontend rebuild. Unknown public paths fall through to the SPA shell (200); React resolves CMS landings or shows `NotFound` with `noindex`. Prerendered folders on disk still win via filesystem-first routing.
+Routing is configured in `vercel.json` / `netlify.toml`. `/sitemap.xml` is proxied to the CMS API, while `/admin` retains an SPA fallback. Public pages are served from prerendered files and unknown public paths use the generated `404.html` with a genuine HTTP 404. Published service/package SEO changes trigger a frontend deploy hook from the backend so new paths become prerendered automatically.
 
 #### Host environment variables (Step 4)
 
@@ -133,20 +134,24 @@ Set these in your host dashboard:
 
 - `VITE_API_URL` = your production API URL (e.g. `https://photography-cms-backend.onrender.com/api`)
 - `VITE_SITE_URL` = `https://dollpictures.in`
+- `SEO_REQUIRE_CMS` = `true`
 
 Apply to **Production** (and Preview if you want preview builds to use the same origin).
 
-**Vercel:** Project → Settings → Environment Variables → add the same two variables for **Production** (and Preview if desired).
+**Vercel:** Project → Settings → Environment Variables → add the same three variables for **Production** (and Preview if desired).
 
-Redeploy after saving so `prebuild` writes `robots.txt` and Netlify `_redirects` for the sitemap proxy.
+Create a production-branch deploy hook in Vercel under Project → Settings → Git → Deploy Hooks. Store that secret URL in the backend's `FRONTEND_DEPLOY_HOOK_URLS`; never commit or paste it into frontend variables. Add a Netlify build-hook URL to the same comma-separated backend variable only when Netlify is actively deployed.
+
+Redeploy after saving so prerendering reads the current published CMS routes. `vercel.json` and `netlify.toml` are the sitemap-routing sources of truth.
 
 #### Google Search Console (Step 5)
 
 After deploy:
 
 1. Open `https://dollpictures.in/robots.txt` and confirm it includes `Sitemap: https://dollpictures.in/sitemap.xml`
-2. Open `https://dollpictures.in/sitemap.xml` and confirm it is XML from the API (new CMS paths appear within ~5 minutes of publish, no frontend redeploy)
-3. In [Google Search Console](https://search.google.com/search-console) → **Sitemaps** → submit `https://dollpictures.in/sitemap.xml` (or use **Refresh** if already submitted)
+2. Run `npm run seo:smoke` to compare the public and backend sitemap URL sets and verify the production 404.
+3. Open `https://dollpictures.in/sitemap.xml` and confirm it is XML from the API.
+4. In [Google Search Console](https://search.google.com/search-console) → **Sitemaps** → submit `https://dollpictures.in/sitemap.xml` (or use **Refresh** if already submitted).
 
 ## Getting Started
 

@@ -1,4 +1,0 @@
-{
-  "source": "/sitemap.xml",
-  "destination": "http://localhost:3001/api/sitemap.xml"
-}

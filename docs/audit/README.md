@@ -4,6 +4,8 @@
 **Stack:** Vite + React (CSR) with post-build prerender (`scripts/prerender.ts`)  
 **Audited:** 12 Jul 2026
 
+> **28 Jul 2026 follow-up:** This report is a historical snapshot. The live sitemap and production CMS content have changed since this audit. Use the [SEO remediation master plan](../plans/seo/README.md) for the current findings, execution order, and acceptance criteria.
+
 ## Verdict
 
 This is **not** a fragile empty-shell CSR SPA — prerender, unique per-route meta, and JSON-LD are solid. The real damage is live **trust and conversion**: fake European testimonials, stock portfolio locations, and ₹1 placeholder packages.

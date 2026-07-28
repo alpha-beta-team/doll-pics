@@ -55,10 +55,17 @@ export function loadStaticSeoData() {
 
 export async function loadCmsOverlays() {
   const apiBase = getApiBase();
+  const requireCms =
+    String(process.env.SEO_REQUIRE_CMS ?? '').toLowerCase() === 'true';
   const packagesByPath = new Map<string, PackageNavLinkLike>();
   const servicesByPath = new Map<string, ServiceNavLinkLike>();
 
   if (!apiBase) {
+    if (requireCms) {
+      throw new Error(
+        'SEO_REQUIRE_CMS=true but VITE_API_URL/API_URL is not configured',
+      );
+    }
     return { packagesByPath, servicesByPath, apiBase: '' };
   }
 
@@ -82,6 +89,11 @@ export async function loadCmsOverlays() {
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
+    if (requireCms) {
+      throw new Error(`SEO build: package categories unavailable: ${message}`, {
+        cause: err,
+      });
+    }
     console.warn('SEO build: package categories unavailable:', message);
   }
 
@@ -106,6 +118,12 @@ export async function loadCmsOverlays() {
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
+    if (requireCms) {
+      throw new Error(
+        `SEO build: site-content services unavailable: ${message}`,
+        { cause: err },
+      );
+    }
     console.warn('SEO build: site-content services unavailable:', message);
   }
 

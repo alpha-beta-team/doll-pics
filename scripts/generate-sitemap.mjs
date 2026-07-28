@@ -1,6 +1,6 @@
 /**
- * Writes robots.txt and host proxy rules so /sitemap.xml is served by the CMS API.
- * Live URLs come from GET {VITE_API_URL}/sitemap.xml — no static sitemap.xml at build time.
+ * Writes robots.txt. Host routing is versioned in vercel.json and netlify.toml.
+ * Live URLs come from the CMS sitemap endpoint — no static sitemap.xml is built.
  */
 import { writeFileSync, unlinkSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -29,28 +29,16 @@ if (existsSync(staticSitemap)) {
   unlinkSync(staticSitemap);
 }
 
-if (apiBase) {
-  const sitemapApi = `${apiBase.replace(/\/$/, '')}/sitemap.xml`;
-
-  // Netlify: proxy even if a stale file exists (force)
-  writeFileSync(
-    join(root, 'public/_redirects'),
-    [`/sitemap.xml  ${sitemapApi}  200!`, ''].join('\n'),
-  );
-
-  // Vercel build hint (committed vercel.json also proxies; this keeps CI in sync)
-  writeFileSync(
-    join(root, 'public/_sitemap-proxy.json'),
-    `${JSON.stringify({ source: '/sitemap.xml', destination: sitemapApi }, null, 2)}\n`,
-  );
-
-  console.log(`SEO: robots.txt → Sitemap ${siteUrl}/sitemap.xml`);
-  console.log(`SEO: proxy /sitemap.xml → ${sitemapApi}`);
-} else {
-  console.warn(
-    'SEO: VITE_API_URL not set — robots.txt written, but /sitemap.xml proxy was skipped.',
-  );
-  console.warn(
-    'SEO: Set VITE_API_URL so Netlify/Vercel can proxy sitemap to the CMS API.',
-  );
+for (const legacyFile of ['_redirects', '_sitemap-proxy.json']) {
+  const legacyPath = join(root, 'public', legacyFile);
+  if (existsSync(legacyPath)) {
+    unlinkSync(legacyPath);
+  }
 }
+
+console.log(`SEO: robots.txt → Sitemap ${siteUrl}/sitemap.xml`);
+console.log(
+  apiBase
+    ? `SEO: CMS sitemap source ${apiBase}/sitemap.xml`
+    : 'SEO: VITE_API_URL not set; host routing still serves the configured production sitemap.',
+);

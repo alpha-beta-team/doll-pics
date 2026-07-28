@@ -9,6 +9,8 @@
     "build": "vite build && tsx scripts/prerender.ts",
     "prerender": "tsx scripts/prerender.ts",
     "sitemap": "node scripts/generate-sitemap.mjs",
+    "seo:smoke": "node scripts/check-seo-deployment.mjs",
+    "test:seo": "tsx --test scripts/*.spec.mjs scripts/lib/*.spec.ts",
     "lint": "eslint .",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.app.json"
