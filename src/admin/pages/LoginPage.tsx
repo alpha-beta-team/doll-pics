@@ -94,12 +94,6 @@ export function LoginPage() {
               )}
             </button>
           </form>
-
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <p className="text-center text-xs text-gray-500">
-              Demo credentials: admin@studio.com / admin123
-            </p>
-          </div>
         </div>
       </div>
     </div>

@@ -15,8 +15,8 @@ export const SECTION_COMPONENTS: Record<string, ComponentType> = {
     'FeaturedWork',
   ),
   gallery: lazySection(
-    () => import('../components/sections/HorizontalGallery'),
-    'HorizontalGallery',
+    () => import('../components/gallery/GalleryPortfolio'),
+    'GalleryPortfolio',
   ),
   services: lazySection(
     () => import('../components/sections/Services'),

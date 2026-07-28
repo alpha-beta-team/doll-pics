@@ -14,6 +14,8 @@ export type ResponsiveImageProps = {
   decoding?: ImgHTMLAttributes<HTMLImageElement>['decoding'];
   fetchPriority?: ImgHTMLAttributes<HTMLImageElement>['fetchPriority'];
   style?: ImgHTMLAttributes<HTMLImageElement>['style'];
+  onLoad?: ImgHTMLAttributes<HTMLImageElement>['onLoad'];
+  onError?: ImgHTMLAttributes<HTMLImageElement>['onError'];
 };
 
 export function ResponsiveImage({
@@ -29,6 +31,8 @@ export function ResponsiveImage({
   decoding = 'async',
   fetchPriority,
   style,
+  onLoad,
+  onError,
 }: ResponsiveImageProps) {
   const responsivePexels = !avifSrcSet && !webpSrcSet && isPexelsUrl(src);
   const resolvedWebpSrcSet = responsivePexels
@@ -49,6 +53,8 @@ export function ResponsiveImage({
       fetchPriority={fetchPriority}
       className={className}
       style={style}
+      onLoad={onLoad}
+      onError={onError}
     />
   );
 

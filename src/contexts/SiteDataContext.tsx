@@ -37,7 +37,6 @@ import {
 import {
   DEFAULT_PACKAGE_NAV_LINKS,
   DEFAULT_SERVICE_NAV_LINKS,
-  SECTION_PATHS,
   getPublishedPackageNavLinks,
   getPublishedServiceNavLinks,
   normalizePathname,
@@ -200,8 +199,6 @@ const normalizedFallbackGallery: GalleryImageItem[] = fallbackGalleryImages.map(
       : item,
 );
 
-const HOME_PATHS = new Set<string>(['/', ...SECTION_PATHS]);
-
 function isPlaceholderPhoto(photo: PublicPhoto): boolean {
   const original = photo.variants?.original?.url ?? '';
   return (
@@ -262,10 +259,13 @@ function bucketsForPath(
   const path = normalizePathname(pathname);
   const buckets = new Set<DataBucket>();
 
-  if (HOME_PATHS.has(path)) {
+  if (path === '/') {
     buckets.add('home');
     buckets.add('media');
     buckets.add('packages');
+  }
+  if (path === '/work') {
+    buckets.add('media');
   }
   if (path === '/stories') {
     buckets.add('reviews');

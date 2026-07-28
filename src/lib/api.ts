@@ -31,6 +31,11 @@ const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3001/api';
 const IMAGEKIT_ENDPOINT = 'https://ik.imagekit.io/dollpictures';
 const IMAGEKIT_WIDTHS = [400, 800, 1200, 1600] as const;
 
+function imageKitPhotoUrl(storageKey: string, width: number, quality = 78): string {
+  const path = storageKey.split('/').map(encodeURIComponent).join('/');
+  return `${IMAGEKIT_ENDPOINT}/tr:w-${width},q-${quality},f-auto/${path}`;
+}
+
 export class ApiError extends Error {
   status: number;
   messages: string[];
@@ -142,9 +147,8 @@ export function getPhotoSources(photo: {
   const storageKey = photo.storageKey?.trim();
   const hasRealStorageKey = storageKey && !storageKey.startsWith('seed/');
   if (hasRealStorageKey) {
-    const path = storageKey.split('/').map(encodeURIComponent).join('/');
     const transformed = (width: number) =>
-      `${IMAGEKIT_ENDPOINT}/tr:w-${width},q-78,f-auto/${path}`;
+      imageKitPhotoUrl(storageKey, width);
     return {
       src: transformed(1200),
       alt: photo.altText?.trim() || photo.title?.trim() || 'Photography by Doll Pictures',
@@ -167,6 +171,18 @@ export function getPhotoSources(photo: {
   };
 }
 
+/** Prefer a high-quality, bounded lightbox asset over the original upload. */
+export function getPhotoLightboxUrl(photo: PublicPhoto): string {
+  const storageKey = photo.storageKey?.trim();
+  if (storageKey && !storageKey.startsWith('seed/')) {
+    return imageKitPhotoUrl(storageKey, 1600, 86);
+  }
+  if (photo.variants?.original?.url) {
+    return resolveMediaUrl(photo.variants.original.url);
+  }
+  return getPhotoUrl(photo);
+}
+
 export type PhotosQuery = {
   featured?: boolean;
   /** Cap results (public gallery). Backend clamps to a safe max. */
@@ -176,7 +192,7 @@ export type PhotosQuery = {
 
 export const publicApi = {
   getSiteContent: () => publicFetch<PublicSiteContent>('/site-content'),
-  getPhotos: (params?: PhotosQuery) => {
+  getPhotos: (params?: PhotosQuery, init?: RequestInit) => {
     const qs = new URLSearchParams();
     if (params?.featured) qs.set('featured', 'true');
     if (params?.category) qs.set('category', params.category);
@@ -184,7 +200,10 @@ export const publicApi = {
       qs.set('limit', String(params.limit));
     }
     const query = qs.toString();
-    return publicFetch<PublicPhoto[]>(`/photos${query ? `?${query}` : ''}`);
+    return publicFetch<PublicPhoto[]>(
+      `/photos${query ? `?${query}` : ''}`,
+      init,
+    );
   },
   getPackages: () => publicFetch<PublicPackage[]>('/packages'),
   getPackageCategories: () =>
