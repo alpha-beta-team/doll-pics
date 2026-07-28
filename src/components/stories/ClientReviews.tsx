@@ -110,10 +110,10 @@ function ReviewCard({
         <RatingStars rating={review.rating} />
 
         <blockquote
-          className={`mt-6 font-display font-light leading-[1.2] text-ink-50 ${
+          className={`mt-6 font-sans font-normal tracking-[-0.015em] text-ink-50/95 ${
             featured
-              ? 'max-w-4xl text-3xl sm:text-4xl'
-              : 'text-2xl sm:text-[1.75rem]'
+              ? 'max-w-4xl text-xl leading-[1.65] sm:text-2xl sm:leading-[1.6] lg:text-[1.65rem]'
+              : 'text-lg leading-[1.7] sm:text-xl sm:leading-[1.65]'
           }`}
         >
           <p>&ldquo;{review.text}&rdquo;</p>
@@ -141,7 +141,7 @@ function ReviewCard({
               <p className="text-[0.62rem] font-semibold uppercase tracking-[0.2em] text-gold-400">
                 A note from Doll Pictures
               </p>
-              <p className="mt-3 text-sm leading-relaxed text-ink-100/75">
+              <p className="mt-3 text-[0.95rem] leading-7 text-ink-100/85">
                 {review.reply}
               </p>
             </div>
