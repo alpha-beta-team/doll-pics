@@ -2,7 +2,7 @@
 
 **Priority:** P1  
 **Effort:** Medium  
-**Status:** Not started  
+**Status:** In progress — safe omission implemented; deployment and route-specific restoration pending
 **Owner:** Unassigned
 
 [← Master plan](./README.md)
@@ -11,17 +11,44 @@
 
 Sitemap `lastmod` values represent the last significant change to each page, remain stable between requests, and change only when relevant content changes.
 
-## Current evidence
+## Original issue
 
 The backend sitemap assigns `new Date()` to every URL on every request. This reports that all 23 pages changed every day, regardless of their actual content.
+
+## Implementation status
+
+Completed locally on 30 Jul 2026:
+
+- [x] Removed the request-time `new Date()` value from every sitemap URL.
+- [x] Omitted `lastmod` until a trustworthy date exists for each route.
+- [x] Removed `changefreq` and `priority`, which Google ignores.
+- [x] Added regression tests proving that unchanged CMS routes produce stable XML.
+- [x] Backend tests and production build pass.
+- [ ] Commit and deploy the CMS backend.
+- [ ] Verify that the production sitemap no longer contains manufactured dates.
+
+This is intentionally a safe first phase. `lastmod` will not return automatically.
+Restore it only through the route-specific work below; never restore a shared
+request date, deployment date, or current date across every URL.
 
 ## Strategy
 
 Implement the smallest truthful version first:
 
-1. Omit `lastmod` where no reliable source exists.
+1. Omit `lastmod` where no reliable source exists. **Implemented locally.**
 2. Add route-specific dates only when they can be derived accurately.
-3. Remove `priority` and `changefreq` unless retained for non-Google consumers; Google ignores them.
+3. Remove `priority` and `changefreq` unless retained for non-Google consumers; Google ignores them. **Implemented locally.**
+
+## Restoration trigger
+
+Restore `lastmod` only when all of the following are true:
+
+- The relevant CMS models expose reliable `updatedAt` or publication timestamps.
+- Each canonical route can be mapped to only the content that materially affects it.
+- Unpublished, private, seed, analytics, counter, and routine footer changes are excluded.
+- Repeated sitemap requests remain byte-for-byte stable when content is unchanged.
+- Tests prove that changing one record updates only its relevant route or routes.
+- Routes without a trustworthy timestamp continue to omit `lastmod`.
 
 ## Work plan
 
@@ -42,6 +69,10 @@ Implement the smallest truthful version first:
 
 ### Backend implementation
 
+- [x] Remove request-time dates from sitemap generation.
+- [x] Omit `lastmod` as the safe baseline.
+- [x] Remove `changefreq` and `priority`.
+- [x] Add baseline tests for stable XML and metadata omission.
 - [ ] Expose or query only required `updatedAt` values.
 - [ ] Avoid N+1 database queries while generating the sitemap.
 - [ ] Produce W3C-compatible dates.
@@ -55,18 +86,19 @@ Implement the smallest truthful version first:
 
 ## Acceptance criteria
 
-- [ ] Two consecutive sitemap requests with unchanged content return identical `lastmod` values.
+- [x] Two local sitemap builds with unchanged content return identical XML.
+- [ ] After restoration, two requests with unchanged content return identical route-specific `lastmod` values.
 - [ ] Updating one package category changes only its relevant page date.
 - [ ] Updating a gallery image changes only relevant gallery/work dates.
-- [ ] Routes without a trustworthy date omit `lastmod`.
+- [x] Routes without a trustworthy date omit `lastmod`.
 - [ ] No future dates are emitted.
 - [ ] Sitemap XML remains valid.
 
 ## Verification
 
-- [ ] Snapshot the sitemap twice on the same day and diff it.
+- [x] Generate the sitemap twice in a unit test and compare it.
 - [ ] Update a test record and assert only expected routes change.
-- [ ] Run backend unit tests.
+- [x] Run backend unit tests and production build.
 - [ ] Validate the production sitemap after deployment.
 
 ## Likely files/systems
