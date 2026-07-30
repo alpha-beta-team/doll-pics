@@ -51,7 +51,10 @@ function SectionOnlyView({
   return (
     <SiteShell>
       <main className="relative pt-20">
-        {pathname !== '/gallery' && seo.heading && seo.body ? (
+        {pathname !== '/gallery' &&
+        pathname !== '/services' &&
+        seo.heading &&
+        seo.body ? (
           <SectionPageIntro heading={seo.heading} body={seo.body} />
         ) : null}
         <Suspense fallback={null}>

@@ -72,8 +72,10 @@ export function selectServiceImages(options: {
   }
 
   const [hero, ...rest] = selected;
-  const gallery = rest.slice(0, 8);
-  const inline = rest.slice(0, 2);
+  // Keep each visual role unique: portfolio images should not repeat in the
+  // editorial story sections further down the page.
+  const gallery = rest.slice(0, 6);
+  const inline = rest.slice(6, 8);
 
   return { hero, gallery, inline };
 }
