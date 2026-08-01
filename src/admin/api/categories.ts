@@ -9,8 +9,16 @@ async function getCategories(): Promise<Category[]> {
   return docs.map(mapCategory).sort((a, b) => a.order - b.order);
 }
 
+async function getServiceCategories(): Promise<Category[]> {
+  const docs = await request<Record<string, unknown>[]>('/admin/categories/services', {
+    auth: true,
+  });
+  return docs.map(mapCategory).sort((a, b) => a.order - b.order);
+}
+
 export const categoriesApi = {
   getCategories,
+  getServiceCategories,
 
   async getCategory(id: string): Promise<Category | null> {
     const categories = await getCategories();

@@ -77,6 +77,7 @@ interface PhotoEdit extends Photo {
 export function PhotosPage() {
   const [photos, setPhotos] = useState<PhotoEdit[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [serviceCategories, setServiceCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -99,16 +100,23 @@ export function PhotosPage() {
 
   const fetchPhotos = useCallback(async () => {
     try {
-      const [photosData, categoriesData] = await Promise.all([
+      const [photosData, categoriesData, serviceCategoriesData] = await Promise.all([
         api.getPhotos({
           category: selectedCategory || undefined,
           published: selectedPublished === '' ? undefined : selectedPublished === 'true',
           search: searchQuery || undefined,
         }),
         api.getCategories(),
+        api.getServiceCategories(),
       ]);
       setPhotos(photosData);
-      setCategories(categoriesData);
+      setCategories(Array.from(
+        new Map(
+          [...categoriesData, ...serviceCategoriesData]
+            .map(category => [category.id, category]),
+        ).values(),
+      ).sort((a, b) => a.order - b.order));
+      setServiceCategories(serviceCategoriesData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load photos');
     } finally {
@@ -163,7 +171,10 @@ export function PhotosPage() {
         transform: null,
         title: file.name.replace(/\.[^.]+$/, ''),
         altText: '',
-        categoryId: selectedCategory || categories[0]?.id || '',
+        categoryId:
+          serviceCategories.some(category => category.id === selectedCategory)
+            ? selectedCategory
+            : serviceCategories[0]?.id || '',
         width: dimensions[index].width,
         height: dimensions[index].height,
         status: 'ready' as const,
@@ -759,7 +770,7 @@ export function PhotosPage() {
                         className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm text-gray-900"
                       >
                         <option value="">Select category</option>
-                        {categories.map(category => (
+                        {serviceCategories.map(category => (
                           <option key={category.id} value={category.id}>{category.name}</option>
                         ))}
                       </select>
