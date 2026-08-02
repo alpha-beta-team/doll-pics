@@ -324,6 +324,11 @@ export type Booking = {
   shootType: string;
   preferredEvent: string;
   shootDate: string;
+  bookingDate: string;
+  startTime: string;
+  endTime: string;
+  durationHours: number;
+  advancePaid: number;
   location: string;
   reminderDate: string;
   notes: string;
@@ -345,6 +350,11 @@ export type BookingWritePayload = {
   shootType?: string;
   preferredEvent?: string;
   shootDate?: string;
+  bookingDate?: string;
+  startTime?: string;
+  endTime?: string;
+  durationHours?: number;
+  advancePaid?: number;
   location?: string;
   reminderDate?: string;
   notes?: string;

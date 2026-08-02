@@ -315,6 +315,25 @@ export function BookingDetailPage() {
           <Field label="Shoot type">{booking.shootType || '—'}</Field>
           <Field label="Preferred event">{booking.preferredEvent || '—'}</Field>
           <Field label="Shoot date">{formatDay(booking.shootDate)}</Field>
+          <Field label="Session time">
+            {booking.startTime
+              ? `${booking.startTime}${booking.endTime ? ` – ${booking.endTime}` : ''}`
+              : '—'}
+          </Field>
+          <Field label="Duration">
+            {booking.durationHours
+              ? `${booking.durationHours} ${booking.durationHours === 1 ? 'hour' : 'hours'}`
+              : '—'}
+          </Field>
+          <Field label="Advance paid">
+            {booking.advancePaid
+              ? new Intl.NumberFormat('en-IN', {
+                  style: 'currency',
+                  currency: 'INR',
+                  maximumFractionDigits: 0,
+                }).format(booking.advancePaid)
+              : '—'}
+          </Field>
           <Field label="Reminder date">{formatDay(booking.reminderDate)}</Field>
           <Field label="Location" className="sm:col-span-2">
             {booking.location || '—'}

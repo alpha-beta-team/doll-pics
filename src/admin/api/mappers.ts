@@ -27,15 +27,27 @@ export function mapPhoto(doc: Record<string, unknown>): Photo {
   };
   const webpVariants = variants.webp ?? [];
   const avifVariants = variants.avif ?? [];
-  const webpUrl = webpVariants[webpVariants.length - 1]?.url ?? '';
-  const avifUrl = avifVariants[avifVariants.length - 1]?.url ?? '';
+  // Admin cards only need a thumbnail. Very large ImageKit transformations
+  // can be rejected, so prefer the smallest generated variant.
+  const webpUrl = [...webpVariants].sort((a, b) => a.width - b.width)[0]?.url ?? '';
+  const avifUrl = [...avifVariants].sort((a, b) => a.width - b.width)[0]?.url ?? '';
   const sizes = webpVariants.map((v) => v.width);
+  const categoryIds = Array.isArray(doc.categoryIds)
+    ? doc.categoryIds
+        .map((category) => {
+          if (typeof category === 'string') return category;
+          if (!category || typeof category !== 'object') return '';
+          const populated = category as { _id?: unknown; id?: unknown };
+          return String(populated._id ?? populated.id ?? '');
+        })
+        .filter(Boolean)
+    : [];
 
   return {
     id: base.id,
     title: (doc.title as string) ?? '',
     altText: (doc.altText as string) ?? '',
-    categories: ((doc.categoryIds as string[]) ?? []).map(String),
+    categories: categoryIds,
     variants: {
       webp: webpUrl,
       avif: avifUrl,
@@ -174,6 +186,11 @@ export function mapBooking(doc: Record<string, unknown>): Booking {
     shootType: (doc.shootType as string) ?? '',
     preferredEvent: (doc.preferredEvent as string) ?? '',
     shootDate: (doc.shootDate as string) ?? '',
+    bookingDate: (doc.bookingDate as string) ?? '',
+    startTime: (doc.startTime as string) ?? '',
+    endTime: (doc.endTime as string) ?? '',
+    durationHours: (doc.durationHours as number) ?? 0,
+    advancePaid: (doc.advancePaid as number) ?? 0,
     location: (doc.location as string) ?? '',
     reminderDate: (doc.reminderDate as string) ?? '',
     notes: (doc.notes as string) ?? '',

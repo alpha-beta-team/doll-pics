@@ -12,7 +12,7 @@ export type ServiceImage = {
   category?: string;
 };
 
-const TARGET_COUNT = 9;
+const MAX_GALLERY_COUNT = 6;
 
 function normalizeKey(value: string) {
   return value.trim().toLowerCase();
@@ -33,6 +33,9 @@ function dedupe(images: ServiceImage[]): ServiceImage[] {
 export function selectServiceImages(options: {
   imageCategories?: string[];
   fallbackImages?: Array<{ src: string; alt: string }>;
+  sourceImages?: ServiceImage[];
+  sourceOnly?: boolean;
+  inlineCount?: number;
   featuredWork: FeaturedWorkItem[];
   galleryImages: GalleryImageItem[];
 }): { hero: ServiceImage | null; gallery: ServiceImage[]; inline: ServiceImage[] } {
@@ -63,9 +66,20 @@ export function selectServiceImages(options: {
     alt: item.alt,
   }));
 
-  // Prefer category matches, then fallbacks (service-specific), then general gallery fill.
-  const pooled = dedupe([...fromFeatured, ...fromFallback, ...fromGallery]);
-  const selected = pooled.slice(0, TARGET_COUNT);
+  // API-only service pages must never fall back to static/seed imagery.
+  const pooled = options.sourceOnly
+    ? dedupe(options.sourceImages ?? [])
+    : dedupe([
+        ...(options.sourceImages ?? []),
+        ...fromFeatured,
+        ...fromFallback,
+        ...fromGallery,
+      ]);
+  const requestedInlineCount = Math.max(0, options.inlineCount ?? 2);
+  const selected = pooled.slice(
+    0,
+    1 + MAX_GALLERY_COUNT + requestedInlineCount,
+  );
 
   if (!selected.length) {
     return { hero: null, gallery: [], inline: [] };
@@ -73,9 +87,15 @@ export function selectServiceImages(options: {
 
   const [hero, ...rest] = selected;
   // Keep each visual role unique: portfolio images should not repeat in the
-  // editorial story sections further down the page.
-  const gallery = rest.slice(0, 6);
-  const inline = rest.slice(6, 8);
+  // editorial story sections further down the page. Reserve one inline image
+  // per chapter before giving the remaining slots to the portfolio.
+  const inlineCount = Math.min(requestedInlineCount, rest.length);
+  const galleryCount = Math.min(
+    MAX_GALLERY_COUNT,
+    rest.length - inlineCount,
+  );
+  const gallery = rest.slice(0, galleryCount);
+  const inline = rest.slice(galleryCount, galleryCount + inlineCount);
 
   return { hero, gallery, inline };
 }

@@ -3,6 +3,7 @@ import { useSiteData } from '../../contexts/SiteDataContext';
 import { trackPhoneClick } from '../../lib/analytics';
 import { getPublishedServiceNavLinks } from '../../lib/navigation';
 import { BUSINESS_NAME } from '../../lib/seo';
+import { STUDIO_MAPS_URL } from '../../lib/studioLocation';
 import { Instagram, Facebook, Youtube, Mail, Phone, MapPin } from 'lucide-react';
 
 const staticFooterLinks: Record<
@@ -117,7 +118,7 @@ export function Footer() {
             </a>
           )}
           <a
-            href="https://www.google.com/maps/search/?api=1&query=URT%20TOWERS%2C%20139%2F4-D%2C%20Perundurai%20Rd%2C%20Teachers%20Colony%2C%20Palayapalayam%2C%20Erode%2C%20Tamil%20Nadu%20638011"
+            href={STUDIO_MAPS_URL}
             data-cursor="hover"
             className="flex items-center gap-3 text-ink-200/60 hover:text-gold-400 transition-colors"
             target="_blank"

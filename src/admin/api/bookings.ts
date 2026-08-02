@@ -31,6 +31,11 @@ export const bookingsApi = {
     shootType?: string;
     preferredEvent?: string;
     shootDate?: string;
+    bookingDate?: string;
+    startTime?: string;
+    endTime?: string;
+    durationHours?: number;
+    advancePaid?: number;
     location?: string;
     reminderDate?: string;
     notes?: string;
@@ -57,6 +62,11 @@ export const bookingsApi = {
       shootType: string;
       preferredEvent: string;
       shootDate: string;
+      bookingDate: string;
+      startTime: string;
+      endTime: string;
+      durationHours: number;
+      advancePaid: number;
       location: string;
       reminderDate: string;
       notes: string;

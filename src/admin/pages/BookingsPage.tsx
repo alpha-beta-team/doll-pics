@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
 import type { Booking, BookingStatus, Enquiry } from '../types';
@@ -10,16 +10,36 @@ import {
   CheckCircle,
   Clock,
   Calendar,
+  CalendarRange,
   Plus,
   Pencil,
   XCircle,
   Ban,
+  Database,
+  MapPin,
 } from 'lucide-react';
 
 import { SHOOT_TYPE_OPTIONS } from '../../lib/shootTypes';
 
 const SHOOT_TYPES = [...SHOOT_TYPE_OPTIONS];
 const STATUSES: BookingStatus[] = ['draft', 'confirmed', 'cancelled', 'completed'];
+
+type AvailableDataFilter =
+  | 'all'
+  | 'shoot-date'
+  | 'location'
+  | 'email'
+  | 'gallery'
+  | 'complete';
+
+const AVAILABLE_DATA_OPTIONS: Array<{ value: AvailableDataFilter; label: string }> = [
+  { value: 'all', label: 'Any available data' },
+  { value: 'shoot-date', label: 'Has shoot date' },
+  { value: 'location', label: 'Has location' },
+  { value: 'email', label: 'Has email' },
+  { value: 'gallery', label: 'Has gallery links' },
+  { value: 'complete', label: 'Complete core details' },
+];
 
 export type ConvertEnquiryState = {
   convertFromEnquiry?: Enquiry;
@@ -32,14 +52,32 @@ export function BookingsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string>('');
+  const [selectedShootType, setSelectedShootType] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState('');
+  const [shootDateFrom, setShootDateFrom] = useState('');
+  const [shootDateTo, setShootDateTo] = useState('');
+  const [availableData, setAvailableData] = useState<AvailableDataFilter>('all');
   const [showFilters, setShowFilters] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
   const [convertFromEnquiry, setConvertFromEnquiry] = useState<Enquiry | null>(null);
 
+  const fetchBookings = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      // Keep the complete list locally so every filter and count uses the same data set.
+      setBookings(await api.getBookings());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load bookings');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    fetchBookings();
-  }, [selectedStatus]);
+    void fetchBookings();
+  }, [fetchBookings]);
 
   useEffect(() => {
     const state = location.state as ConvertEnquiryState | null;
@@ -49,20 +87,6 @@ export function BookingsPage() {
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location.state, location.pathname, navigate]);
-
-  const fetchBookings = async () => {
-    setIsLoading(true);
-    try {
-      const data = await api.getBookings({
-        status: (selectedStatus || undefined) as BookingStatus | undefined,
-      });
-      setBookings(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load bookings');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleSave = async (data: {
     customerName: string;
@@ -125,6 +149,82 @@ export function BookingsPage() {
     completed: bookings.filter(b => b.status === 'completed').length,
   };
 
+  const availableShootTypes = useMemo(
+    () =>
+      Array.from(new Set(bookings.map(booking => booking.shootType.trim()).filter(Boolean))).sort(
+        (a, b) => a.localeCompare(b),
+      ),
+    [bookings],
+  );
+
+  const availableLocations = useMemo(
+    () =>
+      Array.from(new Set(bookings.map(booking => booking.location.trim()).filter(Boolean))).sort(
+        (a, b) => a.localeCompare(b),
+      ),
+    [bookings],
+  );
+
+  const filteredBookings = useMemo(() => {
+    return bookings.filter(booking => {
+      if (selectedStatus && booking.status !== selectedStatus) return false;
+      if (selectedShootType && booking.shootType !== selectedShootType) return false;
+      if (selectedLocation && booking.location !== selectedLocation) return false;
+
+      // API values are stored as ISO or YYYY-MM-DD strings; the leading date is sortable.
+      const shootDate = booking.shootDate.slice(0, 10);
+      if (shootDateFrom && (!shootDate || shootDate < shootDateFrom)) return false;
+      if (shootDateTo && (!shootDate || shootDate > shootDateTo)) return false;
+
+      switch (availableData) {
+        case 'shoot-date':
+          return Boolean(booking.shootDate);
+        case 'location':
+          return Boolean(booking.location);
+        case 'email':
+          return Boolean(booking.customerEmail);
+        case 'gallery':
+          return Boolean(booking.driveGalleryUrl || booking.driveEditedUrl || booking.driveRawsUrl);
+        case 'complete':
+          return Boolean(
+            booking.customerName &&
+              booking.customerPhone &&
+              booking.shootType &&
+              booking.shootDate &&
+              booking.location,
+          );
+        default:
+          return true;
+      }
+    });
+  }, [
+    availableData,
+    bookings,
+    selectedLocation,
+    selectedShootType,
+    selectedStatus,
+    shootDateFrom,
+    shootDateTo,
+  ]);
+
+  const activeFilterCount = [
+    selectedStatus,
+    selectedShootType,
+    selectedLocation,
+    shootDateFrom,
+    shootDateTo,
+    availableData === 'all' ? '' : availableData,
+  ].filter(Boolean).length;
+
+  const clearFilters = () => {
+    setSelectedStatus('');
+    setSelectedShootType('');
+    setSelectedLocation('');
+    setShootDateFrom('');
+    setShootDateTo('');
+    setAvailableData('all');
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -154,13 +254,20 @@ export function BookingsPage() {
           <button
             onClick={() => setShowFilters(!showFilters)}
             className={`flex items-center gap-2 px-3 py-2 border rounded-lg transition-colors ${
-              showFilters || selectedStatus
+              showFilters || activeFilterCount > 0
                 ? 'border-blue-500 bg-blue-50 text-blue-700'
                 : 'border-gray-300 text-gray-700 hover:bg-gray-50'
             }`}
+            aria-expanded={showFilters}
+            aria-controls="booking-filters"
           >
             <Filter className="w-4 h-4" />
-            Filter
+            Filters
+            {activeFilterCount > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-600 px-1 text-[11px] font-semibold text-white">
+                {activeFilterCount}
+              </span>
+            )}
           </button>
           <button
             onClick={() => setIsCreating(true)}
@@ -173,49 +280,157 @@ export function BookingsPage() {
       </div>
 
       {showFilters && (
-        <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-          <span className="text-sm font-medium text-gray-700">Status:</span>
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setSelectedStatus('')}
-              className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
-                selectedStatus === ''
-                  ? 'bg-blue-100 border-blue-500 text-blue-700'
-                  : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              All ({bookings.length})
-            </button>
-            {STATUSES.map(status => {
-              const badge = getStatusBadge(status);
-              const active = selectedStatus === status;
-              return (
+        <div id="booking-filters" className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
+          <div className="mb-5 flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-sm font-semibold text-gray-900">Filter bookings</h2>
+              <p className="mt-1 text-xs text-gray-500">
+                Showing {filteredBookings.length} of {bookings.length} bookings
+              </p>
+            </div>
+            {activeFilterCount > 0 && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="text-sm font-medium text-blue-600 hover:text-blue-700"
+              >
+                Clear all
+              </button>
+            )}
+          </div>
+
+          <div className="space-y-5">
+            <fieldset>
+              <legend className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">
+                Status
+              </legend>
+              <div className="flex flex-wrap gap-2">
                 <button
-                  key={status}
-                  onClick={() => setSelectedStatus(status)}
-                  className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
-                    active
-                      ? `${badge.bg} border-current ${badge.text}`
-                      : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                  type="button"
+                  onClick={() => setSelectedStatus('')}
+                  className={`rounded-lg border px-3 py-1.5 text-sm transition-colors ${
+                    selectedStatus === ''
+                      ? 'border-blue-500 bg-blue-50 font-medium text-blue-700'
+                      : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
                   }`}
                 >
-                  {badge.label} ({statusCounts[status]})
+                  All ({bookings.length})
                 </button>
-              );
-            })}
+                {STATUSES.map(status => {
+                  const badge = getStatusBadge(status);
+                  const active = selectedStatus === status;
+                  return (
+                    <button
+                      type="button"
+                      key={status}
+                      onClick={() => setSelectedStatus(status)}
+                      className={`rounded-lg border px-3 py-1.5 text-sm transition-colors ${
+                        active
+                          ? `${badge.bg} border-current font-medium ${badge.text}`
+                          : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      {badge.label} ({statusCounts[status]})
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+              <label className="block">
+                <span className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-gray-600">
+                  <CalendarRange className="h-3.5 w-3.5" /> Shoot date from
+                </span>
+                <input
+                  type="date"
+                  value={shootDateFrom}
+                  max={shootDateTo || undefined}
+                  onChange={event => setShootDateFrom(event.target.value)}
+                  className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-gray-600">
+                  <CalendarRange className="h-3.5 w-3.5" /> Shoot date to
+                </span>
+                <input
+                  type="date"
+                  value={shootDateTo}
+                  min={shootDateFrom || undefined}
+                  onChange={event => setShootDateTo(event.target.value)}
+                  className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-1.5 block text-xs font-medium text-gray-600">Shoot type</span>
+                <select
+                  value={selectedShootType}
+                  onChange={event => setSelectedShootType(event.target.value)}
+                  className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                >
+                  <option value="">All shoot types</option>
+                  {availableShootTypes.map(shootType => (
+                    <option key={shootType} value={shootType}>{shootType}</option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="block">
+                <span className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-gray-600">
+                  <MapPin className="h-3.5 w-3.5" /> Location
+                </span>
+                <select
+                  value={selectedLocation}
+                  onChange={event => setSelectedLocation(event.target.value)}
+                  className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                >
+                  <option value="">All locations</option>
+                  {availableLocations.map(bookingLocation => (
+                    <option key={bookingLocation} value={bookingLocation}>{bookingLocation}</option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="block">
+                <span className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-gray-600">
+                  <Database className="h-3.5 w-3.5" /> Available data
+                </span>
+                <select
+                  value={availableData}
+                  onChange={event => setAvailableData(event.target.value as AvailableDataFilter)}
+                  className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                >
+                  {AVAILABLE_DATA_OPTIONS.map(option => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
           </div>
         </div>
       )}
 
-      {bookings.length === 0 ? (
+      {filteredBookings.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
           <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-300" />
           <h3 className="text-lg font-medium text-gray-900">No bookings found</h3>
           <p className="text-gray-500 mt-1">
-            {selectedStatus
-              ? 'Try selecting a different status filter'
+            {activeFilterCount > 0
+              ? 'Try changing or clearing your filters'
               : 'Create a booking or convert an enquiry'}
           </p>
+          {activeFilterCount > 0 && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="mt-4 text-sm font-medium text-blue-600 hover:text-blue-700"
+            >
+              Clear all filters
+            </button>
+          )}
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -249,7 +464,7 @@ export function BookingsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {bookings.map(booking => {
+              {filteredBookings.map(booking => {
                 const status = getStatusBadge(booking.status);
                 const StatusIcon = status.icon;
                 return (

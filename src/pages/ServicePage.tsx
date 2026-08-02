@@ -2,6 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import {
   ArrowRight,
+  ArrowUpRight,
   Camera,
   ChevronDown,
   MapPin,
@@ -28,6 +29,8 @@ import {
 } from '../lib/analytics';
 import { applyPageSeo, resolveServicePage } from '../lib/seo';
 import { selectServiceImages, type ServiceImage } from '../lib/serviceImages';
+import { getPhotoSources, publicApi } from '../lib/api';
+import type { PublicPhoto } from '../shared/types';
 import { enquiryWhatsAppUrl, whatsappDigits } from '../lib/pricing';
 import {
   SHOOT_TYPE_OPTIONS,
@@ -38,6 +41,7 @@ import {
   normalizePathname,
 } from '../lib/navigation';
 import { NotFound } from './NotFound';
+import { STUDIO_MAPS_URL } from '../lib/studioLocation';
 
 const HERO_SIZES = '100vw';
 const GRID_SIZES =
@@ -55,6 +59,12 @@ const SERVICE_SHOOT_TYPES: Record<string, ShootTypeOption> = {
   '/baby-milestone-photography-erode': 'Baby Milestone',
   '/cake-smash-photography-erode': 'Cake Smash',
   '/family-photography-erode': 'Family',
+};
+
+const API_ONLY_SERVICE_CATEGORIES: Record<string, string> = {
+  '/maternity-photography-erode': 'maternity',
+  '/baby-milestone-photography-erode': 'baby-milestone',
+  '/baby-shower-photography-erode': 'baby-shower',
 };
 
 const PORTFOLIO_LAYOUTS = [
@@ -97,6 +107,40 @@ function resolveShootType(
   return match ?? 'Other';
 }
 
+function resolveApiServiceCategory(path: string, serviceLabel?: string): string | undefined {
+  const configured = API_ONLY_SERVICE_CATEGORIES[path];
+  if (configured) return configured;
+
+  const normalizedLabel = normalizeServiceName(serviceLabel ?? '');
+  if (normalizedLabel === 'baby shower') return 'baby-shower';
+  return undefined;
+}
+
+function serviceImagesFromApi(photos: PublicPhoto[]): ServiceImage[] {
+  return photos
+    .filter(
+      (photo) =>
+        !photo.storageKey?.startsWith('seed/') &&
+        !photo.variants?.original?.url?.includes('picsum.photos'),
+    )
+    .flatMap<ServiceImage>((photo) => {
+      const sources = getPhotoSources(photo);
+      if (!sources) return [];
+      const populatedCategory = photo.categoryIds?.find(
+        (category): category is { name: string; slug: string } =>
+          typeof category === 'object' && category !== null,
+      );
+      return [{
+        src: sources.src,
+        alt: sources.alt,
+        avifSrcSet: sources.avifSrcSet,
+        webpSrcSet: sources.webpSrcSet,
+        title: photo.title,
+        category: populatedCategory?.name,
+      }];
+    });
+}
+
 function ServicePageContent() {
   const { pathname } = useLocation();
   const path = normalizePathname(pathname);
@@ -109,8 +153,39 @@ function ServicePageContent() {
   const viewTrackedPath = useRef<string | null>(null);
   const [showBooking, setShowBooking] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [apiServiceMedia, setApiServiceMedia] = useState<{
+    path: string;
+    images: ServiceImage[];
+  }>({ path: '', images: [] });
   const lightboxTrigger = useRef<HTMLElement | null>(null);
   const otherServiceLinks = serviceLinks.filter((link) => link.path !== path);
+  const apiServiceCategory = resolveApiServiceCategory(path, nav?.label);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!apiServiceCategory) {
+      setApiServiceMedia({ path, images: [] });
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    setApiServiceMedia({ path, images: [] });
+    void publicApi
+      .getPhotos({ category: apiServiceCategory, limit: 24 })
+      .then((photos) => {
+        if (!cancelled) {
+          setApiServiceMedia({ path, images: serviceImagesFromApi(photos) });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setApiServiceMedia({ path, images: [] });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [apiServiceCategory, path]);
 
   useEffect(() => {
     if (!page) return;
@@ -155,6 +230,10 @@ function ServicePageContent() {
   const { hero, gallery, inline } = selectServiceImages({
     imageCategories: page.imageCategories,
     fallbackImages: page.fallbackImages,
+    sourceImages:
+      apiServiceMedia.path === path ? apiServiceMedia.images : [],
+    sourceOnly: Boolean(apiServiceCategory),
+    inlineCount: page.sections.length,
     featuredWork,
     galleryImages,
   });
@@ -644,10 +723,29 @@ function ServiceLocation({
       className="service-scroll-target px-5 py-24 sm:px-8 md:py-32 lg:px-12"
     >
       <div className="mx-auto grid max-w-[1480px] overflow-hidden border border-hairline/10 bg-ink-900/55 lg:grid-cols-12">
-        <div className="relative min-h-72 overflow-hidden border-b border-hairline/10 p-8 sm:p-10 lg:col-span-5 lg:min-h-[30rem] lg:border-b-0 lg:border-r">
+        <a
+          href={STUDIO_MAPS_URL}
+          target="_blank"
+          rel="noreferrer"
+          data-cursor="hover"
+          aria-label="Get directions to Doll Pictures studio at URT TOWERS, Erode (opens in a new tab)"
+          className="group relative min-h-72 overflow-hidden border-b border-hairline/10 p-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold-300 sm:p-10 lg:col-span-5 lg:min-h-[30rem] lg:border-b-0 lg:border-r"
+        >
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgb(var(--gold-glow)/.18),transparent_38%),linear-gradient(145deg,rgb(var(--ink-800)),rgb(var(--ink-950)))]" />
           <div className="relative flex h-full flex-col justify-between">
-            <MapPin className="h-9 w-9 text-gold-300" strokeWidth={1.25} />
+            <MapPin
+              className="h-9 w-9 text-gold-300 transition-transform duration-300 group-hover:-translate-y-1"
+              strokeWidth={1.25}
+              aria-hidden="true"
+            />
+            <img
+              src="/logo-doll.png"
+              alt=""
+              width={112}
+              height={112}
+              className="pointer-events-none absolute right-0 top-0 h-16 w-16 rounded-full object-cover ring-1 ring-gold-300/30 transition-transform duration-300 group-hover:scale-105 sm:h-20 sm:w-20 lg:left-1/2 lg:right-auto lg:top-[36%] lg:h-28 lg:w-28 lg:-translate-x-1/2 lg:-translate-y-1/2"
+              aria-hidden="true"
+            />
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-gold-400">
                 Visit the studio
@@ -656,9 +754,16 @@ function ServiceLocation({
                 At the heart of
                 <span className="block italic text-gold-300">Erode.</span>
               </p>
+              <span className="mt-6 inline-flex items-center gap-2 border-b border-gold-300/70 pb-1 text-sm font-medium text-ink-50 transition-colors group-hover:text-gold-300">
+                Get directions
+                <ArrowUpRight
+                  className="h-4 w-4 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                  aria-hidden="true"
+                />
+              </span>
             </div>
           </div>
-        </div>
+        </a>
 
         <div className="flex flex-col justify-center p-8 sm:p-10 lg:col-span-7 lg:p-16">
           <h2 className="font-display text-3xl font-light text-ink-50 sm:text-4xl">

@@ -113,6 +113,7 @@ VITE_SITE_URL=https://dollpictures.in
 |----------|----------|---------|
 | `VITE_API_URL` | Yes (prod) | CMS/API base URL (includes `/api`). Runtime and prerender builds load published CMS content from it. |
 | `VITE_SITE_URL` | Recommended (prod) | Site origin for robots.txt, prerender, and SEO absolute URLs. No trailing slash. Defaults to `https://dollpictures.in` if unset. |
+| `VITE_ADMIN_DASHBOARD_MOCK_DATA` | No | Set to `true` to force bundled sample records on the admin dashboard. Local development also uses them automatically when both dashboard APIs are empty. |
 | `SEO_REQUIRE_CMS` | Yes (prod) | Set to `true` so a production build fails instead of silently omitting unavailable CMS SEO data. |
 
 Backend: set `CORS_ORIGIN=http://localhost:5173` and change `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
