@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 import type { User } from '../types';
 import { api } from '../api/client';
+import { authStorage } from '../api/authStorage';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -16,7 +17,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(() => {
-    return sessionStorage.getItem('auth_token');
+    return authStorage.getToken();
   });
   const [isLoading, setIsLoading] = useState(true);
 
@@ -32,12 +33,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           } else {
             setUser(null);
             setToken(null);
-            sessionStorage.removeItem('auth_token');
+            authStorage.clear();
           }
         } catch {
           setUser(null);
           setToken(null);
-          sessionStorage.removeItem('auth_token');
+          authStorage.clear();
         }
       } else {
         setUser(null);
@@ -51,14 +52,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const result = await api.login(email, password);
     setUser(result.user);
     setToken(result.token);
-    sessionStorage.setItem('auth_token', result.token);
+    authStorage.setToken(result.token);
   }, []);
 
   const logout = useCallback(async () => {
     await api.logout();
     setUser(null);
     setToken(null);
-    sessionStorage.removeItem('auth_token');
+    authStorage.clear();
   }, []);
 
   return (

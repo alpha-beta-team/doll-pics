@@ -1,14 +1,13 @@
 import type { User } from '../types';
 import { request } from './http';
-
-const AUTH_USER_KEY = 'auth_user';
+import { authStorage } from './authStorage';
 
 function storeUser(user: User) {
-  sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
+  authStorage.setUser(user);
 }
 
 function clearUser() {
-  sessionStorage.removeItem(AUTH_USER_KEY);
+  authStorage.clear();
 }
 
 export const authApi = {
@@ -38,9 +37,9 @@ export const authApi = {
     clearUser();
   },
 
-  /** Verifies the stored JWT with GET /auth/me; clears session on failure. */
+  /** Verifies the stored JWT with GET /auth/me; clears saved auth on failure. */
   async getCurrentUser(): Promise<User | null> {
-    const token = sessionStorage.getItem('auth_token');
+    const token = authStorage.getToken();
     if (!token) {
       clearUser();
       return null;
@@ -59,8 +58,7 @@ export const authApi = {
       storeUser(user);
       return user;
     } catch {
-      sessionStorage.removeItem('auth_token');
-      clearUser();
+      authStorage.clear();
       return null;
     }
   },

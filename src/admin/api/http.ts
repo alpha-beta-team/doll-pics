@@ -1,3 +1,5 @@
+import { authStorage } from './authStorage';
+
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3001/api';
 
 type MongoDoc = Record<string, unknown> & { _id?: string; id?: string };
@@ -13,7 +15,7 @@ export function normalizeIds<T extends MongoDoc>(docs: T[]) {
 }
 
 function getToken(): string | null {
-  return sessionStorage.getItem('auth_token');
+  return authStorage.getToken();
 }
 
 export async function request<T>(
