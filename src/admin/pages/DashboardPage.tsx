@@ -6,6 +6,7 @@ import {
   ArrowRight,
   ArrowUpRight,
   CalendarCheck2,
+  CalendarRange,
   CalendarClock,
   CheckCircle2,
   ChevronRight,
@@ -23,7 +24,7 @@ import {
 } from 'lucide-react';
 import { api } from '../api/client';
 import { createDashboardMockData } from '../data/dashboardMockData';
-import type { Booking, Enquiry } from '../types';
+import type { Booking, Enquiry, WeeklyOwnerReport } from '../types';
 
 type Period = 7 | 30 | 90 | 'all';
 
@@ -75,6 +76,14 @@ function MetricSkeleton() {
   );
 }
 
+function money(value: number) {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
 export function DashboardPage() {
   const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -82,6 +91,7 @@ export function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isUsingMockData, setIsUsingMockData] = useState(false);
+  const [weeklyReport, setWeeklyReport] = useState<WeeklyOwnerReport | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const loadDashboard = useCallback(async (refresh = false) => {
@@ -92,9 +102,10 @@ export function DashboardPage() {
     }
     setError(null);
 
-    const [enquiriesResult, bookingsResult] = await Promise.allSettled([
+    const [enquiriesResult, bookingsResult, weeklyResult] = await Promise.allSettled([
       api.getEnquiries(),
       api.getBookings(),
+      api.getWeeklyOwnerReport(),
     ]);
 
     const failures: string[] = [];
@@ -102,6 +113,11 @@ export function DashboardPage() {
     const loadedBookings = bookingsResult.status === 'fulfilled' ? bookingsResult.value : null;
     if (!loadedEnquiries) failures.push('enquiries');
     if (!loadedBookings) failures.push('bookings');
+    if (weeklyResult.status === 'fulfilled') {
+      setWeeklyReport(weeklyResult.value);
+    } else {
+      failures.push('weekly report');
+    }
 
     const forceMockData = import.meta.env.VITE_ADMIN_DASHBOARD_MOCK_DATA === 'true';
     const noAvailableRecords = !loadedEnquiries?.length && !loadedBookings?.length;
@@ -355,6 +371,46 @@ export function DashboardPage() {
             <X className="h-4 w-4" />
           </button>
         </div>
+      )}
+
+      {weeklyReport && (
+        <section className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-5 shadow-sm sm:p-6" aria-label="Latest weekly owner report">
+          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+            <div>
+              <div className="flex items-center gap-2">
+                <CalendarRange className="h-5 w-5 text-blue-600" />
+                <h2 className="font-semibold text-slate-900">Last week at a glance</h2>
+              </div>
+              <p className="mt-1 text-sm text-slate-500">{formatShortDate(weeklyReport.weekStart)}–{formatShortDate(weeklyReport.weekEnd)} · same totals sent privately to the owner</p>
+            </div>
+            <span className="w-fit rounded-full bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm">
+              Next 7 days: {weeklyReport.upcomingShoots} shoots
+            </span>
+          </div>
+          <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+            {[
+              ['New enquiries', String(weeklyReport.newEnquiries)],
+              ['Confirmed', String(weeklyReport.confirmedBookings)],
+              ['Payments received', money(weeklyReport.paymentsReceived)],
+              ['Outstanding now', money(weeklyReport.outstandingBalance)],
+              ['Overdue follow-ups', String(weeklyReport.overdueFollowUps)],
+              ['Untouched 24h+', String(weeklyReport.untouchedNewEnquiries)],
+            ].map(([label, value]) => (
+              <article key={label} className="rounded-xl border border-white bg-white/90 p-3 shadow-sm">
+                <p className="text-xs text-slate-500">{label}</p>
+                <p className="mt-2 break-words text-xl font-semibold text-slate-900">{value}</p>
+              </article>
+            ))}
+          </div>
+          {weeklyReport.sourceBreakdown.length > 0 && (
+            <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+              <span className="font-medium text-slate-600">Enquiry sources:</span>
+              {weeklyReport.sourceBreakdown.map(item => (
+                <span key={item.source} className="rounded-full bg-white px-2.5 py-1 capitalize shadow-sm">{item.source.replace('_', ' ')} {item.count}</span>
+              ))}
+            </div>
+          )}
+        </section>
       )}
 
       {isLoading ? (

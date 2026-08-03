@@ -24,6 +24,7 @@ import { StatsPage } from './pages/StatsPage';
 import { TestimonialsPage } from './pages/TestimonialsPage';
 import { BehindScenesPage } from './pages/BehindScenesPage';
 import { TeamMembersPage } from './pages/TeamMembersPage';
+import { IntegrationsPage } from './pages/IntegrationsPage';
 import { applyPageSeo } from '../lib/seo';
 import { ConfirmDialogProvider } from './components/ConfirmDialog';
 import { useAuth } from './contexts/AuthContext';
@@ -75,6 +76,7 @@ export default function AdminApp() {
             <Route element={<OwnerRoute />}>
               <Route path="dashboard" element={<DashboardPage />} />
               <Route path="users" element={<UsersPage />} />
+              <Route path="integrations" element={<IntegrationsPage />} />
               <Route path="photos" element={<PhotosPage />} />
               <Route path="categories" element={<CategoriesPage />} />
               <Route path="packages" element={<PackagesPage />} />

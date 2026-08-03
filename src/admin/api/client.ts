@@ -12,6 +12,7 @@ import { photosApi } from './photos';
 import { siteContentApi } from './siteContent';
 import { workApi } from './work';
 import { usersApi } from './users';
+import { integrationsApi } from './integrations';
 
 export const api = {
   ...authApi,
@@ -24,4 +25,5 @@ export const api = {
   ...orderedContentApi,
   ...workApi,
   ...usersApi,
+  ...integrationsApi,
 };

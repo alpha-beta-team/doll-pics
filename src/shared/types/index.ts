@@ -447,8 +447,46 @@ export type Booking = {
   preferredLanguage: string;
   whatsappOptOutAt?: string;
   enquiryId?: string;
+  googleCalendarEventId?: string;
+  googleCalendarHtmlLink?: string;
+  calendarSyncStatus?: 'not_applicable' | 'pending' | 'synced' | 'dry_run' | 'failed';
+  calendarSyncErrorCode?: string;
+  calendarSyncedAt?: string;
+  calendarEventGeneration?: number;
   createdAt: string;
   updatedAt: string;
+};
+
+export type GoogleCalendarIntegrationStatus = {
+  enabled: boolean;
+  dryRun: boolean;
+  configured: boolean;
+  health: 'disabled' | 'misconfigured' | 'needs_attention' | 'dry_run' | 'healthy';
+  timezone: string;
+  serviceAccountEmail: string;
+  failedBookings: number;
+  failedJobs: number;
+  jobCounts: Record<string, number>;
+  lastSyncedAt?: string;
+};
+
+export type WeeklyOwnerReport = {
+  weekStart: string;
+  weekEnd: string;
+  timezone: string;
+  newEnquiries: number;
+  sourceBreakdown: Array<{ source: EnquirySource; count: number }>;
+  confirmedBookings: number;
+  cancelledBookings: number;
+  shootsCompleted: number;
+  paymentsReceived: number;
+  outstandingBalance: number;
+  overdueFollowUps: number;
+  untouchedNewEnquiries: number;
+  upcomingStart: string;
+  upcomingEnd: string;
+  upcomingShoots: number;
+  topSource?: { source: string; count: number };
 };
 
 export type BookingWritePayload = {

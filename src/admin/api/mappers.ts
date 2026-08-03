@@ -249,6 +249,12 @@ export function mapBooking(doc: Record<string, unknown>): Booking {
     preferredLanguage: (doc.preferredLanguage as string) || 'en',
     whatsappOptOutAt: doc.whatsappOptOutAt ? String(doc.whatsappOptOutAt) : undefined,
     enquiryId: doc.enquiryId ? String(doc.enquiryId) : undefined,
+    googleCalendarEventId: String(doc.googleCalendarEventId ?? ''),
+    googleCalendarHtmlLink: String(doc.googleCalendarHtmlLink ?? ''),
+    calendarSyncStatus: (doc.calendarSyncStatus as Booking['calendarSyncStatus']) ?? 'not_applicable',
+    calendarSyncErrorCode: String(doc.calendarSyncErrorCode ?? ''),
+    calendarSyncedAt: doc.calendarSyncedAt ? String(doc.calendarSyncedAt) : undefined,
+    calendarEventGeneration: Number(doc.calendarEventGeneration) || 1,
     createdAt: (doc.createdAt as string) ?? new Date().toISOString(),
     updatedAt: (doc.updatedAt as string) ?? new Date().toISOString(),
   };

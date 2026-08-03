@@ -37,4 +37,6 @@ export type {
   TodayFollowUp,
   TodaySummaryItem,
   TodayPaymentItem,
+  GoogleCalendarIntegrationStatus,
+  WeeklyOwnerReport,
 } from '../../shared/types';

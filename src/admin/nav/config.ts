@@ -18,6 +18,7 @@ import {
   CircleDollarSign,
   UserCog,
   HelpCircle,
+  Plug,
 } from 'lucide-react';
 
 export type NavItem = {
@@ -83,6 +84,10 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         type: 'link',
         item: { to: '/admin/users', label: 'Staff Accounts', icon: UserCog, ownerOnly: true },
+      },
+      {
+        type: 'link',
+        item: { to: '/admin/integrations', label: 'Integrations', icon: Plug, ownerOnly: true },
       },
       {
         type: 'link',

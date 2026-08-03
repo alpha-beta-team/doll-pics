@@ -44,6 +44,22 @@ const statusStyles: Record<BookingStatus, string> = {
   cancelled: 'bg-red-100 text-red-700',
 };
 
+const calendarStatusStyles = {
+  not_applicable: 'bg-slate-100 text-slate-600',
+  pending: 'bg-blue-100 text-blue-700',
+  synced: 'bg-emerald-100 text-emerald-700',
+  dry_run: 'bg-amber-100 text-amber-800',
+  failed: 'bg-red-100 text-red-700',
+} as const;
+
+const calendarStatusLabels = {
+  not_applicable: 'Not required',
+  pending: 'Waiting to sync',
+  synced: 'Synced',
+  dry_run: 'Dry run checked',
+  failed: 'Needs attention',
+} as const;
+
 function formatDay(value?: string) {
   if (!value) return '—';
   const date = new Date(/^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T12:00:00` : value);
@@ -258,6 +274,17 @@ export function BookingDetailPage() {
     finally { setSaving(false); }
   };
 
+  const retryCalendarSync = async () => {
+    if (!booking) return;
+    const confirmed = await confirmDialog({
+      title: 'Retry Google Calendar sync?',
+      description: 'The latest booking details will be queued for the shared studio calendar.',
+      confirmLabel: 'Retry sync',
+    });
+    if (!confirmed) return;
+    void run(() => api.retryBookingCalendarSync(booking.id));
+  };
+
   const deletePayment = async (payment: BookingPayment) => {
     if (!booking) return;
     const confirmed = await confirmDialog({
@@ -287,6 +314,7 @@ export function BookingDetailPage() {
     || driveRawsUrl !== booking.driveRawsUrl
     || driveNotes !== booking.driveNotes;
   const followUpOverdue = booking.nextFollowUpAt && new Date(booking.nextFollowUpAt).getTime() < Date.now();
+  const calendarStatus = booking.calendarSyncStatus || 'not_applicable';
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -319,6 +347,55 @@ export function BookingDetailPage() {
           <div className="grid gap-4 sm:grid-cols-2"><Field label="Consent">{booking.whatsappOptIn ? `Recorded ${formatDateTime(booking.whatsappOptInAt)}` : 'Not recorded'}</Field><Field label="Source">{booking.whatsappOptInSource || '—'}</Field><Field label="Opt-out">{booking.whatsappOptOutAt ? formatDateTime(booking.whatsappOptOutAt) : 'No'}</Field><Field label="Language">English</Field></div>
           <button onClick={toggleNotifications} disabled={!booking.whatsappOptIn || Boolean(booking.whatsappOptOutAt) || saving} className={`mt-4 rounded-lg px-3 py-2 text-sm font-medium ${booking.whatsappNotificationsEnabled ? 'bg-emerald-600 text-white' : 'border border-slate-300 text-slate-700'} disabled:opacity-50`}>{booking.whatsappNotificationsEnabled ? 'Automated updates enabled' : 'Enable automated updates'}</button>
           <div className="mt-5 divide-y divide-slate-100">{messages.slice(0, 8).map(message => <div key={message.id} className="flex items-center gap-3 py-3"><MessageCircle className="h-4 w-4 text-emerald-600" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-slate-700">{message.eventType.replace(/_/g, ' ')}</p><p className="text-xs text-slate-500">{formatDateTime(message.scheduledAt)} · {message.status}</p>{message.failureReason && <p className="mt-1 text-xs text-red-600">{message.failureReason}</p>}</div>{message.status === 'failed' && <button onClick={() => void retryMessage(message.id)} className="text-xs font-medium text-blue-600">Retry</button>}</div>)}{!messages.length && <p className="py-4 text-center text-sm text-slate-500">No automated messages yet.</p>}</div>
+        </Card>
+
+        <Card
+          title="Google Calendar"
+          action={user?.role === 'owner' ? (
+            <button
+              type="button"
+              onClick={() => void retryCalendarSync()}
+              disabled={saving}
+              className="inline-flex min-h-10 items-center gap-1.5 rounded-lg px-2 text-sm font-medium text-blue-600 disabled:opacity-50"
+            >
+              <RefreshCw className={`h-4 w-4 ${saving ? 'animate-spin' : ''}`} />Retry
+            </button>
+          ) : undefined}
+        >
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                <CalendarCheck className="h-5 w-5" />
+              </span>
+              <div>
+                <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${calendarStatusStyles[calendarStatus]}`}>
+                  {calendarStatusLabels[calendarStatus]}
+                </span>
+                <p className="mt-1 text-xs text-slate-500">
+                  {booking.calendarSyncedAt ? `Last checked ${formatDateTime(booking.calendarSyncedAt)}` : 'No completed sync yet'}
+                </p>
+              </div>
+            </div>
+            {booking.googleCalendarHtmlLink && (
+              <a
+                href={booking.googleCalendarHtmlLink}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700"
+              >
+                Open in Google Calendar <ExternalLink className="h-4 w-4" />
+              </a>
+            )}
+          </div>
+          {calendarStatus === 'failed' && (
+            <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">
+              Calendar could not be updated. {user?.role === 'owner' ? 'Use Retry after checking the integration.' : 'Please tell the owner.'}
+              {booking.calendarSyncErrorCode ? ` Code: ${booking.calendarSyncErrorCode}` : ''}
+            </p>
+          )}
+          {calendarStatus === 'not_applicable' && (
+            <p className="mt-4 text-sm text-slate-500">Calendar events are created for confirmed bookings. Completed and delivered shoots remain as history.</p>
+          )}
         </Card>
       </div>
 
