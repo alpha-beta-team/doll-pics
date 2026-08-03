@@ -25,6 +25,7 @@ import {
 import { api } from '../api/client';
 import { createDashboardMockData } from '../data/dashboardMockData';
 import type { Booking, Enquiry, WeeklyOwnerReport } from '../types';
+import { formatTimeWindow } from '../../shared/bookingTime';
 
 type Period = 7 | 30 | 90 | 'all';
 
@@ -633,7 +634,7 @@ export function DashboardPage() {
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-slate-700 group-hover:text-blue-700">{booking.customerName || 'Unnamed client'}</p>
-                    <p className="mt-0.5 truncate text-xs text-slate-400">{booking.shootType || 'Shoot type not set'}{booking.location ? ` · ${booking.location}` : ''}</p>
+                    <p className="mt-0.5 truncate text-xs text-slate-400">{booking.shootType || 'Shoot type not set'}{booking.startTime && booking.endTime ? ` · ${formatTimeWindow(booking.startTime, booking.endTime)}` : ''}{booking.location ? ` · ${booking.location}` : ''}</p>
                   </div>
                   <div className="shrink-0 text-right">
                     <p className="text-xs font-medium text-slate-600">{formatRelativeDate(booking.bookingDate)}</p>

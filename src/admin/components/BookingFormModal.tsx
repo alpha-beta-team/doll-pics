@@ -3,6 +3,7 @@ import { AlertCircle, X } from 'lucide-react';
 import { SHOOT_TYPE_OPTIONS } from '../../lib/shootTypes';
 import type { Booking, BookingWritePayload, Enquiry, Package, PaymentMethod, TeamMember } from '../types';
 import { packagePrefill } from './bookingForm.utils';
+import { bookingDurationLabel, bookingTimeWindowError } from '../../shared/bookingTime';
 
 type Props = {
   booking?: Booking | null;
@@ -20,6 +21,8 @@ type BookingDraft = {
   shootType: string;
   preferredEvent: string;
   bookingDate: string;
+  startTime: string;
+  endTime: string;
   location: string;
   packageId: string;
   agreedTotal: string;
@@ -59,6 +62,8 @@ export function BookingFormModal({
   const [shootType, setShootType] = useState(stored?.shootType ?? booking?.shootType ?? enquiry?.shootType ?? 'Wedding');
   const [preferredEvent, setPreferredEvent] = useState(stored?.preferredEvent ?? booking?.preferredEvent ?? enquiry?.preferredEvent ?? '');
   const [bookingDate, setBookingDate] = useState(stored?.bookingDate ?? booking?.bookingDate ?? enquiry?.bookingDate ?? '');
+  const [startTime, setStartTime] = useState(stored?.startTime ?? booking?.startTime ?? enquiry?.startTime ?? '');
+  const [endTime, setEndTime] = useState(stored?.endTime ?? booking?.endTime ?? enquiry?.endTime ?? '');
   const [location, setLocation] = useState(stored?.location ?? booking?.location ?? enquiry?.location ?? '');
   const [packageId, setPackageId] = useState(stored?.packageId ?? booking?.packageId ?? '');
   const [agreedTotal, setAgreedTotal] = useState(
@@ -89,12 +94,12 @@ export function BookingFormModal({
   useEffect(() => {
     const draft: BookingDraft = {
       customerName, customerPhone, customerEmail, shootType, preferredEvent,
-      bookingDate, location, packageId, agreedTotal, assignedTeamMemberId,
+      bookingDate, startTime, endTime, location, packageId, agreedTotal, assignedTeamMemberId,
       advanceAmount, advanceMethod, paymentDueDate, nextFollowUpAt, followUpNote, notes, whatsappOptIn,
       whatsappNotificationsEnabled, step,
     };
     localStorage.setItem(draftKey, JSON.stringify(draft));
-  }, [advanceAmount, advanceMethod, agreedTotal, assignedTeamMemberId, bookingDate, customerEmail, customerName, customerPhone, draftKey, followUpNote, location, nextFollowUpAt, notes, packageId, paymentDueDate, preferredEvent, shootType, step, whatsappNotificationsEnabled, whatsappOptIn]);
+  }, [advanceAmount, advanceMethod, agreedTotal, assignedTeamMemberId, bookingDate, customerEmail, customerName, customerPhone, draftKey, endTime, followUpNote, location, nextFollowUpAt, notes, packageId, paymentDueDate, preferredEvent, shootType, startTime, step, whatsappNotificationsEnabled, whatsappOptIn]);
 
   const handlePackage = (id: string) => {
     setPackageId(id);
@@ -107,6 +112,8 @@ export function BookingFormModal({
     if (customerName.trim().length < 2) return setError('Customer name is required.');
     if (customerPhone.trim().length < 8) return setError('A valid phone number is required.');
     if (enquiry && !bookingDate) return setError('Choose the confirmed booking date.');
+    const timeError = bookingTimeWindowError(bookingDate, startTime, endTime);
+    if (timeError) return setError(timeError);
     setSaving(true);
     setError('');
     try {
@@ -117,6 +124,8 @@ export function BookingFormModal({
         shootType: shootType || undefined,
         preferredEvent: preferredEvent.trim(),
         bookingDate,
+        startTime,
+        endTime,
         location: location.trim(),
         packageId: packageId || null,
         agreedTotal: agreedTotal === '' ? null : Number(agreedTotal),
@@ -138,6 +147,24 @@ export function BookingFormModal({
     } finally {
       setSaving(false);
     }
+  };
+
+  const nextStep = () => {
+    if (step === 0 && customerName.trim().length < 2) {
+      return setError('Customer name is required.');
+    }
+    if (step === 0 && customerPhone.trim().length < 8) {
+      return setError('A valid phone number is required.');
+    }
+    if (step === 1 && enquiry && !bookingDate) {
+      return setError('Choose the confirmed booking date.');
+    }
+    if (step === 1) {
+      const timeError = bookingTimeWindowError(bookingDate, startTime, endTime);
+      if (timeError) return setError(timeError);
+    }
+    setError('');
+    setStep(value => value + 1);
   };
 
   const input = 'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100';
@@ -174,6 +201,9 @@ export function BookingFormModal({
               <label className="text-sm text-slate-700">Preferred event<input className={`${input} mt-1`} value={preferredEvent} onChange={e => setPreferredEvent(e.target.value)} /></label>
               <label className="text-sm text-slate-700">Booking date<input type="date" className={`${input} mt-1`} value={bookingDate} onChange={e => setBookingDate(e.target.value)} /></label>
               <label className="text-sm text-slate-700">Location<input className={`${input} mt-1`} value={location} onChange={e => setLocation(e.target.value)} /></label>
+              <label className="text-sm text-slate-700">Start time<input type="time" className={`${input} mt-1`} value={startTime} onChange={e => setStartTime(e.target.value)} /></label>
+              <label className="text-sm text-slate-700">End time<input type="time" min={startTime || undefined} className={`${input} mt-1`} value={endTime} onChange={e => setEndTime(e.target.value)} /></label>
+              {(startTime || endTime) && <p className="text-xs text-slate-500 sm:col-span-2">{bookingDurationLabel(startTime, endTime) || 'Enter both times; the end must be later than the start.'}</p>}
             </div>
           </section>}
 
@@ -206,7 +236,7 @@ export function BookingFormModal({
         </div>
         <div className="grid grid-cols-2 gap-2 border-t border-slate-200 px-5 py-4">
           <button onClick={step === 0 ? onClose : () => setStep(value => value - 1)} className="h-12 rounded-xl border border-slate-300 px-4 text-sm font-semibold text-slate-700">{step === 0 ? 'Cancel' : 'Back'}</button>
-          {step < 3 ? <button onClick={() => { if (step === 0 && customerName.trim().length < 2) return setError('Customer name is required.'); if (step === 0 && customerPhone.trim().length < 8) return setError('A valid phone number is required.'); setError(''); setStep(value => value + 1); }} className="h-12 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white">Next</button> : <button onClick={() => void submit()} disabled={saving} className="h-12 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white disabled:opacity-50">{saving ? 'Saving…' : enquiry ? 'Confirm booking' : 'Save booking'}</button>}
+          {step < 3 ? <button onClick={nextStep} className="h-12 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white">Next</button> : <button onClick={() => void submit()} disabled={saving} className="h-12 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white disabled:opacity-50">{saving ? 'Saving…' : enquiry ? 'Confirm booking' : 'Save booking'}</button>}
         </div>
       </div>
     </div>

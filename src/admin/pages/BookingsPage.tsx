@@ -15,6 +15,7 @@ import { api } from '../api/client';
 import type { Booking, BookingStatus, BookingWritePayload, Enquiry, Package, TeamMember } from '../types';
 import { BookingFormModal } from '../components/BookingFormModal';
 import { useAuth } from '../contexts/AuthContext';
+import { formatTimeWindow } from '../../shared/bookingTime';
 
 export type ConvertEnquiryState = { convertFromEnquiry?: Enquiry };
 
@@ -115,6 +116,8 @@ export function BookingsPage() {
     const created = convertFromEnquiry
       ? await api.convertEnquiry(convertFromEnquiry.id, {
           bookingDate: payload.bookingDate || '',
+          startTime: payload.startTime,
+          endTime: payload.endTime,
           shootType: payload.shootType,
           preferredEvent: payload.preferredEvent,
           location: payload.location,
@@ -182,7 +185,7 @@ export function BookingsPage() {
             return (
               <button key={booking.id} onClick={() => navigate(`/admin/bookings/${booking.id}`)} className="grid w-full gap-3 px-5 py-4 text-left transition hover:bg-slate-50 md:grid-cols-[1.3fr_1fr_0.9fr_0.9fr_0.9fr_32px] md:items-center md:gap-4">
                 <div className="min-w-0"><p className="truncate font-medium text-slate-900">{booking.customerName}</p><p className="mt-1 truncate text-xs text-slate-500">{booking.customerPhone} · {booking.shootType || 'Service not set'}</p></div>
-                <div><p className="inline-flex items-center gap-1.5 text-sm text-slate-700"><CalendarDays className="h-4 w-4 text-slate-400" />{formatDay(booking.bookingDate)}</p><span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-medium ${statusClass[booking.status]}`}>{booking.status.replace('_', ' ')}</span></div>
+                <div><p className="inline-flex items-center gap-1.5 text-sm text-slate-700"><CalendarDays className="h-4 w-4 text-slate-400" />{formatDay(booking.bookingDate)}</p>{booking.startTime && booking.endTime && <p className="mt-1 text-xs text-slate-500">{formatTimeWindow(booking.startTime, booking.endTime)}</p>}<span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-medium ${statusClass[booking.status]}`}>{booking.status.replace('_', ' ')}</span></div>
                 <p className="inline-flex items-center gap-1.5 text-sm text-slate-600"><UserRound className="h-4 w-4 text-slate-400" />{booking.assignedTeamMemberName || 'Unassigned'}</p>
                 <div><p className="inline-flex items-center gap-1 text-sm font-medium text-slate-700"><IndianRupee className="h-3.5 w-3.5" />{money(booking.paymentSummary.balanceDue)}</p><p className="mt-1 text-xs capitalize text-slate-500">{booking.paymentSummary.status}</p></div>
                 <div><p className={`text-sm ${overdue ? 'font-medium text-red-600' : 'text-slate-600'}`}>{booking.nextFollowUpAt ? new Date(booking.nextFollowUpAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : 'No follow-up'}</p>{booking.followUpNote && <p className="mt-1 truncate text-xs text-slate-400">{booking.followUpNote}</p>}</div>

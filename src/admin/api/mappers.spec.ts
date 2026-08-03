@@ -9,6 +9,9 @@ test('mapBooking exposes the operations contract and normalizes legacy records',
     customerPhone: '9876543210',
     status: 'completed',
     shootDate: '2030-02-10T04:30:00.000Z',
+    startTime: '10:00',
+    endTime: '13:30',
+    durationMinutes: 210,
     reminderDate: '2030-02-05',
     agreedTotal: 5000,
     payments: [{
@@ -20,8 +23,9 @@ test('mapBooking exposes the operations contract and normalizes legacy records',
   assert.equal(booking.bookingDate, '2030-02-10');
   assert.equal(booking.paymentDueDate, '2030-02-05');
   assert.equal('shootDate' in booking, false);
-  assert.equal('startTime' in booking, false);
-  assert.equal('endTime' in booking, false);
+  assert.equal(booking.startTime, '10:00');
+  assert.equal(booking.endTime, '13:30');
+  assert.equal(booking.durationMinutes, 210);
   assert.deepEqual(booking.paymentSummary, {
     amountPaid: 1000,
     balanceDue: 4000,
@@ -45,7 +49,12 @@ test('mapBooking preserves null pricing instead of inventing a balance', () => {
 });
 
 test('mapEnquiry prefers bookingDate and supports the compatibility shootDate', () => {
-  assert.equal(mapEnquiry({ id: 'e1', bookingDate: '2030-03-01' }).bookingDate, '2030-03-01');
+  const enquiry = mapEnquiry({
+    id: 'e1', bookingDate: '2030-03-01', startTime: '14:00', endTime: '16:00',
+  });
+  assert.equal(enquiry.bookingDate, '2030-03-01');
+  assert.equal(enquiry.startTime, '14:00');
+  assert.equal(enquiry.endTime, '16:00');
   assert.equal(
     mapEnquiry({ id: 'e2', shootDate: '2030-03-02T10:00:00.000Z' }).bookingDate,
     '2030-03-02',

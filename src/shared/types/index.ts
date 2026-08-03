@@ -304,6 +304,8 @@ export type Enquiry = {
   shootType: string;
   preferredEvent: string;
   bookingDate: string;
+  startTime?: string;
+  endTime?: string;
   location: string;
   notes: string;
   message: string;
@@ -331,6 +333,8 @@ export type AdminEnquiryWritePayload = {
   shootType?: string;
   preferredEvent?: string;
   bookingDate?: string;
+  startTime?: string;
+  endTime?: string;
   location?: string;
   notes?: string;
   message?: string;
@@ -344,6 +348,8 @@ export type AdminEnquiryWritePayload = {
 
 export type ConvertEnquiryPayload = {
   bookingDate: string;
+  startTime?: string;
+  endTime?: string;
   shootType?: string;
   preferredEvent?: string;
   location?: string;
@@ -366,6 +372,8 @@ export type CreateEnquiryPayload = {
   shootType: string;
   preferredEvent?: string;
   bookingDate?: string;
+  startTime?: string;
+  endTime?: string;
   location?: string;
   whatsappOptIn?: boolean;
   preferredLanguage?: string;
@@ -413,6 +421,9 @@ export type Booking = {
   shootType: string;
   preferredEvent: string;
   bookingDate: string;
+  startTime?: string;
+  endTime?: string;
+  durationMinutes?: number | null;
   durationHours: number;
   location: string;
   paymentDueDate: string;
@@ -496,6 +507,8 @@ export type BookingWritePayload = {
   shootType?: string;
   preferredEvent?: string;
   bookingDate?: string;
+  startTime?: string;
+  endTime?: string;
   durationHours?: number;
   location?: string;
   paymentDueDate?: string;

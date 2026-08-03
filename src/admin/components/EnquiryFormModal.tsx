@@ -3,6 +3,7 @@ import { AlertCircle, ChevronDown, X } from 'lucide-react';
 import { SHOOT_TYPE_OPTIONS } from '../../lib/shootTypes';
 import { api } from '../api/client';
 import type { AdminEnquiryWritePayload, Enquiry, EnquirySource } from '../types';
+import { bookingDurationLabel, bookingTimeWindowError } from '../../shared/bookingTime';
 
 const DRAFT_KEY = 'doll_admin_enquiry_draft';
 
@@ -28,13 +29,15 @@ export function EnquiryFormModal({
   const [followUpNote, setFollowUpNote] = useState(enquiry?.followUpNote || stored?.followUpNote || '');
   const [email, setEmail] = useState(enquiry?.email || stored?.email || '');
   const [bookingDate, setBookingDate] = useState(enquiry?.bookingDate || stored?.bookingDate || '');
+  const [startTime, setStartTime] = useState(enquiry?.startTime || stored?.startTime || '');
+  const [endTime, setEndTime] = useState(enquiry?.endTime || stored?.endTime || '');
   const [location, setLocation] = useState(enquiry?.location || stored?.location || '');
   const [notes, setNotes] = useState(enquiry?.notes || stored?.notes || '');
   const [whatsappOptIn, setWhatsappOptIn] = useState(enquiry?.whatsappOptIn || stored?.whatsappOptIn || false);
   const [whatsappNotificationsEnabled, setWhatsappNotificationsEnabled] = useState(
     enquiry?.whatsappNotificationsEnabled || stored?.whatsappNotificationsEnabled || false,
   );
-  const [showMore, setShowMore] = useState(Boolean(enquiry || email || bookingDate || location || notes));
+  const [showMore, setShowMore] = useState(Boolean(enquiry || email || bookingDate || startTime || endTime || location || notes));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -46,13 +49,15 @@ export function EnquiryFormModal({
     nextFollowUpAt: nextFollowUpAt ? new Date(nextFollowUpAt).toISOString() : undefined,
     followUpNote: followUpNote.trim() || undefined,
     email: email.trim() || undefined,
-    bookingDate: bookingDate || undefined,
+    bookingDate: enquiry ? bookingDate : bookingDate || undefined,
+    startTime: enquiry ? startTime : startTime || undefined,
+    endTime: enquiry ? endTime : endTime || undefined,
     location: location.trim() || undefined,
     notes: notes.trim() || undefined,
     whatsappOptIn,
     whatsappNotificationsEnabled: whatsappOptIn && whatsappNotificationsEnabled,
     preferredLanguage: 'en',
-  }), [bookingDate, email, enquiry, followUpNote, location, name, nextFollowUpAt, notes, phone, shootType, source, whatsappNotificationsEnabled, whatsappOptIn]);
+  }), [bookingDate, email, endTime, enquiry, followUpNote, location, name, nextFollowUpAt, notes, phone, shootType, source, startTime, whatsappNotificationsEnabled, whatsappOptIn]);
 
   useEffect(() => {
     if (enquiry) return;
@@ -62,6 +67,8 @@ export function EnquiryFormModal({
   const save = async () => {
     if (name.trim().length < 2) return setError('Enter the customer name.');
     if (phone.trim().length < 8) return setError('Enter a valid phone number.');
+    const timeError = bookingTimeWindowError(bookingDate, startTime, endTime);
+    if (timeError) return setError(timeError);
     setSaving(true);
     setError('');
     try {
@@ -99,6 +106,9 @@ export function EnquiryFormModal({
           {showMore && <div className="grid gap-4 sm:grid-cols-2">
             <label className="text-sm font-medium text-slate-700">Email<input type="email" className={input} value={email} onChange={e => setEmail(e.target.value)} /></label>
             <label className="text-sm font-medium text-slate-700">Preferred date<input type="date" className={input} value={bookingDate} onChange={e => setBookingDate(e.target.value)} /></label>
+            <label className="text-sm font-medium text-slate-700">Start time<input type="time" className={input} value={startTime} onChange={e => setStartTime(e.target.value)} /></label>
+            <label className="text-sm font-medium text-slate-700">End time<input type="time" min={startTime || undefined} className={input} value={endTime} onChange={e => setEndTime(e.target.value)} /></label>
+            {(startTime || endTime) && <p className="text-xs text-slate-500 sm:col-span-2">{bookingDurationLabel(startTime, endTime) || 'Enter both times; the end must be later than the start.'}</p>}
             <label className="text-sm font-medium text-slate-700 sm:col-span-2">Location<input className={input} value={location} onChange={e => setLocation(e.target.value)} /></label>
             <label className="text-sm font-medium text-slate-700 sm:col-span-2">Internal notes<textarea rows={3} className={`${input} h-auto py-3`} value={notes} onChange={e => setNotes(e.target.value)} /></label>
           </div>}

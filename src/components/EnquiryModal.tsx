@@ -11,6 +11,8 @@ const ENQUIRY_FIELDS = [
   'shootType',
   'preferredEvent',
   'bookingDate',
+  'startTime',
+  'endTime',
   'location',
   'message',
 ] as const;
@@ -34,6 +36,7 @@ import {
 } from '../lib/shootTypes';
 import { enquiryWhatsAppUrl } from '../lib/pricing';
 import { useSiteData } from '../contexts/SiteDataContext';
+import { bookingDurationLabel, bookingTimeWindowError } from '../shared/bookingTime';
 
 function WhatsAppIcon({ className }: { className?: string }) {
   return (
@@ -66,6 +69,8 @@ export function EnquiryModal({
   );
   const [preferredEvent, setPreferredEvent] = useState(prefill?.preferredEvent ?? '');
   const [bookingDate, setBookingDate] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
   const [location, setLocation] = useState('');
   const [message, setMessage] = useState(prefill?.message ?? '');
   const [whatsappOptIn, setWhatsappOptIn] = useState(false);
@@ -84,6 +89,8 @@ export function EnquiryModal({
     shootType,
     preferredEvent,
     bookingDate,
+    startTime,
+    endTime,
     location,
   };
   const whatsappUrl = enquiryWhatsAppUrl(siteContent.whatsapp, whatsappCtx);
@@ -129,9 +136,15 @@ export function EnquiryModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus('sending');
     setErrorMsg('');
     setFieldErrors({});
+    const timeError = bookingTimeWindowError(bookingDate, startTime, endTime);
+    if (timeError) {
+      setStatus('error');
+      setFieldErrors({ startTime: timeError, endTime: timeError });
+      return;
+    }
+    setStatus('sending');
     const messageWithOptIn = tipsOptIn
       ? `${message.trim()}\n\n[Tips email: yes]`
       : message;
@@ -143,6 +156,8 @@ export function EnquiryModal({
         shootType,
         preferredEvent: preferredEvent.trim() || undefined,
         bookingDate: bookingDate.trim() || undefined,
+        startTime: startTime.trim() || undefined,
+        endTime: endTime.trim() || undefined,
         location: location.trim() || undefined,
         whatsappOptIn,
         preferredLanguage: 'en',
@@ -355,12 +370,53 @@ export function EnquiryModal({
                   onChange={e => {
                     setBookingDate(e.target.value);
                     clearFieldError('bookingDate');
+                    clearFieldError('startTime');
+                    clearFieldError('endTime');
                   }}
                   aria-label="Preferred booking date"
                   aria-invalid={Boolean(fieldErrors.bookingDate)}
                   className={fieldClass(Boolean(fieldErrors.bookingDate))}
                 />
                 <FieldError message={fieldErrors.bookingDate} />
+              </div>
+              <div>
+                <div className="mb-1.5 flex items-center justify-between gap-3">
+                  <label className="text-xs text-ink-200/50">Preferred time window</label>
+                  {bookingDurationLabel(startTime, endTime) ? (
+                    <span className="text-xs text-gold-300/70">
+                      {bookingDurationLabel(startTime, endTime)}
+                    </span>
+                  ) : null}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <input
+                    type="time"
+                    value={startTime}
+                    onChange={e => {
+                      setStartTime(e.target.value);
+                      clearFieldError('startTime');
+                      clearFieldError('endTime');
+                    }}
+                    aria-label="Preferred start time"
+                    aria-invalid={Boolean(fieldErrors.startTime)}
+                    className={fieldClass(Boolean(fieldErrors.startTime))}
+                  />
+                  <input
+                    type="time"
+                    value={endTime}
+                    min={startTime || undefined}
+                    onChange={e => {
+                      setEndTime(e.target.value);
+                      clearFieldError('startTime');
+                      clearFieldError('endTime');
+                    }}
+                    aria-label="Preferred end time"
+                    aria-invalid={Boolean(fieldErrors.endTime)}
+                    className={fieldClass(Boolean(fieldErrors.endTime))}
+                  />
+                </div>
+                <FieldError message={fieldErrors.startTime || fieldErrors.endTime} />
+                <p className="mt-1.5 text-xs text-ink-200/40">Optional, but enter both times together.</p>
               </div>
               <div>
                 <input

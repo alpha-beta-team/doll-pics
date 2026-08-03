@@ -35,6 +35,7 @@ import {
   deliveryWhatsAppUrl,
   whatsappDigits,
 } from '../../lib/pricing';
+import { bookingDurationLabel, formatTimeWindow } from '../../shared/bookingTime';
 
 const statusStyles: Record<BookingStatus, string> = {
   draft: 'bg-slate-100 text-slate-700',
@@ -322,13 +323,13 @@ export function BookingDetailPage() {
       {error && <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"><AlertCircle className="h-5 w-5" />{error}<button className="ml-auto" onClick={() => setError('')}><X className="h-4 w-4" /></button></div>}
 
       <header className="flex flex-col justify-between gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm lg:flex-row lg:items-start">
-        <div><div className="flex flex-wrap items-center gap-3"><h1 className="text-2xl font-semibold text-slate-900">{booking.customerName}</h1><span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusStyles[booking.status]}`}>{booking.status.replace('_', ' ')}</span></div><p className="mt-2 text-sm text-slate-500">{booking.packageName || booking.shootType || 'Photography session'} · {formatDay(booking.bookingDate)}</p></div>
+        <div><div className="flex flex-wrap items-center gap-3"><h1 className="text-2xl font-semibold text-slate-900">{booking.customerName}</h1><span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusStyles[booking.status]}`}>{booking.status.replace('_', ' ')}</span></div><p className="mt-2 text-sm text-slate-500">{booking.packageName || booking.shootType || 'Photography session'} · {formatDay(booking.bookingDate)}{booking.startTime && booking.endTime ? ` · ${formatTimeWindow(booking.startTime, booking.endTime)}` : ''}</p></div>
         <div className="flex flex-wrap gap-2"><button onClick={() => setEditing(true)} className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700"><Pencil className="h-4 w-4" />Edit</button>{actions.map(action => <button key={action.label} disabled={saving} onClick={() => void transition(action.status)} className={`rounded-lg px-3 py-2 text-sm font-medium ${'primary' in action && action.primary ? 'bg-blue-600 text-white' : 'border border-slate-300 text-slate-700'}`}>{action.label}</button>)}</div>
       </header>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card title="Customer and booking">
-          <div className="grid gap-5 sm:grid-cols-2"><Field label="Phone"><a className="text-blue-600" href={`tel:${booking.customerPhone}`}>{booking.customerPhone}</a></Field><Field label="Email">{booking.customerEmail ? <a className="text-blue-600" href={`mailto:${booking.customerEmail}`}>{booking.customerEmail}</a> : '—'}</Field><Field label="Photography service">{booking.shootType || '—'}</Field><Field label="Preferred event">{booking.preferredEvent || '—'}</Field><Field label="Booking date">{formatDay(booking.bookingDate)}</Field><Field label="Location">{booking.location || '—'}</Field><Field label="Package">{booking.packageName || 'No package'}</Field><Field label="Assigned to">{booking.assignedTeamMemberName || 'Unassigned'}</Field></div>
+          <div className="grid gap-5 sm:grid-cols-2"><Field label="Phone"><a className="text-blue-600" href={`tel:${booking.customerPhone}`}>{booking.customerPhone}</a></Field><Field label="Email">{booking.customerEmail ? <a className="text-blue-600" href={`mailto:${booking.customerEmail}`}>{booking.customerEmail}</a> : '—'}</Field><Field label="Photography service">{booking.shootType || '—'}</Field><Field label="Preferred event">{booking.preferredEvent || '—'}</Field><Field label="Booking date">{formatDay(booking.bookingDate)}</Field><Field label="Time window">{formatTimeWindow(booking.startTime, booking.endTime)}{bookingDurationLabel(booking.startTime, booking.endTime) ? ` · ${bookingDurationLabel(booking.startTime, booking.endTime)}` : ''}</Field><Field label="Location">{booking.location || '—'}</Field><Field label="Package">{booking.packageName || 'No package'}</Field><Field label="Assigned to">{booking.assignedTeamMemberName || 'Unassigned'}</Field></div>
           {booking.notes && <div className="mt-5 rounded-lg bg-slate-50 p-4 text-sm whitespace-pre-wrap text-slate-700">{booking.notes}</div>}
         </Card>
 

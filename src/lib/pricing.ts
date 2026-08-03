@@ -32,6 +32,8 @@ export interface EnquiryWhatsAppContext {
   shootType?: string;
   preferredEvent?: string;
   bookingDate?: string;
+  startTime?: string;
+  endTime?: string;
   location?: string;
 }
 
@@ -48,6 +50,9 @@ export function enquiryWhatsAppUrl(
     ctx.shootType?.trim() ? `Shoot type: ${ctx.shootType.trim()}` : null,
     ctx.preferredEvent?.trim() ? `Event: ${ctx.preferredEvent.trim()}` : null,
     ctx.bookingDate?.trim() ? `Preferred booking date: ${ctx.bookingDate.trim()}` : null,
+    ctx.startTime?.trim() && ctx.endTime?.trim()
+      ? `Preferred time: ${ctx.startTime.trim()}–${ctx.endTime.trim()}`
+      : null,
     ctx.location?.trim() ? `Location: ${ctx.location.trim()}` : null,
   ].filter(Boolean);
 

@@ -23,6 +23,7 @@ import {
   UserRound,
   X,
 } from 'lucide-react';
+import { formatTimeWindow } from '../../shared/bookingTime';
 
 type EnquiryStatus = Enquiry['status'];
 type StatusFilter = EnquiryStatus | 'all';
@@ -684,6 +685,7 @@ function EnquiryDrawer({ enquiry, onClose, onStatusChange, onConvert }: EnquiryD
                 <DetailItem icon={Sparkles} label="Shoot type">{enquiry.shootType || '—'}</DetailItem>
                 <DetailItem icon={UserRound} label="Preferred event">{enquiry.preferredEvent || '—'}</DetailItem>
                 <DetailItem icon={CalendarPlus} label="Preferred booking date">{enquiry.bookingDate ? formatShortDate(enquiry.bookingDate) : '—'}</DetailItem>
+                <DetailItem icon={Clock3} label="Preferred time">{enquiry.startTime && enquiry.endTime ? formatTimeWindow(enquiry.startTime, enquiry.endTime) : '—'}</DetailItem>
                 <DetailItem icon={MapPin} label="Location">{enquiry.location || '—'}</DetailItem>
               </div>
             </section>
