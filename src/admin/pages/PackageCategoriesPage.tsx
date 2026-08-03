@@ -12,6 +12,7 @@ import {
   X,
   FolderOpen,
 } from 'lucide-react';
+import { useConfirmDialog } from '../hooks/useConfirmDialog';
 
 function slugify(value: string): string {
   return value
@@ -22,6 +23,7 @@ function slugify(value: string): string {
 }
 
 export function PackageCategoriesPage() {
+  const confirmDialog = useConfirmDialog();
   const [categories, setCategories] = useState<PackageCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -45,9 +47,13 @@ export function PackageCategoriesPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this package category? Packages using it may need reassignment.')) {
-      return;
-    }
+    const confirmed = await confirmDialog({
+      title: 'Delete package category?',
+      description: 'Packages using this category may need to be reassigned after it is deleted.',
+      confirmLabel: 'Delete category',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
     try {
       await api.deletePackageCategory(id);
       await fetchCategories();

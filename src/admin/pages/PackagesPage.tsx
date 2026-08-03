@@ -13,6 +13,7 @@ import {
   DollarSign,
   FolderOpen,
 } from 'lucide-react';
+import { useConfirmDialog } from '../hooks/useConfirmDialog';
 
 const UNCATEGORIZED_KEY = '__uncategorized__';
 const ALL_CATEGORIES_KEY = '__all__';
@@ -85,6 +86,7 @@ interface PackageGroup {
 }
 
 export function PackagesPage() {
+  const confirmDialog = useConfirmDialog();
   const [packages, setPackages] = useState<Package[]>([]);
   const [categories, setCategories] = useState<PackageCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -193,7 +195,13 @@ export function PackagesPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this package? This cannot be undone.')) return;
+    const confirmed = await confirmDialog({
+      title: 'Delete package?',
+      description: 'This package will be permanently removed. This action cannot be undone.',
+      confirmLabel: 'Delete package',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
     try {
       await api.deletePackage(id);
       await fetchData();

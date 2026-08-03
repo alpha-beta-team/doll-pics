@@ -14,12 +14,17 @@ import {
   BarChart3,
   MessageSquareQuote,
   Users,
+  Home,
+  CircleDollarSign,
+  UserCog,
+  HelpCircle,
 } from 'lucide-react';
 
 export type NavItem = {
   to: string;
   label: string;
   icon: LucideIcon;
+  ownerOnly?: boolean;
 };
 
 export type NavGroup = {
@@ -51,7 +56,11 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       {
         type: 'link',
-        item: { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        item: { to: '/admin/today', label: 'Today', icon: Home },
+      },
+      {
+        type: 'link',
+        item: { to: '/admin/dashboard', label: 'Reports', icon: LayoutDashboard, ownerOnly: true },
       },
     ],
   },
@@ -66,6 +75,18 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         type: 'link',
         item: { to: '/admin/enquiries', label: 'Enquiries', icon: Mail },
+      },
+      {
+        type: 'link',
+        item: { to: '/admin/payments', label: 'Payments', icon: CircleDollarSign },
+      },
+      {
+        type: 'link',
+        item: { to: '/admin/users', label: 'Staff Accounts', icon: UserCog, ownerOnly: true },
+      },
+      {
+        type: 'link',
+        item: { to: '/admin/help', label: 'Quick Guide', icon: HelpCircle },
       },
     ],
   },

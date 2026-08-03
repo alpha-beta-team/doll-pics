@@ -26,7 +26,7 @@ export function TopBar({ sidebarWidth }: TopBarProps) {
             <Menu className="h-5 w-5" />
           </button>
         )}
-        <h1 className="text-lg font-semibold text-[#1E293B]">Admin Dashboard</h1>
+        <h1 className="text-lg font-semibold text-[#1E293B]">Doll Pictures Work</h1>
       </div>
     </header>
   );

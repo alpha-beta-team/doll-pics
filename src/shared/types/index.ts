@@ -7,8 +7,17 @@
 export type PricingMode = 'price' | 'startingFrom' | 'enquire';
 
 export type EnquiryStatus = 'new' | 'read' | 'responded';
+export type EnquiryStage = 'new' | 'contacted' | 'follow_up' | 'booked' | 'closed_lost';
+export type EnquirySource = 'website' | 'phone' | 'whatsapp' | 'walk_in' | 'referral' | 'diary_import';
 
-export type BookingStatus = 'draft' | 'confirmed' | 'cancelled' | 'completed';
+export type BookingStatus =
+  | 'draft'
+  | 'confirmed'
+  | 'shoot_completed'
+  | 'delivered'
+  | 'cancelled';
+export type PaymentMethod = 'cash' | 'upi' | 'bank_transfer' | 'card' | 'other';
+export type PaymentState = 'unpriced' | 'unpaid' | 'partial' | 'paid' | 'overpaid';
 
 /** Ordered CMS row metadata (admin + published lists). */
 export type CmsMeta = {
@@ -294,13 +303,60 @@ export type Enquiry = {
   phone: string;
   shootType: string;
   preferredEvent: string;
-  shootDate: string;
+  bookingDate: string;
   location: string;
-  reminderDate: string;
   notes: string;
   message: string;
   status: EnquiryStatus;
+  stage: EnquiryStage;
+  source: EnquirySource;
+  nextFollowUpAt?: string;
+  followUpNote: string;
+  lastFollowUpCompletedAt?: string;
+  convertedBookingId?: string;
+  whatsappOptIn: boolean;
+  whatsappOptInAt?: string;
+  whatsappOptInSource: string;
+  whatsappNotificationsEnabled: boolean;
+  whatsappOptOutAt?: string;
+  preferredLanguage: string;
   createdAt: string;
+  updatedAt?: string;
+};
+
+export type AdminEnquiryWritePayload = {
+  name: string;
+  phone: string;
+  email?: string;
+  shootType?: string;
+  preferredEvent?: string;
+  bookingDate?: string;
+  location?: string;
+  notes?: string;
+  message?: string;
+  source?: Exclude<EnquirySource, 'website'>;
+  nextFollowUpAt?: string;
+  followUpNote?: string;
+  whatsappOptIn?: boolean;
+  whatsappNotificationsEnabled?: boolean;
+  preferredLanguage?: string;
+};
+
+export type ConvertEnquiryPayload = {
+  bookingDate: string;
+  shootType?: string;
+  preferredEvent?: string;
+  location?: string;
+  packageId?: string | null;
+  agreedTotal?: number | null;
+  assignedTeamMemberId?: string | null;
+  paymentDueDate?: string;
+  notes?: string;
+  advanceAmount?: number;
+  advancePaidAt?: string;
+  advanceMethod?: PaymentMethod;
+  whatsappOptIn?: boolean;
+  whatsappNotificationsEnabled?: boolean;
 };
 
 export type CreateEnquiryPayload = {
@@ -309,11 +365,44 @@ export type CreateEnquiryPayload = {
   phone?: string;
   shootType: string;
   preferredEvent?: string;
-  shootDate?: string;
+  bookingDate?: string;
   location?: string;
-  reminderDate?: string;
-  notes?: string;
+  whatsappOptIn?: boolean;
+  preferredLanguage?: string;
   message: string;
+};
+
+export type BookingPayment = {
+  id: string;
+  amount: number;
+  paidAt: string;
+  method: PaymentMethod;
+  reference: string;
+  note: string;
+  createdAt?: string;
+};
+
+export type PaymentSummary = {
+  amountPaid: number;
+  balanceDue: number | null;
+  status: PaymentState;
+};
+
+export type WhatsAppMessageSummary = {
+  id: string;
+  eventType: string;
+  templateName: string;
+  templateLanguage: string;
+  redactedRecipient: string;
+  scheduledAt: string;
+  status: 'pending' | 'processing' | 'sent' | 'delivered' | 'read' | 'failed' | 'cancelled' | 'dry-run';
+  attemptCount: number;
+  failureCode?: string;
+  failureReason?: string;
+  sentAt?: string;
+  deliveredAt?: string;
+  readAt?: string;
+  createdAt?: string;
 };
 
 export type Booking = {
@@ -323,21 +412,40 @@ export type Booking = {
   customerEmail: string;
   shootType: string;
   preferredEvent: string;
-  shootDate: string;
   bookingDate: string;
-  startTime: string;
-  endTime: string;
   durationHours: number;
-  advancePaid: number;
   location: string;
-  reminderDate: string;
+  paymentDueDate: string;
+  nextFollowUpAt?: string;
+  followUpNote: string;
+  lastFollowUpCompletedAt?: string;
   notes: string;
+  packageId?: string;
+  packageName: string;
+  packageListedPrice: number | null;
+  packagePricingMode: PricingMode | '';
+  agreedTotal: number | null;
+  assignedTeamMemberId?: string;
+  assignedTeamMemberName: string;
+  payments: BookingPayment[];
+  paymentSummary: PaymentSummary;
   driveGalleryUrl: string;
   driveEditedUrl: string;
   driveRawsUrl: string;
   driveNotes: string;
+  deliverySentAt?: string;
   status: BookingStatus;
   confirmedAt?: string;
+  shootCompletedAt?: string;
+  deliveredAt?: string;
+  cancelledAt?: string;
+  statusBeforeCancellation?: Exclude<BookingStatus, 'cancelled'>;
+  whatsappOptIn: boolean;
+  whatsappOptInAt?: string;
+  whatsappOptInSource: string;
+  whatsappNotificationsEnabled: boolean;
+  preferredLanguage: string;
+  whatsappOptOutAt?: string;
   enquiryId?: string;
   createdAt: string;
   updatedAt: string;
@@ -349,27 +457,76 @@ export type BookingWritePayload = {
   customerEmail?: string;
   shootType?: string;
   preferredEvent?: string;
-  shootDate?: string;
   bookingDate?: string;
-  startTime?: string;
-  endTime?: string;
   durationHours?: number;
-  advancePaid?: number;
   location?: string;
-  reminderDate?: string;
+  paymentDueDate?: string;
+  nextFollowUpAt?: string;
+  followUpNote?: string;
   notes?: string;
+  packageId?: string | null;
+  agreedTotal?: number | null;
+  assignedTeamMemberId?: string | null;
+  advanceAmount?: number;
+  advancePaidAt?: string;
+  advanceMethod?: PaymentMethod;
   driveGalleryUrl?: string;
   driveEditedUrl?: string;
   driveRawsUrl?: string;
   driveNotes?: string;
-  status?: BookingStatus;
   enquiryId?: string;
+  whatsappOptIn?: boolean;
+  whatsappNotificationsEnabled?: boolean;
+  preferredLanguage?: string;
 };
 
 export type User = {
   id: string;
   email: string;
   name: string;
+  role: 'owner' | 'operations';
+  isActive: boolean;
+  mustChangePassword: boolean;
+};
+
+export type TodayFollowUp = {
+  entityType: 'enquiry' | 'booking';
+  id: string;
+  name: string;
+  phone: string;
+  shootType: string;
+  dueAt?: string;
+  note: string;
+  overdue: boolean;
+};
+
+export type TodaySummaryItem = {
+  id: string;
+  name: string;
+  phone: string;
+  shootType: string;
+  bookingDate?: string;
+  location?: string;
+  status?: BookingStatus;
+  source?: EnquirySource;
+  createdAt?: string;
+  assignedTeamMemberName?: string;
+};
+
+export type TodayPaymentItem = TodaySummaryItem & {
+  paymentDueDate: string;
+  balanceDue: number;
+};
+
+export type TodayWork = {
+  date: string;
+  tomorrow: string;
+  timezone: string;
+  followUps: TodayFollowUp[];
+  newEnquiries: TodaySummaryItem[];
+  todayShoots: TodaySummaryItem[];
+  paymentsDue: TodayPaymentItem[];
+  tomorrowShoots: TodaySummaryItem[];
 };
 
 export type AuthState = {

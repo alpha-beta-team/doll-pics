@@ -1,0 +1,14 @@
+{
+  "name": "Doll Pictures Work",
+  "short_name": "Doll Work",
+  "description": "Daily enquiries, bookings, follow-ups and payments for Doll Pictures.",
+  "start_url": "/admin/today",
+  "scope": "/admin/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#2563eb",
+  "icons": [
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "/logo-doll.png", "sizes": "any", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

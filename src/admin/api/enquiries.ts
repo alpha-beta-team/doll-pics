@@ -1,12 +1,22 @@
-import type { Enquiry } from '../types';
+import type {
+  AdminEnquiryWritePayload,
+  Booking,
+  ConvertEnquiryPayload,
+  Enquiry,
+  EnquiryStage,
+} from '../types';
 import { request } from './http';
-import { mapEnquiry } from './mappers';
+import { mapBooking, mapEnquiry } from './mappers';
 
 export const enquiriesApi = {
   async getEnquiries(filters?: {
     status?: 'new' | 'read' | 'responded';
+    stage?: EnquiryStage;
   }): Promise<Enquiry[]> {
-    const qs = filters?.status ? `?status=${filters.status}` : '';
+    const params = new URLSearchParams();
+    if (filters?.status) params.set('status', filters.status);
+    if (filters?.stage) params.set('stage', filters.stage);
+    const qs = params.size ? `?${params}` : '';
     const docs = await request<Record<string, unknown>[]>(
       `/admin/enquiries${qs}`,
       { auth: true },
@@ -17,6 +27,48 @@ export const enquiriesApi = {
         (a, b) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       );
+  },
+
+  async createAdminEnquiry(data: AdminEnquiryWritePayload): Promise<Enquiry> {
+    const doc = await request<Record<string, unknown>>('/admin/enquiries', {
+      method: 'POST', auth: true, body: JSON.stringify(data),
+    });
+    return mapEnquiry(doc);
+  },
+
+  async updateEnquiry(id: string, data: Partial<AdminEnquiryWritePayload>): Promise<Enquiry> {
+    const doc = await request<Record<string, unknown>>(`/admin/enquiries/${id}`, {
+      method: 'PATCH', auth: true, body: JSON.stringify(data),
+    });
+    return mapEnquiry(doc);
+  },
+
+  async updateEnquiryStage(id: string, stage: EnquiryStage): Promise<Enquiry> {
+    const doc = await request<Record<string, unknown>>(`/admin/enquiries/${id}/stage`, {
+      method: 'PATCH', auth: true, body: JSON.stringify({ stage }),
+    });
+    return mapEnquiry(doc);
+  },
+
+  async scheduleEnquiryFollowUp(id: string, scheduledAt: string, note?: string): Promise<Enquiry> {
+    const doc = await request<Record<string, unknown>>(`/admin/enquiries/${id}/follow-up`, {
+      method: 'PATCH', auth: true, body: JSON.stringify({ scheduledAt, note }),
+    });
+    return mapEnquiry(doc);
+  },
+
+  async completeEnquiryFollowUp(id: string): Promise<Enquiry> {
+    const doc = await request<Record<string, unknown>>(`/admin/enquiries/${id}/follow-up/complete`, {
+      method: 'POST', auth: true,
+    });
+    return mapEnquiry(doc);
+  },
+
+  async convertEnquiry(id: string, data: ConvertEnquiryPayload): Promise<Booking> {
+    const doc = await request<Record<string, unknown>>(`/admin/enquiries/${id}/convert`, {
+      method: 'POST', auth: true, body: JSON.stringify(data),
+    });
+    return mapBooking(doc);
   },
 
   async getEnquiry(id: string): Promise<Enquiry | null> {

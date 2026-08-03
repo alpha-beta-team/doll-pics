@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   ChevronRight,
   CircleDot,
+  CircleDollarSign,
   Clock3,
   Inbox,
   MessageSquareText,
@@ -154,7 +155,7 @@ export function DashboardPage() {
     );
     const confirmedIds = new Set(
       periodLinkedBookings
-        .filter((booking) => booking.status === 'confirmed' || booking.status === 'completed')
+        .filter((booking) => ['confirmed', 'shoot_completed', 'delivered'].includes(booking.status))
         .map((booking) => booking.enquiryId)
         .filter((id): id is string => Boolean(id)),
     );
@@ -183,29 +184,21 @@ export function DashboardPage() {
 
     const upcoming = bookings
       .filter((booking) => {
-        const shootDate = timestamp(booking.shootDate);
-        return booking.status === 'confirmed' && shootDate >= now && shootDate <= now + 30 * DAY;
+        const bookingDate = timestamp(booking.bookingDate);
+        return booking.status === 'confirmed' && bookingDate >= now && bookingDate <= now + 30 * DAY;
       })
-      .sort((a, b) => timestamp(a.shootDate) - timestamp(b.shootDate));
+      .sort((a, b) => timestamp(a.bookingDate) - timestamp(b.bookingDate));
 
     const dueReminders = [
-      ...enquiries
-        .filter(
-          (enquiry) =>
-            enquiry.status !== 'responded' &&
-            Boolean(enquiry.reminderDate) &&
-            timestamp(enquiry.reminderDate) <= now,
-        )
-        .map((enquiry) => timestamp(enquiry.reminderDate)),
       ...bookings
         .filter(
           (booking) =>
-            booking.status !== 'completed' &&
+            booking.status !== 'delivered' &&
             booking.status !== 'cancelled' &&
-            Boolean(booking.reminderDate) &&
-            timestamp(booking.reminderDate) <= now,
+            Boolean(booking.nextFollowUpAt) &&
+            timestamp(booking.nextFollowUpAt || '') <= now,
         )
-        .map((booking) => timestamp(booking.reminderDate)),
+        .map((booking) => timestamp(booking.nextFollowUpAt || '')),
     ].filter(Boolean);
 
     const demandMap = new Map<string, { label: string; enquiries: Enquiry[] }>();
@@ -246,7 +239,12 @@ export function DashboardPage() {
       dueReminders: dueReminders.length,
       demand,
       maxDemand,
-      draftsMissingDate: draftBookings.filter((booking) => !booking.shootDate).length,
+      draftsMissingDetails: draftBookings.filter((booking) =>
+        !booking.bookingDate || !booking.shootType || !booking.location || booking.agreedTotal == null,
+      ).length,
+      outstandingBalances: bookings.filter(booking =>
+        booking.status !== 'cancelled' && (booking.paymentSummary.balanceDue ?? 0) > 0,
+      ).length,
       newLeads: enquiries.filter((enquiry) => enquiry.status === 'new' && !bookedEnquiryIds.has(enquiry.id)).length,
     };
   }, [bookings, enquiries, period]);
@@ -258,6 +256,13 @@ export function DashboardPage() {
     { label: 'Engaged', value: dashboard.engagedCount, color: 'bg-indigo-500' },
     { label: 'Bookings', value: dashboard.convertedCount, color: 'bg-violet-500' },
     { label: 'Confirmed', value: dashboard.confirmedCount, color: 'bg-emerald-500' },
+  ];
+  const workflowStages = [
+    { label: 'Draft', count: bookings.filter(item => item.status === 'draft').length, color: 'bg-slate-400' },
+    { label: 'Confirmed', count: bookings.filter(item => item.status === 'confirmed').length, color: 'bg-emerald-500' },
+    { label: 'Shoot completed', count: bookings.filter(item => item.status === 'shoot_completed').length, color: 'bg-blue-500' },
+    { label: 'Delivered', count: bookings.filter(item => item.status === 'delivered').length, color: 'bg-violet-500' },
+    { label: 'Cancelled', count: bookings.filter(item => item.status === 'cancelled').length, color: 'bg-rose-500' },
   ];
   const attentionItems = [
     {
@@ -271,18 +276,26 @@ export function DashboardPage() {
     {
       label: 'Follow-up reminders due',
       value: dashboard.dueReminders,
-      detail: 'Across enquiries and bookings',
-      to: '/admin/enquiries',
+      detail: 'Overdue booking follow-ups',
+      to: '/admin/bookings',
       icon: Clock3,
       iconClass: 'bg-amber-50 text-amber-600',
     },
     {
-      label: 'Drafts missing a shoot date',
-      value: dashboard.draftsMissingDate,
+      label: 'Drafts missing details',
+      value: dashboard.draftsMissingDetails,
       detail: 'Complete these booking records',
       to: '/admin/bookings',
       icon: CalendarClock,
       iconClass: 'bg-rose-50 text-rose-600',
+    },
+    {
+      label: 'Outstanding balances',
+      value: dashboard.outstandingBalances,
+      detail: 'Bookings with payment still due',
+      to: '/admin/bookings',
+      icon: CircleDollarSign,
+      iconClass: 'bg-emerald-50 text-emerald-600',
     },
   ];
 
@@ -416,12 +429,17 @@ export function DashboardPage() {
             </div>
             <p className="mt-4 text-xs text-slate-500">
               {dashboard.upcoming[0]
-                ? `Next: ${formatRelativeDate(dashboard.upcoming[0].shootDate)}`
+                ? `Next: ${formatRelativeDate(dashboard.upcoming[0].bookingDate)}`
                 : 'No confirmed shoots scheduled'}
             </p>
           </article>
         </section>
       )}
+
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <div className="flex items-center justify-between gap-4"><div><h2 className="font-semibold text-slate-900">Booking workflow</h2><p className="mt-1 text-sm text-slate-500">Current count at every operational stage.</p></div><Link to="/admin/bookings" className="flex items-center gap-1 text-sm font-medium text-blue-600">View bookings <ArrowRight className="h-4 w-4" /></Link></div>
+        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-5">{workflowStages.map(stage => <div key={stage.label} className="rounded-xl bg-slate-50 p-3"><span className={`block h-1.5 w-8 rounded-full ${stage.color}`} /><p className="mt-3 text-2xl font-semibold text-slate-900">{stage.count}</p><p className="mt-1 text-xs text-slate-500">{stage.label}</p></div>)}</div>
+      </section>
 
       <section className="grid gap-5 xl:grid-cols-[1.08fr_0.92fr]">
         <article className="rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -554,16 +572,16 @@ export function DashboardPage() {
               {dashboard.upcoming.slice(0, 4).map((booking) => (
                 <Link key={booking.id} to={`/admin/bookings/${booking.id}`} className="group flex items-center gap-3 py-4">
                   <span className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
-                    <span className="text-[9px] font-semibold uppercase leading-none">{new Intl.DateTimeFormat('en-IN', { month: 'short' }).format(new Date(booking.shootDate))}</span>
-                    <span className="mt-1 text-sm font-bold leading-none">{new Date(booking.shootDate).getDate()}</span>
+                    <span className="text-[9px] font-semibold uppercase leading-none">{new Intl.DateTimeFormat('en-IN', { month: 'short' }).format(new Date(`${booking.bookingDate}T12:00:00`))}</span>
+                    <span className="mt-1 text-sm font-bold leading-none">{new Date(`${booking.bookingDate}T12:00:00`).getDate()}</span>
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-slate-700 group-hover:text-blue-700">{booking.customerName || 'Unnamed client'}</p>
                     <p className="mt-0.5 truncate text-xs text-slate-400">{booking.shootType || 'Shoot type not set'}{booking.location ? ` · ${booking.location}` : ''}</p>
                   </div>
                   <div className="shrink-0 text-right">
-                    <p className="text-xs font-medium text-slate-600">{formatRelativeDate(booking.shootDate)}</p>
-                    <p className="mt-0.5 text-[11px] text-slate-400">{formatShortDate(booking.shootDate)}</p>
+                    <p className="text-xs font-medium text-slate-600">{formatRelativeDate(booking.bookingDate)}</p>
+                    <p className="mt-0.5 text-[11px] text-slate-400">{formatShortDate(booking.bookingDate)}</p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-blue-500" />
                 </Link>

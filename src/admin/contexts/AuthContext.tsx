@@ -7,7 +7,8 @@ interface AuthContextType {
   isAuthenticated: boolean;
   user: User | null;
   token: string | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   logout: () => Promise<void>;
   isLoading: boolean;
 }
@@ -53,6 +54,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(result.user);
     setToken(result.token);
     authStorage.setToken(result.token);
+    return result.user;
+  }, []);
+
+  const changePassword = useCallback(async (currentPassword: string, newPassword: string) => {
+    const updated = await api.changePassword(currentPassword, newPassword);
+    setUser(updated);
   }, []);
 
   const logout = useCallback(async () => {
@@ -63,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, token, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, token, login, changePassword, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

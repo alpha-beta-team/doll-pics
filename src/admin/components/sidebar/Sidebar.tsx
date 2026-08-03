@@ -24,6 +24,12 @@ export function Sidebar() {
   const { collapsed, mobileOpen, isMobile, toggleCollapsed, closeMobile } = useAdminShell();
 
   const displayName = user?.name || user?.email || 'Admin';
+  const visibleSections = NAV_SECTIONS.map(section => ({
+    ...section,
+    items: section.items.filter(entry =>
+      entry.type === 'group' || !entry.item.ownerOnly || user?.role === 'owner',
+    ),
+  })).filter(section => user?.role === 'owner' || ['main', 'business'].includes(section.id));
   const width = collapsed && !isMobile ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_EXPANDED_WIDTH;
   const showCollapsedChrome = collapsed && !isMobile;
 
@@ -124,7 +130,7 @@ export function Sidebar() {
             showCollapsedChrome ? 'px-2' : 'px-3',
           ].join(' ')}
         >
-          {NAV_SECTIONS.map((section) => (
+          {visibleSections.map((section) => (
             <SidebarSection key={section.id} label={section.label} collapsed={showCollapsedChrome}>
               {section.items.map((entry) =>
                 entry.type === 'link' ? (

@@ -19,3 +19,9 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </StrictMode>
 );
+
+if ('serviceWorker' in navigator && window.location.pathname.startsWith('/admin')) {
+  window.addEventListener('load', () => {
+    void navigator.serviceWorker.register('/admin-sw.js');
+  });
+}

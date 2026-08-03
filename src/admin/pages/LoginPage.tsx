@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Camera, AlertCircle } from 'lucide-react';
 
@@ -10,6 +10,7 @@ export function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,8 +18,16 @@ export function LoginPage() {
     setIsLoading(true);
 
     try {
-      await login(email, password);
-      navigate('/admin/dashboard');
+      const user = await login(email, password);
+      const requested = (location.state as { from?: string } | null)?.from;
+      if (user.mustChangePassword) {
+        navigate('/admin/change-password', {
+          replace: true,
+          state: { from: requested || '/admin/today' },
+        });
+      } else {
+        navigate(requested || '/admin/today', { replace: true });
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -34,8 +43,8 @@ export function LoginPage() {
             <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mb-4">
               <Camera className="w-6 h-6 text-white" />
             </div>
-            <h1 className="text-2xl font-semibold text-gray-900">Studio CMS</h1>
-            <p className="text-gray-500 text-sm mt-1">Sign in to manage your content</p>
+            <h1 className="text-2xl font-semibold text-gray-900">Doll Pictures Work</h1>
+            <p className="text-gray-500 text-sm mt-1">Sign in to see today’s enquiries and bookings</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">

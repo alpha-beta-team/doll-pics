@@ -31,7 +31,7 @@ export interface EnquiryWhatsAppContext {
   name?: string;
   shootType?: string;
   preferredEvent?: string;
-  shootDate?: string;
+  bookingDate?: string;
   location?: string;
 }
 
@@ -47,7 +47,7 @@ export function enquiryWhatsAppUrl(
     ctx.name?.trim() ? `Name: ${ctx.name.trim()}` : null,
     ctx.shootType?.trim() ? `Shoot type: ${ctx.shootType.trim()}` : null,
     ctx.preferredEvent?.trim() ? `Event: ${ctx.preferredEvent.trim()}` : null,
-    ctx.shootDate?.trim() ? `Shoot date: ${ctx.shootDate.trim()}` : null,
+    ctx.bookingDate?.trim() ? `Preferred booking date: ${ctx.bookingDate.trim()}` : null,
     ctx.location?.trim() ? `Location: ${ctx.location.trim()}` : null,
   ].filter(Boolean);
 
@@ -76,6 +76,26 @@ export interface DeliveryWhatsAppContext {
   driveNotes?: string;
 }
 
+export function deliveryWhatsAppMessage(ctx: DeliveryWhatsAppContext): string {
+  const gallery = ctx.galleryUrl?.trim() ?? '';
+  const edited = ctx.editedUrl?.trim() ?? '';
+  const raws = ctx.rawsUrl?.trim() ?? '';
+  const name = ctx.customerName?.trim() || 'there';
+  return [
+    `Hi ${name},`,
+    '',
+    'Your photos from Doll Pictures are ready.',
+    '',
+    gallery ? `Gallery: ${gallery}` : null,
+    edited ? `Edited: ${edited}` : null,
+    raws ? `Raws: ${raws}` : null,
+    ctx.driveNotes?.trim() ? '' : null,
+    ctx.driveNotes?.trim() || null,
+    '',
+    'Thank you!',
+  ].filter((line): line is string => line !== null).join('\n');
+}
+
 /** wa.me link to customer with Drive delivery message; null if phone/links missing. */
 export function deliveryWhatsAppUrl(
   customerPhone: string,
@@ -89,20 +109,5 @@ export function deliveryWhatsAppUrl(
   const raws = ctx.rawsUrl?.trim() ?? '';
   if (!gallery && !edited && !raws) return null;
 
-  const name = ctx.customerName?.trim() || 'there';
-  const lines = [
-    `Hi ${name},`,
-    '',
-    'Your photos from Doll Pictures are ready.',
-    '',
-    gallery ? `Gallery: ${gallery}` : null,
-    edited ? `Edited: ${edited}` : null,
-    raws ? `Raws: ${raws}` : null,
-    ctx.driveNotes?.trim() ? '' : null,
-    ctx.driveNotes?.trim() || null,
-    '',
-    'Thank you!',
-  ].filter((line): line is string => line !== null);
-
-  return `https://wa.me/${digits}?text=${encodeURIComponent(lines.join('\n'))}`;
+  return `https://wa.me/${digits}?text=${encodeURIComponent(deliveryWhatsAppMessage(ctx))}`;
 }

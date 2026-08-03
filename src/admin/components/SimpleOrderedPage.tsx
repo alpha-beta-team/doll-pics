@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Plus, Pencil, Trash2, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { useConfirmDialog } from '../hooks/useConfirmDialog';
 
 export interface OrderedItem {
   id: string;
@@ -33,6 +34,7 @@ export function SimpleOrderedPage<T extends OrderedItem>({
   getEmptyItem,
   renderPreview,
 }: SimpleOrderedPageProps<T>) {
+  const confirmDialog = useConfirmDialog();
   const [items, setItems] = useState<T[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -80,7 +82,13 @@ export function SimpleOrderedPage<T extends OrderedItem>({
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this item?')) return;
+    const confirmed = await confirmDialog({
+      title: 'Delete item?',
+      description: 'This item will be permanently removed. This action cannot be undone.',
+      confirmLabel: 'Delete item',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
     try {
       await deleteItem(id);
       await load();

@@ -683,11 +683,8 @@ function EnquiryDrawer({ enquiry, onClose, onStatusChange, onConvert }: EnquiryD
                 </DetailItem>
                 <DetailItem icon={Sparkles} label="Shoot type">{enquiry.shootType || '—'}</DetailItem>
                 <DetailItem icon={UserRound} label="Preferred event">{enquiry.preferredEvent || '—'}</DetailItem>
-                <DetailItem icon={CalendarPlus} label="Shoot date">{enquiry.shootDate ? formatShortDate(enquiry.shootDate) : '—'}</DetailItem>
+                <DetailItem icon={CalendarPlus} label="Preferred booking date">{enquiry.bookingDate ? formatShortDate(enquiry.bookingDate) : '—'}</DetailItem>
                 <DetailItem icon={MapPin} label="Location">{enquiry.location || '—'}</DetailItem>
-                {enquiry.reminderDate && (
-                  <DetailItem icon={Clock3} label="Reminder">{formatShortDate(enquiry.reminderDate)}</DetailItem>
-                )}
               </div>
             </section>
 

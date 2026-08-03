@@ -10,10 +10,8 @@ const ENQUIRY_FIELDS = [
   'phone',
   'shootType',
   'preferredEvent',
-  'shootDate',
+  'bookingDate',
   'location',
-  'reminderDate',
-  'notes',
   'message',
 ] as const;
 
@@ -67,11 +65,10 @@ export function EnquiryModal({
     prefill?.shootType ?? DEFAULT_SHOOT_TYPE,
   );
   const [preferredEvent, setPreferredEvent] = useState(prefill?.preferredEvent ?? '');
-  const [shootDate, setShootDate] = useState('');
+  const [bookingDate, setBookingDate] = useState('');
   const [location, setLocation] = useState('');
-  const [reminderDate, setReminderDate] = useState('');
-  const [notes, setNotes] = useState('');
   const [message, setMessage] = useState(prefill?.message ?? '');
+  const [whatsappOptIn, setWhatsappOptIn] = useState(false);
   const [tipsOptIn, setTipsOptIn] = useState(false);
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
@@ -86,7 +83,7 @@ export function EnquiryModal({
     name,
     shootType,
     preferredEvent,
-    shootDate,
+    bookingDate,
     location,
   };
   const whatsappUrl = enquiryWhatsAppUrl(siteContent.whatsapp, whatsappCtx);
@@ -145,10 +142,10 @@ export function EnquiryModal({
         phone: phone.trim() || undefined,
         shootType,
         preferredEvent: preferredEvent.trim() || undefined,
-        shootDate: shootDate.trim() || undefined,
+        bookingDate: bookingDate.trim() || undefined,
         location: location.trim() || undefined,
-        reminderDate: reminderDate.trim() || undefined,
-        notes: notes.trim() || undefined,
+        whatsappOptIn,
+        preferredLanguage: 'en',
         message: messageWithOptIn,
       });
       setSubmittedTipsOptIn(tipsOptIn);
@@ -350,37 +347,20 @@ export function EnquiryModal({
                 />
                 <FieldError message={fieldErrors.preferredEvent} />
               </div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="mb-1.5 block text-xs text-ink-200/50">Shoot date</label>
-                  <input
-                    type="date"
-                    value={shootDate}
-                    onChange={e => {
-                      setShootDate(e.target.value);
-                      clearFieldError('shootDate');
-                    }}
-                    aria-label="Shoot date"
-                    aria-invalid={Boolean(fieldErrors.shootDate)}
-                    className={fieldClass(Boolean(fieldErrors.shootDate))}
-                  />
-                  <FieldError message={fieldErrors.shootDate} />
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-xs text-ink-200/50">Reminder date (optional)</label>
-                  <input
-                    type="date"
-                    value={reminderDate}
-                    onChange={e => {
-                      setReminderDate(e.target.value);
-                      clearFieldError('reminderDate');
-                    }}
-                    aria-label="Reminder date (optional)"
-                    aria-invalid={Boolean(fieldErrors.reminderDate)}
-                    className={fieldClass(Boolean(fieldErrors.reminderDate))}
-                  />
-                  <FieldError message={fieldErrors.reminderDate} />
-                </div>
+              <div>
+                <label className="mb-1.5 block text-xs text-ink-200/50">Preferred booking date</label>
+                <input
+                  type="date"
+                  value={bookingDate}
+                  onChange={e => {
+                    setBookingDate(e.target.value);
+                    clearFieldError('bookingDate');
+                  }}
+                  aria-label="Preferred booking date"
+                  aria-invalid={Boolean(fieldErrors.bookingDate)}
+                  className={fieldClass(Boolean(fieldErrors.bookingDate))}
+                />
+                <FieldError message={fieldErrors.bookingDate} />
               </div>
               <div>
                 <input
@@ -412,21 +392,17 @@ export function EnquiryModal({
                 />
                 <FieldError message={fieldErrors.message} />
               </div>
-              <div>
-                <textarea
-                  value={notes}
-                  onChange={e => {
-                    setNotes(e.target.value);
-                    clearFieldError('notes');
-                  }}
-                  placeholder="Additional notes (optional)"
-                  aria-label="Additional notes"
-                  aria-invalid={Boolean(fieldErrors.notes)}
-                  rows={2}
-                  className={`${fieldClass(Boolean(fieldErrors.notes))} resize-none`}
+              <label className="flex cursor-pointer items-start gap-3 text-left text-sm text-ink-200/70">
+                <input
+                  type="checkbox"
+                  checked={whatsappOptIn}
+                  onChange={e => setWhatsappOptIn(e.target.checked)}
+                  className="mt-1 rounded border-hairline/20 bg-ink-950 text-gold-400 focus:ring-gold-400"
                 />
-                <FieldError message={fieldErrors.notes} />
-              </div>
+                <span>
+                  I agree to receive enquiry, booking and photoshoot updates from Doll Pictures through WhatsApp. I can reply STOP at any time.
+                </span>
+              </label>
               <label className="flex cursor-pointer items-start gap-3 text-left text-sm text-ink-200/70">
                 <input
                   type="checkbox"

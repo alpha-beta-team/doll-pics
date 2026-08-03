@@ -10,6 +10,8 @@ import { orderedContentApi } from './orderedContent';
 import { packagesApi } from './packages';
 import { photosApi } from './photos';
 import { siteContentApi } from './siteContent';
+import { workApi } from './work';
+import { usersApi } from './users';
 
 export const api = {
   ...authApi,
@@ -20,4 +22,6 @@ export const api = {
   ...enquiriesApi,
   ...bookingsApi,
   ...orderedContentApi,
+  ...workApi,
+  ...usersApi,
 };

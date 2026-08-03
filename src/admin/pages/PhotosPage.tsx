@@ -19,6 +19,7 @@ import {
   ChevronRight,
   Maximize2,
 } from 'lucide-react';
+import { useConfirmDialog } from '../hooks/useConfirmDialog';
 
 function resolvePhotoUrl(url: string): string {
   if (!url) return '';
@@ -75,6 +76,7 @@ interface PhotoEdit extends Photo {
 }
 
 export function PhotosPage() {
+  const confirmDialog = useConfirmDialog();
   const [photos, setPhotos] = useState<PhotoEdit[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [serviceCategories, setServiceCategories] = useState<Category[]>([]);
@@ -296,7 +298,14 @@ export function PhotosPage() {
 
   const handleBulkDelete = async () => {
     if (selectedPhotos.size === 0) return;
-    if (!confirm(`Delete ${selectedPhotos.size} photo(s)? This cannot be undone.`)) return;
+    const photoCount = selectedPhotos.size;
+    const confirmed = await confirmDialog({
+      title: `Delete ${photoCount} ${photoCount === 1 ? 'photo' : 'photos'}?`,
+      description: 'The selected photos will be permanently removed. This action cannot be undone.',
+      confirmLabel: `Delete ${photoCount === 1 ? 'photo' : 'photos'}`,
+      variant: 'danger',
+    });
+    if (!confirmed) return;
 
     try {
       await api.bulkDeletePhotos(Array.from(selectedPhotos));
@@ -327,7 +336,13 @@ export function PhotosPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this photo? This cannot be undone.')) return;
+    const confirmed = await confirmDialog({
+      title: 'Delete photo?',
+      description: 'This photo will be permanently removed. This action cannot be undone.',
+      confirmLabel: 'Delete photo',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
     try {
       await api.deletePhoto(id);
       await fetchPhotos();

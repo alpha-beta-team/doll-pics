@@ -18,7 +18,6 @@ type EnquirySeed = {
   preferredEvent: string;
   location: string;
   status: Enquiry['status'];
-  reminderInDays?: number;
 };
 
 type BookingSeed = {
@@ -58,7 +57,6 @@ const ENQUIRY_SEEDS: EnquirySeed[] = [
     preferredEvent: 'Newborn portrait session',
     location: 'Doll Pictures Studio',
     status: 'read',
-    reminderInDays: -1,
   },
   {
     id: 'demo-enquiry-03',
@@ -92,7 +90,6 @@ const ENQUIRY_SEEDS: EnquirySeed[] = [
     preferredEvent: 'Family portraits',
     location: 'Gobichettipalayam',
     status: 'read',
-    reminderInDays: 2,
   },
   {
     id: 'demo-enquiry-06',
@@ -226,7 +223,7 @@ const BOOKING_SEEDS: BookingSeed[] = [
     shootType: 'Wedding',
     preferredEvent: 'Intimate wedding',
     location: 'Salem',
-    status: 'completed',
+    status: 'shoot_completed',
     shootInDays: -5,
   },
   {
@@ -266,7 +263,7 @@ const BOOKING_SEEDS: BookingSeed[] = [
     shootType: 'Wedding',
     preferredEvent: 'Wedding documentary',
     location: 'Erode',
-    status: 'completed',
+    status: 'delivered',
     shootInDays: -100,
   },
   {
@@ -310,13 +307,18 @@ export function createDashboardMockData(referenceDate = new Date()): {
     phone: seed.phone,
     shootType: seed.shootType,
     preferredEvent: seed.preferredEvent,
-    shootDate: '',
+    bookingDate: '',
     location: seed.location,
-    reminderDate:
-      seed.reminderInDays == null ? '' : dateFrom(referenceTime, seed.reminderInDays, 9),
     notes: 'Sample dashboard record',
     message: `Interested in a ${seed.shootType.toLocaleLowerCase()} photography session.`,
     status: seed.status,
+    stage: seed.status === 'new' ? 'new' : 'contacted',
+    source: 'website',
+    followUpNote: '',
+    whatsappOptIn: false,
+    whatsappOptInSource: '',
+    whatsappNotificationsEnabled: false,
+    preferredLanguage: 'en',
     createdAt: dateFrom(referenceTime, -seed.daysAgo),
   }));
 
@@ -329,28 +331,44 @@ export function createDashboardMockData(referenceDate = new Date()): {
       customerEmail: seed.customerEmail,
       shootType: seed.shootType,
       preferredEvent: seed.preferredEvent,
-      shootDate: seed.shootInDays == null ? '' : dateFrom(referenceTime, seed.shootInDays),
       bookingDate:
         seed.shootInDays == null
           ? ''
           : dateFrom(referenceTime, seed.shootInDays).slice(0, 10),
-      startTime: seed.shootInDays == null ? '' : '10:30',
-      endTime: seed.shootInDays == null ? '' : '12:30',
       durationHours: seed.shootInDays == null ? 0 : 2,
-      advancePaid: seed.status === 'cancelled' ? 0 : 500,
       location: seed.location,
-      reminderDate:
+      paymentDueDate:
         seed.reminderInDays == null ? '' : dateFrom(referenceTime, seed.reminderInDays, 9),
+      nextFollowUpAt:
+        seed.reminderInDays == null ? undefined : dateFrom(referenceTime, seed.reminderInDays, 9),
+      followUpNote: seed.reminderInDays == null ? '' : 'Follow up with customer',
       notes: 'Sample dashboard booking',
-      driveGalleryUrl: seed.status === 'completed' ? 'https://drive.google.com/example-gallery' : '',
+      packageName: '',
+      packageListedPrice: null,
+      packagePricingMode: '',
+      agreedTotal: seed.status === 'cancelled' ? null : 5000,
+      assignedTeamMemberName: '',
+      payments: seed.status === 'cancelled' ? [] : [{
+        id: `${seed.id}-payment`, amount: 500, paidAt: createdAt,
+        method: 'upi', reference: '', note: '',
+      }],
+      paymentSummary: seed.status === 'cancelled'
+        ? { amountPaid: 0, balanceDue: null, status: 'unpriced' }
+        : { amountPaid: 500, balanceDue: 4500, status: 'partial' },
+      driveGalleryUrl: seed.status === 'delivered' ? 'https://drive.google.com/example-gallery' : '',
       driveEditedUrl: '',
       driveRawsUrl: '',
       driveNotes: '',
+      deliverySentAt: seed.status === 'delivered' ? createdAt : undefined,
       status: seed.status,
       confirmedAt:
-        seed.status === 'confirmed' || seed.status === 'completed'
+        seed.status === 'confirmed' || seed.status === 'shoot_completed' || seed.status === 'delivered'
           ? dateFrom(referenceTime, -seed.createdDaysAgo + 1)
           : undefined,
+      whatsappOptIn: false,
+      whatsappOptInSource: '',
+      whatsappNotificationsEnabled: false,
+      preferredLanguage: 'en',
       enquiryId: seed.enquiryId,
       createdAt,
       updatedAt: createdAt,

@@ -308,6 +308,10 @@
 }
 
 @layer components {
+  .action {
+    @apply flex min-h-11 min-w-0 items-center justify-center gap-1 rounded-xl border border-slate-200 px-2 text-xs font-semibold text-slate-700;
+  }
+
   .glass {
     @apply bg-ink-900/40 backdrop-blur-xl border border-hairline/10;
   }
