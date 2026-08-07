@@ -2,7 +2,7 @@
 
 **Priority:** P0
 **Effort:** Medium
-**Status:** In progress — implementation complete, production rollout pending
+**Status:** Monitoring — production live; Search Console confirmation pending
 **Owner:** Unassigned
 
 [← Master plan](./README.md)
@@ -27,7 +27,7 @@
 - [x] Keep filesystem-first behavior for prerendered pages.
 - [x] Proxy `/sitemap.xml` to the production backend endpoint.
 - [x] Preserve `/admin` SPA routing.
-- [ ] Confirm unknown public routes still return the generated 404 page.
+- [x] Confirm unknown public routes still return the generated 404 page.
 - [x] Apply the equivalent rule to Netlify.
 
 ### Resilience
@@ -35,7 +35,7 @@
 - [x] Keep live backend proxy delivery.
 - [x] Add scheduled monitoring for upstream failures and timeouts.
 - [x] Ensure the backend returns an explicit XML content type.
-- [ ] Prevent Cloudflare or the hosting layer from caching an HTML 404 at the sitemap URL.
+- [x] Prevent Cloudflare or the hosting layer from caching an HTML 404 at the sitemap URL.
 
 ### Automated checks
 
@@ -53,12 +53,12 @@
 
 ## Acceptance criteria
 
-- [ ] Public sitemap returns HTTP 200.
-- [ ] Response content type is `application/xml` or `text/xml`.
-- [ ] Sitemap contains all intended canonical core, service, and package URLs.
-- [ ] No admin, preview, API, parameter, or 404 URLs appear.
-- [ ] `robots.txt` references the working sitemap.
-- [ ] The backend sitemap and public sitemap URL sets match.
+- [x] Public sitemap returns HTTP 200.
+- [x] Response content type is `application/xml` or `text/xml`.
+- [x] Sitemap contains all intended canonical core, service, and package URLs.
+- [x] No admin, preview, API, parameter, or 404 URLs appear.
+- [x] `robots.txt` references the working sitemap.
+- [x] The backend sitemap and public sitemap URL sets match.
 - [ ] Search Console can fetch the submitted sitemap.
 
 ## Verification commands
@@ -80,12 +80,18 @@ Implemented on 28 Jul 2026:
 - Added strict CMS prerender mode, production smoke monitoring, and deploy-hook automation for published service/package SEO changes.
 - Added bounded retries without changing CMS API response shapes.
 
-Pending production work:
+Production verified on 7 Aug 2026:
 
-- Configure `SEO_REQUIRE_CMS=true` in frontend production builds.
-- Create the production Vercel deploy hook and store it in backend `FRONTEND_DEPLOY_HOOK_URLS`.
-- Deploy backend then frontend, purge any cached `/sitemap.xml` 404, and run `npm run seo:smoke`.
+- `npm run seo:smoke` passed against production with 24 canonical URLs.
+- The public sitemap returned HTTP 200 with `application/xml`.
+- The public and backend URL sets matched, `robots.txt` referenced the sitemap,
+  and a generated unknown route returned a true `noindex` 404.
+- The `www` sitemap URL redirected permanently to the apex URL.
+
+Remaining operational confirmation:
+
 - Resubmit the sitemap in Google Search Console and record the result.
+- Confirm the production `SEO_REQUIRE_CMS` and deploy-hook settings in their host dashboards when access is available.
 
 ## Likely files/systems
 

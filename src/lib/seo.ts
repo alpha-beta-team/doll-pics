@@ -5,6 +5,12 @@ import seoPages from '../data/seo-pages.json';
 import servicePages from '../data/service-pages.json';
 import packagePages from '../data/package-pages.json';
 import {
+  BUSINESS_NAME,
+  BUSINESS_WEBSITE,
+  DISPLAY_BRAND_NAME,
+  withCanonicalBusinessIdentity,
+} from './businessIdentity';
+import {
   absoluteUrl as absoluteUrlCore,
   buildBreadcrumbJsonLd as buildBreadcrumbJsonLdCore,
   buildFaqPageJsonLd as buildFaqPageJsonLdCore,
@@ -30,15 +36,27 @@ export type {
   ServicePageContent,
 } from './seo-core';
 
-const seoData = seoPages as SeoPagesData;
+const seoData = withCanonicalBusinessIdentity(
+  seoPages as Omit<
+    SeoPagesData,
+    | 'siteName'
+    | 'brandByline'
+    | 'businessName'
+    | 'telephone'
+    | 'email'
+    | 'address'
+    | 'geo'
+    | 'openingHoursSpecification'
+    | 'sameAs'
+  >,
+);
 
 export const SITE_URL = (
   import.meta.env.VITE_SITE_URL as string | undefined
-)?.replace(/\/$/, '') || 'https://dollpictures.in';
+)?.replace(/\/$/, '') || BUSINESS_WEBSITE;
 
-export const SITE_NAME = seoData.siteName;
-export const BUSINESS_NAME =
-  seoData.businessName || seoData.brandByline || seoData.siteName;
+export const SITE_NAME = DISPLAY_BRAND_NAME;
+export { BUSINESS_NAME };
 export const SITE_TAGLINE = seoPages.tagline;
 export const DEFAULT_OG_IMAGE = `${SITE_URL}/og-share.jpg`;
 export const SITE_LOGO = `${SITE_URL}/logo-doll.png`;

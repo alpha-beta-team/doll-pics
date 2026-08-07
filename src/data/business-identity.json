@@ -1,0 +1,48 @@
+{
+  "businessName": "Doll Pictures by Ramya Vignesh",
+  "displayBrandName": "Doll Pictures",
+  "website": "https://dollpictures.in",
+  "email": "dollpictures2025@gmail.com",
+  "phone": {
+    "display": "+91 99945 55673",
+    "e164": "+919994555673"
+  },
+  "whatsapp": {
+    "display": "+91 99945 55673",
+    "e164": "+919994555673"
+  },
+  "address": {
+    "streetAddress": "URT TOWERS, 139/4-D, Perundurai Rd, Teachers Colony, Palayapalayam",
+    "addressLocality": "Erode",
+    "addressRegion": "Tamil Nadu",
+    "postalCode": "638011",
+    "addressCountry": "IN"
+  },
+  "fullAddress": "URT TOWERS, 139/4-D, Perundurai Rd, Teachers Colony, Palayapalayam, Erode, Tamil Nadu 638011",
+  "shortAddress": "URT TOWERS, Erode, Tamil Nadu",
+  "geo": {
+    "latitude": 11.341,
+    "longitude": 77.7172
+  },
+  "openingHours": [
+    { "dayOfWeek": ["Friday"], "opens": "10:00", "closes": "00:00" },
+    { "dayOfWeek": ["Saturday"], "opens": "00:00", "closes": "08:30" },
+    { "dayOfWeek": ["Saturday"], "opens": "10:00", "closes": "20:30" },
+    { "dayOfWeek": ["Sunday"], "opens": "10:00", "closes": "20:30" },
+    { "dayOfWeek": ["Monday"], "opens": "11:00", "closes": "20:30" },
+    { "dayOfWeek": ["Tuesday", "Wednesday", "Thursday"], "opens": "10:00", "closes": "20:30" }
+  ],
+  "openingHoursDisplay": [
+    { "day": "Friday", "hours": "10 am–12 am" },
+    { "day": "Saturday", "hours": "12–8:30 am, 10 am–8:30 pm" },
+    { "day": "Sunday", "hours": "10 am–8:30 pm" },
+    { "day": "Monday", "hours": "11 am–8:30 pm" },
+    { "day": "Tuesday", "hours": "10 am–8:30 pm" },
+    { "day": "Wednesday", "hours": "10 am–8:30 pm" },
+    { "day": "Thursday", "hours": "10 am–8:30 pm" }
+  ],
+  "officialProfileUrls": [
+    "https://dollpictures.in/"
+  ],
+  "socials": {}
+}

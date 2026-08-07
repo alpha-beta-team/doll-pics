@@ -98,8 +98,14 @@ export type SeoPagesData = {
   businessName?: string;
   defaultDescription: string;
   telephone?: string;
+  email?: string;
   address: Record<string, string>;
   geo: Record<string, number | string>;
+  openingHoursSpecification?: Array<{
+    dayOfWeek: string[];
+    opens: string;
+    closes: string;
+  }>;
   serviceAreas?: string[];
   offerCatalog?: Array<{ name: string }>;
   sameAs?: string[];
@@ -387,7 +393,7 @@ export function buildLocalBusinessJsonLd(
     image: `${siteUrl}/og-share.jpg`,
     logo: `${siteUrl}/logo-doll.png`,
     telephone,
-    email: contact?.email || undefined,
+    email: contact?.email || seoPages.email || undefined,
     priceRange: '₹₹₹',
     address: {
       '@type': 'PostalAddress',
@@ -397,6 +403,12 @@ export function buildLocalBusinessJsonLd(
       '@type': 'GeoCoordinates',
       ...seoPages.geo,
     },
+    openingHoursSpecification: seoPages.openingHoursSpecification?.map(
+      (hours) => ({
+        '@type': 'OpeningHoursSpecification',
+        ...hours,
+      }),
+    ),
     areaServed: buildAreaServed(seoPages),
     hasOfferCatalog: buildOfferCatalog(seoPages),
     sameAs: sameAs.length ? sameAs : undefined,

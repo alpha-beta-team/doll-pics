@@ -41,7 +41,8 @@ import {
   normalizePathname,
 } from '../lib/navigation';
 import { NotFound } from './NotFound';
-import { STUDIO_MAPS_URL } from '../lib/studioLocation';
+import { BUSINESS_NAME, OPENING_HOURS } from '../lib/businessIdentity';
+import { STUDIO_ADDRESS, STUDIO_MAPS_URL } from '../lib/studioLocation';
 
 const HERO_SIZES = '100vw';
 const GRID_SIZES =
@@ -767,16 +768,18 @@ function ServiceLocation({
 
         <div className="flex flex-col justify-center p-8 sm:p-10 lg:col-span-7 lg:p-16">
           <h2 className="font-display text-3xl font-light text-ink-50 sm:text-4xl">
-            Doll Pictures by Ramya Vignesh
+            {BUSINESS_NAME}
           </h2>
           <address className="mt-5 max-w-xl not-italic text-[0.95rem] leading-7 text-ink-200/75">
-            URT TOWERS, 139/4-D, Perundurai Rd, Teachers Colony,
-            Palayapalayam, Erode, Tamil Nadu 638011.
+            {STUDIO_ADDRESS}.
           </address>
           <p className="mt-5 max-w-xl text-[0.95rem] leading-7 text-ink-200/75">
             We photograph across Tamil Nadu, including Salem, Namakkal,
-            Coimbatore and Chennai. Opening hours and travel fees are confirmed
-            during your free consultation.
+            Coimbatore and Chennai. Studio hours: {OPENING_HOURS[0].day}{' '}
+            {OPENING_HOURS[0].hours}; Saturday {OPENING_HOURS[1].hours}; Sunday{' '}
+            {OPENING_HOURS[2].hours}; Monday {OPENING_HOURS[3].hours}; Tuesday–Thursday{' '}
+            {OPENING_HOURS[4].hours}. Please contact us before visiting; travel fees are
+            confirmed during your free consultation.
           </p>
           {phoneHref && phone ? (
             <a

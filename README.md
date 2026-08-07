@@ -22,8 +22,12 @@ The current branding uses:
 - display brand: `Doll Pictures`
 - company / GBP name: `Doll Pictures by Ramya Vignesh`
 - contact email: `dollpictures2025@gmail.com`
-- contact phone: `+91 95975 62337`
+- contact phone and WhatsApp: `+91 99945 55673`
 - location: `URT TOWERS, 139/4-D, Perundurai Rd, Teachers Colony, Palayapalayam, Erode, Tamil Nadu 638011`
+- website/profile: `https://dollpictures.in/`
+- opening hours: Friday 10 am–12 am; Saturday 12–8:30 am and 10 am–8:30 pm; Sunday 10 am–8:30 pm; Monday 11 am–8:30 pm; Tuesday–Thursday 10 am–8:30 pm
+
+Canonical public identity values live in `src/data/business-identity.json`. Update that file instead of adding contact or address literals elsewhere.
 
 ## Tech Stack
 

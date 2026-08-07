@@ -2,7 +2,7 @@
 
 **Priority:** P1  
 **Effort:** Medium  
-**Status:** In progress — safe omission implemented; deployment and route-specific restoration pending
+**Status:** In progress — safe omission live; route-specific restoration pending
 **Owner:** Unassigned
 
 [← Master plan](./README.md)
@@ -24,8 +24,8 @@ Completed locally on 30 Jul 2026:
 - [x] Removed `changefreq` and `priority`, which Google ignores.
 - [x] Added regression tests proving that unchanged CMS routes produce stable XML.
 - [x] Backend tests and production build pass.
-- [ ] Commit and deploy the CMS backend.
-- [ ] Verify that the production sitemap no longer contains manufactured dates.
+- [x] Deploy the safe-omission CMS backend change.
+- [x] Verify that the production sitemap no longer contains manufactured dates.
 
 This is intentionally a safe first phase. `lastmod` will not return automatically.
 Restore it only through the route-specific work below; never restore a shared
@@ -99,7 +99,10 @@ Restore `lastmod` only when all of the following are true:
 - [x] Generate the sitemap twice in a unit test and compare it.
 - [ ] Update a test record and assert only expected routes change.
 - [x] Run backend unit tests and production build.
-- [ ] Validate the production sitemap after deployment.
+- [x] Validate the production sitemap after deployment for the safe-omission phase.
+
+Production verification on 7 Aug 2026 found 24 canonical URLs and zero
+`<lastmod>` elements, confirming the safe-omission phase is live.
 
 ## Likely files/systems
 

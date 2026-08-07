@@ -28,6 +28,7 @@ import {
   type ShootTypeOption,
 } from '../lib/shootTypes';
 import { STUDIO_ADDRESS, STUDIO_MAPS_URL } from '../lib/studioLocation';
+import { OPENING_HOURS } from '../lib/businessIdentity';
 
 const FORM_FIELDS = [
   'name',
@@ -246,9 +247,17 @@ function ContactContent() {
                   <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-hairline/10 text-gold-400">
                     <Clock3 className="h-4 w-4" aria-hidden="true" />
                   </span>
-                  <span>
-                      <span className="block text-[0.65rem] uppercase tracking-[0.2em] text-ink-300/55">Studio visits</span>
-                      <span className="mt-1 block text-sm text-ink-100/80">Please contact us before you arrive</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[0.65rem] uppercase tracking-[0.2em] text-ink-300/55">Opening hours</span>
+                    <span className="mt-2 grid max-w-xs gap-1 text-sm text-ink-100/80">
+                      {OPENING_HOURS.map(({ day, hours }) => (
+                        <span key={day} className="grid grid-cols-[5.5rem_1fr] gap-3">
+                          <span>{day}</span>
+                          <span>{hours}</span>
+                        </span>
+                      ))}
+                    </span>
+                    <span className="mt-2 block text-xs text-ink-200/55">Please contact us before you arrive.</span>
                   </span>
                 </div>
               </div>

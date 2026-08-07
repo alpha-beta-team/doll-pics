@@ -8,12 +8,13 @@ import {
   NAV_LINKS,
   getPublishedServiceNavLinks,
 } from '../lib/navigation';
+import { DISPLAY_BRAND_NAME } from '../lib/businessIdentity';
 
 export function Navbar() {
   const { siteContent, packageNavLinks } = useSiteData();
   const { theme, toggleTheme } = useTheme();
   const { pathname } = useLocation();
-  const brand = siteContent.brandName || 'Doll Pictures';
+  const brand = DISPLAY_BRAND_NAME;
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);

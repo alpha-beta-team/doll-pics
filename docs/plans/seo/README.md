@@ -27,12 +27,12 @@ This plan does not include building a full SEO CMS. Core SEO remains version-con
 
 | ID | Priority | Plan | Effort | Status | Depends on |
 |---|---|---|---|---|---|
-| SEO-01 | P0 | [Restore public sitemap delivery](./01-sitemap-delivery.md) | M | In progress — deploy pending | — |
+| SEO-01 | P0 | [Restore public sitemap delivery](./01-sitemap-delivery.md) | M | Monitoring — production live; Search Console confirmation pending | — |
 | SEO-02 | P0 | [Replace seeded and stock media](./02-authentic-media.md) | L | Not started | Content/assets from studio |
-| SEO-03 | P0 | [Unify business identity and NAP](./03-business-identity-nap.md) | M | Not started | Owner identity decision |
+| SEO-03 | P0 | [Unify business identity and NAP](./03-business-identity-nap.md) | M | In progress — production CMS synchronized; frontend deploy/profile checks pending | — |
 | SEO-04 | P0 | [Remove placeholder social proof and claims](./04-social-proof-cleanup.md) | M | Not started | Client/team verification |
 | SEO-05 | P1 | [Improve hero loading and Core Web Vitals](./05-hero-core-web-vitals.md) | L | Not started | SEO-02 |
-| SEO-06 | P1 | [Make sitemap modification dates accurate](./06-sitemap-lastmod.md) | M | In progress — safe omission implemented; restoration pending | SEO-01 |
+| SEO-06 | P1 | [Make sitemap modification dates accurate](./06-sitemap-lastmod.md) | M | In progress — safe omission live; route-specific restoration pending | SEO-01 |
 | SEO-07 | P1 | [Create a concise title and brand strategy](./07-title-brand-strategy.md) | M | Not started | SEO-03 |
 | SEO-08 | P1 | [Publish genuine shoot case studies](./08-shoot-case-studies.md) | L | Not started | SEO-02, SEO-03 |
 | SEO-09 | P2 | [Add image discovery and image sitemap support](./09-image-discovery.md) | M | Not started | SEO-01, SEO-02, SEO-08 |

@@ -43,6 +43,13 @@ import {
   normalizeServiceNavLinks,
   type PackageNavLink,
 } from '../lib/navigation';
+import {
+  BUSINESS_EMAIL,
+  BUSINESS_NAME,
+  BUSINESS_PHONE,
+  BUSINESS_SOCIALS,
+  BUSINESS_WHATSAPP,
+} from '../lib/businessIdentity';
 
 /** Max published photos for the horizontal gallery / landing imagery. */
 const GALLERY_PHOTO_LIMIT = 24;
@@ -122,7 +129,7 @@ const fallbackPackageCategories: PublicPackageCategory[] =
   }));
 
 const defaultSiteContent: PublicSiteContent = {
-  brandName: 'Doll Pictures',
+  brandName: BUSINESS_NAME,
   tagline: 'Cinematic Wedding & Portrait Photography',
   heroHeading: 'We don\u2019t just take photos \u2014 we preserve emotions.',
   heroSubtext:
@@ -138,12 +145,10 @@ const defaultSiteContent: PublicSiteContent = {
     'To preserve emotion with elegance — crafting warm, whimsical, and timeless imagery that feels like cinema and lasts a lifetime.',
   aboutHeroSubtext:
     'A warm, inviting studio where craft meets whimsy — dedicated to telling your story through light, emotion, and timeless imagery.',
-  contactEmail: 'dollpictures2025@gmail.com',
-  whatsapp: '+919994555673',
-  phone: '+91 99945 55673',
-  socials: {
-    instagram: 'https://www.instagram.com/dollpictures_studio/',
-  },
+  contactEmail: BUSINESS_EMAIL,
+  whatsapp: BUSINESS_WHATSAPP,
+  phone: BUSINESS_PHONE,
+  socials: BUSINESS_SOCIALS,
   serviceNavLinks: DEFAULT_SERVICE_NAV_LINKS,
 };
 
@@ -390,6 +395,11 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
           siteContent: {
             ...defaultSiteContent,
             ...siteContent,
+            brandName: BUSINESS_NAME,
+            contactEmail: BUSINESS_EMAIL,
+            whatsapp: BUSINESS_WHATSAPP,
+            phone: BUSINESS_PHONE,
+            socials: BUSINESS_SOCIALS,
             ourStory: siteContent.ourStory || defaultSiteContent.ourStory,
             mission: siteContent.mission || defaultSiteContent.mission,
             aboutHeroSubtext:

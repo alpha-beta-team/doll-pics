@@ -15,6 +15,7 @@ import {
   type SeoPagesData,
   type ServiceNavLinkLike,
 } from '../../src/lib/seo-core';
+import { withCanonicalBusinessIdentity } from '../../src/lib/businessIdentity';
 import {
   fetchJson,
   getApiBase,
@@ -38,9 +39,22 @@ export {
 };
 
 export function loadStaticSeoData() {
-  const seoPages = JSON.parse(
-    readFileSync(join(root, 'src/data/seo-pages.json'), 'utf8'),
-  ) as SeoPagesData;
+  const seoPages = withCanonicalBusinessIdentity(
+    JSON.parse(
+      readFileSync(join(root, 'src/data/seo-pages.json'), 'utf8'),
+    ) as Omit<
+      SeoPagesData,
+      | 'siteName'
+      | 'brandByline'
+      | 'businessName'
+      | 'telephone'
+      | 'email'
+      | 'address'
+      | 'geo'
+      | 'openingHoursSpecification'
+      | 'sameAs'
+    >,
+  );
   const servicePages = JSON.parse(
     readFileSync(join(root, 'src/data/service-pages.json'), 'utf8'),
   );

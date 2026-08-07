@@ -3,7 +3,8 @@ import { useSiteData } from '../../contexts/SiteDataContext';
 import { trackPhoneClick } from '../../lib/analytics';
 import { getPublishedServiceNavLinks } from '../../lib/navigation';
 import { BUSINESS_NAME } from '../../lib/seo';
-import { STUDIO_MAPS_URL } from '../../lib/studioLocation';
+import { DISPLAY_BRAND_NAME } from '../../lib/businessIdentity';
+import { STUDIO_MAPS_URL, STUDIO_SHORT_ADDRESS } from '../../lib/studioLocation';
 import { Instagram, Facebook, Youtube, Mail, Phone, MapPin } from 'lucide-react';
 
 const staticFooterLinks: Record<
@@ -35,7 +36,7 @@ const socialIcons = [
 
 export function Footer() {
   const { siteContent } = useSiteData();
-  const brand = siteContent.brandName || 'Doll Pictures';
+  const brand = DISPLAY_BRAND_NAME;
   const companyName = BUSINESS_NAME;
   const serviceLinks = getPublishedServiceNavLinks(siteContent.serviceNavLinks).map(
     (link) => ({ label: link.label, to: link.path }),
@@ -125,7 +126,7 @@ export function Footer() {
             target="_blank"
             rel="noreferrer"
           >
-            <MapPin className="w-5 h-5" /> URT TOWERS, Erode, Tamil Nadu
+            <MapPin className="w-5 h-5" /> {STUDIO_SHORT_ADDRESS}
           </a>
         </div>
 

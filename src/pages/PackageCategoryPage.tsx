@@ -17,6 +17,8 @@ import {
 import { selectServiceImages, type ServiceImage } from '../lib/serviceImages';
 import { normalizePathname } from '../lib/navigation';
 import { NotFound } from './NotFound';
+import { BUSINESS_NAME } from '../lib/businessIdentity';
+import { STUDIO_ADDRESS } from '../lib/studioLocation';
 
 const GRID_SIZES = '(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw';
 const INLINE_SIZES = '(max-width: 1024px) 100vw, 70vw';
@@ -201,8 +203,7 @@ function PackageCategoryPageContent() {
                 Studio location
               </h2>
               <p className="mt-5 text-[0.95rem] leading-relaxed text-ink-200/70">
-                Doll Pictures by Ramya Vignesh — URT TOWERS, 139/4-D, Perundurai Rd,
-                Teachers Colony, Palayapalayam, Erode, Tamil Nadu 638011.
+                {BUSINESS_NAME} — {STUDIO_ADDRESS}.
                 {siteContent.phone ? (
                   <>
                     {' '}

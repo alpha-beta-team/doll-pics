@@ -2,7 +2,7 @@
 
 **Priority:** P0  
 **Effort:** Medium  
-**Status:** Not started  
+**Status:** In progress — production CMS synchronized; frontend deployment and profile verification pending
 **Owner:** Unassigned
 
 [← Master plan](./README.md)
@@ -21,15 +21,15 @@ The business name, address, phone, WhatsApp number, and owned profiles are consi
 
 ## Required owner decision
 
-Before editing code or profiles, document:
+Approved by the owner on 7 Aug 2026:
 
-- [ ] The exact real-world/GBP business name.
-- [ ] The primary public phone number.
-- [ ] The WhatsApp number.
-- [ ] The public studio address and map pin.
-- [ ] Public opening hours.
-- [ ] The primary email address.
-- [ ] The official Instagram, Facebook, YouTube, and Google Business Profile URLs.
+- [x] Real-world/GBP name: `Doll Pictures by Ramya Vignesh`.
+- [x] Primary phone: `+91 99945 55673`.
+- [x] WhatsApp: `+91 99945 55673` (`+919994555673` in E.164 form).
+- [x] Studio address: `URT TOWERS, 139/4-D, Perundurai Rd, Teachers Colony, Palayapalayam, Erode, Tamil Nadu 638011`.
+- [x] Public opening hours recorded from the supplied Google listing screenshot.
+- [x] Primary email: `dollpictures2025@gmail.com`.
+- [x] Confirmed owned URL: `https://dollpictures.in/`. No social profile URL was approved, so none is asserted in structured data or frontend fallbacks.
 
 ## Recommended identity mapping
 
@@ -45,14 +45,14 @@ Before editing code or profiles, document:
 
 ### Website and CMS
 
-- [ ] Update production Site Content.
-- [ ] Update `seo-pages.json`.
-- [ ] Update static `index.html` fallbacks.
-- [ ] Update frontend default site content.
-- [ ] Update backend seed defaults and environment documentation.
-- [ ] Update all `tel:`, WhatsApp, email, address, map, footer, legal, and booking surfaces.
-- [ ] Ensure prerendered structured data and runtime structured data resolve to the same identity.
-- [ ] Add accurate opening hours and map URL only if confirmed.
+- [x] Update production Site Content.
+- [x] Replace duplicated identity fields in `seo-pages.json` with the canonical identity source.
+- [x] Update static `index.html` fallbacks.
+- [x] Update frontend default site content and protect canonical fields from stale CMS values.
+- [x] Update backend seed defaults and environment documentation.
+- [x] Update all `tel:`, WhatsApp, email, address, map, footer, legal, and booking surfaces.
+- [x] Ensure prerendered structured data and runtime structured data resolve to the same identity.
+- [x] Add the confirmed opening hours and address-based Google Maps URL.
 
 ### External profiles
 
@@ -64,9 +64,9 @@ Before editing code or profiles, document:
 
 ### Guardrails
 
-- [ ] Create one typed/configured canonical identity source for frontend fallbacks.
-- [ ] Add a build check that flags unexpected phone numbers and brand variants.
-- [ ] Prevent production seed scripts from restoring obsolete contact details.
+- [x] Create one typed/configured canonical identity source for frontend fallbacks.
+- [x] Add tests that lock the approved name, phone, WhatsApp, email, structured data, and static HTML fallback.
+- [x] Prevent production seed scripts from restoring obsolete contact details.
 
 ## Acceptance criteria
 
@@ -89,4 +89,19 @@ Also verify the live Google Business Profile manually after its updates are appr
 
 ## Dependencies
 
-This plan is blocked until the owner confirms which phone and exact real-world name are canonical. SEO-07 should use the resulting identity mapping.
+Implementation record, 7 Aug 2026:
+
+- Added a version-controlled canonical identity source for frontend SEO and UI fallbacks.
+- Added the supplied opening hours to the Contact page and local-business structured data.
+- Kept `Doll Pictures` as the concise display brand while using the approved full name for the business entity.
+- Updated backend seed defaults and added a dry-run-first identity migration.
+- Applied the migration to production and verified the public CMS response uses the approved name, email, phone, and WhatsApp number with no unconfirmed social profiles.
+- Frontend typecheck, SEO tests, production build, and lint completed with no errors; backend build and all 96 tests passed.
+
+The owner-decision blocker is resolved. Remaining rollout work:
+
+- Deploy the frontend changes and the backend seed/migration guardrails.
+- Verify the rendered site, live CMS response, Google Business Profile, and owned listings.
+- Add social profile URLs later only after the owner explicitly confirms them.
+
+SEO-07 can now use `Doll Pictures by Ramya Vignesh` as the full entity name and `Doll Pictures` as the concise display/title brand.
