@@ -2,7 +2,7 @@
 
 **Priority:** P0  
 **Effort:** Medium  
-**Status:** In progress — production records unpublished; guardrail deployment pending
+**Status:** Monitoring — public cleanup live; authentic replacements pending
 **Owner:** Unassigned
 
 [← Master plan](./README.md)
@@ -100,10 +100,16 @@ Implemented on 7 Aug 2026:
 - Changed new admin records in these sections to start unpublished.
 - Documented the approval workflow in `docs/content-approval.md`.
 
-Remaining work:
+Production rollout verified on 7 Aug 2026:
 
-- Deploy the frontend and backend guardrail changes.
-- Verify the rendered production DOM no longer contains the retired names,
-  locations, claims, stock process media, or localhost URLs.
+- Frontend and backend commits were pushed to `main` and both deployments completed.
+- All four public APIs returned empty arrays after cleanup.
+- The deployed frontend bundle contains the approval-first empty Stories copy
+  and no retired claim, placeholder-team, international-location, or localhost
+  fallback markers.
+- The deployed backend rejected a localhost team portrait with HTTP 400.
+
+Remaining content work:
+
 - Obtain consent/evidence and real portraits/process media before republishing
   any preserved draft or creating replacements.
