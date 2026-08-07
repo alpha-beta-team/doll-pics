@@ -39,4 +39,9 @@ export type {
   TodayPaymentItem,
   GoogleCalendarIntegrationStatus,
   WeeklyOwnerReport,
+  AdminSearchItem,
+  AdminSearchResponse,
+  CustomerLookupRecord,
+  CustomerLookupResponse,
+  VoiceNoteSummary,
 } from '../../shared/types';

@@ -47,3 +47,21 @@ export async function request<T>(
   if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
 }
+
+export async function requestBlob(
+  path: string,
+  options: RequestInit & { auth?: boolean } = {},
+): Promise<Blob> {
+  const { auth = false, headers: customHeaders, ...rest } = options;
+  const headers = new Headers(customHeaders);
+  if (auth) {
+    const token = getToken();
+    if (token) headers.set('Authorization', `Bearer ${token}`);
+  }
+  const res = await fetch(`${API_BASE}${path}`, { ...rest, headers });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ message: res.statusText }));
+    throw new Error(Array.isArray(err.message) ? err.message.join(', ') : (err.message ?? `Request failed (${res.status})`));
+  }
+  return res.blob();
+}

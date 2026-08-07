@@ -36,6 +36,11 @@ import {
   whatsappDigits,
 } from '../../lib/pricing';
 import { bookingDurationLabel, formatTimeWindow } from '../../shared/bookingTime';
+import { FollowUpShortcuts } from '../components/FollowUpShortcuts';
+import { dateTimeLocalInKolkata, followUpDateError, kolkataLocalToIso } from '../components/followUp.utils';
+import { CustomerLookupPanel } from '../components/CustomerLookupPanel';
+import { WhatsAppComposer } from '../components/WhatsAppComposer';
+import { VoiceNotesPanel } from '../components/VoiceNotesPanel';
 
 const statusStyles: Record<BookingStatus, string> = {
   draft: 'bg-slate-100 text-slate-700',
@@ -112,6 +117,7 @@ export function BookingDetailPage() {
   const [driveRawsUrl, setDriveRawsUrl] = useState('');
   const [driveNotes, setDriveNotes] = useState('');
   const [saving, setSaving] = useState(false);
+  const [messageOpen, setMessageOpen] = useState(false);
 
   const sync = useCallback((value: Booking) => {
     setBooking(value);
@@ -119,7 +125,7 @@ export function BookingDetailPage() {
     setDriveEditedUrl(value.driveEditedUrl);
     setDriveRawsUrl(value.driveRawsUrl);
     setDriveNotes(value.driveNotes);
-    setFollowUpAt(value.nextFollowUpAt ? new Date(new Date(value.nextFollowUpAt).getTime() - new Date(value.nextFollowUpAt).getTimezoneOffset() * 60_000).toISOString().slice(0, 16) : '');
+    setFollowUpAt(value.nextFollowUpAt ? dateTimeLocalInKolkata(new Date(value.nextFollowUpAt)) : '');
     setFollowUpNote(value.followUpNote);
   }, []);
 
@@ -224,7 +230,9 @@ export function BookingDetailPage() {
 
   const saveFollowUp = () => {
     if (!booking || !followUpAt) return setError('Choose a follow-up date and time.');
-    void run(() => api.scheduleBookingFollowUp(booking.id, new Date(followUpAt).toISOString(), followUpNote));
+    const validationError = followUpDateError(followUpAt);
+    if (validationError) return setError(validationError);
+    void run(() => api.scheduleBookingFollowUp(booking.id, kolkataLocalToIso(followUpAt), followUpNote));
   };
 
   const saveDrive = () => {
@@ -324,7 +332,7 @@ export function BookingDetailPage() {
 
       <header className="flex flex-col justify-between gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm lg:flex-row lg:items-start">
         <div><div className="flex flex-wrap items-center gap-3"><h1 className="text-2xl font-semibold text-slate-900">{booking.customerName}</h1><span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusStyles[booking.status]}`}>{booking.status.replace('_', ' ')}</span></div><p className="mt-2 text-sm text-slate-500">{booking.packageName || booking.shootType || 'Photography session'} · {formatDay(booking.bookingDate)}{booking.startTime && booking.endTime ? ` · ${formatTimeWindow(booking.startTime, booking.endTime)}` : ''}</p></div>
-        <div className="flex flex-wrap gap-2"><button onClick={() => setEditing(true)} className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700"><Pencil className="h-4 w-4" />Edit</button>{actions.map(action => <button key={action.label} disabled={saving} onClick={() => void transition(action.status)} className={`rounded-lg px-3 py-2 text-sm font-medium ${'primary' in action && action.primary ? 'bg-blue-600 text-white' : 'border border-slate-300 text-slate-700'}`}>{action.label}</button>)}</div>
+        <div className="flex flex-wrap gap-2"><button type="button" onClick={() => setMessageOpen(true)} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700"><MessageCircle className="h-4 w-4" />WhatsApp</button><button onClick={() => setEditing(true)} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700"><Pencil className="h-4 w-4" />Edit</button>{actions.map(action => <button key={action.label} disabled={saving} onClick={() => void transition(action.status)} className={`min-h-11 rounded-lg px-3 py-2 text-sm font-medium ${'primary' in action && action.primary ? 'bg-blue-600 text-white' : 'border border-slate-300 text-slate-700'}`}>{action.label}</button>)}</div>
       </header>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -341,7 +349,7 @@ export function BookingDetailPage() {
 
         <Card title="Next follow-up" action={booking.nextFollowUpAt ? <button onClick={() => void run(() => api.completeBookingFollowUp(booking.id))} className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-600"><Check className="h-4 w-4" />Complete</button> : undefined}>
           {booking.nextFollowUpAt && <div className={`mb-4 rounded-lg p-3 text-sm ${followUpOverdue ? 'bg-red-50 text-red-700' : 'bg-blue-50 text-blue-700'}`}><Clock3 className="mr-2 inline h-4 w-4" />{formatDateTime(booking.nextFollowUpAt)}{followUpOverdue ? ' · Overdue' : ''}</div>}
-          <div className="grid gap-3 sm:grid-cols-2"><input type="datetime-local" value={followUpAt} onChange={e => setFollowUpAt(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm" /><input value={followUpNote} onChange={e => setFollowUpNote(e.target.value)} placeholder="What needs to happen?" className="rounded-lg border border-slate-300 px-3 py-2 text-sm" /></div><button onClick={saveFollowUp} disabled={saving} className="mt-3 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white">{booking.nextFollowUpAt ? 'Reschedule follow-up' : 'Schedule follow-up'}</button>
+          <FollowUpShortcuts value={followUpAt} onChange={setFollowUpAt} disabled={saving} /><input value={followUpNote} onChange={e => setFollowUpNote(e.target.value)} placeholder="What needs to happen?" className="mt-3 h-12 w-full rounded-xl border border-slate-300 px-3 text-sm" /><button onClick={saveFollowUp} disabled={saving || !followUpAt} className="mt-3 min-h-11 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50">{booking.nextFollowUpAt ? 'Reschedule follow-up' : 'Schedule follow-up'}</button>
         </Card>
 
         <Card title="WhatsApp automation" action={<button onClick={() => void load()} className="text-slate-400" aria-label="Refresh messages"><RefreshCw className="h-4 w-4" /></button>}>
@@ -400,6 +408,9 @@ export function BookingDetailPage() {
         </Card>
       </div>
 
+      <CustomerLookupPanel phone={booking.customerPhone} current={{ type: 'booking', id: booking.id }} />
+      <VoiceNotesPanel recordType="booking" recordId={booking.id} />
+
       <Card title="Delivery / Google Drive" action={<button onClick={saveDrive} disabled={saving} className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white">Save links</button>}>
         <div className="grid gap-3 sm:grid-cols-3">{[['Gallery folder', driveGalleryUrl, setDriveGalleryUrl], ['Edited photos', driveEditedUrl, setDriveEditedUrl], ['RAW files', driveRawsUrl, setDriveRawsUrl]].map(([label, value, setter]) => <label key={label as string} className="text-sm text-slate-700">{label as string}<div className="mt-1 flex gap-2"><input value={value as string} onChange={e => (setter as (value: string) => void)(e.target.value)} className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm" />{value && <a href={value as string} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-300 p-2"><ExternalLink className="h-4 w-4" /></a>}</div></label>)}</div>
         <textarea value={driveNotes} onChange={e => setDriveNotes(e.target.value)} placeholder="Delivery note" className="mt-3 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" rows={2} />
@@ -409,6 +420,7 @@ export function BookingDetailPage() {
       </Card>
 
       {editing && <BookingFormModal booking={booking} packages={packages} teamMembers={teamMembers} onClose={() => setEditing(false)} onSave={saveEdit} />}
+      {messageOpen && <WhatsAppComposer initialTemplate="booking_confirmation" context={{ customerName: booking.customerName, phone: booking.customerPhone, service: booking.shootType || booking.packageName, bookingDate: booking.bookingDate, startTime: booking.startTime, endTime: booking.endTime, location: booking.location, balanceDue: booking.paymentSummary.balanceDue, paymentDueDate: booking.paymentDueDate, consentRecorded: booking.whatsappOptIn, optedOut: Boolean(booking.whatsappOptOutAt) }} onClose={() => setMessageOpen(false)} />}
       {paymentModal && <PaymentModal payment={paymentModal === 'new' ? null : paymentModal} onClose={() => setPaymentModal(null)} onSave={async data => { const updated = paymentModal === 'new' ? await api.addBookingPayment(booking.id, data) : await api.updateBookingPayment(booking.id, paymentModal.id, data); sync(updated); setPaymentModal(null); }} />}
     </div>
   );

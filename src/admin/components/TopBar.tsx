@@ -1,5 +1,6 @@
 import { Menu } from 'lucide-react';
 import { useAdminShell } from '../contexts/AdminShellContext';
+import { GlobalSearch } from './GlobalSearch';
 
 type TopBarProps = {
   sidebarWidth: number;
@@ -13,7 +14,7 @@ export function TopBar({ sidebarWidth }: TopBarProps) {
       className="fixed top-0 right-0 z-30 flex h-16 items-center justify-between border-b border-[#E5E7EB] bg-white px-4 transition-[left] duration-200 ease-out sm:px-6"
       style={{ left: isMobile ? 0 : sidebarWidth }}
     >
-      <div className="flex items-center gap-3">
+      <div className="flex min-w-0 items-center gap-3">
         {isMobile && (
           <button
             type="button"
@@ -26,7 +27,10 @@ export function TopBar({ sidebarWidth }: TopBarProps) {
             <Menu className="h-5 w-5" />
           </button>
         )}
-        <h1 className="text-lg font-semibold text-[#1E293B]">Doll Pictures Work</h1>
+        <h1 className="truncate text-lg font-semibold text-[#1E293B]">Doll Pictures Work</h1>
+      </div>
+      <div className="ml-3 flex flex-1 justify-end md:ml-8 md:justify-center">
+        <GlobalSearch />
       </div>
     </header>
   );

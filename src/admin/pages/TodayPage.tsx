@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AlertCircle, CalendarDays, Check, IndianRupee, MessageCircle, Phone, Plus, RefreshCw, RotateCcw } from 'lucide-react';
+import { AlertCircle, CalendarDays, Check, CheckCircle2, Circle, IndianRupee, MessageCircle, Phone, Plus, RefreshCw, RotateCcw, X } from 'lucide-react';
 import { api } from '../api/client';
 import { InstallAppButton } from '../components/InstallAppButton';
-import { whatsappUrl } from '../contact';
 import type { TodayFollowUp, TodaySummaryItem, TodayWork } from '../types';
+import { FollowUpShortcuts } from '../components/FollowUpShortcuts';
+import { followUpDateError, kolkataLocalToIso } from '../components/followUp.utils';
+import { WhatsAppComposer } from '../components/WhatsAppComposer';
+import type { ManualWhatsAppContext, WhatsAppTemplateId } from '../components/whatsappTemplates';
+import { endOfDayChecks } from '../components/todayChecklist.utils';
 
 export function TodayPage() {
   const navigate = useNavigate();
@@ -12,6 +16,8 @@ export function TodayPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [rescheduling, setRescheduling] = useState<TodayFollowUp | null>(null);
+  const [message, setMessage] = useState<{ context: ManualWhatsAppContext; initial: WhatsAppTemplateId } | null>(null);
   const load = useCallback(async () => {
     setError('');
     try { setWork(await api.getTodayWork()); }
@@ -28,14 +34,14 @@ export function TodayPage() {
       await load();
     } catch (err) { setError(err instanceof Error ? err.message : 'Could not complete the follow-up.'); }
   };
-  const tomorrow = async (item: TodayFollowUp) => {
-    const date = new Date(); date.setDate(date.getDate() + 1); date.setHours(10, 0, 0, 0);
+  const reschedule = async (item: TodayFollowUp, when: string, note: string) => {
     try {
-      if (item.entityType === 'enquiry') await api.scheduleEnquiryFollowUp(item.id, date.toISOString(), item.note || undefined);
-      else await api.scheduleBookingFollowUp(item.id, date.toISOString(), item.note || undefined);
-      setSuccess(`${item.name}'s follow-up moved to tomorrow.`);
+      if (item.entityType === 'enquiry') await api.scheduleEnquiryFollowUp(item.id, kolkataLocalToIso(when), note || undefined);
+      else await api.scheduleBookingFollowUp(item.id, kolkataLocalToIso(when), note || undefined);
+      setSuccess(`${item.name}'s follow-up was rescheduled.`);
+      setRescheduling(null);
       await load();
-    } catch (err) { setError(err instanceof Error ? err.message : 'Could not move the follow-up.'); }
+    } catch (err) { setError(err instanceof Error ? err.message : 'Could not reschedule the follow-up.'); throw err; }
   };
 
   if (loading) return <div className="flex h-64 items-center justify-center"><div className="h-9 w-9 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" /></div>;
@@ -44,17 +50,38 @@ export function TodayPage() {
     {error && <div className="flex gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"><AlertCircle className="h-5 w-5 shrink-0" />{error}<button className="ml-auto font-semibold" onClick={() => void load()}>Try again</button></div>}
     {success && <div className="flex rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-700">{success}<button className="ml-auto" onClick={() => setSuccess('')}>Dismiss</button></div>}
     {work && <>
-      <WorkSection title="Follow-ups" count={work.followUps.length} urgent={work.followUps.some(item => item.overdue)} empty="No follow-ups due. You are up to date.">
-        {work.followUps.map(item => <article key={`${item.entityType}-${item.id}`} className="rounded-xl border border-slate-200 bg-white p-4"><div className="flex items-start justify-between gap-3"><div><p className="font-semibold text-slate-900">{item.name}</p><p className="mt-1 text-sm text-slate-500">{item.shootType || 'Service not decided'}{item.note ? ` · ${item.note}` : ''}</p><p className={`mt-2 text-xs font-semibold ${item.overdue ? 'text-red-600' : 'text-amber-700'}`}>{item.overdue ? 'Overdue · ' : ''}{item.dueAt ? new Date(item.dueAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : 'Due today'}</p></div><span className={`rounded-full px-2 py-1 text-xs font-semibold ${item.entityType === 'enquiry' ? 'bg-blue-50 text-blue-700' : 'bg-violet-50 text-violet-700'}`}>{item.entityType}</span></div><div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-5"><a href={`tel:${item.phone}`} className="action"><Phone className="h-4 w-4" /> Call</a><a href={whatsappUrl(item.phone)} target="_blank" rel="noreferrer" className="action text-emerald-700"><MessageCircle className="h-4 w-4" /> WhatsApp</a><button onClick={() => void complete(item)} className="action bg-emerald-600 text-white"><Check className="h-4 w-4" /> Done</button><button onClick={() => void tomorrow(item)} className="action"><RotateCcw className="h-4 w-4" /> Tomorrow</button><Link to={`/admin/${item.entityType === 'enquiry' ? 'enquiries' : 'bookings'}/${item.id}`} className="action bg-slate-900 text-white">Open</Link></div></article>)}
-      </WorkSection>
-      <WorkSection title="New enquiries" count={work.newEnquiries.length} empty="No new enquiries waiting.">{work.newEnquiries.map(item => <SimpleTask key={item.id} item={item} to={`/admin/enquiries/${item.id}`} />)}</WorkSection>
-      <WorkSection title="Today’s shoots" count={work.todayShoots.length} empty="No confirmed shoots today.">{work.todayShoots.map(item => <SimpleTask key={item.id} item={item} to={`/admin/bookings/${item.id}`} calendar />)}</WorkSection>
-      <WorkSection title="Payments due" count={work.paymentsDue.length} empty="No payments are due today.">{work.paymentsDue.map(item => <article key={item.id} className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700"><IndianRupee className="h-5 w-5" /></span><div className="min-w-0 flex-1"><p className="truncate font-semibold text-slate-900">{item.name}</p><p className="text-sm text-slate-500">Balance {money(item.balanceDue)} · due {item.paymentDueDate}</p></div><Link to={`/admin/bookings/${item.id}`} className="flex h-11 items-center rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white">Record</Link></article>)}</WorkSection>
-      <WorkSection title="Tomorrow’s shoots" count={work.tomorrowShoots.length} empty="No confirmed shoots tomorrow.">{work.tomorrowShoots.map(item => <SimpleTask key={item.id} item={item} to={`/admin/bookings/${item.id}`} calendar />)}</WorkSection>
+      <EndOfDayChecklist work={work} />
+      <div id="today-followups"><WorkSection title="Follow-ups" count={work.followUps.length} urgent={work.followUps.some(item => item.overdue)} empty="No follow-ups due. You are up to date.">
+        {work.followUps.map(item => <article key={`${item.entityType}-${item.id}`} className="rounded-xl border border-slate-200 bg-white p-4"><div className="flex items-start justify-between gap-3"><div><p className="font-semibold text-slate-900">{item.name}</p><p className="mt-1 text-sm text-slate-500">{item.shootType || 'Service not decided'}{item.note ? ` · ${item.note}` : ''}</p><p className={`mt-2 text-xs font-semibold ${item.overdue ? 'text-red-600' : 'text-amber-700'}`}>{item.overdue ? 'Overdue · ' : ''}{item.dueAt ? new Date(item.dueAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' }) : 'Due today'}</p></div><span className={`rounded-full px-2 py-1 text-xs font-semibold ${item.entityType === 'enquiry' ? 'bg-blue-50 text-blue-700' : 'bg-violet-50 text-violet-700'}`}>{item.entityType}</span></div><div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-5"><a href={`tel:${item.phone}`} className="action"><Phone className="h-4 w-4" /> Call</a><button type="button" onClick={() => setMessage({ context: followUpMessageContext(item), initial: item.entityType === 'booking' ? 'booking_confirmation' : 'enquiry_follow_up' })} className="action text-emerald-700"><MessageCircle className="h-4 w-4" /> WhatsApp</button><button onClick={() => void complete(item)} className="action bg-emerald-600 text-white"><Check className="h-4 w-4" /> Done</button><button onClick={() => setRescheduling(item)} className="action"><RotateCcw className="h-4 w-4" /> Reschedule</button><Link to={`/admin/${item.entityType === 'enquiry' ? 'enquiries' : 'bookings'}/${item.id}`} className="action bg-slate-900 text-white">Open</Link></div></article>)}
+      </WorkSection></div>
+      <div id="today-new-enquiries"><WorkSection title="New enquiries" count={work.newEnquiries.length} empty="No new enquiries waiting.">{work.newEnquiries.map(item => <SimpleTask key={item.id} item={item} to={`/admin/enquiries/${item.id}`} onMessage={() => setMessage({ context: summaryMessageContext(item), initial: 'enquiry_follow_up' })} />)}</WorkSection></div>
+      <div id="today-shoots"><WorkSection title="Today’s shoots" count={work.todayShoots.length} empty="No confirmed shoots today.">{work.todayShoots.map(item => <SimpleTask key={item.id} item={item} to={`/admin/bookings/${item.id}`} calendar onMessage={() => setMessage({ context: summaryMessageContext(item), initial: 'shoot_reminder' })} />)}</WorkSection></div>
+      <div id="today-payments"><WorkSection title="Payments due" count={work.paymentsDue.length} empty="No payments are due today.">{work.paymentsDue.map(item => <article key={item.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white p-4"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700"><IndianRupee className="h-5 w-5" /></span><div className="min-w-0 flex-1"><p className="truncate font-semibold text-slate-900">{item.name}</p><p className="text-sm text-slate-500">Balance {money(item.balanceDue)} · due {item.paymentDueDate}</p></div><button type="button" onClick={() => setMessage({ context: { ...summaryMessageContext(item), balanceDue: item.balanceDue, paymentDueDate: item.paymentDueDate }, initial: 'payment_reminder' })} className="flex h-11 items-center gap-2 rounded-xl border border-emerald-300 px-3 text-sm font-semibold text-emerald-700"><MessageCircle className="h-4 w-4" />Message</button><Link to={`/admin/bookings/${item.id}`} className="flex h-11 items-center rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white">Record</Link></article>)}</WorkSection></div>
+      <div id="today-tomorrow"><WorkSection title="Tomorrow’s shoots" count={work.tomorrowShoots.length} empty="No confirmed shoots tomorrow.">{work.tomorrowShoots.map(item => <SimpleTask key={item.id} item={item} to={`/admin/bookings/${item.id}`} calendar onMessage={() => setMessage({ context: summaryMessageContext(item), initial: 'shoot_reminder' })} />)}</WorkSection></div>
     </>}
+    {rescheduling && <FollowUpDialog item={rescheduling} onClose={() => setRescheduling(null)} onSave={reschedule} />}
+    {message && <WhatsAppComposer context={message.context} initialTemplate={message.initial} onClose={() => setMessage(null)} />}
   </div>;
 }
 
 function WorkSection({ title, count, empty, urgent, children }: { title: string; count: number; empty: string; urgent?: boolean; children: React.ReactNode }) { return <section className={`rounded-2xl border p-4 shadow-sm sm:p-5 ${urgent ? 'border-red-200 bg-red-50/50' : 'border-slate-200 bg-slate-50/60'}`}><div className="mb-3 flex items-center justify-between"><h2 className="text-lg font-bold text-slate-900">{title}</h2><span className={`rounded-full px-2.5 py-1 text-xs font-bold ${urgent ? 'bg-red-100 text-red-700' : 'bg-white text-slate-600'}`}>{count}</span></div><div className="space-y-3">{count ? children : <div className="rounded-xl border border-dashed border-slate-300 bg-white p-5 text-center text-sm text-slate-500">{empty}</div>}</div></section>; }
-function SimpleTask({ item, to, calendar }: { item: TodaySummaryItem; to: string; calendar?: boolean }) { return <article className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-700">{calendar ? <CalendarDays className="h-5 w-5" /> : item.name.charAt(0).toUpperCase()}</span><div className="min-w-0 flex-1"><p className="truncate font-semibold text-slate-900">{item.name}</p><p className="truncate text-sm text-slate-500">{item.shootType || 'Service not decided'}{item.location ? ` · ${item.location}` : ''}</p></div><Link to={to} className="flex h-11 items-center rounded-xl bg-slate-900 px-4 text-sm font-semibold text-white">Open</Link></article>; }
+function SimpleTask({ item, to, calendar, onMessage }: { item: TodaySummaryItem; to: string; calendar?: boolean; onMessage?: () => void }) { return <article className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white p-4"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-700">{calendar ? <CalendarDays className="h-5 w-5" /> : item.name.charAt(0).toUpperCase()}</span><div className="min-w-0 flex-1"><p className="truncate font-semibold text-slate-900">{item.name}</p><p className="truncate text-sm text-slate-500">{item.shootType || 'Service not decided'}{item.location ? ` · ${item.location}` : ''}</p></div>{onMessage && <button type="button" onClick={onMessage} className="flex h-11 w-11 items-center justify-center rounded-xl border border-emerald-300 text-emerald-700" aria-label={`Message ${item.name}`}><MessageCircle className="h-4 w-4" /></button>}<Link to={to} className="flex h-11 items-center rounded-xl bg-slate-900 px-4 text-sm font-semibold text-white">Open</Link></article>; }
 function money(value: number) { return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value); }
+
+function summaryMessageContext(item: TodaySummaryItem): ManualWhatsAppContext { return { customerName: item.name, phone: item.phone, service: item.shootType, bookingDate: item.bookingDate, startTime: item.startTime, endTime: item.endTime, location: item.location, consentRecorded: item.whatsappOptIn, optedOut: Boolean(item.whatsappOptOutAt) }; }
+function followUpMessageContext(item: TodayFollowUp): ManualWhatsAppContext { return { customerName: item.name, phone: item.phone, service: item.shootType, bookingDate: item.bookingDate, startTime: item.startTime, endTime: item.endTime, location: item.location, balanceDue: item.balanceDue, paymentDueDate: item.paymentDueDate, consentRecorded: item.whatsappOptIn, optedOut: Boolean(item.whatsappOptOutAt) }; }
+
+function EndOfDayChecklist({ work }: { work: TodayWork }) {
+  const checks = endOfDayChecks(work);
+  const allClear = checks.every(check => check.count === 0);
+  return <section className={`rounded-2xl border p-4 shadow-sm sm:p-5 ${allClear ? 'border-emerald-200 bg-emerald-50' : 'border-blue-200 bg-blue-50/60'}`}><div className="flex items-center gap-3"><span className={`flex h-11 w-11 items-center justify-center rounded-xl ${allClear ? 'bg-emerald-600 text-white' : 'bg-blue-600 text-white'}`}><CheckCircle2 className="h-5 w-5" /></span><div><h2 className="text-lg font-bold text-slate-900">End of day</h2><p className="text-sm text-slate-600">{allClear ? 'All clear for today.' : 'This updates automatically as work is completed.'}</p></div></div><div className="mt-4 grid gap-2 sm:grid-cols-2">{checks.map(check => <a key={check.label} href={check.href} className="flex min-h-11 items-center gap-3 rounded-xl bg-white px-3 text-sm font-semibold text-slate-700 shadow-sm">{check.count === 0 ? <CheckCircle2 className="h-5 w-5 text-emerald-600" /> : <Circle className="h-5 w-5 text-amber-600" />}<span className="flex-1">{check.label}</span><span className={check.count ? 'text-amber-700' : 'text-emerald-700'}>{check.count ? `${check.count} left` : 'Done'}</span></a>)}</div></section>;
+}
+
+function FollowUpDialog({ item, onClose, onSave }: { item: TodayFollowUp; onClose: () => void; onSave: (item: TodayFollowUp, when: string, note: string) => Promise<void> }) {
+  const [when, setWhen] = useState('');
+  const [note, setNote] = useState(item.note || '');
+  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+  const save = async () => { const nextError = followUpDateError(when); if (nextError) return setError(nextError); setSaving(true); setError(''); try { await onSave(item, when, note.trim()); } catch { setError('Could not reschedule the follow-up.'); setSaving(false); } };
+  return <div className="fixed inset-0 z-[85] flex items-end bg-slate-950/50 sm:items-center sm:justify-center sm:p-4" role="dialog" aria-modal="true"><div className="w-full rounded-t-2xl bg-white p-4 shadow-2xl sm:max-w-lg sm:rounded-2xl"><div className="flex items-center justify-between"><div><h2 className="font-semibold text-slate-900">Reschedule {item.name}</h2><p className="text-sm text-slate-500">Choose the next follow-up.</p></div><button type="button" onClick={onClose} className="flex h-11 w-11 items-center justify-center" aria-label="Close"><X className="h-5 w-5" /></button></div><div className="mt-4"><FollowUpShortcuts value={when} onChange={value => { setWhen(value); setError(''); }} disabled={saving} /></div><input value={note} onChange={event => setNote(event.target.value)} placeholder="What should we discuss?" className="mt-3 h-12 w-full rounded-xl border border-slate-300 px-3" />{error && <p className="mt-2 text-sm text-red-600">{error}</p>}<div className="mt-4 grid grid-cols-2 gap-3 pb-[env(safe-area-inset-bottom)]"><button type="button" onClick={onClose} className="h-12 rounded-xl border border-slate-300 font-semibold">Cancel</button><button type="button" disabled={saving || !when} onClick={() => void save()} className="h-12 rounded-xl bg-blue-600 font-semibold text-white disabled:opacity-50">{saving ? 'Saving…' : 'Save follow-up'}</button></div></div></div>;
+}

@@ -13,6 +13,9 @@ import { siteContentApi } from './siteContent';
 import { workApi } from './work';
 import { usersApi } from './users';
 import { integrationsApi } from './integrations';
+import { searchApi } from './search';
+import { customerLookupApi } from './customerLookup';
+import { voiceNotesApi } from './voiceNotes';
 
 export const api = {
   ...authApi,
@@ -26,4 +29,7 @@ export const api = {
   ...workApi,
   ...usersApi,
   ...integrationsApi,
+  ...searchApi,
+  ...customerLookupApi,
+  ...voiceNotesApi,
 };

@@ -549,6 +549,14 @@ export type TodayFollowUp = {
   dueAt?: string;
   note: string;
   overdue: boolean;
+  bookingDate?: string;
+  startTime?: string;
+  endTime?: string;
+  location?: string;
+  balanceDue?: number | null;
+  paymentDueDate?: string;
+  whatsappOptIn?: boolean;
+  whatsappOptOutAt?: string;
 };
 
 export type TodaySummaryItem = {
@@ -562,6 +570,10 @@ export type TodaySummaryItem = {
   source?: EnquirySource;
   createdAt?: string;
   assignedTeamMemberName?: string;
+  startTime?: string;
+  endTime?: string;
+  whatsappOptIn?: boolean;
+  whatsappOptOutAt?: string;
 };
 
 export type TodayPaymentItem = TodaySummaryItem & {
@@ -578,6 +590,61 @@ export type TodayWork = {
   todayShoots: TodaySummaryItem[];
   paymentsDue: TodayPaymentItem[];
   tomorrowShoots: TodaySummaryItem[];
+};
+
+export type AdminSearchItem = {
+  id: string;
+  type: 'enquiry' | 'booking';
+  customerName: string;
+  phone: string;
+  email: string;
+  service: string;
+  location: string;
+  status: string;
+  relevantDate: string;
+};
+
+export type AdminSearchResponse = {
+  query: string;
+  enquiries: AdminSearchItem[];
+  bookings: AdminSearchItem[];
+  total: number;
+};
+
+export type CustomerLookupRecord = {
+  id: string;
+  type: 'enquiry' | 'booking';
+  customerName: string;
+  phone: string;
+  email: string;
+  service: string;
+  status: string;
+  relevantDate: string;
+  active: boolean;
+};
+
+export type CustomerLookupResponse = {
+  canonicalPhone: string;
+  active: CustomerLookupRecord[];
+  history: CustomerLookupRecord[];
+  suggestedContact?: {
+    customerName: string;
+    email: string;
+  };
+};
+
+export type VoiceNoteSummary = {
+  id: string;
+  recordType: 'enquiry' | 'booking';
+  recordId: string;
+  durationSeconds: number;
+  mimeType: string;
+  sizeBytes: number;
+  createdAt: string;
+  createdBy: {
+    id: string;
+    name: string;
+  };
 };
 
 export type AuthState = {
