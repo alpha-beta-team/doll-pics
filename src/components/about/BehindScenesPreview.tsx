@@ -6,6 +6,8 @@ export function BehindScenesPreview() {
   const { behindScenes } = useSiteData();
   const { ref, inView } = useInView<HTMLDivElement>();
 
+  if (!behindScenes.length) return null;
+
   return (
     <section className="relative bg-ink-900 px-6 py-20 lg:px-10">
       <div ref={ref} className={`mx-auto mb-12 max-w-7xl reveal ${inView ? 'in' : ''}`}>

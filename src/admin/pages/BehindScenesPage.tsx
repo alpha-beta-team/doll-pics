@@ -6,12 +6,12 @@ export function BehindScenesPage() {
   return (
     <SimpleOrderedPage<BehindScene>
       title="Behind the Scenes"
-      description="Manage behind-the-scenes gallery items"
+      description="Publish only genuine Doll Pictures process media with an accurate description"
       fetchItems={api.getBehindScenes}
       createItem={(data) => api.createBehindScene(data as Omit<BehindScene, 'id'>)}
       updateItem={api.updateBehindScene}
       deleteItem={api.deleteBehindScene}
-      getEmptyItem={() => ({ title: '', image: '', order: 0, isPublished: true })}
+      getEmptyItem={() => ({ title: '', image: '', order: 0, isPublished: false })}
       renderPreview={item => (
         <div className="flex items-center gap-4 flex-1">
           <img src={item.image} alt={item.title} className="w-24 h-14 object-cover rounded-lg" />

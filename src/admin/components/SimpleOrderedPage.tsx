@@ -61,7 +61,7 @@ export function SimpleOrderedPage<T extends OrderedItem>({
       if (editing.id) {
         await updateItem(editing.id, editing);
       } else {
-        await createItem({ ...editing, order: items.length, isPublished: editing.isPublished ?? true });
+        await createItem({ ...editing, order: items.length, isPublished: editing.isPublished ?? false });
       }
       setEditing(null);
       await load();

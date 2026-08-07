@@ -241,6 +241,8 @@ function TrustStrip() {
   const { stats } = useSiteData();
   const trust = stats.slice(0, 4);
 
+  if (!trust.length) return null;
+
   return (
     <section
       aria-label="Studio highlights"

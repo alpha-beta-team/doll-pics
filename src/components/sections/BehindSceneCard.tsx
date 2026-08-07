@@ -9,41 +9,14 @@ interface BehindSceneCardProps {
   index: number;
 }
 
-const defaultMedia: Record<
-  string,
-  Required<Pick<PublicBehindScene, 'image' | 'video' | 'description'>>
-> = {
-  'camera setup': {
-    image: '/videos/behind-scenes/camera-setup.jpg',
-    video: '/videos/behind-scenes/camera-setup.mp4',
-    description: 'The crew rigs, balances, and checks every frame before the shoot.',
-  },
-  'drone operation': {
-    image: '/videos/behind-scenes/drone-operation.jpg',
-    video: '/videos/behind-scenes/drone-operation.mp4',
-    description: 'Pre-flight checks and our drone team at work in the field.',
-  },
-  lighting: {
-    image: '/videos/behind-scenes/lighting.jpg',
-    video: '/videos/behind-scenes/lighting.mp4',
-    description: 'Shaping and checking the light until the scene feels just right.',
-  },
-  editing: {
-    image: '/videos/behind-scenes/editing.jpg',
-    video: '/videos/behind-scenes/editing.mp4',
-    description: 'Inside the office as the team cuts and colours the final story.',
-  },
-};
-
 export function BehindSceneCard({ scene, index }: BehindSceneCardProps) {
   const { ref, inView } = useInView<HTMLButtonElement>();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPlayerOpen, setIsPlayerOpen] = useState(false);
-  const fallback = defaultMedia[scene.title.trim().toLowerCase()];
-  const video = scene.video || fallback?.video;
-  const poster = scene.video ? scene.image : (fallback?.image ?? scene.image);
-  const description = scene.description || fallback?.description;
+  const video = scene.video;
+  const poster = scene.image;
+  const description = scene.description;
 
   useEffect(() => {
     const player = videoRef.current;

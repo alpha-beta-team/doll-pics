@@ -9,7 +9,7 @@ export function TeamMembersPage() {
   return (
     <SimpleOrderedPage<TeamMember>
       title="Team Members"
-      description="Manage Meet the Team profiles shown on the About page"
+      description="Publish only current team profiles with an approved biography and portrait"
       fetchItems={api.getTeamMembers}
       createItem={(data) => api.createTeamMember(data as Omit<TeamMember, 'id'>)}
       updateItem={api.updateTeamMember}
@@ -23,7 +23,7 @@ export function TeamMembersPage() {
         photoStorageKey: '',
         imageTransform: null,
         order: 0,
-        isPublished: true,
+        isPublished: false,
       })}
       renderPreview={item => (
         <div className="flex items-center gap-4 flex-1">

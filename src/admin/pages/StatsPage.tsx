@@ -6,12 +6,12 @@ export function StatsPage() {
   return (
     <SimpleOrderedPage<Stat>
       title="Statistics"
-      description="Manage homepage statistics counters"
+      description="Publish a statistic only after its evidence is recorded internally"
       fetchItems={api.getStats}
       createItem={(data) => api.createStat(data as Omit<Stat, 'id'>)}
       updateItem={api.updateStat}
       deleteItem={api.deleteStat}
-      getEmptyItem={() => ({ value: 0, suffix: '', label: '', order: 0, isPublished: true })}
+      getEmptyItem={() => ({ value: 0, suffix: '', label: '', order: 0, isPublished: false })}
       renderPreview={item => (
         <div className="flex-1">
           <p className="text-2xl font-semibold text-gray-900">

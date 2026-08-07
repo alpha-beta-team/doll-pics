@@ -6,13 +6,13 @@ export function TestimonialsPage() {
   return (
     <SimpleOrderedPage<Testimonial>
       title="Testimonials"
-      description="Manage client testimonials"
+      description="Publish only genuine client feedback with recorded publication consent"
       fetchItems={api.getTestimonials}
       createItem={(data) => api.createTestimonial(data as Omit<Testimonial, 'id'>)}
       updateItem={api.updateTestimonial}
       deleteItem={api.deleteTestimonial}
       getEmptyItem={() => ({
-        name: '', role: '', avatar: '', rating: 5, text: '', likes: 0, reply: '', order: 0, isPublished: true,
+        name: '', role: '', avatar: '', rating: 5, text: '', likes: 0, reply: '', order: 0, isPublished: false,
       })}
       renderPreview={item => (
         <div className="flex items-start gap-4 flex-1">

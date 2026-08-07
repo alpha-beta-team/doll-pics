@@ -6,6 +6,8 @@ export function MeetTheTeam() {
   const { teamMembers, loading } = useSiteData();
   const { ref, inView } = useInView<HTMLDivElement>();
 
+  if (!loading && !teamMembers.length) return null;
+
   return (
     <section id="team" className="relative scroll-mt-24 bg-ink-950 px-6 py-32 lg:px-10">
       <div

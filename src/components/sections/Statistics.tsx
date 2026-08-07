@@ -7,6 +7,8 @@ export function Statistics() {
   const { stats } = useSiteData();
   const { ref, inView } = useInView<HTMLDivElement>();
 
+  if (!stats.length) return null;
+
   return (
     <section className="relative py-32 px-6 lg:px-10 overflow-hidden bg-ink-900">
       <ParticleField />

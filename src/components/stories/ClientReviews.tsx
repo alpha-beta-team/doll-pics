@@ -1,4 +1,4 @@
-import { MessageCircleHeart, Quote, Star, ThumbsUp } from 'lucide-react';
+import { Quote, Star, ThumbsUp } from 'lucide-react';
 import type { PublicTestimonial } from '../../shared/types';
 
 type ClientReviewsProps = {
@@ -153,31 +153,7 @@ function ReviewCard({
 }
 
 export function ClientReviews({ reviews }: ClientReviewsProps) {
-  if (!reviews.length) {
-    return (
-      <section
-        aria-labelledby="client-reviews-empty-title"
-        className="px-6 py-24 sm:py-28 lg:px-10"
-      >
-        <div className="mx-auto max-w-3xl rounded-3xl border border-hairline/10 bg-ink-900/60 px-6 py-16 text-center sm:px-12">
-          <MessageCircleHeart
-            className="mx-auto h-10 w-10 text-gold-400/70"
-            aria-hidden="true"
-          />
-          <h2
-            id="client-reviews-empty-title"
-            className="mt-6 font-display text-4xl font-light text-ink-50 sm:text-5xl"
-          >
-            Client stories are on their way.
-          </h2>
-          <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-ink-200/70 sm:text-base">
-            We are curating thoughtful words from the couples and families we
-            have photographed. Please check back soon.
-          </p>
-        </div>
-      </section>
-    );
-  }
+  if (!reviews.length) return null;
 
   const average =
     reviews.reduce((sum, review) => sum + ratingValue(review.rating), 0) /

@@ -207,13 +207,8 @@ export const services = [
   },
 ];
 
-export const stats = [
-  { value: 500, suffix: "+", label: "Weddings Captured" },
-  { value: 10, suffix: "", label: "Years Experience" },
-  { value: 2, suffix: "M", label: "Memories Preserved" },
-  { value: 98, suffix: "%", label: "Happy Clients" },
-  { value: 25, suffix: "", label: "Awards Won" },
-];
+/** Empty until the studio documents evidence for each public statistic. */
+export const stats: Array<{ value: number; suffix: string; label: string }> = [];
 
 /** Empty until real Erode/TN client quotes exist in CMS. */
 export const testimonials: Array<{
@@ -226,60 +221,18 @@ export const testimonials: Array<{
   reply: string;
 }> = [];
 
-export const behindScenes = [
-  {
-    title: "Camera Setup",
-    image: "/videos/behind-scenes/camera-setup.jpg",
-    video: "/videos/behind-scenes/camera-setup.mp4",
-    description: "The crew rigs, balances, and checks every frame before the shoot.",
-  },
-  {
-    title: "Drone Operation",
-    image: "/videos/behind-scenes/drone-operation.jpg",
-    video: "/videos/behind-scenes/drone-operation.mp4",
-    description: "Pre-flight checks and our drone team at work in the field.",
-  },
-  {
-    title: "Lighting",
-    image: "/videos/behind-scenes/lighting.jpg",
-    video: "/videos/behind-scenes/lighting.mp4",
-    description: "Shaping and checking the light until the scene feels just right.",
-  },
-  {
-    title: "Editing",
-    image: "/videos/behind-scenes/editing.jpg",
-    video: "/videos/behind-scenes/editing.mp4",
-    description: "Inside the office as the team cuts and colours the final story.",
-  },
-];
+/** Empty until genuine process media is uploaded and approved. */
+export const behindScenes: Array<{
+  title: string;
+  image: string;
+  video?: string;
+  description?: string;
+}> = [];
 
-export const teamMembers = [
-  {
-    name: "Ramya Vignesh",
-    role: "Lead Photographer & Founder",
-    bio: "Visionary behind the lens — crafting cinematic narratives that feel intimate, elegant, and timeless.",
-    photo:
-      "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=600",
-  },
-  {
-    name: "Arun Prakash",
-    role: "Cinematographer",
-    bio: "Obsessed with light and motion. Turns every celebration into a moving film of joy and emotion.",
-    photo:
-      "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=600",
-  },
-  {
-    name: "Meera Krishnan",
-    role: "Creative Director",
-    bio: "Shapes mood boards, styling cues, and the whimsical finish that makes every gallery uniquely yours.",
-    photo:
-      "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=600",
-  },
-  {
-    name: "Karthik Selvam",
-    role: "Lead Editor",
-    bio: "Color grades and retouches with a painter\u2019s patience — turning raw frames into heirloom stills.",
-    photo:
-      "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=600",
-  },
-];
+/** Empty until current team members approve their profile and portrait. */
+export const teamMembers: Array<{
+  name: string;
+  role: string;
+  bio: string;
+  photo: string;
+}> = [];

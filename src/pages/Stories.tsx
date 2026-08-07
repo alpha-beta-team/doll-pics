@@ -12,6 +12,7 @@ import { BOOKING_ROUTE } from '../lib/navigation';
 
 function StoriesContent() {
   const { siteContent, testimonials } = useSiteData();
+  const hasTestimonials = testimonials.length > 0;
 
   usePageSeo({
     phone: siteContent.phone,
@@ -41,27 +42,32 @@ function StoriesContent() {
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-hairline/15 to-transparent" />
 
           <div className="relative mx-auto w-full max-w-7xl">
-            <p className="section-label mb-6">Client stories</p>
+            <p className="section-label mb-6">
+              {hasTestimonials ? 'Client stories' : 'Stories, shared with care'}
+            </p>
             <h1 className="max-w-5xl font-display text-6xl font-light leading-[0.94] text-ink-50 sm:text-7xl md:text-8xl lg:text-9xl">
-              Kind words.
+              {hasTestimonials ? 'Kind words.' : 'Real words.'}
               <br />
               <span className="italic text-gradient-gold">
-                Lasting memories.
+                {hasTestimonials ? 'Lasting memories.' : 'Published with permission.'}
               </span>
             </h1>
             <p className="mt-8 max-w-2xl text-base font-light leading-relaxed text-ink-100/75 sm:text-lg md:text-xl">
-              Honest reflections from couples and families who trusted us with
-              the moments they never want to forget.
+              {hasTestimonials
+                ? 'Honest reflections from couples and families who trusted us with the moments they never want to forget.'
+                : 'We publish client feedback only after it is verified and approved. New stories will appear here once that review is complete.'}
             </p>
 
-            <div className="mt-12 flex items-center gap-4 text-ink-200/65">
-              <span className="flex h-11 w-11 items-center justify-center rounded-full border border-hairline/15">
-                <ArrowDown className="h-4 w-4" aria-hidden="true" />
-              </span>
-              <span className="text-[0.65rem] font-medium uppercase tracking-[0.25em]">
-                Read their stories
-              </span>
-            </div>
+            {hasTestimonials ? (
+              <div className="mt-12 flex items-center gap-4 text-ink-200/65">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full border border-hairline/15">
+                  <ArrowDown className="h-4 w-4" aria-hidden="true" />
+                </span>
+                <span className="text-[0.65rem] font-medium uppercase tracking-[0.25em]">
+                  Read their stories
+                </span>
+              </div>
+            ) : null}
           </div>
         </header>
 
