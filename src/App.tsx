@@ -15,6 +15,9 @@ const About = lazy(() =>
 const Stories = lazy(() =>
   import('./pages/Stories').then((m) => ({ default: m.Stories })),
 );
+const Contact = lazy(() =>
+  import('./pages/Contact').then((m) => ({ default: m.Contact })),
+);
 const Privacy = lazy(() =>
   import('./pages/Privacy').then((m) => ({ default: m.Privacy })),
 );
@@ -90,6 +93,14 @@ function App() {
             element={
               <Suspense fallback={<PublicLoading />}>
                 <Stories />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/contact"
+            element={
+              <Suspense fallback={<PublicLoading />}>
+                <Contact />
               </Suspense>
             }
           />

@@ -20,6 +20,7 @@ const staticFooterLinks: Record<
     { label: 'Behind the Scenes', to: '/#behind' },
   ],
   Connect: [
+    { label: 'Contact Us', to: '/contact' },
     { label: 'Book a Session', to: '/booking' },
     { label: 'Free Consultation', to: '/booking' },
     { label: 'Pricing', to: '/packages' },

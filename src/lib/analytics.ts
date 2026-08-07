@@ -16,6 +16,7 @@ export type WhatsAppCtaLocation =
   | 'header'
   | 'footer'
   | 'service_page'
+  | 'contact_page'
   | 'booking_page'
   | 'floating_button';
 

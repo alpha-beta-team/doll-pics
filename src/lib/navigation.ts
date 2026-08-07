@@ -11,6 +11,7 @@ export const NAV_LINKS: NavLink[] = [
   { label: 'Packages', path: '/packages' },
   { label: 'About', path: '/about' },
   { label: 'Stories', path: '/stories' },
+  { label: 'Contact', path: '/contact' },
 ];
 
 export const BOOKING_ROUTE = { path: '/booking', sectionId: 'booking' };

@@ -91,21 +91,68 @@ function parseArguments(argv) {
   return values;
 }
 
-async function fetchText(url, expectedStatus = 200) {
-  const response = await fetch(url, {
-    headers: {
-      Accept: 'application/xml,text/plain,text/html;q=0.8',
-      'User-Agent': 'DollPictures-SEO-Smoke/1.0',
-    },
-    signal: AbortSignal.timeout(20_000),
-  });
-  const text = await response.text();
-  if (response.status !== expectedStatus) {
+const transientStatuses = new Set([502, 503, 504]);
+const defaultRetryDelaysMs = [2_000, 4_000, 8_000, 15_000, 20_000, 20_000];
+
+export async function fetchText(
+  url,
+  expectedStatus = 200,
+  {
+    retryDelaysMs = defaultRetryDelaysMs,
+    fetchImpl = globalThis.fetch,
+    sleepImpl = (delayMs) =>
+      new Promise((resolve) => setTimeout(resolve, delayMs)),
+    onRetry = (message) => console.warn(message),
+  } = {},
+) {
+  for (let attempt = 0; attempt <= retryDelaysMs.length; attempt += 1) {
+    let response;
+    try {
+      response = await fetchImpl(url, {
+        headers: {
+          Accept: 'application/xml,text/plain,text/html;q=0.8',
+          'User-Agent': 'DollPictures-SEO-Smoke/1.0',
+        },
+        signal: AbortSignal.timeout(20_000),
+      });
+    } catch (error) {
+      if (attempt >= retryDelaysMs.length) throw error;
+
+      const delayMs = retryDelaysMs[attempt];
+      onRetry(
+        `${url} request failed; retrying in ${delayMs / 1_000}s ` +
+          `(${attempt + 1}/${retryDelaysMs.length})`,
+      );
+      await sleepImpl(delayMs);
+      continue;
+    }
+
+    const text = await response.text();
+    if (response.status === expectedStatus) {
+      return { response, text };
+    }
+
+    if (
+      transientStatuses.has(response.status) &&
+      attempt < retryDelaysMs.length
+    ) {
+      const delayMs = retryDelaysMs[attempt];
+      onRetry(
+        `${url} returned HTTP ${response.status}; retrying in ` +
+          `${delayMs / 1_000}s (${attempt + 1}/${retryDelaysMs.length})`,
+      );
+      await sleepImpl(delayMs);
+      continue;
+    }
+
+    const responsePreview = text.replace(/\s+/g, ' ').trim().slice(0, 200);
     throw new Error(
-      `${url} returned HTTP ${response.status}, expected ${expectedStatus}`,
+      `${url} returned HTTP ${response.status}, expected ${expectedStatus}` +
+        (responsePreview ? `: ${responsePreview}` : ''),
     );
   }
-  return { response, text };
+
+  throw new Error(`${url} failed after all retry attempts`);
 }
 
 async function main() {
