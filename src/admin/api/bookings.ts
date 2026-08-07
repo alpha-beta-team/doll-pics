@@ -3,6 +3,7 @@ import type {
   BookingStatus,
   BookingWritePayload,
   PaymentMethod,
+  RescheduleBookingPayload,
   WhatsAppMessageSummary,
 } from '../types';
 import { request, normalizeId } from './http';
@@ -84,11 +85,23 @@ export const bookingsApi = {
     });
   },
 
-  transitionBooking(id: string, status: BookingStatus): Promise<Booking> {
+  transitionBooking(
+    id: string,
+    status: BookingStatus,
+    acknowledgeUntimedConflict?: boolean,
+  ): Promise<Booking> {
     return bookingRequest(`/admin/bookings/${id}/status`, {
       method: 'PATCH',
       auth: true,
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ status, acknowledgeUntimedConflict }),
+    });
+  },
+
+  rescheduleBooking(id: string, data: RescheduleBookingPayload): Promise<Booking> {
+    return bookingRequest(`/admin/bookings/${id}/reschedule`, {
+      method: 'PATCH',
+      auth: true,
+      body: JSON.stringify(data),
     });
   },
 

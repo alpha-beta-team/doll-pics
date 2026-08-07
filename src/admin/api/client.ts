@@ -16,6 +16,7 @@ import { integrationsApi } from './integrations';
 import { searchApi } from './search';
 import { customerLookupApi } from './customerLookup';
 import { voiceNotesApi } from './voiceNotes';
+import { scheduleApi } from './schedule';
 
 export const api = {
   ...authApi,
@@ -32,4 +33,5 @@ export const api = {
   ...searchApi,
   ...customerLookupApi,
   ...voiceNotesApi,
+  ...scheduleApi,
 };

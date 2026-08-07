@@ -48,6 +48,20 @@ test('mapBooking preserves null pricing instead of inventing a balance', () => {
   assert.equal(booking.paymentSummary.status, 'unpriced');
 });
 
+test('mapBooking maps schedule history newest first with actor details', () => {
+  const booking = mapBooking({
+    id: 'booking-history',
+    customerName: 'Sri',
+    customerPhone: '9876543210',
+    scheduleHistory: [
+      { _id: 'old', action: 'cancelled', changedAt: '2030-01-01T00:00:00.000Z', changedBy: { id: 'u1', name: 'Ani' }, previous: { bookingDate: '2030-02-01', startTime: '11:00', endTime: '12:00', status: 'confirmed' }, next: { bookingDate: '2030-02-01', startTime: '11:00', endTime: '12:00', status: 'cancelled' } },
+      { _id: 'new', action: 'restored', changedAt: '2030-01-02T00:00:00.000Z', changedBy: { id: 'u2', name: 'Maya' }, previous: { bookingDate: '2030-02-01', startTime: '11:00', endTime: '12:00', status: 'cancelled' }, next: { bookingDate: '2030-02-01', startTime: '11:00', endTime: '12:00', status: 'confirmed' } },
+    ],
+  });
+  assert.deepEqual(booking.scheduleHistory.map(item => item.id), ['new', 'old']);
+  assert.equal(booking.scheduleHistory[0].changedBy.name, 'Maya');
+});
+
 test('mapEnquiry prefers bookingDate and supports the compatibility shootDate', () => {
   const enquiry = mapEnquiry({
     id: 'e1', bookingDate: '2030-03-01', startTime: '14:00', endTime: '16:00',

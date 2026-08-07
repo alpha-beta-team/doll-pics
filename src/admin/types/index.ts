@@ -44,4 +44,10 @@ export type {
   CustomerLookupRecord,
   CustomerLookupResponse,
   VoiceNoteSummary,
+  BookingScheduleHistoryEntry,
+  BookingScheduleSnapshot,
+  ScheduleBookingItem,
+  ScheduleResponse,
+  ScheduleConflictResponse,
+  RescheduleBookingPayload,
 } from '../../shared/types';

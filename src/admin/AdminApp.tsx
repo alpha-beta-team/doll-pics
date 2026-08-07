@@ -25,6 +25,7 @@ import { TestimonialsPage } from './pages/TestimonialsPage';
 import { BehindScenesPage } from './pages/BehindScenesPage';
 import { TeamMembersPage } from './pages/TeamMembersPage';
 import { IntegrationsPage } from './pages/IntegrationsPage';
+import { SchedulePage } from './pages/SchedulePage';
 import { applyPageSeo } from '../lib/seo';
 import { ConfirmDialogProvider } from './components/ConfirmDialog';
 import { useAuth } from './contexts/AuthContext';
@@ -71,6 +72,7 @@ export default function AdminApp() {
             <Route path="enquiries/:id" element={<EnquiryDetailPage />} />
             <Route path="bookings" element={<BookingsPage />} />
             <Route path="bookings/:id" element={<BookingDetailPage />} />
+            <Route path="schedule" element={<SchedulePage />} />
             <Route path="payments" element={<PaymentsPage />} />
             <Route path="help" element={<HelpPage />} />
             <Route element={<OwnerRoute />}>

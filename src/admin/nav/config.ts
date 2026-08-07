@@ -19,6 +19,7 @@ import {
   UserCog,
   HelpCircle,
   Plug,
+  CalendarRange,
 } from 'lucide-react';
 
 export type NavItem = {
@@ -55,6 +56,10 @@ export const NAV_SECTIONS: NavSection[] = [
     id: 'main',
     label: 'Main',
     items: [
+      {
+        type: 'link',
+        item: { to: '/admin/schedule', label: 'Schedule', icon: CalendarRange },
+      },
       {
         type: 'link',
         item: { to: '/admin/today', label: 'Today', icon: Home },

@@ -1,4 +1,4 @@
-export type WhatsAppTemplateId = 'enquiry_follow_up' | 'booking_confirmation' | 'shoot_reminder' | 'payment_reminder' | 'custom';
+export type WhatsAppTemplateId = 'enquiry_follow_up' | 'booking_confirmation' | 'shoot_reminder' | 'payment_reminder' | 'booking_rescheduled' | 'booking_cancelled' | 'custom';
 
 export type ManualWhatsAppContext = {
   customerName: string;
@@ -19,6 +19,8 @@ export const manualWhatsAppTemplates: Array<{ id: WhatsAppTemplateId; label: str
   { id: 'booking_confirmation', label: 'Booking confirmation' },
   { id: 'shoot_reminder', label: 'Shoot reminder' },
   { id: 'payment_reminder', label: 'Payment reminder' },
+  { id: 'booking_rescheduled', label: 'Reschedule update' },
+  { id: 'booking_cancelled', label: 'Cancellation' },
   { id: 'custom', label: 'Blank / custom' },
 ];
 
@@ -52,6 +54,8 @@ export function manualWhatsAppMessage(id: WhatsAppTemplateId, context: ManualWha
   if (id === 'enquiry_follow_up') return `Hi ${name}, this is Doll Pictures. I’m following up about your${context.service ? ` ${context.service}` : ''} enquiry. How can I help?`;
   if (id === 'booking_confirmation') return `Hi ${name}, your photography booking is confirmed${bookingDetails ? `: ${bookingDetails}` : ''}. Please let us know if you have any questions.`;
   if (id === 'shoot_reminder') return `Hi ${name}, a quick reminder about your upcoming photography session${bookingDetails ? `: ${bookingDetails}` : ''}. We look forward to seeing you!`;
+  if (id === 'booking_rescheduled') return `Hi ${name}, your photography booking has been rescheduled${bookingDetails ? ` to ${bookingDetails}` : ''}. Please confirm that the updated schedule works for you.`;
+  if (id === 'booking_cancelled') return `Hi ${name}, your photography booking${bookingDetails ? ` for ${bookingDetails}` : ''} has been cancelled. Please contact Doll Pictures if you would like to arrange another date.`;
   const balance = context.balanceDue == null ? '' : new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(context.balanceDue);
   const due = day(context.paymentDueDate);
   const paymentDetails = [balance && `balance ${balance}`, due && `due ${due}`].filter(Boolean).join(', ');

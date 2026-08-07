@@ -9,6 +9,7 @@ import { MobileBottomNav } from './MobileBottomNav';
 
 function AdminShell() {
   const { collapsed, isMobile } = useAdminShell();
+  const location = useLocation();
   const sidebarWidth =
     isMobile ? 0 : collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_EXPANDED_WIDTH;
 
@@ -24,7 +25,7 @@ function AdminShell() {
           <Outlet />
         </div>
       </main>
-      <Link to="/admin/enquiries?new=1" aria-label="Add enquiry" className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-20 flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg md:bottom-6 md:right-6"><Plus className="h-6 w-6" /></Link>
+      {location.pathname !== '/admin/schedule' && <Link to="/admin/enquiries?new=1" aria-label="Add enquiry" className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-20 flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg md:bottom-6 md:right-6"><Plus className="h-6 w-6" /></Link>}
       <MobileBottomNav />
     </div>
   );

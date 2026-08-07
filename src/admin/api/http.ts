@@ -18,6 +18,19 @@ function getToken(): string | null {
   return authStorage.getToken();
 }
 
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+    public readonly body: Record<string, unknown>,
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+
+  get code() { return typeof this.body.code === 'string' ? this.body.code : undefined; }
+}
+
 export async function request<T>(
   path: string,
   options: RequestInit & { auth?: boolean } = {},
@@ -41,7 +54,7 @@ export async function request<T>(
     const message = Array.isArray(err.message)
       ? err.message.join(', ')
       : (err.message ?? `Request failed (${res.status})`);
-    throw new Error(message);
+    throw new ApiError(message, res.status, err as Record<string, unknown>);
   }
 
   if (res.status === 204) return undefined as T;
@@ -61,7 +74,8 @@ export async function requestBlob(
   const res = await fetch(`${API_BASE}${path}`, { ...rest, headers });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ message: res.statusText }));
-    throw new Error(Array.isArray(err.message) ? err.message.join(', ') : (err.message ?? `Request failed (${res.status})`));
+    const message = Array.isArray(err.message) ? err.message.join(', ') : (err.message ?? `Request failed (${res.status})`);
+    throw new ApiError(message, res.status, err as Record<string, unknown>);
   }
   return res.blob();
 }

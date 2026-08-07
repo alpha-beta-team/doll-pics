@@ -16,6 +16,8 @@ import { buildQuickConversionPayload, localDateValue } from './quickEntry.utils'
 import { phoneNumberError } from './quickEntry.utils';
 import { CustomerLookupPanel } from './CustomerLookupPanel';
 import type { CustomerLookupResponse } from '../types';
+import { ApiError } from '../api/http';
+import { useConfirmDialog } from '../hooks/useConfirmDialog';
 
 type Props = {
   booking?: Booking | null;
@@ -24,6 +26,7 @@ type Props = {
   teamMembers: TeamMember[];
   onClose: () => void;
   onSave: (payload: BookingWritePayload) => Promise<void>;
+  initialSchedule?: { bookingDate: string; startTime: string; endTime: string };
 };
 
 type BookingDraft = {
@@ -72,17 +75,22 @@ function BookingWizard({
   teamMembers,
   onClose,
   onSave,
+  initialSchedule,
 }: Props) {
-  const draftKey = `doll_admin_booking_draft:${booking?.id || enquiry?.id || 'new'}`;
+  const confirm = useConfirmDialog();
+  const scheduleDraftSuffix = initialSchedule
+    ? `${initialSchedule.bookingDate}:${initialSchedule.startTime}`
+    : 'new';
+  const draftKey = `doll_admin_booking_draft:${booking?.id || enquiry?.id || scheduleDraftSuffix}`;
   const stored = readBookingDraft(draftKey);
   const [customerName, setCustomerName] = useState(stored?.customerName ?? booking?.customerName ?? enquiry?.name ?? '');
   const [customerPhone, setCustomerPhone] = useState(stored?.customerPhone ?? booking?.customerPhone ?? enquiry?.phone ?? '');
   const [customerEmail, setCustomerEmail] = useState(stored?.customerEmail ?? booking?.customerEmail ?? enquiry?.email ?? '');
   const [shootType, setShootType] = useState(stored?.shootType ?? booking?.shootType ?? enquiry?.shootType ?? 'Wedding');
   const [preferredEvent, setPreferredEvent] = useState(stored?.preferredEvent ?? booking?.preferredEvent ?? enquiry?.preferredEvent ?? '');
-  const [bookingDate, setBookingDate] = useState(stored?.bookingDate ?? booking?.bookingDate ?? enquiry?.bookingDate ?? '');
-  const [startTime, setStartTime] = useState(stored?.startTime ?? booking?.startTime ?? enquiry?.startTime ?? '');
-  const [endTime, setEndTime] = useState(stored?.endTime ?? booking?.endTime ?? enquiry?.endTime ?? '');
+  const [bookingDate, setBookingDate] = useState(stored?.bookingDate ?? booking?.bookingDate ?? enquiry?.bookingDate ?? initialSchedule?.bookingDate ?? '');
+  const [startTime, setStartTime] = useState(stored?.startTime ?? booking?.startTime ?? enquiry?.startTime ?? initialSchedule?.startTime ?? '');
+  const [endTime, setEndTime] = useState(stored?.endTime ?? booking?.endTime ?? enquiry?.endTime ?? initialSchedule?.endTime ?? '');
   const [location, setLocation] = useState(stored?.location ?? booking?.location ?? enquiry?.location ?? '');
   const [packageId, setPackageId] = useState(stored?.packageId ?? booking?.packageId ?? '');
   const [agreedTotal, setAgreedTotal] = useState(
@@ -141,33 +149,51 @@ function BookingWizard({
     if (timeError) return setError(timeError);
     setSaving(true);
     setError('');
+    const payload: BookingWritePayload = {
+      customerName: customerName.trim(),
+      customerPhone: customerPhone.trim(),
+      customerEmail: customerEmail.trim() || undefined,
+      shootType: shootType || undefined,
+      preferredEvent: preferredEvent.trim(),
+      bookingDate,
+      startTime,
+      endTime,
+      location: location.trim(),
+      packageId: packageId || null,
+      agreedTotal: agreedTotal === '' ? null : Number(agreedTotal),
+      assignedTeamMemberId: assignedTeamMemberId || null,
+      advanceAmount: enquiry && Number(advanceAmount) > 0 ? Number(advanceAmount) : undefined,
+      advanceMethod: enquiry && Number(advanceAmount) > 0 ? advanceMethod : undefined,
+      paymentDueDate,
+      nextFollowUpAt: nextFollowUpAt ? new Date(nextFollowUpAt).toISOString() : undefined,
+      followUpNote: followUpNote.trim() || undefined,
+      notes: notes.trim(),
+      enquiryId: !booking && enquiry ? enquiry.id : booking?.enquiryId,
+      whatsappOptIn,
+      whatsappNotificationsEnabled: whatsappOptIn && whatsappNotificationsEnabled,
+      preferredLanguage: 'en',
+    };
     try {
-      await onSave({
-        customerName: customerName.trim(),
-        customerPhone: customerPhone.trim(),
-        customerEmail: customerEmail.trim() || undefined,
-        shootType: shootType || undefined,
-        preferredEvent: preferredEvent.trim(),
-        bookingDate,
-        startTime,
-        endTime,
-        location: location.trim(),
-        packageId: packageId || null,
-        agreedTotal: agreedTotal === '' ? null : Number(agreedTotal),
-        assignedTeamMemberId: assignedTeamMemberId || null,
-        advanceAmount: enquiry && Number(advanceAmount) > 0 ? Number(advanceAmount) : undefined,
-        advanceMethod: enquiry && Number(advanceAmount) > 0 ? advanceMethod : undefined,
-        paymentDueDate,
-        nextFollowUpAt: nextFollowUpAt ? new Date(nextFollowUpAt).toISOString() : undefined,
-        followUpNote: followUpNote.trim() || undefined,
-        notes: notes.trim(),
-        enquiryId: !booking && enquiry ? enquiry.id : booking?.enquiryId,
-        whatsappOptIn,
-        whatsappNotificationsEnabled: whatsappOptIn && whatsappNotificationsEnabled,
-        preferredLanguage: 'en',
-      });
+      await onSave(payload);
       localStorage.removeItem(draftKey);
     } catch (err) {
+      if (err instanceof ApiError && err.code === 'UNTIMED_CONFIRMATION_REQUIRED') {
+        const accepted = await confirm({
+          title: 'Another booking has no time',
+          description: 'There is an active booking on this date without a time. Continue only after checking it will not clash.',
+          confirmLabel: 'Continue booking',
+        });
+        if (accepted) {
+          try {
+            await onSave({ ...payload, acknowledgeUntimedConflict: true });
+            localStorage.removeItem(draftKey);
+            return;
+          } catch (retryError) {
+            setError(retryError instanceof Error ? retryError.message : 'Failed to save booking');
+            return;
+          }
+        }
+      }
       setError(err instanceof Error ? err.message : 'Failed to save booking');
     } finally {
       setSaving(false);
@@ -282,6 +308,7 @@ function QuickConversionForm({
   onClose,
   onSave,
 }: Props & { enquiry: Enquiry }) {
+  const confirm = useConfirmDialog();
   const draftKey = `doll_admin_booking_draft:${enquiry.id}`;
   const stored = readBookingDraft(draftKey);
   const [bookingDate, setBookingDate] = useState(stored?.bookingDate ?? enquiry.bookingDate ?? '');
@@ -362,8 +389,7 @@ function QuickConversionForm({
 
     setSaving(true);
     setError('');
-    try {
-      await onSave(buildQuickConversionPayload(enquiry, {
+    const payload = buildQuickConversionPayload(enquiry, {
         bookingDate,
         startTime,
         endTime,
@@ -377,9 +403,28 @@ function QuickConversionForm({
         advanceMethod,
         paymentDueDate,
         notes,
-      }));
+      });
+    try {
+      await onSave(payload);
       localStorage.removeItem(draftKey);
     } catch (err) {
+      if (err instanceof ApiError && err.code === 'UNTIMED_CONFIRMATION_REQUIRED') {
+        const accepted = await confirm({
+          title: 'Another booking has no time',
+          description: 'There is an active booking on this date without a time. Continue only after checking it will not clash.',
+          confirmLabel: 'Continue booking',
+        });
+        if (accepted) {
+          try {
+            await onSave({ ...payload, acknowledgeUntimedConflict: true });
+            localStorage.removeItem(draftKey);
+            return;
+          } catch (retryError) {
+            setError(retryError instanceof Error ? retryError.message : 'Failed to confirm the booking. Your entry is still here.');
+            return;
+          }
+        }
+      }
       setError(err instanceof Error ? err.message : 'Failed to confirm the booking. Your entry is still here.');
     } finally {
       setSaving(false);

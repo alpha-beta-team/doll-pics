@@ -197,6 +197,9 @@ export function mapBooking(doc: Record<string, unknown>): Booking {
   const rawPayments = Array.isArray(doc.payments) ? doc.payments as Record<string, unknown>[] : [];
   const rawSummary = (doc.paymentSummary ?? {}) as Record<string, unknown>;
   const legacyStatus = doc.status === 'completed' ? 'shoot_completed' : doc.status;
+  const rawScheduleHistory = Array.isArray(doc.scheduleHistory)
+    ? doc.scheduleHistory as Record<string, unknown>[]
+    : [];
   return {
     id: base.id,
     customerName: (doc.customerName as string) ?? '',
@@ -247,6 +250,29 @@ export function mapBooking(doc: Record<string, unknown>): Booking {
     deliveredAt: doc.deliveredAt ? String(doc.deliveredAt) : undefined,
     cancelledAt: doc.cancelledAt ? String(doc.cancelledAt) : undefined,
     statusBeforeCancellation: doc.statusBeforeCancellation as Booking['statusBeforeCancellation'],
+    scheduleHistory: rawScheduleHistory.map(item => {
+      const previous = (item.previous ?? {}) as Record<string, unknown>;
+      const next = (item.next ?? {}) as Record<string, unknown>;
+      const changedBy = (item.changedBy ?? {}) as Record<string, unknown>;
+      return {
+        id: String(item.id ?? item._id ?? ''),
+        action: item.action as Booking['scheduleHistory'][number]['action'],
+        previous: {
+          bookingDate: String(previous.bookingDate ?? ''),
+          startTime: String(previous.startTime ?? ''),
+          endTime: String(previous.endTime ?? ''),
+          status: previous.status as BookingStatus,
+        },
+        next: {
+          bookingDate: String(next.bookingDate ?? ''),
+          startTime: String(next.startTime ?? ''),
+          endTime: String(next.endTime ?? ''),
+          status: next.status as BookingStatus,
+        },
+        changedAt: String(item.changedAt ?? ''),
+        changedBy: { id: String(changedBy.id ?? ''), name: String(changedBy.name ?? 'System') },
+      };
+    }).sort((a, b) => Date.parse(b.changedAt) - Date.parse(a.changedAt)),
     whatsappOptIn: doc.whatsappOptIn === true,
     whatsappOptInAt: doc.whatsappOptInAt ? String(doc.whatsappOptInAt) : undefined,
     whatsappOptInSource: (doc.whatsappOptInSource as string) ?? '',

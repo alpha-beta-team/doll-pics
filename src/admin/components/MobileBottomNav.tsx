@@ -1,12 +1,12 @@
-import { CalendarDays, CircleDollarSign, Home, Mail, Menu } from 'lucide-react';
+import { CalendarDays, CalendarRange, Home, Mail, Menu } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { useAdminShell } from '../contexts/AdminShellContext';
 
 const items = [
   { to: '/admin/today', label: 'Today', icon: Home },
+  { to: '/admin/schedule', label: 'Schedule', icon: CalendarRange },
   { to: '/admin/enquiries', label: 'Enquiries', icon: Mail },
   { to: '/admin/bookings', label: 'Bookings', icon: CalendarDays },
-  { to: '/admin/payments', label: 'Payments', icon: CircleDollarSign },
 ];
 
 export function MobileBottomNav() {

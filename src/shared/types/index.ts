@@ -19,6 +19,58 @@ export type BookingStatus =
 export type PaymentMethod = 'cash' | 'upi' | 'bank_transfer' | 'card' | 'other';
 export type PaymentState = 'unpriced' | 'unpaid' | 'partial' | 'paid' | 'overpaid';
 
+export type BookingScheduleHistoryEntry = {
+  id: string;
+  action: 'rescheduled' | 'cancelled' | 'restored';
+  previous: BookingScheduleSnapshot;
+  next: BookingScheduleSnapshot;
+  changedAt: string;
+  changedBy: { id: string; name: string };
+};
+
+export type BookingScheduleSnapshot = {
+  bookingDate: string;
+  startTime: string;
+  endTime: string;
+  status: BookingStatus;
+};
+
+export type ScheduleBookingItem = {
+  id: string;
+  customerName: string;
+  customerPhone: string;
+  service: string;
+  bookingDate: string;
+  startTime: string;
+  endTime: string;
+  status: BookingStatus;
+  location: string;
+  assignedTeamMemberName: string;
+  whatsappOptIn: boolean;
+  whatsappOptOutAt?: string;
+};
+
+export type ScheduleResponse = {
+  dateFrom: string;
+  dateTo: string;
+  timezone: 'Asia/Kolkata';
+  bookings: ScheduleBookingItem[];
+};
+
+export type ScheduleConflictResponse = {
+  timedConflicts: ScheduleBookingItem[];
+  untimedConflicts: ScheduleBookingItem[];
+  blocked: boolean;
+  requiresUntimedConfirmation: boolean;
+};
+
+export type RescheduleBookingPayload = {
+  bookingDate: string;
+  startTime: string;
+  endTime: string;
+  acknowledgeUntimedConflict?: boolean;
+};
+
 /** Ordered CMS row metadata (admin + published lists). */
 export type CmsMeta = {
   id: string;
@@ -363,6 +415,7 @@ export type ConvertEnquiryPayload = {
   advanceMethod?: PaymentMethod;
   whatsappOptIn?: boolean;
   whatsappNotificationsEnabled?: boolean;
+  acknowledgeUntimedConflict?: boolean;
 };
 
 export type CreateEnquiryPayload = {
@@ -451,6 +504,7 @@ export type Booking = {
   deliveredAt?: string;
   cancelledAt?: string;
   statusBeforeCancellation?: Exclude<BookingStatus, 'cancelled'>;
+  scheduleHistory: BookingScheduleHistoryEntry[];
   whatsappOptIn: boolean;
   whatsappOptInAt?: string;
   whatsappOptInSource: string;
@@ -529,6 +583,7 @@ export type BookingWritePayload = {
   whatsappOptIn?: boolean;
   whatsappNotificationsEnabled?: boolean;
   preferredLanguage?: string;
+  acknowledgeUntimedConflict?: boolean;
 };
 
 export type User = {

@@ -14,7 +14,6 @@ import {
 import { api } from '../api/client';
 import type { Booking, BookingStatus, BookingWritePayload, Enquiry, Package, TeamMember } from '../types';
 import { BookingFormModal } from '../components/BookingFormModal';
-import { useAuth } from '../contexts/AuthContext';
 import { formatTimeWindow } from '../../shared/bookingTime';
 
 export type ConvertEnquiryState = { convertFromEnquiry?: Enquiry };
@@ -52,7 +51,6 @@ function money(value: number | null) {
 
 export function BookingsPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const location = useLocation();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [packages, setPackages] = useState<Package[]>([]);
@@ -131,6 +129,7 @@ export function BookingsPage() {
           notes: payload.notes,
           whatsappOptIn: payload.whatsappOptIn,
           whatsappNotificationsEnabled: payload.whatsappNotificationsEnabled,
+          acknowledgeUntimedConflict: payload.acknowledgeUntimedConflict,
         })
       : await api.createBooking(payload);
     setBookings(current => [created, ...current]);
@@ -151,7 +150,7 @@ export function BookingsPage() {
         <div className="flex gap-2">
           <button onClick={() => setShowFilters(value => !value)} className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700"><Filter className="h-4 w-4" /> Filters</button>
           <button onClick={() => void load(true)} disabled={refreshing} className="rounded-lg border border-slate-300 p-2 text-slate-700" aria-label="Refresh"><RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} /></button>
-          {user?.role === 'owner' && <button onClick={() => setCreating(true)} className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white"><Plus className="h-4 w-4" /> Add booking</button>}
+          <button onClick={() => setCreating(true)} className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white"><Plus className="h-4 w-4" /> Add booking</button>
         </div>
       </header>
 

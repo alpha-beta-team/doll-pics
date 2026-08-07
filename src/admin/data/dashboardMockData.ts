@@ -361,6 +361,7 @@ export function createDashboardMockData(referenceDate = new Date()): {
       driveNotes: '',
       deliverySentAt: seed.status === 'delivered' ? createdAt : undefined,
       status: seed.status,
+      scheduleHistory: [],
       confirmedAt:
         seed.status === 'confirmed' || seed.status === 'shoot_completed' || seed.status === 'delivered'
           ? dateFrom(referenceTime, -seed.createdDaysAgo + 1)
