@@ -200,6 +200,8 @@ export function mapBooking(doc: Record<string, unknown>): Booking {
   const rawScheduleHistory = Array.isArray(doc.scheduleHistory)
     ? doc.scheduleHistory as Record<string, unknown>[]
     : [];
+  const rawReviewHistory = Array.isArray(doc.reviewHistory)
+    ? doc.reviewHistory as Record<string, unknown>[] : [];
   return {
     id: base.id,
     customerName: (doc.customerName as string) ?? '',
@@ -269,6 +271,20 @@ export function mapBooking(doc: Record<string, unknown>): Booking {
           endTime: String(next.endTime ?? ''),
           status: next.status as BookingStatus,
         },
+        changedAt: String(item.changedAt ?? ''),
+        changedBy: { id: String(changedBy.id ?? ''), name: String(changedBy.name ?? 'System') },
+      };
+    }).sort((a, b) => Date.parse(b.changedAt) - Date.parse(a.changedAt)),
+    reviewStatus: (doc.reviewStatus as Booking['reviewStatus']) ?? 'not_requested',
+    reviewRequestCount: Number(doc.reviewRequestCount) || 0,
+    reviewLastRequestedAt: doc.reviewLastRequestedAt ? String(doc.reviewLastRequestedAt) : undefined,
+    reviewReceivedAt: doc.reviewReceivedAt ? String(doc.reviewReceivedAt) : undefined,
+    reviewSkippedAt: doc.reviewSkippedAt ? String(doc.reviewSkippedAt) : undefined,
+    reviewHistory: rawReviewHistory.map(item => {
+      const changedBy = (item.changedBy ?? {}) as Record<string, unknown>;
+      return {
+        id: String(item.id ?? item._id ?? ''),
+        action: item.action as Booking['reviewHistory'][number]['action'],
         changedAt: String(item.changedAt ?? ''),
         changedBy: { id: String(changedBy.id ?? ''), name: String(changedBy.name ?? 'System') },
       };

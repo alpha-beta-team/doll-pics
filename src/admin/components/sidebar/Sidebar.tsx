@@ -51,7 +51,7 @@ export function Sidebar() {
         <button
           type="button"
           aria-label="Close navigation menu"
-          className="fixed inset-0 z-40 bg-black/40 transition-opacity"
+          className="fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-[1px] transition-opacity"
           onClick={closeMobile}
         />
       )}
@@ -60,7 +60,7 @@ export function Sidebar() {
         id="admin-sidebar"
         aria-label="Admin navigation"
         className={[
-          'fixed left-0 top-0 z-50 flex h-dvh flex-col border-r border-[#E5E7EB] bg-[#FCFBF8] transition-[width,transform] duration-200 ease-out',
+          'fixed left-0 top-0 z-50 flex h-dvh flex-col border-r border-admin-border bg-admin-surface text-admin-text transition-[width,transform] duration-200 ease-out',
           isMobile
             ? mobileOpen
               ? 'translate-x-0'
@@ -72,7 +72,7 @@ export function Sidebar() {
         {/* Brand */}
         <div
           className={[
-            'flex shrink-0 items-center border-b border-[#E5E7EB]',
+            'flex shrink-0 items-center border-b border-admin-border',
             showCollapsedChrome
               ? 'flex-col gap-2 px-2 py-3'
               : 'h-16 justify-between gap-2 px-4',
@@ -84,15 +84,15 @@ export function Sidebar() {
               showCollapsedChrome ? 'justify-center' : 'gap-2.5',
             ].join(' ')}
           >
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[#EFF6FF]">
-              <Camera className="h-5 w-5 text-[#2563EB]" />
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-blue-50">
+              <Camera className="h-5 w-5 text-admin-focus" />
             </div>
             {!showCollapsedChrome && (
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold leading-tight text-[#1E293B]">
+                <p className="truncate text-sm font-semibold leading-tight text-admin-text">
                   Doll Pictures
                 </p>
-                <p className="truncate text-xs leading-tight text-[#64748B]">Photography CMS</p>
+                <p className="truncate text-xs leading-tight text-admin-subtle">Photography CMS</p>
               </div>
             )}
           </div>
@@ -102,7 +102,7 @@ export function Sidebar() {
               type="button"
               onClick={closeMobile}
               aria-label="Close sidebar"
-              className="flex h-9 w-9 items-center justify-center rounded-[10px] text-[#64748B] transition-colors hover:bg-black/[0.03] hover:text-[#1E293B] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/40"
+              className="flex h-9 w-9 items-center justify-center rounded-[10px] text-admin-subtle transition-colors hover:bg-admin-muted hover:text-admin-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-focus"
             >
               <X className="h-5 w-5" />
             </button>
@@ -113,7 +113,7 @@ export function Sidebar() {
               aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
               aria-expanded={!collapsed}
               aria-controls="admin-sidebar-nav"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] text-[#64748B] transition-colors hover:bg-black/[0.03] hover:text-[#1E293B] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/40"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] text-admin-subtle transition-colors hover:bg-admin-muted hover:text-admin-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-focus"
             >
               <ChevronLeft
                 className={`h-4 w-4 transition-transform duration-200 ${collapsed ? 'rotate-180' : ''}`}
@@ -158,7 +158,7 @@ export function Sidebar() {
         {/* Footer */}
         <div
           className={[
-            'shrink-0 border-t border-[#E5E7EB]',
+            'shrink-0 border-t border-admin-border',
             showCollapsedChrome ? 'px-2 py-3' : 'px-3 py-3',
           ].join(' ')}
         >
@@ -169,17 +169,17 @@ export function Sidebar() {
             ].join(' ')}
           >
             <div
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#EFF6FF]"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50"
               title={displayName}
             >
-              <User className="h-4 w-4 text-[#2563EB]" aria-hidden />
+              <User className="h-4 w-4 text-admin-focus" aria-hidden />
             </div>
 
             {!showCollapsedChrome && (
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-[#1E293B]">{displayName}</p>
+                <p className="truncate text-sm font-medium text-admin-text">{displayName}</p>
                 {user?.email && user.name && (
-                  <p className="truncate text-xs text-[#64748B]">{user.email}</p>
+                  <p className="truncate text-xs text-admin-subtle">{user.email}</p>
                 )}
               </div>
             )}
@@ -190,7 +190,7 @@ export function Sidebar() {
               aria-label="Logout"
               title="Logout"
               className={[
-                'flex items-center justify-center rounded-[10px] text-[#64748B] transition-colors hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/40',
+                'flex items-center justify-center rounded-[10px] text-admin-subtle transition-colors hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-focus',
                 showCollapsedChrome ? 'h-9 w-9' : 'h-9 gap-1.5 px-2.5 text-sm font-medium',
               ].join(' ')}
             >
@@ -200,10 +200,10 @@ export function Sidebar() {
           </div>
 
           {!showCollapsedChrome && (
-            <p className="mt-2 px-1 text-[11px] text-[#64748B]">{APP_VERSION}</p>
+            <p className="mt-2 px-1 text-[11px] text-admin-subtle">{APP_VERSION}</p>
           )}
           {showCollapsedChrome && (
-            <p className="mt-2 text-center text-[10px] text-[#64748B]">{APP_VERSION}</p>
+            <p className="mt-2 text-center text-[10px] text-admin-subtle">{APP_VERSION}</p>
           )}
         </div>
       </aside>

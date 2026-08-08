@@ -1,23 +1,26 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AlertCircle, CalendarDays, Check, CheckCircle2, Circle, IndianRupee, MessageCircle, Phone, Plus, RefreshCw, RotateCcw, X } from 'lucide-react';
+import { AlertCircle, CalendarDays, CalendarHeart, Check, CheckCircle2, Circle, IndianRupee, MessageCircle, Phone, Plus, RefreshCw, RotateCcw, Star, X } from 'lucide-react';
 import { api } from '../api/client';
 import { InstallAppButton } from '../components/InstallAppButton';
-import type { TodayFollowUp, TodaySummaryItem, TodayWork } from '../types';
+import type { TodayFollowUp, TodayOccasionTask, TodayReviewTask, TodaySummaryItem, TodayWork } from '../types';
 import { FollowUpShortcuts } from '../components/FollowUpShortcuts';
 import { followUpDateError, kolkataLocalToIso } from '../components/followUp.utils';
 import { WhatsAppComposer } from '../components/WhatsAppComposer';
 import type { ManualWhatsAppContext, WhatsAppTemplateId } from '../components/whatsappTemplates';
 import { endOfDayChecks } from '../components/todayChecklist.utils';
+import { useConfirmDialog } from '../hooks/useConfirmDialog';
+import { occasionMessageContext, occasionUrgency } from '../components/occasionPresentation';
 
 export function TodayPage() {
   const navigate = useNavigate();
+  const confirm = useConfirmDialog();
   const [work, setWork] = useState<TodayWork | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [rescheduling, setRescheduling] = useState<TodayFollowUp | null>(null);
-  const [message, setMessage] = useState<{ context: ManualWhatsAppContext; initial: WhatsAppTemplateId } | null>(null);
+  const [message, setMessage] = useState<{ context: ManualWhatsAppContext; initial: WhatsAppTemplateId; onOpened?: () => void | Promise<void> } | null>(null);
   const load = useCallback(async () => {
     setError('');
     try { setWork(await api.getTodayWork()); }
@@ -43,6 +46,18 @@ export function TodayPage() {
       await load();
     } catch (err) { setError(err instanceof Error ? err.message : 'Could not reschedule the follow-up.'); throw err; }
   };
+  const markOccasionContacted = async (item: TodayOccasionTask) => {
+    try { await api.markOccasionContacted(item.id, item.nextOccurrenceDate); setSuccess(`${item.occasionName} marked contacted.`); await load(); }
+    catch (err) { setError(err instanceof Error ? err.message : 'Could not complete the occasion reminder.'); }
+  };
+  const updateReview = async (item: TodayReviewTask, action: 'requested' | 'received' | 'skipped') => {
+    if (action === 'skipped') {
+      const accepted = await confirm({ title: 'Skip this review request?', description: 'This closes the task without requesting a review.', confirmLabel: 'Skip review', variant: 'danger' });
+      if (!accepted) return;
+    }
+    try { await api.updateBookingReview(item.bookingId, action); setSuccess(action === 'requested' ? 'Review request was opened in WhatsApp.' : `Review marked ${action}.`); await load(); }
+    catch (err) { setError(err instanceof Error ? err.message : 'Could not update the review task.'); }
+  };
 
   if (loading) return <div className="flex h-64 items-center justify-center"><div className="h-9 w-9 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" /></div>;
   return <div className="mx-auto max-w-5xl space-y-5">
@@ -51,6 +66,12 @@ export function TodayPage() {
     {success && <div className="flex rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-700">{success}<button className="ml-auto" onClick={() => setSuccess('')}>Dismiss</button></div>}
     {work && <>
       <EndOfDayChecklist work={work} />
+      <div id="today-occasions"><WorkSection title="Birthdays & anniversaries" count={work.occasionsDue?.length || 0} urgent={work.occasionsDue?.some(item => item.overdue)} empty="No occasion reminders are due.">
+        {(work.occasionsDue || []).map(item => <article key={item.id} className="rounded-xl border border-slate-200 bg-white p-4"><div className="flex items-start gap-3"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-pink-50"><CalendarHeart className="h-5 w-5 text-pink-600" /></span><div className="min-w-0 flex-1"><p className="font-semibold text-slate-900">{item.occasionName}</p><p className="mt-1 text-sm capitalize text-slate-500">{item.type} · contact {item.customerName}</p><p className={`mt-1 text-xs font-semibold ${item.overdue ? 'text-red-600' : 'text-pink-600'}`}>{occasionUrgency(item.daysUntil)}</p></div></div><div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-6"><a href={`tel:${item.phone}`} className="action"><Phone className="h-4 w-4" />Call</a><button type="button" onClick={() => setMessage({ context: occasionMessageContext(item), initial: item.type })} className="action text-emerald-700"><MessageCircle className="h-4 w-4" />WhatsApp</button><button type="button" onClick={() => void markOccasionContacted(item)} className="action bg-emerald-600 text-white"><Check className="h-4 w-4" />Contacted</button>{item.source && <Link to={`/admin/${item.source.type === 'enquiry' ? 'enquiries' : 'bookings'}/${item.source.id}`} className="action">Source</Link>}<button type="button" onClick={() => navigate('/admin/enquiries?new=1', { state: { occasionContact: { id: item.id, customerName: item.customerName, phone: item.phone } } })} className="action bg-blue-600 text-white">Create enquiry</button></div></article>)}
+      </WorkSection></div>
+      <div id="today-reviews"><WorkSection title="Review requests" count={work.reviewRequests?.length || 0} empty="No review requests are due.">
+        {(work.reviewRequests || []).map(item => <article key={item.bookingId} className="rounded-xl border border-slate-200 bg-white p-4"><div className="flex items-start gap-3"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-50"><Star className="h-5 w-5 text-amber-600" /></span><div className="min-w-0 flex-1"><p className="font-semibold text-slate-900">{item.customerName}</p><p className="mt-1 text-sm text-slate-500">{item.service || 'Photography session'} · {item.requestCount ? 'Review follow-up' : 'First request'}</p><p className="mt-1 text-xs text-slate-500">Due {formatDateTime(item.dueAt)}</p></div></div><div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-5"><a href={`tel:${item.phone}`} className="action"><Phone className="h-4 w-4" />Call</a><button type="button" disabled={item.optedOut} onClick={() => setMessage({ context: { customerName: item.customerName, phone: item.phone, service: item.service, reviewUrl: item.reviewUrl, consentRecorded: item.consentRecorded, optedOut: item.optedOut }, initial: 'review_request', onOpened: () => updateReview(item, 'requested') })} className="action text-emerald-700 disabled:opacity-40"><MessageCircle className="h-4 w-4" />WhatsApp</button><Link to={`/admin/bookings/${item.bookingId}`} className="action">Open</Link><button type="button" onClick={() => void updateReview(item, 'received')} className="action bg-emerald-600 text-white">Received</button><button type="button" onClick={() => void updateReview(item, 'skipped')} className="action text-slate-600">Skip</button></div></article>)}
+      </WorkSection></div>
       <div id="today-followups"><WorkSection title="Follow-ups" count={work.followUps.length} urgent={work.followUps.some(item => item.overdue)} empty="No follow-ups due. You are up to date.">
         {work.followUps.map(item => <article key={`${item.entityType}-${item.id}`} className="rounded-xl border border-slate-200 bg-white p-4"><div className="flex items-start justify-between gap-3"><div><p className="font-semibold text-slate-900">{item.name}</p><p className="mt-1 text-sm text-slate-500">{item.shootType || 'Service not decided'}{item.note ? ` · ${item.note}` : ''}</p><p className={`mt-2 text-xs font-semibold ${item.overdue ? 'text-red-600' : 'text-amber-700'}`}>{item.overdue ? 'Overdue · ' : ''}{item.dueAt ? new Date(item.dueAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' }) : 'Due today'}</p></div><span className={`rounded-full px-2 py-1 text-xs font-semibold ${item.entityType === 'enquiry' ? 'bg-blue-50 text-blue-700' : 'bg-violet-50 text-violet-700'}`}>{item.entityType}</span></div><div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-5"><a href={`tel:${item.phone}`} className="action"><Phone className="h-4 w-4" /> Call</a><button type="button" onClick={() => setMessage({ context: followUpMessageContext(item), initial: item.entityType === 'booking' ? 'booking_confirmation' : 'enquiry_follow_up' })} className="action text-emerald-700"><MessageCircle className="h-4 w-4" /> WhatsApp</button><button onClick={() => void complete(item)} className="action bg-emerald-600 text-white"><Check className="h-4 w-4" /> Done</button><button onClick={() => setRescheduling(item)} className="action"><RotateCcw className="h-4 w-4" /> Reschedule</button><Link to={`/admin/${item.entityType === 'enquiry' ? 'enquiries' : 'bookings'}/${item.id}`} className="action bg-slate-900 text-white">Open</Link></div></article>)}
       </WorkSection></div>
@@ -60,13 +81,14 @@ export function TodayPage() {
       <div id="today-tomorrow"><WorkSection title="Tomorrow’s shoots" count={work.tomorrowShoots.length} empty="No confirmed shoots tomorrow.">{work.tomorrowShoots.map(item => <SimpleTask key={item.id} item={item} to={`/admin/bookings/${item.id}`} calendar onMessage={() => setMessage({ context: summaryMessageContext(item), initial: 'shoot_reminder' })} />)}</WorkSection></div>
     </>}
     {rescheduling && <FollowUpDialog item={rescheduling} onClose={() => setRescheduling(null)} onSave={reschedule} />}
-    {message && <WhatsAppComposer context={message.context} initialTemplate={message.initial} onClose={() => setMessage(null)} />}
+    {message && <WhatsAppComposer context={message.context} initialTemplate={message.initial} onOpened={message.onOpened} onClose={() => setMessage(null)} />}
   </div>;
 }
 
 function WorkSection({ title, count, empty, urgent, children }: { title: string; count: number; empty: string; urgent?: boolean; children: React.ReactNode }) { return <section className={`rounded-2xl border p-4 shadow-sm sm:p-5 ${urgent ? 'border-red-200 bg-red-50/50' : 'border-slate-200 bg-slate-50/60'}`}><div className="mb-3 flex items-center justify-between"><h2 className="text-lg font-bold text-slate-900">{title}</h2><span className={`rounded-full px-2.5 py-1 text-xs font-bold ${urgent ? 'bg-red-100 text-red-700' : 'bg-white text-slate-600'}`}>{count}</span></div><div className="space-y-3">{count ? children : <div className="rounded-xl border border-dashed border-slate-300 bg-white p-5 text-center text-sm text-slate-500">{empty}</div>}</div></section>; }
 function SimpleTask({ item, to, calendar, onMessage }: { item: TodaySummaryItem; to: string; calendar?: boolean; onMessage?: () => void }) { return <article className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white p-4"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-700">{calendar ? <CalendarDays className="h-5 w-5" /> : item.name.charAt(0).toUpperCase()}</span><div className="min-w-0 flex-1"><p className="truncate font-semibold text-slate-900">{item.name}</p><p className="truncate text-sm text-slate-500">{item.shootType || 'Service not decided'}{item.location ? ` · ${item.location}` : ''}</p></div>{onMessage && <button type="button" onClick={onMessage} className="flex h-11 w-11 items-center justify-center rounded-xl border border-emerald-300 text-emerald-700" aria-label={`Message ${item.name}`}><MessageCircle className="h-4 w-4" /></button>}<Link to={to} className="flex h-11 items-center rounded-xl bg-slate-900 px-4 text-sm font-semibold text-white">Open</Link></article>; }
 function money(value: number) { return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value); }
+function formatDateTime(value: string) { return new Date(value).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' }); }
 
 function summaryMessageContext(item: TodaySummaryItem): ManualWhatsAppContext { return { customerName: item.name, phone: item.phone, service: item.shootType, bookingDate: item.bookingDate, startTime: item.startTime, endTime: item.endTime, location: item.location, consentRecorded: item.whatsappOptIn, optedOut: Boolean(item.whatsappOptOutAt) }; }
 function followUpMessageContext(item: TodayFollowUp): ManualWhatsAppContext { return { customerName: item.name, phone: item.phone, service: item.shootType, bookingDate: item.bookingDate, startTime: item.startTime, endTime: item.endTime, location: item.location, balanceDue: item.balanceDue, paymentDueDate: item.paymentDueDate, consentRecorded: item.whatsappOptIn, optedOut: Boolean(item.whatsappOptOutAt) }; }

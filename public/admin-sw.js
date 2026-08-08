@@ -1,4 +1,4 @@
-const CACHE_NAME = 'doll-work-shell-v1';
+const CACHE_NAME = 'doll-work-shell-v2';
 const SHELL = ['/admin', '/admin/today', '/manifest.webmanifest', '/logo-doll.png', '/apple-touch-icon.png'];
 
 self.addEventListener('install', event => {

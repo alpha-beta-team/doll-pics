@@ -12,6 +12,8 @@ import { followUpDateError, kolkataLocalToIso } from '../components/followUp.uti
 import { CustomerLookupPanel } from '../components/CustomerLookupPanel';
 import { WhatsAppComposer } from '../components/WhatsAppComposer';
 import { VoiceNotesPanel } from '../components/VoiceNotesPanel';
+import { ImportantDatesPanel } from '../components/ImportantDatesPanel';
+import { QuotationEnquiryPanel } from '../components/QuotationEnquiryPanel';
 
 export function EnquiryDetailPage() {
   const { id = '' } = useParams();
@@ -88,6 +90,8 @@ export function EnquiryDetailPage() {
 
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><h2 className="font-semibold text-slate-900">Details</h2><dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2"><Detail label="Email" value={item.email} /><Detail label="Preferred date" value={item.bookingDate} /><Detail label="Preferred time" value={item.startTime && item.endTime ? formatTimeWindow(item.startTime, item.endTime) : ''} /><Detail label="Location" value={item.location} /><Detail label="Source" value={item.source.replace('_', ' ')} /><Detail label="Customer message" value={item.message} /><Detail label="Internal notes" value={item.notes} /></dl></section>
     <CustomerLookupPanel phone={item.phone} current={{ type: 'enquiry', id: item.id }} />
+    <ImportantDatesPanel phone={item.phone} customerName={item.name} email={item.email} source={{ type: 'enquiry', id: item.id }} />
+    <QuotationEnquiryPanel enquiryId={item.id} />
     <VoiceNotesPanel recordType="enquiry" recordId={item.id} />
     {editing && <EnquiryFormModal enquiry={item} onClose={() => setEditing(false)} onSaved={saved => { setItem(saved); setEditing(false); setSuccess('Enquiry details saved.'); }} />}
     {messageOpen && <WhatsAppComposer context={{ customerName: item.name, phone: item.phone, service: item.shootType, bookingDate: item.bookingDate, startTime: item.startTime, endTime: item.endTime, location: item.location, consentRecorded: item.whatsappOptIn, optedOut: Boolean(item.whatsappOptOutAt) }} onClose={() => setMessageOpen(false)} />}

@@ -10,7 +10,7 @@ export function SidebarSection({ label, collapsed, children }: SidebarSectionPro
   return (
     <div className="mb-4">
       {!collapsed && (
-        <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">
+        <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-admin-subtle">
           {label}
         </p>
       )}

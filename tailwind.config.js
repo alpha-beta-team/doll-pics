@@ -38,6 +38,23 @@ export default {
         hairline: 'rgb(var(--hairline) / <alpha-value>)',
         /** Always dark text for gold CTA surfaces */
         'on-gold': 'rgb(var(--on-gold) / <alpha-value>)',
+        admin: {
+          canvas: 'rgb(var(--admin-canvas) / <alpha-value>)',
+          surface: 'rgb(var(--admin-surface) / <alpha-value>)',
+          elevated: 'rgb(var(--admin-elevated) / <alpha-value>)',
+          muted: 'rgb(var(--admin-muted-surface) / <alpha-value>)',
+          border: 'rgb(var(--admin-border) / <alpha-value>)',
+          'border-strong': 'rgb(var(--admin-border-strong) / <alpha-value>)',
+          control: 'rgb(var(--admin-control-border) / <alpha-value>)',
+          text: 'rgb(var(--admin-text) / <alpha-value>)',
+          secondary: 'rgb(var(--admin-text-secondary) / <alpha-value>)',
+          subtle: 'rgb(var(--admin-text-muted) / <alpha-value>)',
+          primary: 'rgb(var(--admin-primary) / <alpha-value>)',
+          'primary-hover': 'rgb(var(--admin-primary-hover) / <alpha-value>)',
+          action: 'rgb(var(--admin-primary-hover) / <alpha-value>)',
+          'action-hover': 'rgb(var(--admin-action-hover) / <alpha-value>)',
+          focus: 'rgb(var(--admin-focus) / <alpha-value>)',
+        },
       },
       fontFamily: {
         display: ['"Cormorant Garamond"', 'Georgia', 'serif'],

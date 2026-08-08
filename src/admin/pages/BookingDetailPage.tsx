@@ -43,6 +43,7 @@ import { WhatsAppComposer } from '../components/WhatsAppComposer';
 import { VoiceNotesPanel } from '../components/VoiceNotesPanel';
 import { ApiError } from '../api/http';
 import type { WhatsAppTemplateId } from '../components/whatsappTemplates';
+import { ImportantDatesPanel } from '../components/ImportantDatesPanel';
 
 const statusStyles: Record<BookingStatus, string> = {
   draft: 'bg-slate-100 text-slate-700',
@@ -120,6 +121,7 @@ export function BookingDetailPage() {
   const [driveNotes, setDriveNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [messageOpen, setMessageOpen] = useState<WhatsAppTemplateId | null>(null);
+  const [reviewUrl, setReviewUrl] = useState('');
 
   const sync = useCallback((value: Booking) => {
     setBooking(value);
@@ -136,15 +138,17 @@ export function BookingDetailPage() {
     setLoading(true);
     setError('');
     try {
-      const [row, packageRows, memberRows, messageRows] = await Promise.all([
+      const [row, packageRows, memberRows, messageRows, reviewConfig] = await Promise.all([
         api.getBooking(id), api.getPackages(), api.getTeamMembers(),
         api.getBookingWhatsAppMessages(id).catch(() => []),
+        api.getReviewConfig().catch(() => ({ googleReviewUrl: '' })),
       ]);
       if (!row) throw new Error('Booking not found');
       sync(row);
       setPackages(packageRows);
       setTeamMembers(memberRows);
       setMessages(messageRows);
+      setReviewUrl(reviewConfig.googleReviewUrl);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load booking');
     } finally {
@@ -331,6 +335,23 @@ export function BookingDetailPage() {
     void run(() => api.removeBookingPayment(booking.id, payment.id));
   };
 
+  const updateReview = async (action: 'requested' | 'received' | 'skipped' | 'reopened') => {
+    if (!booking) return;
+    if (action === 'skipped' || action === 'reopened') {
+      const accepted = await confirmDialog({
+        title: action === 'skipped' ? 'Skip this review request?' : 'Reopen review follow-up?',
+        description: action === 'skipped' ? 'The review task will be closed without requesting a review.' : 'The review task will become active again.',
+        confirmLabel: action === 'skipped' ? 'Skip review' : 'Reopen',
+        variant: action === 'skipped' ? 'danger' : 'primary',
+      });
+      if (!accepted) return;
+    }
+    setSaving(true); setError('');
+    try { sync(await api.updateBookingReview(booking.id, action)); }
+    catch (err) { setError(err instanceof Error ? err.message : 'Could not update review status.'); }
+    finally { setSaving(false); }
+  };
+
   if (loading) return <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" /></div>;
   if (!booking) return <div className="space-y-4"><Link to="/admin/bookings" className="inline-flex items-center gap-2 text-sm text-slate-600"><ArrowLeft className="h-4 w-4" />Back to bookings</Link><div className="rounded-xl border border-red-200 bg-red-50 p-5 text-red-700">{error || 'Booking not found'}</div></div>;
 
@@ -431,9 +452,17 @@ export function BookingDetailPage() {
             <p className="mt-4 text-sm text-slate-500">Calendar events are created for confirmed bookings. Completed and delivered shoots remain as history.</p>
           )}
         </Card>
+
+        {booking.status === 'delivered' && <Card title="Review request">
+          <div className="flex flex-wrap items-center justify-between gap-3"><div><span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${booking.reviewStatus === 'received' ? 'bg-emerald-100 text-emerald-700' : booking.reviewStatus === 'skipped' ? 'bg-slate-100 text-slate-600' : 'bg-amber-100 text-amber-800'}`}>{booking.reviewStatus.replace('_', ' ')}</span><p className="mt-2 text-sm text-slate-500">Requested {booking.reviewRequestCount} time{booking.reviewRequestCount === 1 ? '' : 's'}{booking.reviewLastRequestedAt ? ` · last ${formatDateTime(booking.reviewLastRequestedAt)}` : ''}</p></div></div>
+          <div className="mt-4 flex flex-wrap gap-2">{!['received', 'skipped'].includes(booking.reviewStatus) && <><button type="button" disabled={saving || !reviewUrl || Boolean(booking.whatsappOptOutAt)} onClick={() => setMessageOpen('review_request')} className="min-h-11 rounded-lg bg-emerald-600 px-3 text-sm font-semibold text-white disabled:opacity-50">{booking.reviewRequestCount ? 'Request again' : 'Request review'}</button><button type="button" disabled={saving} onClick={() => void updateReview('received')} className="min-h-11 rounded-lg border border-emerald-300 px-3 text-sm font-semibold text-emerald-700">Mark received</button><button type="button" disabled={saving} onClick={() => void updateReview('skipped')} className="min-h-11 rounded-lg border border-slate-300 px-3 text-sm font-semibold text-slate-600">Skip</button></>}{['received', 'skipped'].includes(booking.reviewStatus) && <button type="button" disabled={saving} onClick={() => void updateReview('reopened')} className="min-h-11 rounded-lg border border-blue-300 px-3 text-sm font-semibold text-blue-700">Reopen</button>}</div>
+          {booking.whatsappOptOutAt && !['received', 'skipped'].includes(booking.reviewStatus) && <p className="mt-3 text-sm text-amber-700">Review template is disabled because this customer opted out of WhatsApp.</p>}
+          {!!booking.reviewHistory.length && <div className="mt-4 divide-y divide-slate-100 border-t border-slate-100">{booking.reviewHistory.slice(0, 5).map(entry => <p key={entry.id || entry.changedAt} className="py-2 text-xs text-slate-500"><span className="capitalize">{entry.action}</span> · {formatDateTime(entry.changedAt)} · {entry.changedBy.name}</p>)}</div>}
+        </Card>}
       </div>
 
       <CustomerLookupPanel phone={booking.customerPhone} current={{ type: 'booking', id: booking.id }} />
+      <ImportantDatesPanel phone={booking.customerPhone} customerName={booking.customerName} email={booking.customerEmail} source={{ type: 'booking', id: booking.id }} />
       <VoiceNotesPanel recordType="booking" recordId={booking.id} />
 
       <Card title="Schedule history">
@@ -452,7 +481,7 @@ export function BookingDetailPage() {
       </Card>
 
       {editing && <BookingFormModal booking={booking} packages={packages} teamMembers={teamMembers} onClose={() => setEditing(false)} onSave={saveEdit} />}
-      {messageOpen && <WhatsAppComposer initialTemplate={messageOpen} context={{ customerName: booking.customerName, phone: booking.customerPhone, service: booking.shootType || booking.packageName, bookingDate: booking.bookingDate, startTime: booking.startTime, endTime: booking.endTime, location: booking.location, balanceDue: booking.paymentSummary.balanceDue, paymentDueDate: booking.paymentDueDate, consentRecorded: booking.whatsappOptIn, optedOut: Boolean(booking.whatsappOptOutAt) }} onClose={() => setMessageOpen(null)} />}
+      {messageOpen && <WhatsAppComposer initialTemplate={messageOpen} context={{ customerName: booking.customerName, phone: booking.customerPhone, service: booking.shootType || booking.packageName, bookingDate: booking.bookingDate, startTime: booking.startTime, endTime: booking.endTime, location: booking.location, balanceDue: booking.paymentSummary.balanceDue, paymentDueDate: booking.paymentDueDate, reviewUrl, consentRecorded: booking.whatsappOptIn, optedOut: Boolean(booking.whatsappOptOutAt) }} onOpened={messageOpen === 'review_request' ? () => updateReview('requested') : undefined} onClose={() => setMessageOpen(null)} />}
       {paymentModal && <PaymentModal payment={paymentModal === 'new' ? null : paymentModal} onClose={() => setPaymentModal(null)} onSave={async data => { const updated = paymentModal === 'new' ? await api.addBookingPayment(booking.id, data) : await api.updateBookingPayment(booking.id, paymentModal.id, data); sync(updated); setPaymentModal(null); }} />}
     </div>
   );

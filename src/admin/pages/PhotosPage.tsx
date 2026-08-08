@@ -974,7 +974,7 @@ function CropImageModal({
             <X className="w-5 h-5 text-gray-500" aria-hidden="true" />
           </button>
         </div>
-        <div className="relative h-[min(60vh,420px)] bg-gray-900">
+        <div className="relative h-[min(60vh,420px)] bg-slate-950">
           <ReactCrop
             crop={crop}
             onChange={nextCrop => setCrop(nextCrop)}

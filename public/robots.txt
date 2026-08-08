@@ -3,5 +3,6 @@ Allow: /
 Disallow: /admin/
 Disallow: /api/
 Disallow: /preview/
+Disallow: /quotation/
 
 Sitemap: https://dollpictures.in/sitemap.xml

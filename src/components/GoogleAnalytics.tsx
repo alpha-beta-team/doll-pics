@@ -11,6 +11,7 @@ export function GoogleAnalytics() {
   const location = useLocation();
 
   useEffect(() => {
+    if (location.pathname.startsWith('/quotation/')) return;
     initializeAnalytics();
     initializeMetaPixel();
     trackPageView(`${location.pathname}${location.search}`);

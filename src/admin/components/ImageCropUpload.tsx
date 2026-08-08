@@ -181,7 +181,7 @@ export function ImageCropUpload({
             <X className="w-5 h-5 text-gray-500" aria-hidden="true" />
           </button>
         </div>
-        <div className={`relative min-h-[min(60vh,420px)] bg-gray-900 flex items-center justify-center ${shape === 'circle' ? 'h-[min(60vh,420px)]' : ''}`}>
+        <div className={`relative min-h-[min(60vh,420px)] bg-slate-950 flex items-center justify-center ${shape === 'circle' ? 'h-[min(60vh,420px)]' : ''}`}>
           {isLoading ? <div className="text-white">Loading image...</div> : (
             shape === 'circle' ? (
               <div className="relative w-full h-full">

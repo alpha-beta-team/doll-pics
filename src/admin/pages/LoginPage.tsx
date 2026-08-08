@@ -36,27 +36,27 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+    <div className="flex min-h-screen items-center justify-center bg-admin-canvas p-4 text-admin-text">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+        <div className="rounded-xl border border-admin-border bg-admin-elevated p-8 shadow-xl shadow-black/20">
           <div className="flex flex-col items-center mb-8">
-            <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mb-4">
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-admin-primary">
               <Camera className="w-6 h-6 text-white" />
             </div>
-            <h1 className="text-2xl font-semibold text-gray-900">Doll Pictures Work</h1>
-            <p className="text-gray-500 text-sm mt-1">Sign in to see today’s enquiries and bookings</p>
+            <h1 className="text-2xl font-semibold text-admin-text">Doll Pictures Work</h1>
+            <p className="mt-1 text-sm text-admin-subtle">Sign in to see today’s enquiries and bookings</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
                 <AlertCircle className="w-4 h-4 flex-shrink-0" />
                 <span>{error}</span>
               </div>
             )}
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="email" className="mb-1 block text-sm font-medium text-admin-secondary">
                 Email
               </label>
               <input
@@ -64,14 +64,14 @@ export function LoginPage() {
                 id="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full rounded-lg border border-admin-control bg-admin-surface px-3 py-2 text-admin-text placeholder:text-admin-subtle transition-all focus:border-admin-focus focus:outline-none focus:ring-2 focus:ring-admin-focus/30"
                 placeholder="admin@studio.com"
                 required
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="password" className="mb-1 block text-sm font-medium text-admin-secondary">
                 Password
               </label>
               <input
@@ -79,7 +79,7 @@ export function LoginPage() {
                 id="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full rounded-lg border border-admin-control bg-admin-surface px-3 py-2 text-admin-text placeholder:text-admin-subtle transition-all focus:border-admin-focus focus:outline-none focus:ring-2 focus:ring-admin-focus/30"
                 placeholder="Enter your password"
                 required
               />
@@ -88,7 +88,7 @@ export function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-2.5 px-4 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="w-full rounded-lg bg-admin-action px-4 py-2.5 font-medium text-white transition-all hover:bg-admin-action-hover focus:outline-none focus:ring-2 focus:ring-admin-focus focus:ring-offset-2 focus:ring-offset-admin-elevated disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isLoading ? (
                 <span className="flex items-center justify-center gap-2">

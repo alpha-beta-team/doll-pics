@@ -362,6 +362,9 @@ export function createDashboardMockData(referenceDate = new Date()): {
       deliverySentAt: seed.status === 'delivered' ? createdAt : undefined,
       status: seed.status,
       scheduleHistory: [],
+      reviewStatus: 'not_requested',
+      reviewRequestCount: 0,
+      reviewHistory: [],
       confirmedAt:
         seed.status === 'confirmed' || seed.status === 'shoot_completed' || seed.status === 'delivered'
           ? dateFrom(referenceTime, -seed.createdDaysAgo + 1)

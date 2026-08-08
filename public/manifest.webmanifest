@@ -5,8 +5,8 @@
   "start_url": "/admin/today",
   "scope": "/admin/",
   "display": "standalone",
-  "background_color": "#f8fafc",
-  "theme_color": "#2563eb",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
   "icons": [
     { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" },
     { "src": "/logo-doll.png", "sizes": "any", "type": "image/png", "purpose": "any maskable" }

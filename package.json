@@ -12,6 +12,8 @@
     "seo:smoke": "node scripts/check-seo-deployment.mjs",
     "test:seo": "tsx --test scripts/*.spec.mjs scripts/lib/*.spec.ts",
     "test:admin": "tsx --test src/admin/*.spec.ts src/admin/**/*.spec.ts",
+    "seed:admin-mock": "npm --prefix ../photography-cms-backend run seed:admin-mock",
+    "seed:admin-mock:dry-run": "npm --prefix ../photography-cms-backend run seed:admin-mock:dry-run",
     "lint": "eslint .",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.app.json"
@@ -19,6 +21,7 @@
   "dependencies": {
     "@fontsource/cormorant-garamond": "^5.2.11",
     "@fontsource/inter": "^5.2.8",
+    "@react-pdf/renderer": "^4.5.1",
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -28,6 +31,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
+    "@types/node": "^26.2.0",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",

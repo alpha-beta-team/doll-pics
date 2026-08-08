@@ -8,7 +8,7 @@ import {
   type WhatsAppTemplateId,
 } from './whatsappTemplates';
 
-export function WhatsAppComposer({ context, initialTemplate = 'enquiry_follow_up', onClose }: { context: ManualWhatsAppContext; initialTemplate?: WhatsAppTemplateId; onClose: () => void }) {
+export function WhatsAppComposer({ context, initialTemplate = 'enquiry_follow_up', onClose, onOpened }: { context: ManualWhatsAppContext; initialTemplate?: WhatsAppTemplateId; onClose: () => void; onOpened?: () => void | Promise<void> }) {
   const startingTemplate = context.optedOut ? 'custom' : initialTemplate;
   const [template, setTemplate] = useState<WhatsAppTemplateId>(startingTemplate);
   const [message, setMessage] = useState(() => manualWhatsAppMessage(startingTemplate, context));
@@ -19,6 +19,7 @@ export function WhatsAppComposer({ context, initialTemplate = 'enquiry_follow_up
   };
   const open = () => {
     window.open(whatsappUrl(context.phone, message), '_blank', 'noopener,noreferrer');
+    void onOpened?.();
     onClose();
   };
   return <div className="fixed inset-0 z-[90] flex items-end bg-slate-950/50 sm:items-center sm:justify-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="whatsapp-composer-title">

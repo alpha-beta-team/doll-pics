@@ -20,6 +20,8 @@ import {
   HelpCircle,
   Plug,
   CalendarRange,
+  CalendarHeart,
+  FileSignature,
 } from 'lucide-react';
 
 export type NavItem = {
@@ -81,6 +83,14 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         type: 'link',
         item: { to: '/admin/enquiries', label: 'Enquiries', icon: Mail },
+      },
+      {
+        type: 'link',
+        item: { to: '/admin/occasions', label: 'Occasions', icon: CalendarHeart },
+      },
+      {
+        type: 'link',
+        item: { to: '/admin/quotations', label: 'Quotations', icon: FileSignature },
       },
       {
         type: 'link',

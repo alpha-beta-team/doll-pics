@@ -30,11 +30,14 @@ const LandingResolver = lazy(() =>
   })),
 );
 const AdminApp = lazy(() => import('./admin/AdminApp'));
+const QuotationPage = lazy(() =>
+  import('./pages/QuotationPage').then((m) => ({ default: m.QuotationPage })),
+);
 
 function AdminLoading() {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+    <div className="admin-theme flex min-h-screen items-center justify-center bg-admin-canvas text-admin-text">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-admin-primary border-t-transparent" />
     </div>
   );
 }
@@ -67,6 +70,14 @@ function App() {
           element={
             <Suspense fallback={<AdminLoading />}>
               <AdminApp />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/quotation/:token"
+          element={
+            <Suspense fallback={<PublicLoading />}>
+              <QuotationPage />
             </Suspense>
           }
         />

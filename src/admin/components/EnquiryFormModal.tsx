@@ -21,16 +21,20 @@ type FieldErrors = Partial<Record<'name' | 'phone' | 'bookingDate' | 'time' | 'f
 
 export function EnquiryFormModal({
   enquiry,
+  initialContact,
+  draftKey = DRAFT_KEY,
   onClose,
   onSaved,
 }: {
   enquiry?: Enquiry | null;
+  initialContact?: { customerName: string; phone: string };
+  draftKey?: string;
   onClose: () => void;
   onSaved: (enquiry: Enquiry) => void;
 }) {
-  const stored = !enquiry ? readDraft() : null;
-  const [name, setName] = useState(enquiry?.name || stored?.name || '');
-  const [phone, setPhone] = useState(enquiry?.phone || stored?.phone || '');
+  const stored = !enquiry ? readDraft(draftKey) : null;
+  const [name, setName] = useState(enquiry?.name || stored?.name || initialContact?.customerName || '');
+  const [phone, setPhone] = useState(enquiry?.phone || stored?.phone || initialContact?.phone || '');
   const [source, setSource] = useState<EnquirySource>(enquiry?.source || stored?.source || 'phone');
   const [shootType, setShootType] = useState(enquiry?.shootType || stored?.shootType || '');
   const [nextFollowUpAt, setNextFollowUpAt] = useState(
@@ -77,8 +81,8 @@ export function EnquiryFormModal({
 
   useEffect(() => {
     if (enquiry) return;
-    localStorage.setItem(DRAFT_KEY, JSON.stringify(currentDraft));
-  }, [currentDraft, enquiry]);
+    localStorage.setItem(draftKey, JSON.stringify(currentDraft));
+  }, [currentDraft, draftKey, enquiry]);
 
   const clearFieldError = (field: keyof FieldErrors) => {
     setFieldErrors(current => ({ ...current, [field]: undefined }));
@@ -116,7 +120,7 @@ export function EnquiryFormModal({
       const saved = enquiry
         ? await api.updateEnquiry(enquiry.id, currentDraft)
         : await api.createAdminEnquiry(currentDraft);
-      if (!enquiry) localStorage.removeItem(DRAFT_KEY);
+      if (!enquiry) localStorage.removeItem(draftKey);
       onSaved(saved);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not save the enquiry. Your entry is still here.');
@@ -126,7 +130,7 @@ export function EnquiryFormModal({
   };
 
   const discardDraft = () => {
-    localStorage.removeItem(DRAFT_KEY);
+    localStorage.removeItem(draftKey);
     setName('');
     setPhone('');
     setSource('phone');
@@ -204,6 +208,6 @@ function localDateTime(value?: string) {
   return dateTimeLocalInKolkata(date);
 }
 
-function readDraft(): Partial<Draft> | null {
-  try { return JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); } catch { return null; }
+function readDraft(key: string): Partial<Draft> | null {
+  try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch { return null; }
 }

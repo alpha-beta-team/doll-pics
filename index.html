@@ -2,16 +2,27 @@
 <html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
+    <meta name="theme-color" content="#2563eb" />
     <script>
       (function () {
         try {
           var t = localStorage.getItem('doll-theme');
           if (t !== 'light' && t !== 'dark') t = 'dark';
           document.documentElement.setAttribute('data-theme', t);
-          document.documentElement.style.colorScheme = t;
+          if (window.location.pathname.startsWith('/admin')) {
+            document.documentElement.setAttribute('data-admin-theme', 'dark');
+            document.documentElement.style.colorScheme = 'dark';
+            document.querySelector('meta[name="theme-color"]').setAttribute('content', '#050505');
+          } else {
+            document.documentElement.style.colorScheme = t;
+          }
         } catch (e) {
           document.documentElement.setAttribute('data-theme', 'dark');
           document.documentElement.style.colorScheme = 'dark';
+          if (window.location.pathname.startsWith('/admin')) {
+            document.documentElement.setAttribute('data-admin-theme', 'dark');
+            document.querySelector('meta[name="theme-color"]').setAttribute('content', '#050505');
+          }
         }
       })();
     </script>
@@ -20,7 +31,6 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <meta name="theme-color" content="#2563eb" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Doll Work" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />

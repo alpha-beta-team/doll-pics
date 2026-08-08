@@ -35,6 +35,14 @@ export type BookingScheduleSnapshot = {
   status: BookingStatus;
 };
 
+export type BookingReviewStatus = 'not_requested' | 'requested' | 'received' | 'skipped';
+export type BookingReviewHistoryEntry = {
+  id: string;
+  action: 'requested' | 'received' | 'skipped' | 'reopened';
+  changedAt: string;
+  changedBy: { id: string; name: string };
+};
+
 export type ScheduleBookingItem = {
   id: string;
   customerName: string;
@@ -505,6 +513,12 @@ export type Booking = {
   cancelledAt?: string;
   statusBeforeCancellation?: Exclude<BookingStatus, 'cancelled'>;
   scheduleHistory: BookingScheduleHistoryEntry[];
+  reviewStatus: BookingReviewStatus;
+  reviewRequestCount: number;
+  reviewLastRequestedAt?: string;
+  reviewReceivedAt?: string;
+  reviewSkippedAt?: string;
+  reviewHistory: BookingReviewHistoryEntry[];
   whatsappOptIn: boolean;
   whatsappOptInAt?: string;
   whatsappOptInSource: string;
@@ -645,6 +659,111 @@ export type TodayWork = {
   todayShoots: TodaySummaryItem[];
   paymentsDue: TodayPaymentItem[];
   tomorrowShoots: TodaySummaryItem[];
+  occasionsDue: TodayOccasionTask[];
+  reviewRequests: TodayReviewTask[];
+};
+
+export type OccasionContactHistoryEntry = {
+  id?: string;
+  occurrenceDate: string;
+  contactedAt: string;
+  contactedBy: { id: string; name: string };
+};
+
+export type CustomerOccasion = {
+  id: string;
+  type: 'birthday' | 'anniversary';
+  occasionName: string;
+  customerName: string;
+  phone: string;
+  email?: string;
+  occasionDate: string;
+  nextOccurrenceDate: string;
+  daysUntil: number;
+  active: boolean;
+  contactedForOccurrence: boolean;
+  consentRecorded: boolean;
+  optedOut: boolean;
+  source?: { type: 'enquiry' | 'booking'; id: string };
+  contactHistory?: OccasionContactHistoryEntry[];
+};
+
+export type TodayOccasionTask = CustomerOccasion & { overdue: boolean };
+
+export type TodayReviewTask = {
+  bookingId: string;
+  customerName: string;
+  phone: string;
+  service: string;
+  deliveredAt: string;
+  dueAt: string;
+  status: BookingReviewStatus;
+  requestCount: number;
+  lastRequestedAt?: string;
+  reviewUrl: string;
+  consentRecorded: boolean;
+  optedOut: boolean;
+};
+
+export type WeddingQuotationStatus = 'draft' | 'published' | 'archived';
+export type QuotationPricingMode = 'fixed' | 'starting_from' | 'enquire';
+export type QuotationPalette = 'champagne' | 'blush' | 'midnight';
+
+export type QuotationEvent = { id: string; name: string; date: string; location: string; notes: string };
+export type QuotationLineItem = {
+  id: string; eventId: string; title: string; description: string;
+  quantity: number; unitPrice: number; amount: number;
+};
+export type QuotationOption = {
+  id: string; name: string; tagline: string; recommended: boolean;
+  lineItems: QuotationLineItem[]; inclusions: string[]; deliverables: string[];
+  discountAmount: number; subtotal: number; total: number; advanceAmount: number;
+};
+export type QuotationAddOn = {
+  id: string; name: string; description: string;
+  pricingMode: QuotationPricingMode; price?: number;
+};
+export type QuotationPaymentMilestone = { id: string; label: string; percentage: number };
+export type QuotationImage = { id: string; url: string; title: string; altText: string };
+export type QuotationMetrics = {
+  viewCount: number; downloadCount: number; firstViewedAt?: string; lastViewedAt?: string;
+  revisionViewCount: number; revisionDownloadCount: number;
+  revisionFirstViewedAt?: string; revisionLastViewedAt?: string;
+};
+export type QuotationDraft = {
+  customerName: string; customerPhone: string; customerEmail: string;
+  coupleNames: string; weddingTitle: string; validUntil: string;
+  events: QuotationEvent[]; options: QuotationOption[]; addOns: QuotationAddOn[];
+  paymentMilestones: QuotationPaymentMilestone[];
+  coverPhotoId: string; galleryPhotoIds: string[]; testimonialId: string;
+  introduction: string; whyDollPictures: string; deliveryInformation: string;
+  terms: string; closingMessage: string; palette: QuotationPalette;
+  visibleSections: string[]; sectionOrder: string[];
+};
+export type PublicWeddingQuotation = Omit<QuotationDraft,
+  'customerName' | 'customerPhone' | 'customerEmail' | 'coverPhotoId' | 'galleryPhotoIds' | 'testimonialId'> & {
+  quotationNumber: string; publishedRevision: number; publishedAt: string; expired: boolean;
+  coverPhoto: QuotationImage; galleryPhotos: QuotationImage[];
+  testimonial?: { id: string; name: string; role: string; text: string; rating: number };
+  brand: { name: string; tagline: string; logoUrl: string; phone: string; email: string; whatsapp: string; instagram: string; website: string };
+};
+export type WeddingQuotation = {
+  id: string; enquiryId: string; quotationNumber: string; status: WeddingQuotationStatus;
+  customerName: string; customerPhone: string; customerEmail: string; draft: QuotationDraft;
+  publishedRevision: number; publishedAt?: string; shareUrl: string; expired: boolean;
+  metrics: QuotationMetrics;
+  publishHistory: Array<{ revision: number; publishedAt: string; publishedBy: { id: string; name: string } }>;
+  createdAt: string; updatedAt: string;
+};
+export type QuotationAssets = {
+  packages: Array<{ id: string; name: string; description: string; inclusions: string[]; price: number | null; pricingMode: string; advanceAmount: number | null; categoryName: string }>;
+  photos: QuotationImage[];
+  testimonials: Array<{ id: string; name: string; role: string; text: string; rating: number }>;
+};
+export type QuotationSettings = {
+  defaultPalette: QuotationPalette; defaultValidityDays: number;
+  introduction: string; whyDollPictures: string; deliveryInformation: string;
+  terms: string; closingMessage: string; paymentMilestones: QuotationPaymentMilestone[];
 };
 
 export type AdminSearchItem = {

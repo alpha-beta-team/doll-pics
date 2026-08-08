@@ -612,6 +612,531 @@
   }
 }
 
+/*
+  Admin theme is deliberately independent from the visitor-facing ink/gold theme.
+  Existing admin utilities are normalized here while screens migrate toward the
+  semantic admin-* Tailwind tokens above. Keeping this scope on .admin-theme
+  prevents the operational palette from leaking into the public site.
+*/
+[data-admin-theme='dark'],
+.admin-theme {
+  color-scheme: dark;
+
+  --admin-canvas: 5 5 5;
+  --admin-surface: 10 10 10;
+  --admin-elevated: 18 18 18;
+  --admin-muted-surface: 28 28 28;
+  --admin-border: 42 42 42;
+  --admin-border-strong: 64 64 64;
+  --admin-control-border: 82 82 82;
+  --admin-text: 250 250 250;
+  --admin-text-secondary: 212 212 212;
+  --admin-text-muted: 163 163 163;
+  --admin-primary: 82 82 82;
+  --admin-primary-hover: 64 64 64;
+  --admin-action-hover: 38 38 38;
+  --admin-focus: 212 212 212;
+
+  --admin-info-surface: 38 38 38;
+  --admin-info-border: 82 82 82;
+  --admin-info-text: 229 229 229;
+  --admin-success-surface: 5 46 22;
+  --admin-success-border: 22 101 52;
+  --admin-success-text: 134 239 172;
+  --admin-success-action: 4 120 87;
+  --admin-warning-surface: 69 26 3;
+  --admin-warning-border: 146 64 14;
+  --admin-warning-text: 252 211 77;
+  --admin-danger-surface: 69 10 10;
+  --admin-danger-border: 153 27 27;
+  --admin-danger-text: 252 165 165;
+  --admin-violet-surface: 46 16 101;
+  --admin-violet-border: 109 40 217;
+  --admin-violet-text: 196 181 253;
+  --admin-violet-muted: 91 33 182;
+}
+
+[data-admin-theme='dark'] body {
+  background: rgb(var(--admin-canvas));
+}
+
+.admin-theme {
+  background: rgb(var(--admin-canvas));
+  color: rgb(var(--admin-text));
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.admin-theme ::selection {
+  background-color: rgb(var(--admin-primary) / 0.35);
+  color: rgb(var(--admin-text));
+}
+
+/* Neutral surfaces and typography. */
+.admin-theme .bg-white,
+.admin-theme .bg-white\/90,
+.admin-theme .bg-white\/60 {
+  background-color: rgb(var(--admin-elevated));
+}
+
+.admin-theme .bg-gray-50,
+.admin-theme .bg-gray-50\/80,
+.admin-theme .bg-gray-100,
+.admin-theme .bg-slate-50,
+.admin-theme .bg-slate-50\/70,
+.admin-theme .bg-slate-50\/60,
+.admin-theme .bg-slate-100 {
+  background-color: rgb(var(--admin-muted-surface));
+}
+
+.admin-theme .bg-gray-200,
+.admin-theme .bg-slate-200,
+.admin-theme .bg-slate-300,
+.admin-theme .bg-slate-400,
+.admin-theme .bg-gray-500,
+.admin-theme .disabled\:bg-slate-100:disabled,
+.admin-theme .disabled\:bg-slate-300:disabled {
+  background-color: rgb(var(--admin-border));
+}
+
+.admin-theme .bg-gray-900,
+.admin-theme .bg-slate-900 {
+  background-color: rgb(var(--admin-border-strong));
+}
+
+.admin-theme .text-gray-900,
+.admin-theme .text-gray-800,
+.admin-theme .text-slate-900,
+.admin-theme .text-slate-800 {
+  color: rgb(var(--admin-text));
+}
+
+.admin-theme .text-gray-700,
+.admin-theme .text-gray-600,
+.admin-theme .text-gray-300,
+.admin-theme .text-slate-700,
+.admin-theme .text-slate-600,
+.admin-theme .text-slate-300 {
+  color: rgb(var(--admin-text-secondary));
+}
+
+.admin-theme .text-gray-500,
+.admin-theme .text-gray-400,
+.admin-theme .text-slate-500,
+.admin-theme .text-slate-400,
+.admin-theme .disabled\:text-slate-400:disabled {
+  color: rgb(var(--admin-text-muted));
+}
+
+.admin-theme .placeholder-gray-400::placeholder,
+.admin-theme .placeholder-slate-400::placeholder {
+  color: rgb(var(--admin-text-muted));
+}
+
+.admin-theme .border-gray-100,
+.admin-theme .border-gray-200,
+.admin-theme .border-slate-100,
+.admin-theme .border-slate-200,
+.admin-theme .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
+.admin-theme .divide-gray-200 > :not([hidden]) ~ :not([hidden]),
+.admin-theme .divide-slate-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgb(var(--admin-border));
+}
+
+.admin-theme .border-gray-300,
+.admin-theme .border-slate-300 {
+  border-color: rgb(var(--admin-control-border));
+}
+
+.admin-theme .border-slate-400,
+.admin-theme .ring-slate-300 {
+  border-color: rgb(var(--admin-control-border));
+  --tw-ring-color: rgb(var(--admin-control-border));
+}
+
+.admin-theme .hover\:border-gray-300:hover,
+.admin-theme .hover\:border-slate-300:hover {
+  border-color: rgb(var(--admin-control-border));
+}
+
+.admin-theme .hover\:bg-gray-100:hover,
+.admin-theme .hover\:bg-gray-50:hover,
+.admin-theme .hover\:bg-gray-50\/80:hover,
+.admin-theme .hover\:bg-gray-200:hover,
+.admin-theme .hover\:bg-slate-50:hover,
+.admin-theme .hover\:bg-slate-100:hover,
+.admin-theme .hover\:bg-slate-200:hover,
+.admin-theme .focus-visible\:bg-slate-50:focus-visible {
+  background-color: rgb(var(--admin-muted-surface));
+}
+
+.admin-theme .hover\:bg-white:hover {
+  background-color: rgb(var(--admin-elevated));
+}
+
+.admin-theme .hover\:text-gray-900:hover,
+.admin-theme .hover\:text-gray-500:hover,
+.admin-theme .hover\:text-gray-600:hover,
+.admin-theme .hover\:text-gray-700:hover,
+.admin-theme .hover\:text-slate-700:hover,
+.admin-theme .hover\:text-slate-800:hover,
+.admin-theme .hover\:text-slate-900:hover {
+  color: rgb(var(--admin-text));
+}
+
+.admin-theme .bg-black\/40,
+.admin-theme .bg-black\/50,
+.admin-theme .bg-black\/70,
+.admin-theme .bg-slate-950\/40,
+.admin-theme .bg-slate-950\/50,
+.admin-theme .bg-slate-950\/55,
+.admin-theme .bg-slate-950\/70 {
+  background-color: rgb(0 0 0 / 0.78);
+}
+
+/* Legacy blue utilities are remapped to the monochrome admin palette. */
+.admin-theme .bg-blue-600 {
+  background-color: rgb(var(--admin-primary-hover));
+}
+
+.admin-theme .bg-blue-500 {
+  background-color: rgb(var(--admin-primary));
+}
+
+.admin-theme .bg-blue-700,
+.admin-theme .hover\:bg-blue-700:hover {
+  background-color: rgb(var(--admin-action-hover));
+}
+
+.admin-theme .bg-blue-50,
+.admin-theme .bg-blue-50\/60,
+.admin-theme .bg-blue-50\/40,
+.admin-theme .bg-blue-50\/20,
+.admin-theme .bg-blue-100,
+.admin-theme .bg-blue-200,
+.admin-theme .active\:bg-blue-50:active,
+.admin-theme .focus-visible\:bg-blue-50:focus-visible,
+.admin-theme .hover\:bg-blue-50:hover,
+.admin-theme .hover\:bg-blue-50\/40:hover,
+.admin-theme .hover\:bg-blue-100:hover {
+  background-color: rgb(var(--admin-info-surface));
+}
+
+.admin-theme .text-blue-50,
+.admin-theme .text-blue-100,
+.admin-theme .text-blue-300,
+.admin-theme .text-blue-500,
+.admin-theme .text-blue-600,
+.admin-theme .text-blue-700,
+.admin-theme .text-blue-800,
+.admin-theme .text-blue-950 {
+  color: rgb(var(--admin-info-text));
+}
+
+.admin-theme .hover\:text-blue-500:hover,
+.admin-theme .hover\:text-blue-600:hover,
+.admin-theme .hover\:text-blue-700:hover,
+.admin-theme .group:hover .group-hover\:text-blue-500,
+.admin-theme .group:hover .group-hover\:text-blue-700 {
+  color: rgb(var(--admin-info-text));
+}
+
+.admin-theme .border-blue-100,
+.admin-theme .border-blue-200,
+.admin-theme .border-blue-300,
+.admin-theme .border-blue-400,
+.admin-theme .border-blue-500,
+.admin-theme .border-blue-600,
+.admin-theme .ring-blue-100,
+.admin-theme .ring-blue-200 {
+  border-color: rgb(var(--admin-info-border));
+  --tw-ring-color: rgb(var(--admin-focus));
+}
+
+.admin-theme .ring-blue-500,
+.admin-theme .ring-blue-500\/30,
+.admin-theme .focus\:ring-blue-100:focus,
+.admin-theme .focus\:ring-blue-500:focus,
+.admin-theme .focus-visible\:ring-blue-500:focus-visible {
+  --tw-ring-color: rgb(var(--admin-focus));
+}
+
+.admin-theme .ring-blue-500\/30 {
+  --tw-ring-color: rgb(var(--admin-focus) / 0.3);
+}
+
+.admin-theme .hover\:border-blue-400:hover {
+  border-color: rgb(var(--admin-focus));
+}
+
+.admin-theme .outline-blue-500 {
+  outline-color: rgb(var(--admin-focus));
+}
+
+.admin-theme .hover\:outline-blue-400\/60:hover {
+  outline-color: rgb(var(--admin-focus) / 0.6);
+}
+
+.admin-theme .accent-blue-600 {
+  accent-color: rgb(var(--admin-primary));
+}
+
+.admin-theme .focus\:ring-red-500:focus {
+  --tw-ring-color: rgb(var(--admin-danger-text));
+}
+
+.admin-theme .focus\:ring-slate-300:focus {
+  --tw-ring-color: rgb(var(--admin-control-border));
+}
+
+.admin-theme .focus\:border-blue-400:focus,
+.admin-theme .focus\:border-blue-500:focus {
+  border-color: rgb(var(--admin-focus));
+}
+
+.admin-theme .focus\:ring-offset-2:focus,
+.admin-theme .focus-visible\:ring-offset-2:focus-visible {
+  --tw-ring-offset-color: rgb(var(--admin-canvas));
+}
+
+/* Semantic feedback colors retain meaning on dark surfaces. */
+.admin-theme .bg-red-50,
+.admin-theme .bg-red-50\/50,
+.admin-theme .bg-red-100,
+.admin-theme .bg-red-500\/20,
+.admin-theme .hover\:bg-red-50:hover,
+.admin-theme .hover\:bg-red-100:hover {
+  background-color: rgb(var(--admin-danger-surface));
+}
+
+.admin-theme .text-red-500,
+.admin-theme .text-red-600,
+.admin-theme .text-red-700,
+.admin-theme .text-red-800,
+.admin-theme .text-red-900 {
+  color: rgb(var(--admin-danger-text));
+}
+
+.admin-theme .hover\:text-red-600:hover,
+.admin-theme .hover\:text-red-900:hover {
+  color: rgb(var(--admin-danger-text));
+}
+
+.admin-theme .border-red-200,
+.admin-theme .border-red-300,
+.admin-theme .border-red-400 {
+  border-color: rgb(var(--admin-danger-border));
+}
+
+.admin-theme .bg-emerald-50,
+.admin-theme .bg-emerald-100,
+.admin-theme .bg-green-50,
+.admin-theme .bg-green-100,
+.admin-theme .bg-green-500\/20 {
+  background-color: rgb(var(--admin-success-surface));
+}
+
+.admin-theme .bg-emerald-500,
+.admin-theme .bg-emerald-600,
+.admin-theme .bg-green-500 {
+  background-color: rgb(var(--admin-success-action));
+}
+
+.admin-theme .hover\:bg-green-50:hover {
+  background-color: rgb(var(--admin-success-surface));
+}
+
+.admin-theme .text-emerald-600,
+.admin-theme .text-emerald-700,
+.admin-theme .text-emerald-800,
+.admin-theme .text-emerald-950,
+.admin-theme .text-green-600,
+.admin-theme .text-green-700 {
+  color: rgb(var(--admin-success-text));
+}
+
+.admin-theme .border-emerald-200,
+.admin-theme .border-emerald-300,
+.admin-theme .border-emerald-500,
+.admin-theme .border-emerald-600,
+.admin-theme .border-green-200 {
+  border-color: rgb(var(--admin-success-border));
+}
+
+.admin-theme .ring-emerald-100 {
+  --tw-ring-color: rgb(var(--admin-success-border));
+}
+
+.admin-theme .focus\:border-emerald-500:focus {
+  border-color: rgb(var(--admin-success-text));
+}
+
+.admin-theme .focus\:ring-emerald-100:focus {
+  --tw-ring-color: rgb(var(--admin-success-border));
+}
+
+.admin-theme .bg-amber-50,
+.admin-theme .bg-amber-50\/60,
+.admin-theme .bg-amber-100,
+.admin-theme .bg-yellow-500 {
+  background-color: rgb(var(--admin-warning-surface));
+}
+
+.admin-theme .bg-amber-600 {
+  background-color: rgb(180 83 9);
+}
+
+.admin-theme .bg-amber-700 {
+  background-color: rgb(146 64 14);
+}
+
+.admin-theme .hover\:bg-amber-100:hover {
+  background-color: rgb(var(--admin-warning-surface));
+}
+
+.admin-theme .text-amber-600,
+.admin-theme .text-amber-700,
+.admin-theme .text-amber-800,
+.admin-theme .text-amber-900,
+.admin-theme .text-amber-950 {
+  color: rgb(var(--admin-warning-text));
+}
+
+.admin-theme .border-amber-200,
+.admin-theme .border-amber-300 {
+  border-color: rgb(var(--admin-warning-border));
+}
+
+.admin-theme .bg-violet-50,
+.admin-theme .bg-violet-100,
+.admin-theme .bg-purple-50,
+.admin-theme .bg-purple-100,
+.admin-theme .bg-indigo-50,
+.admin-theme .bg-indigo-100 {
+  background-color: rgb(var(--admin-violet-surface));
+}
+
+.admin-theme .bg-violet-200 {
+  background-color: rgb(var(--admin-violet-muted));
+}
+
+.admin-theme .text-violet-600,
+.admin-theme .text-violet-700,
+.admin-theme .text-violet-950,
+.admin-theme .text-purple-600,
+.admin-theme .text-purple-700,
+.admin-theme .text-indigo-600,
+.admin-theme .text-indigo-700,
+.admin-theme .text-pink-500 {
+  color: rgb(var(--admin-violet-text));
+}
+
+.admin-theme .border-violet-200,
+.admin-theme .border-violet-500,
+.admin-theme .border-purple-200,
+.admin-theme .border-indigo-200 {
+  border-color: rgb(var(--admin-violet-border));
+}
+
+.admin-theme .from-blue-50 {
+  --tw-gradient-from: rgb(var(--admin-info-surface)) var(--tw-gradient-from-position);
+  --tw-gradient-to: rgb(var(--admin-info-surface) / 0) var(--tw-gradient-to-position);
+}
+
+.admin-theme .to-white {
+  --tw-gradient-to: rgb(var(--admin-elevated)) var(--tw-gradient-to-position);
+}
+
+/* Native controls, autofill, file buttons, and media controls. */
+.admin-theme :where(input:not([type='button'], [type='checkbox'], [type='color'], [type='file'], [type='radio'], [type='range'], [type='reset'], [type='submit']), select, textarea) {
+  border-color: rgb(var(--admin-control-border));
+  background-color: rgb(var(--admin-surface));
+  color: rgb(var(--admin-text));
+  caret-color: rgb(var(--admin-focus));
+}
+
+.admin-theme :where(input.bg-white, input.bg-gray-50, input.bg-slate-50, select.bg-white, select.bg-gray-50, select.bg-slate-50, textarea.bg-white, textarea.bg-gray-50, textarea.bg-slate-50) {
+  border-color: rgb(var(--admin-control-border));
+  background-color: rgb(var(--admin-surface));
+  color: rgb(var(--admin-text));
+}
+
+.admin-theme :where(input, textarea)::placeholder {
+  color: rgb(var(--admin-text-muted));
+  opacity: 1;
+}
+
+.admin-theme :where(select option) {
+  background: rgb(var(--admin-surface));
+  color: rgb(var(--admin-text));
+}
+
+.admin-theme :where(input[type='checkbox'], input[type='radio'], input[type='range']) {
+  accent-color: rgb(var(--admin-primary));
+}
+
+.admin-theme input::file-selector-button {
+  border: 0;
+  background: rgb(var(--admin-muted-surface));
+  color: rgb(var(--admin-text-secondary));
+}
+
+.admin-theme :where(input, select, textarea):disabled {
+  cursor: not-allowed;
+  color: rgb(var(--admin-text-muted));
+  opacity: 0.65;
+}
+
+.admin-theme :where(input, textarea):-webkit-autofill,
+.admin-theme :where(input, textarea):-webkit-autofill:hover,
+.admin-theme :where(input, textarea):-webkit-autofill:focus {
+  -webkit-text-fill-color: rgb(var(--admin-text));
+  caret-color: rgb(var(--admin-focus));
+  box-shadow: 0 0 0 1000px rgb(var(--admin-surface)) inset;
+  transition: background-color 9999s ease-out;
+}
+
+.admin-theme :where(audio) {
+  color-scheme: dark;
+}
+
+/* Image editors keep the photograph neutral while their chrome stays dark. */
+.admin-theme .ReactCrop,
+.admin-theme .reactEasyCrop_Container {
+  background-color: rgb(0 0 0);
+}
+
+.admin-theme .ReactCrop {
+  --rc-drag-handle-bg-colour: rgb(var(--admin-primary));
+  --rc-border-color: rgb(var(--admin-text) / 0.85);
+  --rc-focus-color: rgb(var(--admin-focus));
+}
+
+.admin-theme .ReactCrop__crop-selection {
+  border-color: rgb(var(--admin-focus));
+  box-shadow: 0 0 0 9999em rgb(0 0 0 / 0.68);
+}
+
+.admin-theme .ReactCrop__drag-handle {
+  border-color: rgb(var(--admin-text));
+  background-color: rgb(var(--admin-primary));
+}
+
+.admin-theme .reactEasyCrop_CropArea {
+  border-color: rgb(var(--admin-text) / 0.72);
+  background-color: transparent;
+  color: rgb(0 0 0 / 0.72);
+}
+
+.admin-theme .ReactCrop__drag-handle::after {
+  border-color: rgb(var(--admin-text));
+  background-color: rgb(var(--admin-primary));
+}
+
+.admin-theme .reactEasyCrop_CropAreaGrid::before,
+.admin-theme .reactEasyCrop_CropAreaGrid::after {
+  border-color: rgb(var(--admin-text) / 0.55);
+}
+
 /* Vignette — always dark so photo heroes stay cinematic in both themes */
 .vignette::after {
   content: '';

@@ -17,6 +17,7 @@ const robots = [
   'Disallow: /admin/',
   'Disallow: /api/',
   'Disallow: /preview/',
+  'Disallow: /quotation/',
   '',
   `Sitemap: ${siteUrl}/sitemap.xml`,
   '',

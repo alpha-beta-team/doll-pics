@@ -51,26 +51,26 @@ export function SidebarGroup({ group, collapsed, onNavigate }: SidebarGroupProps
           onFocus={() => setFlyoutOpen(true)}
           className={[
             'group relative flex h-11 w-full items-center justify-center rounded-[10px] text-sm font-medium transition-colors duration-150',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/40',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-focus',
             childActive || flyoutOpen
-              ? 'bg-[#EFF6FF] text-[#2563EB]'
-              : 'text-[#1E293B] hover:bg-black/[0.03]',
+              ? 'bg-blue-50 text-admin-focus'
+              : 'text-admin-secondary hover:bg-admin-muted',
           ].join(' ')}
         >
           {(childActive || flyoutOpen) && (
             <span
               aria-hidden
-              className="absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r-full bg-[#2563EB]"
+              className="absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r-full bg-admin-primary"
             />
           )}
           <Icon
             className={`h-5 w-5 shrink-0 ${
-              childActive || flyoutOpen ? 'text-[#2563EB]' : 'text-[#64748B] group-hover:text-[#1E293B]'
+              childActive || flyoutOpen ? 'text-admin-focus' : 'text-admin-subtle group-hover:text-admin-text'
             }`}
           />
           <span
             role="tooltip"
-            className="pointer-events-none absolute left-full top-1/2 z-50 ml-2 -translate-y-1/2 whitespace-nowrap rounded-md border border-[#E5E7EB] bg-white px-2 py-1 text-xs font-medium text-[#1E293B] opacity-0 shadow-sm transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100"
+            className="pointer-events-none absolute left-full top-1/2 z-50 ml-2 -translate-y-1/2 whitespace-nowrap rounded-md border border-admin-border bg-admin-elevated px-2 py-1 text-xs font-medium text-admin-text opacity-0 shadow-xl transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100"
           >
             {group.label}
           </span>
@@ -80,9 +80,9 @@ export function SidebarGroup({ group, collapsed, onNavigate }: SidebarGroupProps
           <div
             id={panelId}
             role="menu"
-            className="absolute left-full top-0 z-50 ml-2 min-w-[200px] rounded-[10px] border border-[#E5E7EB] bg-[#FCFBF8] p-2 shadow-sm"
+            className="absolute left-full top-0 z-50 ml-2 min-w-[200px] rounded-[10px] border border-admin-border bg-admin-surface p-2 shadow-xl"
           >
-            <p className="mb-1.5 px-2 text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">
+            <p className="mb-1.5 px-2 text-[11px] font-semibold uppercase tracking-wider text-admin-subtle">
               {group.label}
             </p>
             <ul className="space-y-0.5">
@@ -100,14 +100,14 @@ export function SidebarGroup({ group, collapsed, onNavigate }: SidebarGroupProps
                       className={({ isActive }) =>
                         [
                           'flex h-10 items-center gap-2.5 rounded-[10px] px-2.5 text-sm font-medium transition-colors',
-                          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/40',
+                          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-focus',
                           isActive
-                            ? 'bg-[#EFF6FF] text-[#2563EB]'
-                            : 'text-[#1E293B] hover:bg-black/[0.03]',
+                            ? 'bg-blue-50 text-admin-focus'
+                            : 'text-admin-secondary hover:bg-admin-muted',
                         ].join(' ')
                       }
                     >
-                      <ChildIcon className="h-4 w-4 shrink-0 text-[#64748B]" />
+                      <ChildIcon className="h-4 w-4 shrink-0 text-admin-subtle" />
                       <span className="truncate">{child.label}</span>
                     </NavLink>
                   </li>
@@ -129,20 +129,20 @@ export function SidebarGroup({ group, collapsed, onNavigate }: SidebarGroupProps
         onClick={() => setOpen((prev) => !prev)}
         className={[
           'group relative flex h-11 w-full items-center gap-3 rounded-[10px] px-3 text-sm font-medium transition-colors duration-150',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/40',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-focus',
           childActive
-            ? 'bg-[#EFF6FF]/70 text-[#2563EB]'
-            : 'text-[#1E293B] hover:bg-black/[0.03]',
+            ? 'bg-blue-50 text-admin-focus'
+            : 'text-admin-secondary hover:bg-admin-muted',
         ].join(' ')}
       >
         <Icon
           className={`h-5 w-5 shrink-0 ${
-            childActive ? 'text-[#2563EB]' : 'text-[#64748B] group-hover:text-[#1E293B]'
+            childActive ? 'text-admin-focus' : 'text-admin-subtle group-hover:text-admin-text'
           }`}
         />
         <span className="flex-1 truncate text-left">{group.label}</span>
         <ChevronDown
-          className={`h-4 w-4 shrink-0 text-[#64748B] transition-transform duration-200 ${
+          className={`h-4 w-4 shrink-0 text-admin-subtle transition-transform duration-200 ${
             open ? 'rotate-180' : ''
           }`}
         />
