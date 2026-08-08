@@ -6,6 +6,7 @@ import { EnquiryFormModal } from '../components/EnquiryFormModal';
 import { EnquiryStageBadge } from '../components/EnquiryStageBadge';
 import { whatsappUrl } from '../contact';
 import type { Enquiry, EnquiryStage } from '../types';
+import { AdminButton, AdminPageHeader } from '../components/ui';
 
 const STAGES: Array<{ value: EnquiryStage | 'all'; label: string }> = [
   { value: 'all', label: 'All' },
@@ -54,10 +55,7 @@ export function WorkEnquiriesPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-5">
-      <header className="flex items-end justify-between gap-3">
-        <div><p className="text-sm font-semibold text-blue-600">Customer enquiries</p><h1 className="text-2xl font-bold text-slate-900">Who needs a reply?</h1><p className="mt-1 text-sm text-slate-500">Every new customer starts here.</p></div>
-        <button type="button" onClick={() => setParams({ new: '1' })} className="hidden h-11 items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white sm:flex"><Plus className="h-4 w-4" /> Add enquiry</button>
-      </header>
+      <AdminPageHeader eyebrow="Studio Operations" title="Who needs a reply?" description="Every new customer starts here." actions={<AdminButton onClick={() => setParams({ new: '1' })} className="hidden sm:inline-flex"><Plus className="h-4 w-4" />Add enquiry</AdminButton>} />
 
       {error && <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"><AlertCircle className="h-5 w-5" />{error}<button className="ml-auto font-semibold" onClick={() => void load()}>Try again</button></div>}
 

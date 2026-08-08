@@ -1,64 +1,65 @@
-import { NavLink } from 'react-router-dom';
-import type { LucideIcon } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import type { NavigationNode } from '../../nav/config';
 
 type SidebarItemProps = {
-  to: string;
-  label: string;
-  icon: LucideIcon;
+  item: NavigationNode & { route: string };
+  activeRoute?: string;
   collapsed: boolean;
   nested?: boolean;
   onNavigate?: () => void;
 };
 
 export function SidebarItem({
-  to,
-  label,
-  icon: Icon,
+  item,
+  activeRoute,
   collapsed,
   nested = false,
   onNavigate,
 }: SidebarItemProps) {
+  const Icon = item.icon;
+  const active = item.route === activeRoute;
+
   return (
     <li className="relative">
-      <NavLink
-        to={to}
+      <Link
+        to={item.route}
         onClick={onNavigate}
-        title={collapsed ? label : undefined}
-        aria-label={collapsed ? label : undefined}
-        className={({ isActive }) =>
-          [
-            'group relative flex h-11 items-center gap-3 rounded-[10px] text-sm font-medium transition-colors duration-150',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-focus',
-            collapsed ? 'justify-center px-0' : nested ? 'pl-10 pr-3' : 'px-3',
-            isActive
-              ? 'bg-blue-50 text-admin-focus'
-              : 'text-admin-secondary hover:bg-admin-muted hover:text-admin-text',
-          ].join(' ')
-        }
+        aria-current={active ? 'page' : undefined}
+        aria-label={collapsed ? item.label : undefined}
+        data-sidebar-control="true"
+        className={[
+          'group relative flex min-h-10 items-center gap-3 rounded-xl text-sm font-medium outline-none transition-colors duration-150',
+          'focus-visible:ring-2 focus-visible:ring-admin-nav-focus focus-visible:ring-offset-1 focus-visible:ring-offset-admin-nav',
+          collapsed ? 'justify-center px-0' : nested ? 'pl-10 pr-3' : 'px-3',
+          active
+            ? 'bg-admin-nav-active text-admin-nav-active-text'
+            : 'text-admin-nav-secondary hover:bg-admin-nav-hover hover:text-admin-nav-text',
+        ].join(' ')}
       >
-        {({ isActive }) => (
-          <>
-            {isActive && (
-              <span
-                aria-hidden
-                className="absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r-full bg-admin-primary"
-              />
-            )}
-            <Icon
-              className={`h-5 w-5 shrink-0 ${isActive ? 'text-admin-focus' : 'text-admin-subtle group-hover:text-admin-text'}`}
-            />
-            {!collapsed && <span className="truncate">{label}</span>}
-            {collapsed && (
-              <span
-                role="tooltip"
-                className="pointer-events-none absolute left-full top-1/2 z-50 ml-2 -translate-y-1/2 whitespace-nowrap rounded-md border border-admin-border bg-admin-elevated px-2 py-1 text-xs font-medium text-admin-text opacity-0 shadow-xl transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100"
-              >
-                {label}
-              </span>
-            )}
-          </>
+        {active && (
+          <span
+            aria-hidden="true"
+            className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-admin-nav-indicator"
+          />
         )}
-      </NavLink>
+        <Icon
+          aria-hidden="true"
+          className={`h-[18px] w-[18px] shrink-0 ${
+            active
+              ? 'text-admin-nav-icon-active'
+              : 'text-admin-nav-icon group-hover:text-admin-nav-text'
+          }`}
+        />
+        {!collapsed && <span className="min-w-0 truncate">{item.label}</span>}
+        {collapsed && (
+          <span
+            role="tooltip"
+            className="pointer-events-none absolute left-full top-1/2 z-[70] ml-3 -translate-y-1/2 whitespace-nowrap rounded-lg border border-admin-border bg-admin-surface px-2.5 py-1.5 text-xs font-semibold text-admin-text opacity-0 shadow-xl transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
+          >
+            {item.label}
+          </span>
+        )}
+      </Link>
     </li>
   );
 }

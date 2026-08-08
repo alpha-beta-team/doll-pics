@@ -20,7 +20,9 @@ type PendingDialog = {
 export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
   const [dialog, setDialog] = useState<PendingDialog | null>(null);
   const dialogRef = useRef<PendingDialog | null>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
+  const restoreFocusRef = useRef<HTMLElement | null>(null);
 
   const close = useCallback((confirmed: boolean) => {
     const pending = dialogRef.current;
@@ -40,17 +42,31 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!dialog) return;
+    restoreFocusRef.current = document.activeElement as HTMLElement | null;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     cancelButtonRef.current?.focus();
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') close(false);
+      if (event.key !== 'Tab' || !panelRef.current) return;
+      const focusable = Array.from(panelRef.current.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'));
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener('keydown', handleKeyDown);
+      restoreFocusRef.current?.focus();
     };
   }, [close, dialog]);
 
@@ -72,11 +88,12 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
           }}
         >
           <div
+            ref={panelRef}
             role="alertdialog"
             aria-modal="true"
             aria-labelledby="confirm-dialog-title"
             aria-describedby={options.description ? 'confirm-dialog-description' : undefined}
-            className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl"
+            className="w-full max-w-md rounded-2xl border border-admin-border bg-admin-surface p-6 shadow-[0_24px_70px_rgba(35,31,27,0.24)]"
           >
             <div className="flex items-start gap-4">
               <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${isDanger ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}>

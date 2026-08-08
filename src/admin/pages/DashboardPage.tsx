@@ -26,6 +26,7 @@ import { api } from '../api/client';
 import { createDashboardMockData } from '../data/dashboardMockData';
 import type { Booking, Enquiry, WeeklyOwnerReport } from '../types';
 import { formatTimeWindow } from '../../shared/bookingTime';
+import { AdminButton, AdminPageHeader } from '../components/ui';
 
 type Period = 7 | 30 | 90 | 'all';
 
@@ -318,24 +319,11 @@ export function DashboardPage() {
 
   return (
     <div className="mx-auto w-full max-w-[1600px] space-y-6">
-      <header className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
-        <div>
-          <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-blue-600">
-            <span className="h-1.5 w-1.5 rounded-full bg-blue-600" />
-            Studio pulse
-            {isUsingMockData && (
-              <span className="ml-1 rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 text-[10px] tracking-normal text-violet-700">
-                Sample data
-              </span>
-            )}
-          </div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">Dashboard</h1>
-          <p className="mt-1.5 text-sm text-slate-500">
-            See demand, lead potential, and how enquiries turn into shoots.
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+      <AdminPageHeader
+        eyebrow={<span className="inline-flex items-center gap-2">Studio pulse{isUsingMockData && <span className="rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 text-[10px] tracking-normal text-violet-700">Sample data</span>}</span>}
+        title="Reports Summary"
+        description="See demand, lead potential, and how enquiries turn into shoots."
+        actions={<>
           <div className="inline-flex rounded-lg border border-slate-200 bg-white p-1 shadow-sm" aria-label="Dashboard period">
             {PERIODS.map((option) => (
               <button
@@ -352,17 +340,16 @@ export function DashboardPage() {
               </button>
             ))}
           </div>
-          <button
-            type="button"
+          <AdminButton
+            variant="secondary"
             onClick={() => void loadDashboard(true)}
             disabled={isRefreshing}
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-wait disabled:opacity-60"
           >
             <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
             Refresh
-          </button>
-        </div>
-      </header>
+          </AdminButton>
+        </>}
+      />
 
       {error && (
         <div className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800" role="alert">

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { AlertCircle, CalendarCheck, CheckCircle2, RefreshCw, ShieldCheck } from 'lucide-react';
 import { api } from '../api/client';
 import type { GoogleCalendarIntegrationStatus } from '../types';
+import { AdminPageHeader } from '../components/ui';
 
 export function IntegrationsPage() {
   const [status, setStatus] = useState<GoogleCalendarIntegrationStatus | null>(null);
@@ -25,7 +26,7 @@ export function IntegrationsPage() {
 
   if (loading) return <div className="p-10 text-center text-slate-500">Loading integrations…</div>;
   return <div className="mx-auto max-w-4xl space-y-5">
-    <header><p className="text-sm font-semibold text-blue-600">Owner controls</p><h1 className="text-2xl font-bold text-slate-900">Integrations</h1><p className="mt-1 text-sm text-slate-500">Check the shared studio Calendar without exposing credentials.</p></header>
+    <AdminPageHeader eyebrow="Studio Settings" title="Integrations" description="Check the shared studio Calendar without exposing credentials." />
     {error && <div className="flex gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"><AlertCircle className="h-5 w-5 shrink-0" />{error}</div>}
     {message && <div className="flex gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-700"><CheckCircle2 className="h-5 w-5" />{message}</div>}
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">

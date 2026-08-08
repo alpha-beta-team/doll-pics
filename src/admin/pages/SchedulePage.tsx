@@ -18,6 +18,7 @@ import {
   minutesToTime, occupiesSchedule, scheduleDates, slotHasConflict, timeToMinutes,
   visibleHourBounds, windowsOverlap,
 } from './schedule.utils';
+import { AdminIconButton, AdminPageHeader } from '../components/ui';
 
 type ViewMode = 'day' | 'week';
 type SlotChoice = { bookingDate: string; startTime: string };
@@ -151,16 +152,13 @@ export function SchedulePage() {
 
   return (
     <div className="mx-auto max-w-[1700px] space-y-5">
-      <header className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-        <div><h1 className="text-2xl font-semibold text-slate-900">Studio schedule</h1><p className="mt-1 text-sm text-slate-500 md:hidden">Choose a day, then tap an available time.</p><p className="mt-1 hidden text-sm text-slate-500 md:block">Plan shoots and prevent overlapping bookings. Times use Asia/Kolkata.</p></div>
-        <div className="flex flex-wrap items-center gap-2">
+      <AdminPageHeader eyebrow="Overview" title="Studio schedule" description={<><span className="md:hidden">Choose a day, then tap an available time.</span><span className="hidden md:inline">Plan shoots and prevent overlapping bookings. Times use Asia/Kolkata.</span></>} actions={<>
           <div className="hidden grid-cols-2 rounded-xl bg-slate-100 p-1 md:grid">
             {(['day', 'week'] as const).map(mode => <button key={mode} type="button" onClick={() => setView(mode)} className={`h-10 rounded-lg px-4 text-sm font-semibold capitalize ${view === mode ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`}>{mode}</button>)}
           </div>
           <label className="flex h-11 items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700"><input type="checkbox" checked={showCancelled} onChange={event => setShowCancelled(event.target.checked)} /> Show cancelled</label>
-          <button type="button" onClick={() => void loadSchedule(true)} disabled={refreshing} className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-600" aria-label="Refresh schedule"><RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} /></button>
-        </div>
-      </header>
+          <AdminIconButton label="Refresh schedule" onClick={() => void loadSchedule(true)} disabled={refreshing}><RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} /></AdminIconButton>
+        </>} />
 
       <section className="hidden flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm md:flex">
         <div className="flex items-center gap-2"><button type="button" onClick={() => move(-1)} className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-300" aria-label="Previous period"><ChevronLeft className="h-5 w-5" /></button><button type="button" onClick={() => move(1)} className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-300" aria-label="Next period"><ChevronRight className="h-5 w-5" /></button><button type="button" onClick={() => setAnchorDate(kolkataToday())} className="h-11 rounded-xl border border-slate-300 px-4 text-sm font-semibold text-slate-700">Today</button></div>

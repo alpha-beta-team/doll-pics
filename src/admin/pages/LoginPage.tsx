@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Camera, AlertCircle } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { AdminAlert, AdminButton, AdminField, adminFieldClass } from '../components/ui';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
@@ -38,70 +39,57 @@ export function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-admin-canvas p-4 text-admin-text">
       <div className="w-full max-w-md">
-        <div className="rounded-xl border border-admin-border bg-admin-elevated p-8 shadow-xl shadow-black/20">
+        <div className="rounded-2xl border border-admin-border bg-admin-elevated p-7 shadow-[0_24px_70px_rgba(62,56,46,0.12)] sm:p-8">
           <div className="flex flex-col items-center mb-8">
-            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-admin-primary">
-              <Camera className="w-6 h-6 text-white" />
-            </div>
-            <h1 className="text-2xl font-semibold text-admin-text">Doll Pictures Work</h1>
-            <p className="mt-1 text-sm text-admin-subtle">Sign in to see today’s enquiries and bookings</p>
+            <img src="/logo-doll.png" alt="Doll Pictures" className="mb-4 h-14 w-14 rounded-2xl border border-admin-border object-cover shadow-sm" />
+            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-admin-gold">Photography Studio</p>
+            <h1 className="text-2xl font-semibold tracking-tight text-admin-text">Welcome back</h1>
+            <p className="mt-1 text-center text-sm text-admin-subtle">Sign in to manage today’s studio work.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                <span>{error}</span>
-              </div>
+              <AdminAlert>{error}</AdminAlert>
             )}
 
-            <div>
-              <label htmlFor="email" className="mb-1 block text-sm font-medium text-admin-secondary">
-                Email
-              </label>
+            <AdminField label="Email">
               <input
                 type="email"
                 id="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                className="w-full rounded-lg border border-admin-control bg-admin-surface px-3 py-2 text-admin-text placeholder:text-admin-subtle transition-all focus:border-admin-focus focus:outline-none focus:ring-2 focus:ring-admin-focus/30"
+                className={adminFieldClass}
                 placeholder="admin@studio.com"
                 required
               />
-            </div>
+            </AdminField>
 
-            <div>
-              <label htmlFor="password" className="mb-1 block text-sm font-medium text-admin-secondary">
-                Password
-              </label>
+            <AdminField label="Password">
               <input
                 type="password"
                 id="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className="w-full rounded-lg border border-admin-control bg-admin-surface px-3 py-2 text-admin-text placeholder:text-admin-subtle transition-all focus:border-admin-focus focus:outline-none focus:ring-2 focus:ring-admin-focus/30"
+                className={adminFieldClass}
                 placeholder="Enter your password"
                 required
               />
-            </div>
+            </AdminField>
 
-            <button
+            <AdminButton
               type="submit"
               disabled={isLoading}
-              className="w-full rounded-lg bg-admin-action px-4 py-2.5 font-medium text-white transition-all hover:bg-admin-action-hover focus:outline-none focus:ring-2 focus:ring-admin-focus focus:ring-offset-2 focus:ring-offset-admin-elevated disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full"
             >
               {isLoading ? (
                 <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  Signing in...
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Signing in…
                 </span>
               ) : (
                 'Sign in'
               )}
-            </button>
+            </AdminButton>
           </form>
         </div>
       </div>

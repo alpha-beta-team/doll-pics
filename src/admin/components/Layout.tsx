@@ -1,5 +1,4 @@
-import { Link, Outlet, Navigate, useLocation } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { Outlet, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import {
   AdminShellProvider,
@@ -30,19 +29,10 @@ function AdminShell() {
         className="min-h-screen pt-16 transition-[padding] duration-200 ease-out"
         style={{ paddingLeft: sidebarWidth }}
       >
-        <div className="p-3 pb-28 sm:p-6 sm:pb-24 md:pb-6">
+        <div className="p-3 pb-28 sm:p-6 sm:pb-24 md:p-7 md:pb-7">
           <Outlet />
         </div>
       </main>
-      {location.pathname !== "/admin/schedule" && !immersiveEditor && (
-        <Link
-          to="/admin/enquiries?new=1"
-          aria-label="Add enquiry"
-          className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-20 flex h-14 w-14 items-center justify-center rounded-full bg-admin-action text-white shadow-lg transition-colors hover:bg-admin-action-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-focus focus-visible:ring-offset-2 focus-visible:ring-offset-admin-canvas md:bottom-6 md:right-6"
-        >
-          <Plus className="h-6 w-6" />
-        </Link>
-      )}
       {!immersiveEditor && <MobileBottomNav />}
     </div>
   );

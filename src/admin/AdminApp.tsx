@@ -56,11 +56,11 @@ function useAdminNoIndex() {
 export default function AdminApp() {
   useAdminNoIndex();
 
-  // Keep admin browser chrome dark without overwriting the visitor site's saved theme.
+  // Keep the admin palette independent from the visitor site's saved theme.
   useEffect(() => {
     const root = document.documentElement;
     const previousAdminTheme = root.getAttribute("data-admin-theme");
-    const bootstrappedForAdmin = previousAdminTheme === "dark";
+    const bootstrappedForAdmin = previousAdminTheme === "studio";
     const visitorTheme = root.getAttribute("data-theme");
     const prevScheme =
       bootstrappedForAdmin &&
@@ -73,9 +73,9 @@ export default function AdminApp() {
     const previousThemeColor = bootstrappedForAdmin
       ? "#2563eb"
       : themeMeta?.content;
-    root.setAttribute("data-admin-theme", "dark");
-    root.style.colorScheme = "dark";
-    if (themeMeta) themeMeta.content = "#050505";
+    root.setAttribute("data-admin-theme", "studio");
+    root.style.colorScheme = "light";
+    if (themeMeta) themeMeta.content = "#2d2b27";
     return () => {
       root.removeAttribute("data-admin-theme");
       root.style.colorScheme = prevScheme;

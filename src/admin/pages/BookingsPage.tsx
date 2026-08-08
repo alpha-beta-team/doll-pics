@@ -8,13 +8,14 @@ import {
   IndianRupee,
   Plus,
   RefreshCw,
-  UserRound,
   X,
 } from 'lucide-react';
 import { api } from '../api/client';
 import type { Booking, BookingStatus, BookingWritePayload, Enquiry, Package, TeamMember } from '../types';
 import { BookingFormModal } from '../components/BookingFormModal';
 import { formatTimeWindow } from '../../shared/bookingTime';
+import { AdminButton, AdminIconButton, AdminLoadingState, AdminPageHeader } from '../components/ui';
+import { consumeNewBookingSearch } from './bookingsRoute';
 
 export type ConvertEnquiryState = { convertFromEnquiry?: Enquiry };
 
@@ -87,6 +88,16 @@ export function BookingsPage() {
 
   useEffect(() => { void load(); }, [load]);
   useEffect(() => {
+    const next = consumeNewBookingSearch(location.search);
+    if (!next.shouldOpen) return;
+    setConvertFromEnquiry(null);
+    setCreating(true);
+    navigate(
+      { pathname: location.pathname, search: next.search },
+      { replace: true, state: location.state },
+    );
+  }, [location.pathname, location.search, location.state, navigate]);
+  useEffect(() => {
     const state = location.state as ConvertEnquiryState | null;
     if (!state?.convertFromEnquiry) return;
     setConvertFromEnquiry(state.convertFromEnquiry);
@@ -138,21 +149,11 @@ export function BookingsPage() {
     navigate(`/admin/bookings/${created.id}`);
   };
 
-  if (loading) return <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" /></div>;
+  if (loading) return <AdminLoadingState label="Loading bookings…" />;
 
   return (
     <div className="mx-auto max-w-[1500px] space-y-6">
-      <header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Bookings</h1>
-          <p className="mt-1 text-sm text-slate-500">Manage dates, ownership, payments, follow-ups, and delivery.</p>
-        </div>
-        <div className="flex gap-2">
-          <button onClick={() => setShowFilters(value => !value)} className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700"><Filter className="h-4 w-4" /> Filters</button>
-          <button onClick={() => void load(true)} disabled={refreshing} className="rounded-lg border border-slate-300 p-2 text-slate-700" aria-label="Refresh"><RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} /></button>
-          <button onClick={() => setCreating(true)} className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white"><Plus className="h-4 w-4" /> Add booking</button>
-        </div>
-      </header>
+      <AdminPageHeader eyebrow="Studio Operations" title="Bookings" description="Manage dates, ownership, payments, follow-ups, and delivery." actions={<><AdminButton variant="secondary" onClick={() => setShowFilters(value => !value)} aria-expanded={showFilters}><Filter className="h-4 w-4" />Filters</AdminButton><AdminIconButton label="Refresh bookings" onClick={() => void load(true)} disabled={refreshing}><RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} /></AdminIconButton><AdminButton onClick={() => setCreating(true)}><Plus className="h-4 w-4" />Add booking</AdminButton></>} />
 
       {error && <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"><AlertCircle className="h-5 w-5" />{error}<button className="ml-auto" onClick={() => setError('')}><X className="h-4 w-4" /></button></div>}
 
@@ -175,17 +176,16 @@ export function BookingsPage() {
       )}
 
       <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="hidden grid-cols-[1.3fr_1fr_0.9fr_0.9fr_0.9fr_32px] gap-4 border-b border-slate-200 bg-slate-50 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 md:grid">
-          <span>Customer</span><span>Booking</span><span>Assigned</span><span>Payment</span><span>Next action</span><span />
+        <div className="hidden grid-cols-[1.35fr_1.1fr_0.9fr_1fr_32px] gap-4 border-b border-slate-200 bg-slate-50 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 md:grid">
+          <span>Customer</span><span>Booking</span><span>Payment</span><span>Next action</span><span />
         </div>
         <div className="divide-y divide-slate-100">
           {visible.map(booking => {
             const overdue = booking.nextFollowUpAt && new Date(booking.nextFollowUpAt).getTime() < Date.now();
             return (
-              <button key={booking.id} onClick={() => navigate(`/admin/bookings/${booking.id}`)} className="grid w-full gap-3 px-5 py-4 text-left transition hover:bg-slate-50 md:grid-cols-[1.3fr_1fr_0.9fr_0.9fr_0.9fr_32px] md:items-center md:gap-4">
+              <button key={booking.id} onClick={() => navigate(`/admin/bookings/${booking.id}`)} className="grid w-full gap-3 px-5 py-4 text-left transition hover:bg-slate-50 md:grid-cols-[1.35fr_1.1fr_0.9fr_1fr_32px] md:items-center md:gap-4">
                 <div className="min-w-0"><p className="truncate font-medium text-slate-900">{booking.customerName}</p><p className="mt-1 truncate text-xs text-slate-500">{booking.customerPhone} · {booking.shootType || 'Service not set'}</p></div>
                 <div><p className="inline-flex items-center gap-1.5 text-sm text-slate-700"><CalendarDays className="h-4 w-4 text-slate-400" />{formatDay(booking.bookingDate)}</p>{booking.startTime && booking.endTime && <p className="mt-1 text-xs text-slate-500">{formatTimeWindow(booking.startTime, booking.endTime)}</p>}<span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-medium ${statusClass[booking.status]}`}>{booking.status.replace('_', ' ')}</span></div>
-                <p className="inline-flex items-center gap-1.5 text-sm text-slate-600"><UserRound className="h-4 w-4 text-slate-400" />{booking.assignedTeamMemberName || 'Unassigned'}</p>
                 <div><p className="inline-flex items-center gap-1 text-sm font-medium text-slate-700"><IndianRupee className="h-3.5 w-3.5" />{money(booking.paymentSummary.balanceDue)}</p><p className="mt-1 text-xs capitalize text-slate-500">{booking.paymentSummary.status}</p></div>
                 <div><p className={`text-sm ${overdue ? 'font-medium text-red-600' : 'text-slate-600'}`}>{booking.nextFollowUpAt ? new Date(booking.nextFollowUpAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : 'No follow-up'}</p>{booking.followUpNote && <p className="mt-1 truncate text-xs text-slate-400">{booking.followUpNote}</p>}</div>
                 <ChevronRight className="hidden h-5 w-5 text-slate-300 md:block" />

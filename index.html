@@ -10,9 +10,9 @@
           if (t !== 'light' && t !== 'dark') t = 'dark';
           document.documentElement.setAttribute('data-theme', t);
           if (window.location.pathname.startsWith('/admin')) {
-            document.documentElement.setAttribute('data-admin-theme', 'dark');
-            document.documentElement.style.colorScheme = 'dark';
-            document.querySelector('meta[name="theme-color"]').setAttribute('content', '#050505');
+            document.documentElement.setAttribute('data-admin-theme', 'studio');
+            document.documentElement.style.colorScheme = 'light';
+            document.querySelector('meta[name="theme-color"]').setAttribute('content', '#2d2b27');
           } else {
             document.documentElement.style.colorScheme = t;
           }
@@ -20,8 +20,9 @@
           document.documentElement.setAttribute('data-theme', 'dark');
           document.documentElement.style.colorScheme = 'dark';
           if (window.location.pathname.startsWith('/admin')) {
-            document.documentElement.setAttribute('data-admin-theme', 'dark');
-            document.querySelector('meta[name="theme-color"]').setAttribute('content', '#050505');
+            document.documentElement.setAttribute('data-admin-theme', 'studio');
+            document.documentElement.style.colorScheme = 'light';
+            document.querySelector('meta[name="theme-color"]').setAttribute('content', '#2d2b27');
           }
         }
       })();

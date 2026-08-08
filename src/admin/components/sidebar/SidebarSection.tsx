@@ -1,20 +1,9 @@
 import type { ReactNode } from 'react';
 
-type SidebarSectionProps = {
-  label: string;
-  collapsed: boolean;
-  children: ReactNode;
-};
-
-export function SidebarSection({ label, collapsed, children }: SidebarSectionProps) {
+export function SidebarSection({ children, label }: { children: ReactNode; label: string }) {
   return (
-    <div className="mb-4">
-      {!collapsed && (
-        <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-admin-subtle">
-          {label}
-        </p>
-      )}
-      <ul className="space-y-0.5">{children}</ul>
-    </div>
+    <section aria-label={label} className="space-y-1">
+      <ul className="space-y-2">{children}</ul>
+    </section>
   );
 }

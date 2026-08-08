@@ -1,6 +1,15 @@
-import { useEffect, useState, type ReactNode } from 'react';
-import { Plus, Pencil, Trash2, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { Plus, Pencil, Trash2, Eye, EyeOff } from 'lucide-react';
 import { useConfirmDialog } from '../hooks/useConfirmDialog';
+import {
+  AdminAlert,
+  AdminButton,
+  AdminCard,
+  AdminLoadingState,
+  AdminModal,
+  AdminPageHeader,
+  adminFieldClass,
+} from './ui';
 
 export interface OrderedItem {
   id: string;
@@ -41,7 +50,7 @@ export function SimpleOrderedPage<T extends OrderedItem>({
   const [editing, setEditing] = useState<Partial<T> | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     try {
       setItems(await fetchItems());
     } catch (err) {
@@ -49,9 +58,9 @@ export function SimpleOrderedPage<T extends OrderedItem>({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [fetchItems]);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { void load(); }, [load]);
 
   const handleSave = async () => {
     if (!editing) return;
@@ -98,39 +107,25 @@ export function SimpleOrderedPage<T extends OrderedItem>({
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <AdminLoadingState label={`Loading ${title.toLowerCase()}…`} />;
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
-          <p className="text-gray-500 mt-1">{description}</p>
-        </div>
-        <button
-          onClick={() => setEditing(getEmptyItem())}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700"
-        >
-          <Plus className="w-4 h-4" />
-          Add
-        </button>
-      </div>
+      <AdminPageHeader
+        eyebrow="Website"
+        title={title}
+        description={description}
+        actions={<AdminButton onClick={() => setEditing(getEmptyItem())}><Plus className="h-4 w-4" />Add</AdminButton>}
+      />
 
       {error && (
-        <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-          <AlertCircle className="w-5 h-5" />
-          <span>{error}</span>
-        </div>
+        <AdminAlert><span>{error}</span></AdminAlert>
       )}
 
       <div className="grid gap-4">
         {items.map(item => (
-          <div key={item.id} className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
+          <AdminCard key={item.id} className="flex items-center gap-4 p-4">
             {renderPreview?.(item)}
             <div className="flex items-center gap-2 ml-auto shrink-0">
               <button
@@ -158,34 +153,18 @@ export function SimpleOrderedPage<T extends OrderedItem>({
                 <Trash2 className="w-4 h-4" aria-hidden="true" />
               </button>
             </div>
-          </div>
+          </AdminCard>
         ))}
       </div>
 
-      {editing && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="p-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold">{editing.id ? 'Edit' : 'Add'} {title.slice(0, -1)}</h2>
-            </div>
-            <div className="p-4 space-y-4">
-              {renderForm(editing, (field, value) => setEditing(prev => ({ ...prev, [field]: value } as Partial<T>)))}
-            </div>
-            <div className="p-4 border-t border-gray-200 flex justify-end gap-3">
-              <button onClick={() => setEditing(null)} className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={isSaving}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-              >
-                {isSaving ? 'Saving...' : 'Save'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AdminModal
+        open={Boolean(editing)}
+        onClose={() => setEditing(null)}
+        title={`${editing?.id ? 'Edit' : 'Add'} ${title.slice(0, -1)}`}
+        footer={<div className="flex justify-end gap-3"><AdminButton variant="secondary" onClick={() => setEditing(null)}>Cancel</AdminButton><AdminButton onClick={() => void handleSave()} disabled={isSaving}>{isSaving ? 'Saving…' : 'Save'}</AdminButton></div>}
+      >
+        {editing && <div className="space-y-4">{renderForm(editing, (field, value) => setEditing(prev => ({ ...prev, [field]: value } as Partial<T>)))}</div>}
+      </AdminModal>
     </div>
   );
 }
@@ -207,7 +186,7 @@ export function FieldInput({
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className={adminFieldClass}
       />
     </div>
   );

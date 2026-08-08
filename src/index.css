@@ -618,45 +618,63 @@
   semantic admin-* Tailwind tokens above. Keeping this scope on .admin-theme
   prevents the operational palette from leaking into the public site.
 */
-[data-admin-theme='dark'],
+[data-admin-theme='studio'],
 .admin-theme {
-  color-scheme: dark;
+  color-scheme: light;
 
-  --admin-canvas: 5 5 5;
-  --admin-surface: 10 10 10;
-  --admin-elevated: 18 18 18;
-  --admin-muted-surface: 28 28 28;
-  --admin-border: 42 42 42;
-  --admin-border-strong: 64 64 64;
-  --admin-control-border: 82 82 82;
-  --admin-text: 250 250 250;
-  --admin-text-secondary: 212 212 212;
-  --admin-text-muted: 163 163 163;
-  --admin-primary: 82 82 82;
-  --admin-primary-hover: 64 64 64;
-  --admin-action-hover: 38 38 38;
-  --admin-focus: 212 212 212;
+  --admin-canvas: 247 244 238;
+  --admin-surface: 255 253 249;
+  --admin-elevated: 255 255 255;
+  --admin-muted-surface: 241 239 233;
+  --admin-border: 228 223 213;
+  --admin-border-strong: 205 199 187;
+  --admin-control-border: 193 186 173;
+  --admin-text: 43 44 39;
+  --admin-text-secondary: 82 86 77;
+  --admin-text-muted: 119 123 113;
+  --admin-primary: 79 102 84;
+  --admin-primary-hover: 64 86 70;
+  --admin-action-hover: 51 72 58;
+  --admin-focus: 98 124 104;
+  --admin-gold: 169 135 81;
 
-  --admin-info-surface: 38 38 38;
-  --admin-info-border: 82 82 82;
-  --admin-info-text: 229 229 229;
-  --admin-success-surface: 5 46 22;
-  --admin-success-border: 22 101 52;
-  --admin-success-text: 134 239 172;
-  --admin-success-action: 4 120 87;
-  --admin-warning-surface: 69 26 3;
-  --admin-warning-border: 146 64 14;
-  --admin-warning-text: 252 211 77;
-  --admin-danger-surface: 69 10 10;
-  --admin-danger-border: 153 27 27;
-  --admin-danger-text: 252 165 165;
-  --admin-violet-surface: 46 16 101;
-  --admin-violet-border: 109 40 217;
-  --admin-violet-text: 196 181 253;
-  --admin-violet-muted: 91 33 182;
+  --admin-info-surface: 237 243 237;
+  --admin-info-border: 181 201 184;
+  --admin-info-text: 56 81 62;
+  --admin-success-surface: 235 247 238;
+  --admin-success-border: 166 211 177;
+  --admin-success-text: 36 111 58;
+  --admin-success-action: 47 132 73;
+  --admin-warning-surface: 253 246 226;
+  --admin-warning-border: 231 203 139;
+  --admin-warning-text: 142 94 24;
+  --admin-danger-surface: 253 238 236;
+  --admin-danger-border: 235 178 171;
+  --admin-danger-text: 172 55 47;
+  --admin-violet-surface: 245 240 248;
+  --admin-violet-border: 211 192 221;
+  --admin-violet-text: 104 67 123;
+  --admin-violet-muted: 228 216 235;
+
+  --admin-nav: 45 43 39;
+  --admin-nav-deep: 39 37 33;
+  --admin-nav-border: 68 64 57;
+  --admin-nav-text: 247 243 234;
+  --admin-nav-secondary: 205 199 186;
+  --admin-nav-muted: 155 149 137;
+  --admin-nav-icon: 172 166 153;
+  --admin-nav-hover: 57 55 49;
+  --admin-nav-active: 62 77 65;
+  --admin-nav-active-text: 240 247 241;
+  --admin-nav-icon-active: 173 203 179;
+  --admin-nav-indicator: 184 207 188;
+  --admin-nav-focus: 202 170 113;
+  --admin-nav-cta: 112 139 117;
+  --admin-nav-cta-hover: 128 155 133;
+  --admin-nav-cta-text: 255 255 255;
 }
 
-[data-admin-theme='dark'] body {
+[data-admin-theme='studio'] body {
   background: rgb(var(--admin-canvas));
 }
 
@@ -669,6 +687,64 @@
 .admin-theme ::selection {
   background-color: rgb(var(--admin-primary) / 0.35);
   color: rgb(var(--admin-text));
+}
+
+.admin-theme :where(*) {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--admin-control-border)) transparent;
+}
+
+.admin-theme :where(*)::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.admin-theme :where(*)::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgb(var(--admin-control-border));
+  background-clip: padding-box;
+}
+
+.admin-theme :where(button, a, input, select, textarea) {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.admin-theme .action {
+  border-color: rgb(var(--admin-border));
+  background-color: rgb(var(--admin-surface));
+  color: rgb(var(--admin-text-secondary));
+  transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease;
+}
+
+.admin-theme .action:hover {
+  border-color: rgb(var(--admin-primary) / 0.45);
+  background-color: rgb(var(--admin-muted-surface));
+  color: rgb(var(--admin-text));
+}
+
+.admin-theme .action.text-white,
+.admin-theme .action.text-white:hover {
+  color: rgb(255 255 255);
+}
+
+.admin-theme .action.bg-blue-600:hover,
+.admin-theme .action.bg-slate-900:hover {
+  border-color: rgb(var(--admin-primary-hover));
+  background-color: rgb(var(--admin-primary-hover));
+}
+
+.admin-theme .action.bg-emerald-600:hover {
+  border-color: rgb(var(--admin-success-action));
+  background-color: rgb(var(--admin-success-action) / 0.9);
+}
+
+.admin-theme :where(table) {
+  color: rgb(var(--admin-text-secondary));
+}
+
+.admin-theme :where(th) {
+  color: rgb(var(--admin-text-muted));
 }
 
 /* Neutral surfaces and typography. */
@@ -700,7 +776,7 @@
 
 .admin-theme .bg-gray-900,
 .admin-theme .bg-slate-900 {
-  background-color: rgb(var(--admin-border-strong));
+  background-color: rgb(var(--admin-primary-hover));
 }
 
 .admin-theme .text-gray-900,
@@ -793,7 +869,7 @@
   background-color: rgb(0 0 0 / 0.78);
 }
 
-/* Legacy blue utilities are remapped to the monochrome admin palette. */
+/* Legacy blue utilities are remapped to the studio sage palette. */
 .admin-theme .bg-blue-600 {
   background-color: rgb(var(--admin-primary-hover));
 }
@@ -1096,7 +1172,7 @@
 }
 
 .admin-theme :where(audio) {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 /* Image editors keep the photograph neutral while their chrome stays dark. */

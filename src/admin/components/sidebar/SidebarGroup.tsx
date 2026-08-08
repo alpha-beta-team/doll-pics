@@ -1,118 +1,107 @@
-import { useEffect, useId, useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 import { ChevronDown } from 'lucide-react';
-import type { NavGroup } from '../../nav/config';
+import type { NavigationNode } from '../../nav/config';
 import { SidebarItem } from './SidebarItem';
 
 type SidebarGroupProps = {
-  group: NavGroup;
+  group: NavigationNode;
+  activeRoute?: string;
   collapsed: boolean;
+  utility?: boolean;
   onNavigate?: () => void;
 };
 
-function pathMatches(pathname: string, to: string) {
-  return pathname === to || pathname.startsWith(`${to}/`);
-}
-
-export function SidebarGroup({ group, collapsed, onNavigate }: SidebarGroupProps) {
-  const location = useLocation();
+export function SidebarGroup({
+  group,
+  activeRoute,
+  collapsed,
+  utility = false,
+  onNavigate,
+}: SidebarGroupProps) {
   const panelId = useId();
-  const childActive = group.children.some((child) => pathMatches(location.pathname, child.to));
-  const [open, setOpen] = useState(childActive);
+  const childActive = group.children?.some((child) => child.route === activeRoute) ?? false;
+  const [open, setOpen] = useState(childActive || group.id === 'overview');
   const [flyoutOpen, setFlyoutOpen] = useState(false);
+  const flyoutRef = useRef<HTMLDivElement>(null);
+  const Icon = group.icon;
 
   useEffect(() => {
-    if (childActive) {
-      setOpen(true);
-    }
+    if (childActive) setOpen(true);
   }, [childActive]);
 
   useEffect(() => {
-    if (!collapsed) {
-      setFlyoutOpen(false);
-    }
+    if (!collapsed) setFlyoutOpen(false);
   }, [collapsed]);
 
-  const Icon = group.icon;
+  const handleFlyoutKey = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      (event.currentTarget as HTMLElement).focus();
+      setFlyoutOpen(false);
+    }
+  };
 
   if (collapsed) {
     return (
-      <li
-        className="relative"
-        onMouseLeave={() => setFlyoutOpen(false)}
-      >
+      <li className="relative" onMouseLeave={() => setFlyoutOpen(false)}>
         <button
           type="button"
           aria-label={group.label}
           aria-expanded={flyoutOpen}
           aria-controls={panelId}
-          title={group.label}
-          onClick={() => setFlyoutOpen((prev) => !prev)}
+          data-sidebar-control="true"
+          onClick={() => setFlyoutOpen((current) => !current)}
           onFocus={() => setFlyoutOpen(true)}
+          onKeyDown={handleFlyoutKey}
           className={[
-            'group relative flex h-11 w-full items-center justify-center rounded-[10px] text-sm font-medium transition-colors duration-150',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-focus',
+            'group relative flex min-h-10 w-full items-center justify-center rounded-xl text-sm outline-none transition-colors',
+            'focus-visible:ring-2 focus-visible:ring-admin-nav-focus focus-visible:ring-offset-1 focus-visible:ring-offset-admin-nav',
             childActive || flyoutOpen
-              ? 'bg-blue-50 text-admin-focus'
-              : 'text-admin-secondary hover:bg-admin-muted',
+              ? 'text-admin-nav-active-text'
+              : 'text-admin-nav-secondary hover:bg-admin-nav-hover hover:text-admin-nav-text',
           ].join(' ')}
         >
-          {(childActive || flyoutOpen) && (
-            <span
-              aria-hidden
-              className="absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r-full bg-admin-primary"
-            />
-          )}
           <Icon
-            className={`h-5 w-5 shrink-0 ${
-              childActive || flyoutOpen ? 'text-admin-focus' : 'text-admin-subtle group-hover:text-admin-text'
-            }`}
+            aria-hidden="true"
+            className={`h-[18px] w-[18px] ${childActive ? 'text-admin-nav-icon-active' : 'text-admin-nav-icon group-hover:text-admin-nav-text'}`}
           />
-          <span
-            role="tooltip"
-            className="pointer-events-none absolute left-full top-1/2 z-50 ml-2 -translate-y-1/2 whitespace-nowrap rounded-md border border-admin-border bg-admin-elevated px-2 py-1 text-xs font-medium text-admin-text opacity-0 shadow-xl transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100"
-          >
-            {group.label}
-          </span>
+          {!flyoutOpen && (
+            <span
+              role="tooltip"
+              className="pointer-events-none absolute left-full top-1/2 z-[70] ml-3 -translate-y-1/2 whitespace-nowrap rounded-lg border border-admin-border bg-admin-surface px-2.5 py-1.5 text-xs font-semibold text-admin-text opacity-0 shadow-xl transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
+            >
+              {group.label}
+            </span>
+          )}
         </button>
 
         {flyoutOpen && (
           <div
+            ref={flyoutRef}
             id={panelId}
-            role="menu"
-            className="absolute left-full top-0 z-50 ml-2 min-w-[200px] rounded-[10px] border border-admin-border bg-admin-surface p-2 shadow-xl"
+            className={`absolute left-full z-[65] ml-3 min-w-56 rounded-xl border border-admin-border bg-admin-surface p-2 shadow-2xl ${utility ? 'bottom-0' : 'top-0'}`}
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') {
+                setFlyoutOpen(false);
+              }
+            }}
           >
-            <p className="mb-1.5 px-2 text-[11px] font-semibold uppercase tracking-wider text-admin-subtle">
+            <p className="px-2.5 pb-2 pt-1 text-[11px] font-bold uppercase tracking-[0.16em] text-admin-subtle">
               {group.label}
             </p>
-            <ul className="space-y-0.5">
-              {group.children.map((child) => {
-                const ChildIcon = child.icon;
-                return (
-                  <li key={child.to}>
-                    <NavLink
-                      to={child.to}
-                      role="menuitem"
-                      onClick={() => {
-                        setFlyoutOpen(false);
-                        onNavigate?.();
-                      }}
-                      className={({ isActive }) =>
-                        [
-                          'flex h-10 items-center gap-2.5 rounded-[10px] px-2.5 text-sm font-medium transition-colors',
-                          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-focus',
-                          isActive
-                            ? 'bg-blue-50 text-admin-focus'
-                            : 'text-admin-secondary hover:bg-admin-muted',
-                        ].join(' ')
-                      }
-                    >
-                      <ChildIcon className="h-4 w-4 shrink-0 text-admin-subtle" />
-                      <span className="truncate">{child.label}</span>
-                    </NavLink>
-                  </li>
-                );
-              })}
+            <ul className="space-y-1">
+              {group.children?.filter((child): child is NavigationNode & { route: string } => Boolean(child.route)).map((child) => (
+                <SidebarItem
+                  key={child.id}
+                  item={child}
+                  activeRoute={activeRoute}
+                  collapsed={false}
+                  onNavigate={() => {
+                    setFlyoutOpen(false);
+                    onNavigate?.();
+                  }}
+                />
+              ))}
             </ul>
           </div>
         )}
@@ -126,43 +115,45 @@ export function SidebarGroup({ group, collapsed, onNavigate }: SidebarGroupProps
         type="button"
         aria-expanded={open}
         aria-controls={panelId}
-        onClick={() => setOpen((prev) => !prev)}
+        data-sidebar-control="true"
+        onClick={() => setOpen((current) => !current)}
         className={[
-          'group relative flex h-11 w-full items-center gap-3 rounded-[10px] px-3 text-sm font-medium transition-colors duration-150',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-focus',
+          'group flex min-h-10 w-full items-center gap-3 rounded-xl px-3 text-sm font-semibold outline-none transition-colors',
+          'focus-visible:ring-2 focus-visible:ring-admin-nav-focus focus-visible:ring-offset-1 focus-visible:ring-offset-admin-nav',
           childActive
-            ? 'bg-blue-50 text-admin-focus'
-            : 'text-admin-secondary hover:bg-admin-muted',
+            ? 'text-admin-nav-active-text'
+            : 'text-admin-nav-secondary hover:bg-admin-nav-hover hover:text-admin-nav-text',
         ].join(' ')}
       >
         <Icon
-          className={`h-5 w-5 shrink-0 ${
-            childActive ? 'text-admin-focus' : 'text-admin-subtle group-hover:text-admin-text'
-          }`}
+          aria-hidden="true"
+          className={`h-[18px] w-[18px] shrink-0 ${childActive ? 'text-admin-nav-icon-active' : 'text-admin-nav-icon group-hover:text-admin-nav-text'}`}
         />
-        <span className="flex-1 truncate text-left">{group.label}</span>
+        <span className="min-w-0 flex-1 truncate text-left">{group.label}</span>
         <ChevronDown
-          className={`h-4 w-4 shrink-0 text-admin-subtle transition-transform duration-200 ${
-            open ? 'rotate-180' : ''
-          }`}
+          aria-hidden="true"
+          className={`h-4 w-4 shrink-0 text-admin-nav-muted transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
         />
       </button>
-
-      {open && (
-        <ul id={panelId} className="mt-0.5 space-y-0.5">
-          {group.children.map((child) => (
-            <SidebarItem
-              key={child.to}
-              to={child.to}
-              label={child.label}
-              icon={child.icon}
-              collapsed={false}
-              nested
-              onNavigate={onNavigate}
-            />
-          ))}
-        </ul>
-      )}
+      <div
+        id={panelId}
+        className={`grid transition-[grid-template-rows,opacity] duration-200 ${open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
+      >
+        <div className="overflow-hidden">
+          <ul className="mt-1 space-y-1 pb-1">
+            {group.children?.filter((child): child is NavigationNode & { route: string } => Boolean(child.route)).map((child) => (
+              <SidebarItem
+                key={child.id}
+                item={child}
+                activeRoute={activeRoute}
+                collapsed={false}
+                nested
+                onNavigate={onNavigate}
+              />
+            ))}
+          </ul>
+        </div>
+      </div>
     </li>
   );
 }
