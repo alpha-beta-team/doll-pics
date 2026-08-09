@@ -157,7 +157,7 @@ export const photosApi = {
         const signed = await request<{
           storageKey: string;
           uploadUrl: string;
-          headers: { 'Content-Type': string };
+          headers: Record<string, string>;
         }>('/admin/photos/uploads/presign', {
           method: 'POST',
           auth: true,
@@ -171,7 +171,7 @@ export const photosApi = {
         await putWithProgress(
           signed.uploadUrl,
           upload.file,
-          signed.headers['Content-Type'],
+          signed.headers,
           (progress) => onProgress?.(clientId, progress),
         );
 
@@ -224,13 +224,15 @@ export const photosApi = {
 function putWithProgress(
   url: string,
   file: File,
-  contentType: string,
+  headers: Record<string, string>,
   onProgress: (progress: number) => void,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('PUT', url);
-    xhr.setRequestHeader('Content-Type', contentType);
+    for (const [name, value] of Object.entries(headers)) {
+      xhr.setRequestHeader(name, value);
+    }
     xhr.upload.onprogress = (event) => {
       if (event.lengthComputable) onProgress(Math.round((event.loaded / event.total) * 100));
     };
