@@ -17,7 +17,7 @@ import {
   PhotoLightbox,
   type LightboxPhoto,
 } from '../components/PhotoLightbox';
-import { SmoothScroll } from '../components/SmoothScroll';
+import { SmoothScroll, syncWindowScroll } from '../components/SmoothScroll';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/sections/Footer';
 import { ResponsiveImage } from '../components/ResponsiveImage';
@@ -48,6 +48,8 @@ const HERO_SIZES = '100vw';
 const GRID_SIZES =
   '(max-width: 639px) calc(100vw - 2.5rem), (max-width: 1023px) 48vw, 33vw';
 const INLINE_SIZES = '(max-width: 1023px) calc(100vw - 2.5rem), 48vw';
+const SERVICE_GALLERY_LIMIT = 30;
+const INITIAL_SERVICE_GALLERY_COUNT = 6;
 const EARLY_REVEAL_OPTIONS: IntersectionObserverInit = {
   threshold: 0.01,
   rootMargin: '0px 0px 12% 0px',
@@ -71,15 +73,6 @@ const API_ONLY_SERVICE_CATEGORIES: Record<string, string> = {
   '/cake-smash-photography-erode': 'cake-smash',
   '/family-photography-erode': 'family',
 };
-
-const PORTFOLIO_LAYOUTS = [
-  'sm:col-span-2 lg:col-span-7',
-  'lg:col-span-5 lg:mt-24',
-  'lg:col-span-4 lg:ml-[12%]',
-  'sm:col-span-2 lg:col-span-8',
-  'lg:col-span-5',
-  'lg:col-span-7 lg:mt-20',
-] as const;
 
 function normalizeServiceName(value: string) {
   return value
@@ -179,16 +172,26 @@ function ServicePageContent() {
     setApiServiceMedia({ path, images: [] });
     void Promise.all([
       publicApi.getCategory(apiServiceCategory).catch(() => null),
-      publicApi.getPhotos({ category: apiServiceCategory, limit: 24 }),
+      publicApi.getPhotos({
+        category: apiServiceCategory,
+        limit: SERVICE_GALLERY_LIMIT,
+      }),
     ])
       .then(([category, photos]) => {
         if (!cancelled) {
           const cover = category?.coverPhotoId && typeof category.coverPhotoId === 'object'
             ? serviceImagesFromApi([category.coverPhotoId])
             : [];
+          const categoryImages = serviceImagesFromApi(photos);
+          const coverKey = cover[0]?.src.split('?')[0];
           setApiServiceMedia({
             path,
-            images: [...cover, ...serviceImagesFromApi(photos)],
+            images: [
+              ...cover,
+              ...categoryImages.filter(
+                (image) => !coverKey || image.src.split('?')[0] !== coverKey,
+              ),
+            ],
           });
         }
       })
@@ -241,16 +244,19 @@ function ServicePageContent() {
 
   if (!page) return <NotFound />;
 
-  const { hero, gallery, inline } = selectServiceImages({
+  const categoryImages = (
+    apiServiceMedia.path === path ? apiServiceMedia.images : []
+  ).slice(0, SERVICE_GALLERY_LIMIT);
+  const { hero, inline } = selectServiceImages({
     imageCategories: page.imageCategories,
-    sourceImages:
-      apiServiceMedia.path === path ? apiServiceMedia.images : [],
+    sourceImages: categoryImages,
     // Service pages intentionally render category API media only.
     sourceOnly: true,
     inlineCount: page.sections.length,
     featuredWork: [],
     galleryImages: [],
   });
+  const categoryGallery = categoryImages;
   const shootType = resolveShootType(
     path,
     page.label,
@@ -264,7 +270,7 @@ function ServicePageContent() {
   const phoneHref = siteContent.phone
     ? `tel:${siteContent.phone.replace(/\s/g, '')}`
     : undefined;
-  const lightboxPhotos = gallery.map<LightboxPhoto>((image, index) => ({
+  const lightboxPhotos = categoryGallery.map<LightboxPhoto>((image, index) => ({
     id: `${image.src}-${index}`,
     src: image.src,
     alt: image.alt,
@@ -302,24 +308,24 @@ function ServicePageContent() {
         />
 
         <ServiceSectionNav
-          hasPortfolio={gallery.length > 0}
+          hasGallery={categoryGallery.length > 0}
           hasExperience={page.sections.length > 0}
           hasFaq={page.faqs.length > 0}
         />
 
-        {gallery.length > 0 ? (
-          <ServicePortfolio
-            images={gallery}
+        {page.sections.length > 0 ? (
+          <ServiceExperience sections={page.sections} images={inline} />
+        ) : null}
+
+        {categoryGallery.length > 0 ? (
+          <ServiceCategoryGallery
+            images={categoryGallery}
             label={page.label}
             onOpen={(index, trigger) => {
               lightboxTrigger.current = trigger;
               setLightboxIndex(index);
             }}
           />
-        ) : null}
-
-        {page.sections.length > 0 ? (
-          <ServiceExperience sections={page.sections} images={inline} />
         ) : null}
 
         <ServiceLocation
@@ -505,17 +511,17 @@ function ServiceHero({
 }
 
 function ServiceSectionNav({
-  hasPortfolio,
+  hasGallery,
   hasExperience,
   hasFaq,
 }: {
-  hasPortfolio: boolean;
+  hasGallery: boolean;
   hasExperience: boolean;
   hasFaq: boolean;
 }) {
   const links = [
-    hasPortfolio ? { label: 'Portfolio', href: '#portfolio' } : null,
     hasExperience ? { label: 'Experience', href: '#experience' } : null,
+    hasGallery ? { label: 'Gallery', href: '#service-gallery' } : null,
     { label: 'Studio', href: '#studio' },
     hasFaq ? { label: 'FAQ', href: '#faq' } : null,
     { label: 'Contact', href: '#contact' },
@@ -545,7 +551,7 @@ function ServiceSectionNav({
   );
 }
 
-function ServicePortfolio({
+function ServiceCategoryGallery({
   images,
   label,
   onOpen,
@@ -555,47 +561,162 @@ function ServicePortfolio({
   onOpen: (index: number, trigger: HTMLElement) => void;
 }) {
   const { ref, inView } = useInView<HTMLDivElement>(EARLY_REVEAL_OPTIONS);
+  const [expanded, setExpanded] = useState(false);
+  const [hasExpandedOnce, setHasExpandedOnce] = useState(false);
+  const [hasRevealed, setHasRevealed] = useState(false);
+  const [galleryHeight, setGalleryHeight] = useState<number | null>(null);
+  const galleryEndRef = useRef<HTMLDivElement>(null);
+  const expandFrame = useRef<number | null>(null);
+  const collapseAnchorFrame = useRef<number | null>(null);
+  const collapseAnchorUntil = useRef(0);
+  const expandedRef = useRef(expanded);
+  const galleryImages = images.slice(0, SERVICE_GALLERY_LIMIT);
+  const renderedImages = hasExpandedOnce
+    ? galleryImages
+    : galleryImages.slice(0, INITIAL_SERVICE_GALLERY_COUNT);
+  const visibleCount = expanded
+    ? galleryImages.length
+    : Math.min(INITIAL_SERVICE_GALLERY_COUNT, galleryImages.length);
+  expandedRef.current = expanded;
+
+  useEffect(() => {
+    if (inView) setHasRevealed(true);
+  }, [inView]);
+
+  useEffect(() => {
+    setExpanded(false);
+    setHasExpandedOnce(false);
+    setHasRevealed(false);
+    setGalleryHeight(null);
+  }, [label]);
+
+  useEffect(() => {
+    const grid = ref.current;
+    if (!grid) return;
+
+    const measure = () => {
+      const measuredVisibleCount = expandedRef.current
+        ? galleryImages.length
+        : Math.min(INITIAL_SERVICE_GALLERY_COUNT, galleryImages.length);
+      const lastVisibleCard = grid.children[measuredVisibleCount - 1] as
+        | HTMLElement
+        | undefined;
+      const nextHeight = expandedRef.current
+        ? grid.scrollHeight
+        : lastVisibleCard
+          ? lastVisibleCard.offsetTop + lastVisibleCard.offsetHeight
+          : 0;
+      setGalleryHeight(nextHeight);
+    };
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(grid);
+    return () => observer.disconnect();
+  }, [expanded, galleryImages.length, ref, renderedImages.length]);
+
+  useEffect(
+    () => () => {
+      if (expandFrame.current !== null) {
+        cancelAnimationFrame(expandFrame.current);
+      }
+      if (collapseAnchorFrame.current !== null) {
+        cancelAnimationFrame(collapseAnchorFrame.current);
+      }
+    },
+    [],
+  );
+
+  const keepGalleryEndAnchored = () => {
+    if (performance.now() >= collapseAnchorUntil.current) {
+      collapseAnchorFrame.current = null;
+      return;
+    }
+    const galleryEnd = galleryEndRef.current;
+    if (!galleryEnd) return;
+    const targetBottom = window.innerHeight - 24;
+    const difference = galleryEnd.getBoundingClientRect().bottom - targetBottom;
+    if (Math.abs(difference) > 0.5) {
+      syncWindowScroll(window.scrollY + difference);
+    }
+    collapseAnchorFrame.current = requestAnimationFrame(keepGalleryEndAnchored);
+  };
+
+  const stopGalleryEndAnchor = () => {
+    if (collapseAnchorFrame.current !== null) {
+      cancelAnimationFrame(collapseAnchorFrame.current);
+      collapseAnchorFrame.current = null;
+    }
+  };
+
+  const toggleGallery = () => {
+    if (expanded) {
+      setExpanded(false);
+      stopGalleryEndAnchor();
+      collapseAnchorUntil.current = performance.now() + 850;
+      collapseAnchorFrame.current = requestAnimationFrame(keepGalleryEndAnchored);
+      return;
+    }
+
+    setGalleryHeight(ref.current?.scrollHeight ?? null);
+    setHasExpandedOnce(true);
+    expandFrame.current = requestAnimationFrame(() => {
+      setExpanded(true);
+      expandFrame.current = null;
+    });
+  };
 
   return (
     <section
-      id="portfolio"
-      className="service-scroll-target px-5 py-24 sm:px-8 md:py-32 lg:px-12 lg:py-40"
+      id="service-gallery"
+      aria-labelledby="service-gallery-heading"
+      className="service-scroll-target relative px-6 py-20 lg:px-10"
     >
-      <div className="mx-auto max-w-[1480px]">
-        <div className="grid gap-8 border-b border-hairline/10 pb-12 lg:grid-cols-12 lg:items-end">
-          <div className="lg:col-span-8">
-            <p className="section-label mb-5">Selected work</p>
-            <h2 className="font-display text-[clamp(3rem,6vw,6.8rem)] font-light leading-[0.88] tracking-[-0.04em] text-ink-50">
-              Stories shaped in
-              <span className="block italic text-gold-300">light and feeling.</span>
-            </h2>
-          </div>
-          <p className="max-w-md text-sm leading-7 text-ink-300 lg:col-span-4 lg:pb-2">
-            A closer look at our {label.toLowerCase()} work. Open any frame to
-            explore the full collection.
-          </p>
-        </div>
+      <div className="mx-auto mb-12 max-w-7xl">
+        <p className="section-label mb-4">The gallery</p>
+        <h2
+          id="service-gallery-heading"
+          className="max-w-3xl font-display text-4xl font-light text-ink-50 md:text-5xl"
+        >
+          More {label.toLowerCase()}
+          <span className="italic text-gradient-gold"> moments.</span>
+        </h2>
+      </div>
 
+      <div
+        id="service-gallery-grid"
+        className="mx-auto max-w-7xl overflow-hidden transition-[max-height] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
+        style={galleryHeight === null ? undefined : { maxHeight: galleryHeight }}
+        onTransitionEnd={(event) => {
+          if (
+            event.target === event.currentTarget &&
+            event.propertyName === 'max-height'
+          ) {
+            stopGalleryEndAnchor();
+          }
+        }}
+      >
         <div
           ref={ref}
-          className="mt-14 grid grid-cols-1 gap-x-5 gap-y-14 sm:grid-cols-2 md:mt-20 md:gap-y-20 lg:grid-cols-12 lg:gap-x-6 lg:gap-y-28"
+          className={`grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 ${
+            hasRevealed ? 'reveal in' : 'reveal'
+          }`}
         >
-          {images.map((image, index) => (
-            <figure
-              key={image.src}
-              className={`self-start reveal-blur ${
-                PORTFOLIO_LAYOUTS[index % PORTFOLIO_LAYOUTS.length]
-              } ${inView ? 'in' : ''}`}
-              style={{ transitionDelay: `${index * 70}ms` }}
-            >
+          {renderedImages.map((image, index) => {
+            const isVisible = expanded || index < INITIAL_SERVICE_GALLERY_COUNT;
+            return (
               <button
+                key={image.src}
                 type="button"
+                tabIndex={isVisible ? 0 : -1}
+                aria-hidden={!isVisible}
                 data-cursor="view"
                 aria-label={`Open ${image.alt}`}
                 onClick={(event) => onOpen(index, event.currentTarget)}
-                className={`group relative block w-full overflow-hidden bg-ink-900 text-left outline-none focus-visible:ring-2 focus-visible:ring-gold-300 focus-visible:ring-offset-4 focus-visible:ring-offset-ink-950 ${
-                  index % 3 === 1 ? 'aspect-[4/5]' : 'aspect-[4/3]'
+                className={`group relative aspect-[4/5] overflow-hidden rounded-2xl text-left outline-none reveal-blur focus-visible:ring-2 focus-visible:ring-gold-300 focus-visible:ring-offset-4 focus-visible:ring-offset-ink-950 ${
+                  hasRevealed && isVisible ? 'in' : ''
                 }`}
+                style={{ transitionDelay: `${Math.min(index, 10) * 0.045}s` }}
               >
                 <ResponsiveImage
                   src={image.src}
@@ -603,28 +724,42 @@ function ServicePortfolio({
                   avifSrcSet={image.avifSrcSet}
                   webpSrcSet={image.webpSrcSet}
                   sizes={GRID_SIZES}
-                  width={1200}
-                  height={index % 3 === 1 ? 1500 : 900}
+                  width={800}
+                  height={1000}
                   loading="lazy"
-                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.025] group-focus-visible:scale-[1.025]"
+                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105 group-focus-visible:scale-105"
                 />
-                <span className="pointer-events-none absolute inset-0 border border-white/0 transition-colors group-hover:border-white/25 group-focus-visible:border-gold-200/60" />
-                <span className="pointer-events-none absolute right-4 top-4 translate-y-2 border border-white/20 bg-black/45 px-3 py-2 text-[9px] uppercase tracking-[0.22em] text-white opacity-0 backdrop-blur-sm transition-all group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
-                  View frame
-                </span>
+                <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-60" />
               </button>
-              <figcaption className="mt-4 flex items-start justify-between gap-5 border-t border-hairline/10 pt-3">
-                <span className="text-[9px] font-semibold uppercase tracking-[0.22em] text-gold-400">
-                  Frame {String(index + 1).padStart(2, '0')}
-                </span>
-                <span className="max-w-[70%] text-right font-display text-lg italic text-ink-100/80">
-                  {image.title || image.alt}
-                </span>
-              </figcaption>
-            </figure>
-          ))}
+            );
+          })}
         </div>
       </div>
+
+      {images.length > INITIAL_SERVICE_GALLERY_COUNT ? (
+        <div
+          ref={galleryEndRef}
+          className="mx-auto mt-10 flex max-w-7xl justify-center"
+        >
+          <button
+            type="button"
+            aria-expanded={expanded}
+            aria-controls="service-gallery-grid"
+            onClick={toggleGallery}
+            className="group inline-flex min-h-[3.25rem] items-center justify-center gap-3 rounded-full border border-gold-300/50 bg-gold-300/[0.06] px-7 py-3 text-[10px] font-semibold uppercase tracking-[0.22em] text-gold-200 transition-all hover:border-gold-300 hover:bg-gold-300 hover:text-ink-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-300 focus-visible:ring-offset-4 focus-visible:ring-offset-ink-950"
+          >
+            {expanded
+              ? 'Show less'
+              : `Show more (${galleryImages.length - visibleCount})`}
+            <ChevronDown
+              className={`h-4 w-4 transition-transform duration-300 ${
+                expanded ? 'rotate-180' : ''
+              }`}
+              aria-hidden="true"
+            />
+          </button>
+        </div>
+      ) : null}
     </section>
   );
 }

@@ -2,6 +2,14 @@ import { useEffect, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 
+const SMOOTH_SCROLL_SYNC_EVENT = 'doll:smooth-scroll-sync';
+
+/** Keep the desktop smooth-scroll destination aligned after a layout-driven scroll. */
+export function syncWindowScroll(top: number) {
+  window.scrollTo({ top, behavior: 'auto' });
+  window.dispatchEvent(new Event(SMOOTH_SCROLL_SYNC_EVENT));
+}
+
 function shouldDisableSmoothScroll() {
   if (typeof window === 'undefined') return true;
   // Mobile / touch / PSI lab — native scroll is cheaper and avoids long tasks
@@ -82,6 +90,13 @@ export function SmoothScroll({ children }: { children: ReactNode }) {
       if (!isAnimating) target = window.scrollY;
     };
 
+    const onExternalScrollSync = () => {
+      cancelAnimationFrame(raf);
+      current = window.scrollY;
+      target = current;
+      isAnimating = false;
+    };
+
     const onKey = (e: KeyboardEvent) => {
       if (
         ['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', ' ', 'Home', 'End'].includes(
@@ -97,11 +112,13 @@ export function SmoothScroll({ children }: { children: ReactNode }) {
     window.addEventListener('wheel', onWheel, { passive: false });
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('keydown', onKey);
+    window.addEventListener(SMOOTH_SCROLL_SYNC_EVENT, onExternalScrollSync);
 
     return () => {
       window.removeEventListener('wheel', onWheel);
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('keydown', onKey);
+      window.removeEventListener(SMOOTH_SCROLL_SYNC_EVENT, onExternalScrollSync);
       cancelAnimationFrame(raf);
     };
   }, [reduced, pathname]);
