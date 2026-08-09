@@ -156,6 +156,7 @@ export const photosApi = {
           size: upload.file.size,
           width: upload.width,
           height: upload.height,
+          isPublished: true,
         }),
       });
       docs.push(doc);
