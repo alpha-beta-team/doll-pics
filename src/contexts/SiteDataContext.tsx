@@ -36,7 +36,6 @@ import {
 } from '../data/content';
 import {
   DEFAULT_PACKAGE_NAV_LINKS,
-  DEFAULT_SERVICE_NAV_LINKS,
   getPublishedPackageNavLinks,
   getPublishedServiceNavLinks,
   normalizePathname,
@@ -149,7 +148,7 @@ const defaultSiteContent: PublicSiteContent = {
   whatsapp: BUSINESS_WHATSAPP,
   phone: BUSINESS_PHONE,
   socials: BUSINESS_SOCIALS,
-  serviceNavLinks: DEFAULT_SERVICE_NAV_LINKS,
+  serviceNavLinks: [],
 };
 
 function servicesFromNavLinks(
@@ -294,7 +293,7 @@ const fallbackData: Omit<SiteData, 'loading' | 'fromApi'> = {
   storyScenes: fallbackStoryScenes,
   featuredWork: normalizedFallbackFeatured,
   galleryImages: normalizedFallbackGallery,
-  services: servicesFromNavLinks(DEFAULT_SERVICE_NAV_LINKS),
+  services: [],
   packages: [],
   packageCategories: fallbackPackageCategories,
   packageNavLinks: getPublishedPackageNavLinks(fallbackPackageCategories),
@@ -323,9 +322,7 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
   const packagePathsRef = useRef(
     new Set(DEFAULT_PACKAGE_NAV_LINKS.map((l) => l.path)),
   );
-  const servicePathsRef = useRef(
-    new Set(DEFAULT_SERVICE_NAV_LINKS.map((l) => l.path)),
-  );
+  const servicePathsRef = useRef(new Set<string>());
   const cancelledRef = useRef(false);
 
   useEffect(() => {

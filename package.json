@@ -11,6 +11,7 @@
     "sitemap": "node scripts/generate-sitemap.mjs",
     "seo:smoke": "node scripts/check-seo-deployment.mjs",
     "test:seo": "tsx --test scripts/*.spec.mjs scripts/lib/*.spec.ts",
+    "test:lib": "tsx --test src/lib/*.spec.ts",
     "test:admin": "tsx --test --test-concurrency=1 src/admin/*.spec.ts src/admin/**/*.spec.ts",
     "seed:admin-mock": "npm --prefix ../photography-cms-backend run seed:admin-mock",
     "seed:admin-mock:dry-run": "npm --prefix ../photography-cms-backend run seed:admin-mock:dry-run",

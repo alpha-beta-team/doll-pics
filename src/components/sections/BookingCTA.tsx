@@ -15,6 +15,14 @@ import { getGoldGlowRgb } from '../../lib/theme';
 import { enquiryWhatsAppUrl } from '../../lib/pricing';
 import { useSiteData } from '../../contexts/SiteDataContext';
 import { trackWhatsAppClick } from '../../lib/analytics';
+import {
+  getPhotoSources,
+  publicApi,
+  type PhotoSources,
+} from '../../lib/api';
+import { usableBookingBackgrounds } from '../../lib/bookingBackgrounds';
+import { useReducedMotion } from '../../hooks/useReducedMotion';
+import { ResponsiveImage } from '../ResponsiveImage';
 
 export type { EnquiryPrefill };
 
@@ -36,6 +44,59 @@ export function BookingCTA() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const queryConsumed = useRef(false);
+  const reducedMotion = useReducedMotion();
+  const [backgrounds, setBackgrounds] = useState<
+    Array<PhotoSources & { categoryName: string }>
+  >([]);
+  const [activeBackground, setActiveBackground] = useState(0);
+  const [previousBackground, setPreviousBackground] = useState<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void publicApi
+      .getBookingBackgrounds()
+      .then((items) => {
+        if (cancelled) return;
+        const images = usableBookingBackgrounds(items).flatMap((item) => {
+          const sources = getPhotoSources(item.coverPhoto);
+          return sources
+            ? [{ ...sources, categoryName: item.categoryName }]
+            : [];
+        });
+        setBackgrounds(images);
+        setActiveBackground(0);
+        setPreviousBackground(null);
+      })
+      .catch(() => {
+        if (!cancelled) setBackgrounds([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!inView || reducedMotion || backgrounds.length < 2) return;
+    const interval = window.setInterval(() => {
+      setActiveBackground((current) => {
+        setPreviousBackground(current);
+        return (current + 1) % backgrounds.length;
+      });
+    }, 7000);
+    return () => window.clearInterval(interval);
+  }, [backgrounds.length, inView, reducedMotion]);
+
+  useEffect(() => {
+    if (previousBackground === null) return;
+    const timeout = window.setTimeout(() => setPreviousBackground(null), 1400);
+    return () => window.clearTimeout(timeout);
+  }, [previousBackground]);
+
+  const activeImage = backgrounds[activeBackground] ?? null;
+  const previousImage = previousBackground === null
+    ? null
+    : backgrounds[previousBackground] ?? null;
 
   useEffect(() => {
     if (queryConsumed.current) return;
@@ -92,15 +153,34 @@ export function BookingCTA() {
   return (
     <section id="booking" className="relative min-h-screen flex items-center justify-center overflow-hidden px-6">
       <div ref={bgRef} className="absolute inset-0 will-change-transform">
-        <img
-          src="https://images.pexels.com/photos/1024993/pexels-photo-1024993.jpeg?auto=compress&cs=tinysrgb&w=800&fm=webp"
-          alt="Couple portrait — book a photography session with Doll Pictures"
-          width={800}
-          height={450}
-          className="w-full h-full object-cover"
-          loading="lazy"
-          decoding="async"
-        />
+        {previousImage ? (
+          <ResponsiveImage
+            key={previousImage.src}
+            src={previousImage.src}
+            alt=""
+            avifSrcSet={previousImage.avifSrcSet}
+            webpSrcSet={previousImage.webpSrcSet}
+            sizes="100vw"
+            width={1600}
+            height={900}
+            loading="lazy"
+            className="absolute inset-0 h-full w-full object-cover opacity-100"
+          />
+        ) : null}
+        {activeImage ? (
+          <ResponsiveImage
+            key={activeImage.src}
+            src={activeImage.src}
+            alt=""
+            avifSrcSet={activeImage.avifSrcSet}
+            webpSrcSet={activeImage.webpSrcSet}
+            sizes="100vw"
+            width={1600}
+            height={900}
+            loading="lazy"
+            className="animate-fade-in absolute inset-0 h-full w-full object-cover"
+          />
+        ) : null}
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/90" />
       </div>
 

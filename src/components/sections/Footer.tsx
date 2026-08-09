@@ -42,12 +42,14 @@ export function Footer() {
     (link) => ({ label: link.label, to: link.path }),
   );
 
-  const footerLinks = {
-    Studio: staticFooterLinks.Studio,
-    Services: serviceLinks,
-    Work: staticFooterLinks.Work,
-    Connect: staticFooterLinks.Connect,
-  };
+  const footerLinks = [
+    { title: 'Studio', links: staticFooterLinks.Studio },
+    ...(serviceLinks.length > 0
+      ? [{ title: 'Services', links: serviceLinks }]
+      : []),
+    { title: 'Work', links: staticFooterLinks.Work },
+    { title: 'Connect', links: staticFooterLinks.Connect },
+  ];
 
   return (
     <footer className="relative bg-ink-950 border-t border-hairline/5 pt-20 pb-10 px-6 lg:px-10">
@@ -83,7 +85,7 @@ export function Footer() {
             </div>
           </div>
 
-          {Object.entries(footerLinks).map(([title, links]) => (
+          {footerLinks.map(({ title, links }) => (
             <div key={title}>
               <h2 className="text-xs tracking-widest uppercase text-gold-400 mb-4">{title}</h2>
               <ul className="space-y-3">

@@ -271,6 +271,12 @@ export type PublicCategory = {
   coverPhotoId?: PublicPhoto | string | null;
 };
 
+export type PublicBookingBackground = {
+  categoryName: string;
+  categorySlug: string;
+  coverPhoto: PublicPhoto;
+};
+
 /** Admin list/edit photo (flattened URLs for the CMS UI). */
 export type Photo = {
   id: string;

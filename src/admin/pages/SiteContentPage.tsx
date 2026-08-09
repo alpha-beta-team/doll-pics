@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import type { ServiceNavLink, SiteContent } from '../types';
-import { DEFAULT_SERVICE_NAV_LINKS } from '../../lib/navigation';
 import {
   Save,
   AlertCircle,
@@ -34,7 +33,7 @@ const defaultSiteContent: SiteContent = {
   whatsapp: '',
   phone: '',
   socials: {},
-  serviceNavLinks: DEFAULT_SERVICE_NAV_LINKS.map((l) => ({ ...l })),
+  serviceNavLinks: [],
 };
 
 const ICON_OPTIONS = ['Heart', 'Camera', 'Gift', 'Baby', 'Sparkles', 'Briefcase', 'Plane'];
@@ -73,10 +72,7 @@ export function SiteContentPage() {
           mission: data.mission ?? '',
           aboutHeroSubtext: data.aboutHeroSubtext ?? '',
           socials: data.socials ?? {},
-          serviceNavLinks:
-            data.serviceNavLinks?.length > 0
-              ? data.serviceNavLinks
-              : DEFAULT_SERVICE_NAV_LINKS.map((l) => ({ ...l })),
+          serviceNavLinks: data.serviceNavLinks ?? [],
         });
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load site content');

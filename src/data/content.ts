@@ -155,58 +155,6 @@ export const galleryImages = [
   },
 ];
 
-export const services = [
-  {
-    title: "Wedding Photography",
-    desc: "Full-day cinematic coverage from first look to last dance.",
-    icon: "Heart",
-    image:
-      "https://images.pexels.com/photos/169198/pexels-photo-169198.jpeg?auto=compress&cs=tinysrgb&w=640",
-  },
-  {
-    title: "Pre-Wedding",
-    desc: "Romantic storytelling sessions at your dream location.",
-    icon: "Camera",
-    image:
-      "https://images.pexels.com/photos/1024968/pexels-photo-1024968.jpeg?auto=compress&cs=tinysrgb&w=640",
-  },
-  {
-    title: "Birthday",
-    desc: "Joyful, candid coverage of life\u2019s milestone celebrations.",
-    icon: "Gift",
-    image:
-      "https://images.pexels.com/photos/796444/pexels-photo-796444.jpeg?auto=compress&cs=tinysrgb&w=640",
-  },
-  {
-    title: "Maternity",
-    desc: "Tender, timeless portraits celebrating new beginnings.",
-    icon: "Baby",
-    image:
-      "https://images.pexels.com/photos/2958995/pexels-photo-2958995.jpeg?auto=compress&cs=tinysrgb&w=640",
-  },
-  {
-    title: "Fashion",
-    desc: "Editorial-grade fashion shoots with full creative direction.",
-    icon: "Sparkles",
-    image:
-      "https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=640",
-  },
-  {
-    title: "Commercial",
-    desc: "Brand-defining visual content for products and campaigns.",
-    icon: "Briefcase",
-    image:
-      "https://images.pexels.com/photos/1000653/pexels-photo-1000653.jpeg?auto=compress&cs=tinysrgb&w=640",
-  },
-  {
-    title: "Drone Cinematography",
-    desc: "Breathtaking aerial footage licensed and color-graded.",
-    icon: "Plane",
-    image:
-      "https://images.pexels.com/photos/1779415/pexels-photo-1779415.jpeg?auto=compress&cs=tinysrgb&w=640",
-  },
-];
-
 /** Empty until the studio documents evidence for each public statistic. */
 export const stats: Array<{ value: number; suffix: string; label: string }> = [];
 

@@ -1,5 +1,6 @@
 import type {
   CreateEnquiryPayload,
+  PublicBookingBackground,
   PublicBehindScene,
   PublicHeroSlide,
   PublicPackage,
@@ -14,6 +15,7 @@ import type {
 
 export type {
   CreateEnquiryPayload,
+  PublicBookingBackground,
   PublicBehindScene,
   PublicHeroSlide,
   PublicPackage,
@@ -192,6 +194,8 @@ export type PhotosQuery = {
 
 export const publicApi = {
   getSiteContent: () => publicFetch<PublicSiteContent>('/site-content'),
+  getBookingBackgrounds: () =>
+    publicFetch<PublicBookingBackground[]>('/booking-backgrounds'),
   getPhotos: (params?: PhotosQuery, init?: RequestInit) => {
     const qs = new URLSearchParams();
     if (params?.featured) qs.set('featured', 'true');
