@@ -12,6 +12,8 @@ import {
   Plus,
   RotateCcw,
   Search,
+  ShieldCheck,
+  Sparkles,
   Square,
   Star,
   Trash2,
@@ -41,6 +43,17 @@ import {
   toggleVisibleSelection,
   type PhotoStatusFilter,
 } from './photos.utils';
+import {
+  buildFallbackPhotoMetadata,
+  buildGeneratedPhotoMetadata,
+  getLocalMetadataGenerationCapability,
+  type MetadataGenerationStatus,
+} from './photoMetadata';
+import {
+  cancelPhotoCaption,
+  generatePhotoCaption,
+  resetPhotoCaptionWorker,
+} from '../workers/photoMetadataGenerator';
 
 type UploadStatus = 'ready' | 'uploading' | 'complete' | 'error';
 
@@ -57,11 +70,40 @@ interface UploadQueueItem {
   progress: number;
   status: UploadStatus;
   error?: string;
+  metadataStatus: MetadataGenerationStatus;
+  metadataProgress: number | null;
+  metadataLoadedBytes?: number;
+  metadataTotalBytes?: number;
+  generatedForCategoryId?: string;
+  titleEdited: boolean;
+  altEdited: boolean;
+  generationWarning?: string;
 }
 
 const SUPPORTED_UPLOAD_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'];
 const MAX_UPLOAD_SIZE_MB = Number(import.meta.env.VITE_MAX_UPLOAD_SIZE_MB ?? '25');
 const MAX_UPLOAD_SIZE = MAX_UPLOAD_SIZE_MB * 1024 * 1024;
+const MODEL_DOWNLOAD_APPROX_MB = 250;
+const BUSY_METADATA_STATUSES = new Set<MetadataGenerationStatus>([
+  'queued',
+  'preparing_model',
+  'downloading_model',
+  'loading_model',
+  'generating',
+]);
+const MODEL_LOADING_STATUSES = new Set<MetadataGenerationStatus>([
+  'preparing_model',
+  'downloading_model',
+  'loading_model',
+]);
+
+function isMetadataBusy(status: MetadataGenerationStatus): boolean {
+  return BUSY_METADATA_STATUSES.has(status);
+}
+
+function formatMegabytes(bytes: number): string {
+  return `${Math.max(0, bytes / 1024 / 1024).toFixed(0)} MB`;
+}
 
 function resolvePhotoUrl(url: string): string {
   if (!url) return '';
@@ -93,7 +135,13 @@ function readImageDimensions(file: File): Promise<{ width: number; height: numbe
 
 export function PhotosWorkspacePage() {
   const confirmDialog = useConfirmDialog();
+  const localGenerationCapability = useMemo(
+    () => getLocalMetadataGenerationCapability(),
+    [],
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadingFilesRef = useRef<UploadQueueItem[]>([]);
+  const generationTokensRef = useRef<Map<string, string>>(new Map());
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [serviceCategories, setServiceCategories] = useState<Category[]>([]);
@@ -114,6 +162,16 @@ export function PhotosWorkspacePage() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [validationAttempted, setValidationAttempted] = useState(false);
+
+  useEffect(() => {
+    uploadingFilesRef.current = uploadingFiles;
+  }, [uploadingFiles]);
+
+  useEffect(() => () => {
+    generationTokensRef.current.clear();
+    uploadingFilesRef.current.forEach(file => URL.revokeObjectURL(file.preview));
+    resetPhotoCaptionWorker();
+  }, []);
 
   const fetchPhotos = useCallback(async () => {
     try {
@@ -271,9 +329,6 @@ export function PhotosWorkspacePage() {
     }
     try {
       const dimensions = await Promise.all(files.map(readImageDimensions));
-      const defaultCategory = serviceCategories.some(category => category.id === selectedCategory)
-        ? selectedCategory
-        : serviceCategories[0]?.id ?? '';
       const timestamp = Date.now();
       setUploadingFiles(previous => [
         ...previous,
@@ -281,14 +336,18 @@ export function PhotosWorkspacePage() {
           id: `${timestamp}-${index}-${Math.random().toString(36).slice(2, 9)}`,
           file,
           preview: URL.createObjectURL(file),
-          title: file.name.replace(/\.[^.]+$/, ''),
+          title: '',
           altText: '',
-          categoryId: defaultCategory,
+          categoryId: '',
           width: dimensions[index].width,
           height: dimensions[index].height,
           isPublished: true,
           progress: 0,
           status: 'ready',
+          metadataStatus: 'waiting_for_category',
+          metadataProgress: null,
+          titleEdited: false,
+          altEdited: false,
         })),
       ]);
       setUploadError(null);
@@ -309,7 +368,178 @@ export function PhotosWorkspacePage() {
     setUploadingFiles(previous => previous.map(file => file.id === id ? { ...file, ...patch } : file));
   };
 
+  const generateMetadataForFile = useCallback(async (fileId: string, categoryId: string) => {
+    const item = uploadingFilesRef.current.find(file => file.id === fileId);
+    const category = serviceCategories.find(option => option.id === categoryId);
+    if (!item || !categoryId || !category) return;
+
+    const token = `${fileId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    generationTokensRef.current.set(fileId, token);
+    setUploadingFiles(previous => previous.map(file => file.id === fileId
+      ? {
+          ...file,
+          metadataStatus: 'queued',
+          metadataProgress: null,
+          metadataLoadedBytes: undefined,
+          metadataTotalBytes: undefined,
+          generationWarning: undefined,
+        }
+      : file));
+
+    try {
+      const caption = await generatePhotoCaption(token, item.file, progress => {
+        if (generationTokensRef.current.get(fileId) !== token) return;
+        setUploadingFiles(previous => previous.map(file => file.id === fileId
+          ? {
+              ...file,
+              metadataStatus: progress.stage,
+              metadataProgress: progress.progress ?? null,
+              metadataLoadedBytes: 'loadedBytes' in progress ? progress.loadedBytes : undefined,
+              metadataTotalBytes: 'totalBytes' in progress ? progress.totalBytes : undefined,
+            }
+          : file));
+      });
+      if (generationTokensRef.current.get(fileId) !== token) return;
+      const { warning, ...metadata } = buildGeneratedPhotoMetadata(caption, category.name, item.file.name);
+      setUploadingFiles(previous => previous.map(file =>
+        file.id === fileId && file.categoryId === categoryId
+          ? {
+              ...file,
+              ...metadata,
+              metadataStatus: warning ? 'fallback' : 'generated',
+              metadataProgress: 100,
+              metadataLoadedBytes: undefined,
+              metadataTotalBytes: undefined,
+              generatedForCategoryId: categoryId,
+              titleEdited: false,
+              altEdited: false,
+              generationWarning: warning,
+            }
+          : file,
+      ));
+    } catch (caught) {
+      if (generationTokensRef.current.get(fileId) !== token) return;
+      const fallback = buildFallbackPhotoMetadata(category.name, item.file.name);
+      setUploadingFiles(previous => previous.map(file =>
+        file.id === fileId && file.categoryId === categoryId
+          ? {
+              ...file,
+              ...fallback,
+              metadataStatus: 'fallback',
+              metadataProgress: 100,
+              metadataLoadedBytes: undefined,
+              metadataTotalBytes: undefined,
+              generatedForCategoryId: categoryId,
+              titleEdited: false,
+              altEdited: false,
+              generationWarning: `Local generation was unavailable. Safe fallback text was added${caught instanceof Error && caught.message ? `: ${caught.message}` : '.'}`,
+            }
+          : file,
+      ));
+    } finally {
+      if (generationTokensRef.current.get(fileId) === token) {
+        generationTokensRef.current.delete(fileId);
+      }
+    }
+  }, [serviceCategories]);
+
+  const handleUploadCategoryChange = (fileId: string, categoryId: string) => {
+    const item = uploadingFilesRef.current.find(file => file.id === fileId);
+    if (!item) return;
+    const activeToken = generationTokensRef.current.get(fileId);
+    generationTokensRef.current.delete(fileId);
+    if (activeToken) cancelPhotoCaption(activeToken);
+    const hasManualMetadata = item.titleEdited || item.altEdited;
+    const shouldGenerate = Boolean(categoryId && !hasManualMetadata && localGenerationCapability.automatic);
+    setUploadingFiles(previous => previous.map(file => file.id === fileId
+      ? {
+          ...file,
+          categoryId,
+          metadataStatus: !categoryId
+            ? (hasManualMetadata ? 'manually_edited' : 'waiting_for_category')
+            : (hasManualMetadata ? 'manually_edited' : shouldGenerate ? 'queued' : 'generation_available'),
+          metadataProgress: null,
+          metadataLoadedBytes: undefined,
+          metadataTotalBytes: undefined,
+          ...(!hasManualMetadata ? { title: '', altText: '' } : {}),
+          generatedForCategoryId: undefined,
+          generationWarning: hasManualMetadata && categoryId
+            ? 'Category changed. Your edited text was kept; regenerate if you want new suggestions.'
+            : undefined,
+        }
+      : file));
+    if (shouldGenerate) void generateMetadataForFile(fileId, categoryId);
+  };
+
+  const handleMetadataEdit = (fileId: string, field: 'title' | 'altText', value: string) => {
+    const activeToken = generationTokensRef.current.get(fileId);
+    generationTokensRef.current.delete(fileId);
+    if (activeToken) cancelPhotoCaption(activeToken);
+    setUploadingFiles(previous => previous.map(file => file.id === fileId
+      ? {
+          ...file,
+          [field]: value,
+          ...(field === 'title' ? { titleEdited: true } : { altEdited: true }),
+          metadataStatus: 'manually_edited',
+          metadataProgress: 100,
+          generationWarning: undefined,
+        }
+      : file));
+  };
+
+  const handleRegenerateMetadata = async (fileId: string) => {
+    const item = uploadingFilesRef.current.find(file => file.id === fileId);
+    if (!item?.categoryId) return;
+    if (item.titleEdited || item.altEdited) {
+      const confirmed = await confirmDialog({
+        title: 'Replace edited photo details?',
+        description: 'Regenerating will replace the current title and alt text with new local suggestions.',
+        confirmLabel: 'Regenerate details',
+      });
+      if (!confirmed) return;
+    }
+    setUploadingFiles(previous => previous.map(file => file.id === fileId
+      ? { ...file, titleEdited: false, altEdited: false }
+      : file));
+    await generateMetadataForFile(fileId, item.categoryId);
+  };
+
+  const handleUseSafeDetails = (fileId: string, explanation = 'Safe details were created without using the local caption model.') => {
+    const item = uploadingFilesRef.current.find(file => file.id === fileId);
+    if (!item?.categoryId) return;
+    const activeToken = generationTokensRef.current.get(fileId);
+    generationTokensRef.current.delete(fileId);
+    if (activeToken) cancelPhotoCaption(activeToken);
+    const fallback = buildFallbackPhotoMetadata(
+      serviceCategories.find(category => category.id === item.categoryId)?.name ?? 'Portfolio',
+      item.file.name,
+    );
+    setUploadingFiles(previous => previous.map(file => file.id === fileId
+      ? {
+          ...file,
+          ...fallback,
+          metadataStatus: 'fallback',
+          metadataProgress: 100,
+          metadataLoadedBytes: undefined,
+          metadataTotalBytes: undefined,
+          generatedForCategoryId: item.categoryId,
+          titleEdited: false,
+          altEdited: false,
+          generationWarning: explanation,
+        }
+      : file));
+  };
+
+  const handleUseSafeDetailsForBusyPhotos = () => {
+    uploadingFilesRef.current
+      .filter(file => isMetadataBusy(file.metadataStatus))
+      .forEach(file => handleUseSafeDetails(file.id));
+  };
+
   const removeUploadFile = (id: string) => {
+    const activeToken = generationTokensRef.current.get(id);
+    generationTokensRef.current.delete(id);
+    if (activeToken) cancelPhotoCaption(activeToken);
     const item = uploadingFiles.find(file => file.id === id);
     if (item) URL.revokeObjectURL(item.preview);
     setUploadingFiles(previous => previous.filter(file => file.id !== id));
@@ -318,6 +548,8 @@ export function PhotosWorkspacePage() {
   const closeUpload = () => {
     if (isUploading) return;
     uploadingFiles.forEach(file => URL.revokeObjectURL(file.preview));
+    generationTokensRef.current.clear();
+    resetPhotoCaptionWorker();
     setUploadingFiles([]);
     setUploadError(null);
     setValidationAttempted(false);
@@ -326,7 +558,8 @@ export function PhotosWorkspacePage() {
 
   const handleUpload = async () => {
     const pending = uploadingFiles.filter(file => file.status !== 'complete');
-    if (!pending.length || isUploading) return;
+    const metadataBusy = pending.some(file => isMetadataBusy(file.metadataStatus));
+    if (!pending.length || isUploading || metadataBusy) return;
     const incomplete = pending.some(file => !file.title.trim() || !file.altText.trim() || !file.categoryId);
     if (incomplete) {
       setValidationAttempted(true);
@@ -380,6 +613,20 @@ export function PhotosWorkspacePage() {
   const completeUploads = uploadingFiles.length - pendingUploads.length;
   const publishCount = pendingUploads.filter(file => file.isPublished).length;
   const uploadActionLabel = getUploadActionLabel(pendingUploads.length, publishCount);
+  const metadataBusy = pendingUploads.some(file => isMetadataBusy(file.metadataStatus));
+  const modelLoadingItem = pendingUploads.find(file => MODEL_LOADING_STATUSES.has(file.metadataStatus));
+  const modelProgressText = modelLoadingItem
+    ? modelLoadingItem.metadataLoadedBytes !== undefined && modelLoadingItem.metadataTotalBytes !== undefined
+      ? `${formatMegabytes(modelLoadingItem.metadataLoadedBytes)} of ${formatMegabytes(modelLoadingItem.metadataTotalBytes)}`
+      : modelLoadingItem.metadataProgress !== null
+        ? `${modelLoadingItem.metadataProgress}% · about ${Math.round(MODEL_DOWNLOAD_APPROX_MB * modelLoadingItem.metadataProgress / 100)} MB of ~${MODEL_DOWNLOAD_APPROX_MB} MB`
+        : 'Calculating download progress…'
+    : '';
+  const modelLoadingLabel = modelLoadingItem?.metadataStatus === 'preparing_model'
+    ? 'Preparing local generator'
+    : modelLoadingItem?.metadataStatus === 'downloading_model'
+      ? 'Downloading local caption model'
+      : 'Loading model into memory';
 
   if (isLoading) return <AdminLoadingState label="Loading portfolio photos…" />;
 
@@ -556,8 +803,14 @@ export function PhotosWorkspacePage() {
             <div className="flex flex-wrap justify-end gap-2">
               <AdminButton type="button" variant="secondary" disabled={isUploading} onClick={closeUpload}>{pendingUploads.length ? 'Cancel' : 'Done'}</AdminButton>
               {pendingUploads.length > 0 && (
-                <AdminButton type="button" disabled={isUploading} onClick={() => void handleUpload()}>
-                  {isUploading ? <><Loader2 className="h-4 w-4 animate-spin" /> Uploading…</> : pendingUploads.every(file => file.status === 'error') ? <><RotateCcw className="h-4 w-4" /> Retry failed uploads</> : <><Upload className="h-4 w-4" /> {uploadActionLabel}</>}
+                <AdminButton type="button" disabled={isUploading || metadataBusy} onClick={() => void handleUpload()}>
+                  {isUploading
+                    ? <><Loader2 className="h-4 w-4 animate-spin" /> Uploading…</>
+                    : metadataBusy
+                      ? <><Sparkles className="h-4 w-4" /> Generating details…</>
+                      : pendingUploads.every(file => file.status === 'error')
+                        ? <><RotateCcw className="h-4 w-4" /> Retry failed uploads</>
+                        : <><Upload className="h-4 w-4" /> {uploadActionLabel}</>}
                 </AdminButton>
               )}
             </div>
@@ -573,6 +826,36 @@ export function PhotosWorkspacePage() {
           </div>
 
           {uploadError && <AdminAlert>{uploadError}</AdminAlert>}
+
+          <AdminAlert tone="info">
+            <span className="inline-flex items-center gap-2 font-semibold"><ShieldCheck className="h-4 w-4" /> Generated on this device</span>
+            <span className="ml-1">— your photo is not sent to an AI service. First use downloads approximately {MODEL_DOWNLOAD_APPROX_MB} MB from the model provider; the browser caches it for faster future sessions.</span>
+          </AdminAlert>
+
+          {!localGenerationCapability.automatic && (
+            <AdminAlert tone="warning">
+              Automatic generation is paused because {localGenerationCapability.reasons.join(', ')}. Choose <strong>Generate locally</strong> for a photo, or use safe details without downloading the model.
+            </AdminAlert>
+          )}
+
+          {modelLoadingItem && (
+            <div className="rounded-xl border border-admin-border bg-admin-muted p-3" role="status">
+              <div className="mb-2 flex items-center justify-between gap-3 text-sm font-semibold text-admin-secondary">
+                <span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin text-admin-primary" /> {modelLoadingLabel}</span>
+                <span>{modelProgressText}</span>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-admin-surface">
+                <div
+                  className={`h-full bg-admin-primary transition-all ${modelLoadingItem.metadataProgress === null ? 'w-1/3 animate-pulse' : ''}`}
+                  style={modelLoadingItem.metadataProgress === null ? undefined : { width: `${modelLoadingItem.metadataProgress}%` }}
+                />
+              </div>
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-admin-subtle">
+                <span>The download continues only while this upload window is open.</span>
+                <AdminButton type="button" variant="quiet" className="px-3" onClick={handleUseSafeDetailsForBusyPhotos}>Cancel and use safe details</AdminButton>
+              </div>
+            </div>
+          )}
 
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-admin-border bg-admin-muted p-3">
             <div>
@@ -600,6 +883,11 @@ export function PhotosWorkspacePage() {
                   disabled={isUploading || file.status === 'complete'}
                   showValidation={validationAttempted}
                   onChange={patch => updateUploadFile(file.id, patch)}
+                  onCategoryChange={categoryId => handleUploadCategoryChange(file.id, categoryId)}
+                  onTitleChange={title => handleMetadataEdit(file.id, 'title', title)}
+                  onAltTextChange={altText => handleMetadataEdit(file.id, 'altText', altText)}
+                  onRegenerate={() => void handleRegenerateMetadata(file.id)}
+                  onUseFallback={() => handleUseSafeDetails(file.id)}
                   onRemove={() => removeUploadFile(file.id)}
                 />
               ))}
@@ -746,6 +1034,11 @@ function UploadReviewCard({
   disabled,
   showValidation,
   onChange,
+  onCategoryChange,
+  onTitleChange,
+  onAltTextChange,
+  onRegenerate,
+  onUseFallback,
   onRemove,
 }: {
   item: UploadQueueItem;
@@ -753,11 +1046,30 @@ function UploadReviewCard({
   disabled: boolean;
   showValidation: boolean;
   onChange: (patch: Partial<UploadQueueItem>) => void;
+  onCategoryChange: (categoryId: string) => void;
+  onTitleChange: (title: string) => void;
+  onAltTextChange: (altText: string) => void;
+  onRegenerate: () => void;
+  onUseFallback: () => void;
   onRemove: () => void;
 }) {
-  const titleInvalid = showValidation && !item.title.trim();
-  const altInvalid = showValidation && !item.altText.trim();
+  const titleInvalid = showValidation && Boolean(item.categoryId) && !item.title.trim();
+  const altInvalid = showValidation && Boolean(item.categoryId) && !item.altText.trim();
   const categoryInvalid = showValidation && !item.categoryId;
+  const generationBusy = isMetadataBusy(item.metadataStatus);
+  const modelLoading = MODEL_LOADING_STATUSES.has(item.metadataStatus);
+  const metadataLabel = {
+    waiting_for_category: 'Choose category to generate',
+    generation_available: 'Ready to generate locally',
+    queued: 'Waiting to generate',
+    preparing_model: 'Preparing local generator',
+    downloading_model: item.metadataProgress === null ? 'Downloading local model' : `Downloading model · ${item.metadataProgress}%`,
+    loading_model: 'Loading model into memory',
+    generating: 'Generating locally',
+    generated: 'Generated locally',
+    fallback: 'Safe fallback added',
+    manually_edited: 'Edited manually',
+  }[item.metadataStatus];
   return (
     <article className={`overflow-hidden rounded-2xl border ${item.status === 'error' ? 'border-red-300 bg-red-50/40' : item.status === 'complete' ? 'border-emerald-300 bg-emerald-50/40' : 'border-admin-border bg-admin-surface'}`}>
       <div className="grid gap-4 p-4 md:grid-cols-[11rem_1fr]">
@@ -775,25 +1087,50 @@ function UploadReviewCard({
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="font-semibold text-admin-text">Photo details</p>
-              <p className="text-xs text-admin-subtle">Fields marked required must be completed.</p>
+              <p className={`mt-0.5 inline-flex items-center gap-1.5 text-xs font-semibold ${item.metadataStatus === 'fallback' ? 'text-amber-700' : item.metadataStatus === 'generated' ? 'text-emerald-700' : 'text-admin-subtle'}`}>
+                {generationBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                {metadataLabel}
+              </p>
             </div>
-            {!disabled && <AdminIconButton type="button" label={`Remove ${item.file.name}`} onClick={onRemove} className="shrink-0 text-red-700"><Trash2 className="h-4 w-4" /></AdminIconButton>}
+            <div className="flex shrink-0 flex-wrap justify-end gap-2">
+              {item.categoryId && !disabled && item.metadataStatus === 'generation_available' && (
+                <>
+                  <AdminButton type="button" variant="secondary" className="px-3" onClick={onRegenerate}><Sparkles className="h-4 w-4" /> Generate locally</AdminButton>
+                  <AdminButton type="button" variant="quiet" className="px-3" onClick={onUseFallback}>Use safe details</AdminButton>
+                </>
+              )}
+              {item.categoryId && !disabled && generationBusy && (
+                <AdminButton type="button" variant="quiet" className="px-3" onClick={onUseFallback}>Cancel and use safe details</AdminButton>
+              )}
+              {item.categoryId && !disabled && !generationBusy && item.metadataStatus !== 'generation_available' && (
+                <AdminButton type="button" variant="quiet" className="px-3" onClick={onRegenerate}><RotateCcw className="h-4 w-4" /> Regenerate</AdminButton>
+              )}
+              {!disabled && <AdminIconButton type="button" label={`Remove ${item.file.name}`} onClick={onRemove} className="shrink-0 text-red-700"><Trash2 className="h-4 w-4" /></AdminIconButton>}
+            </div>
           </div>
 
+          {item.generationWarning && <AdminAlert tone="warning">{item.generationWarning}</AdminAlert>}
+
+          {generationBusy && !modelLoading && (
+            <div className="rounded-xl bg-admin-muted p-3" role="status">
+              <div className="flex items-center gap-2 text-sm font-semibold text-admin-secondary"><Loader2 className="h-4 w-4 animate-spin text-admin-primary" /> {item.metadataStatus === 'queued' ? 'Queued for local generation…' : 'Analysing photo and writing details…'}</div>
+            </div>
+          )}
+
           <div className="grid gap-4 lg:grid-cols-2">
-            <AdminField label="Title · Required" error={titleInvalid ? 'Enter a title' : undefined}>
-              <input value={item.title} disabled={disabled} onChange={event => onChange({ title: event.target.value })} className={`${adminFieldClass} ${titleInvalid ? 'border-red-500' : ''}`} />
-            </AdminField>
-            <AdminField label="Category · Required" error={categoryInvalid ? 'Select a category' : undefined}>
-              <select value={item.categoryId} disabled={disabled} onChange={event => onChange({ categoryId: event.target.value })} className={`${adminFieldClass} ${categoryInvalid ? 'border-red-500' : ''}`}>
+            <AdminField label="Category *" error={categoryInvalid ? 'Select a category' : undefined}>
+              <select required value={item.categoryId} disabled={disabled} onChange={event => onCategoryChange(event.target.value)} className={`${adminFieldClass} ${categoryInvalid ? 'border-red-500' : ''}`}>
                 <option value="">Select category</option>
                 {categories.map(category => <option key={category.id} value={category.id}>{category.name}</option>)}
               </select>
             </AdminField>
+            <AdminField label="Title *" error={titleInvalid ? 'Enter a title' : undefined}>
+              <input required maxLength={70} value={item.title} disabled={disabled || !item.categoryId} onChange={event => onTitleChange(event.target.value)} placeholder={item.categoryId ? 'Generated automatically after category selection' : 'Select a category to enable title'} className={`${adminFieldClass} ${titleInvalid ? 'border-red-500' : ''}`} />
+            </AdminField>
           </div>
 
-          <AdminField label="Alt text · Required" hint="Briefly describe what is visible for accessibility and search." error={altInvalid ? 'Describe what is visible' : undefined}>
-            <textarea rows={2} value={item.altText} disabled={disabled} onChange={event => onChange({ altText: event.target.value })} placeholder="For example: Couple exchanging rings during an outdoor wedding" className={`${adminFieldClass} resize-none py-3 ${altInvalid ? 'border-red-500' : ''}`} />
+          <AdminField label="Alt text *" hint="Briefly describe what is visible for accessibility and search." error={altInvalid ? 'Describe what is visible' : undefined}>
+            <textarea required rows={2} maxLength={180} value={item.altText} disabled={disabled || !item.categoryId} onChange={event => onAltTextChange(event.target.value)} placeholder={item.categoryId ? 'Generated automatically from the photo' : 'Select a category to enable alt text'} className={`${adminFieldClass} resize-none py-3 ${altInvalid ? 'border-red-500' : ''}`} />
           </AdminField>
 
           <fieldset disabled={disabled}>

@@ -3,10 +3,13 @@ import assert from 'node:assert/strict';
 import {
   BOOKING_WIZARD_FIELD_LABELS,
   BOOKING_WIZARD_STEPS,
+  NEW_BOOKING_DEFAULTS,
   canOpenBookingWizardStep,
   initialHighestCompletedStep,
   invalidateBookingWizardProgress,
+  packageMatchesShootType,
   packagePrefill,
+  packagesForShootType,
   validateBookingWizardStep,
 } from './bookingForm.utils';
 import type { Package } from '../types';
@@ -40,20 +43,43 @@ const validWizardValues = {
   endTime: '',
 };
 
-test('booking wizard exposes all four steps and explicit field requirements', () => {
+test('booking wizard exposes all four steps without optional field suffixes', () => {
   assert.deepEqual(BOOKING_WIZARD_STEPS.map(step => step.label), [
     'Customer',
     'Shoot details',
     'Price & team',
     'Optional details',
   ]);
-  assert.match(BOOKING_WIZARD_FIELD_LABELS.customerName, /Required$/);
-  assert.match(BOOKING_WIZARD_FIELD_LABELS.customerPhone, /Required$/);
-  assert.match(BOOKING_WIZARD_FIELD_LABELS.shootType, /Required$/);
-  for (const [field, label] of Object.entries(BOOKING_WIZARD_FIELD_LABELS)) {
-    if (['customerName', 'customerPhone', 'shootType'].includes(field)) continue;
-    assert.match(label, /Optional$/);
+  assert.equal(BOOKING_WIZARD_FIELD_LABELS.customerName, 'Name');
+  assert.equal(BOOKING_WIZARD_FIELD_LABELS.customerPhone, 'Phone');
+  assert.equal(BOOKING_WIZARD_FIELD_LABELS.shootType, 'Photography service');
+  for (const label of Object.values(BOOKING_WIZARD_FIELD_LABELS)) {
+    assert.doesNotMatch(label, /Optional/);
   }
+});
+
+test('booking packages are filtered by photography service', () => {
+  const familyPackage = { ...pricedPackage, id: 'package-2', categoryName: 'Family' };
+  const legacyWeddingPackage = {
+    ...pricedPackage,
+    id: 'package-3',
+    categoryName: undefined,
+    shootType: 'wedding',
+  };
+  assert.deepEqual(
+    packagesForShootType([pricedPackage, familyPackage, legacyWeddingPackage], 'Wedding').map(item => item.id),
+    ['package-1', 'package-3'],
+  );
+  assert.equal(packageMatchesShootType(familyPackage, 'Family'), true);
+  assert.equal(packageMatchesShootType(familyPackage, 'Newborn'), false);
+});
+
+test('new bookings default to Erode with WhatsApp updates enabled', () => {
+  assert.deepEqual(NEW_BOOKING_DEFAULTS, {
+    location: 'Erode',
+    whatsappOptIn: true,
+    whatsappNotificationsEnabled: true,
+  });
 });
 
 test('booking wizard validates required customer fields', () => {

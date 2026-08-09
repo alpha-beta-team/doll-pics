@@ -9,26 +9,32 @@ export const BOOKING_WIZARD_STEPS = [
   { label: 'Optional details', description: 'You can leave this step blank and save the booking.' },
 ] as const;
 
+export const NEW_BOOKING_DEFAULTS = {
+  location: 'Erode',
+  whatsappOptIn: true,
+  whatsappNotificationsEnabled: true,
+} as const;
+
 export const BOOKING_WIZARD_FIELD_LABELS = {
-  customerName: 'Name \u00b7 Required',
-  customerPhone: 'Phone \u00b7 Required',
-  customerEmail: 'Email \u00b7 Optional',
-  shootType: 'Photography service \u00b7 Required',
-  preferredEvent: 'Preferred event \u00b7 Optional',
-  bookingDate: 'Booking date \u00b7 Optional',
-  location: 'Location \u00b7 Optional',
-  startTime: 'Start time \u00b7 Optional',
-  endTime: 'End time \u00b7 Optional',
-  package: 'Package \u00b7 Optional',
-  agreedTotal: 'Agreed total (\u20b9) \u00b7 Optional',
-  assignedTeamMember: 'Assigned team member \u00b7 Optional',
-  paymentDueDate: 'Payment due date \u00b7 Optional',
-  advanceAmount: 'Advance received (\u20b9) \u00b7 Optional',
-  advanceMethod: 'Advance method \u00b7 Optional',
-  followUpAt: 'Follow-up date and time \u00b7 Optional',
-  followUpNote: 'Follow-up note \u00b7 Optional',
-  notes: 'Internal notes \u00b7 Optional',
-  whatsapp: 'WhatsApp updates \u00b7 Optional',
+  customerName: 'Name',
+  customerPhone: 'Phone',
+  customerEmail: 'Email',
+  shootType: 'Photography service',
+  preferredEvent: 'Preferred event',
+  bookingDate: 'Booking date',
+  location: 'Location',
+  startTime: 'Start time',
+  endTime: 'End time',
+  package: 'Package',
+  agreedTotal: 'Agreed total (\u20b9)',
+  assignedTeamMember: 'Assigned team member',
+  paymentDueDate: 'Payment due date',
+  advanceAmount: 'Advance received (\u20b9)',
+  advanceMethod: 'Advance method',
+  followUpAt: 'Follow-up date and time',
+  followUpNote: 'Follow-up note',
+  notes: 'Internal notes',
+  whatsapp: 'WhatsApp updates',
 } as const;
 
 export type BookingWizardFieldErrors = Partial<Record<'customerName' | 'customerPhone' | 'time', string>>;
@@ -73,6 +79,15 @@ export function canOpenBookingWizardStep(
 
 export function invalidateBookingWizardProgress(highestCompletedStep: number, editedStep: number): number {
   return Math.min(highestCompletedStep, editedStep - 1);
+}
+
+export function packageMatchesShootType(item: Package, shootType: string): boolean {
+  const packageService = (item.categoryName || item.shootType || '').trim().toLocaleLowerCase();
+  return Boolean(packageService) && packageService === shootType.trim().toLocaleLowerCase();
+}
+
+export function packagesForShootType(packages: Package[], shootType: string): Package[] {
+  return packages.filter(item => packageMatchesShootType(item, shootType));
 }
 
 export function packagePrefill(packages: Package[], id: string, currentShootType: string) {
