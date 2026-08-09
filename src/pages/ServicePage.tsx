@@ -63,9 +63,13 @@ const SERVICE_SHOOT_TYPES: Record<string, ShootTypeOption> = {
 };
 
 const API_ONLY_SERVICE_CATEGORIES: Record<string, string> = {
+  '/wedding-photography-erode': 'wedding',
+  '/newborn-baby-photography-erode': 'newborn',
   '/maternity-photography-erode': 'maternity',
   '/baby-milestone-photography-erode': 'baby-milestone',
   '/baby-shower-photography-erode': 'baby-shower',
+  '/cake-smash-photography-erode': 'cake-smash',
+  '/family-photography-erode': 'family',
 };
 
 const PORTFOLIO_LAYOUTS = [
