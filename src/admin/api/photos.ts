@@ -11,11 +11,25 @@ export interface PhotoUploadInput {
   width: number;
   height: number;
   isPublished: boolean;
+  isCategoryCover: boolean;
 }
 
 export type PhotoUploadResult =
-  | { clientId: string; status: 'complete'; photo: Photo }
+  | {
+      clientId: string;
+      status: 'complete';
+      photo: Photo;
+      coverStatus?: 'complete' | 'error';
+      coverError?: string;
+    }
   | { clientId: string; status: 'error'; error: string };
+
+export interface CoverTransitionInput {
+  photoIds: string[];
+  action: 'delete' | 'unpublish' | 'setCategories';
+  replacements: Array<{ categoryId: string; photoId: string }>;
+  categoryIds?: string[];
+}
 
 async function getPhotos(filters?: {
   category?: string;
@@ -124,6 +138,14 @@ export const photosApi = {
     });
   },
 
+  async coverTransition(data: CoverTransitionInput): Promise<void> {
+    await request('/admin/photos/cover-transition', {
+      method: 'POST',
+      auth: true,
+      body: JSON.stringify(data),
+    });
+  },
+
   async uploadFiles(
     uploads: PhotoUploadInput[],
     onProgress?: (clientId: string, progress: number) => void,
@@ -169,8 +191,24 @@ export const photosApi = {
             isPublished: upload.isPublished,
           }),
         });
+        const photo = mapPhoto(doc);
+        let coverStatus: 'complete' | 'error' | undefined;
+        let coverError: string | undefined;
+        if (upload.isCategoryCover) {
+          try {
+            await request(`/admin/categories/${upload.categoryId}/cover-photo`, {
+              method: 'PATCH',
+              auth: true,
+              body: JSON.stringify({ photoId: photo.id }),
+            });
+            coverStatus = 'complete';
+          } catch (error) {
+            coverStatus = 'error';
+            coverError = error instanceof Error ? error.message : 'Category cover update failed';
+          }
+        }
         onProgress?.(clientId, 100);
-        results.push({ clientId, status: 'complete', photo: mapPhoto(doc) });
+        results.push({ clientId, status: 'complete', photo, coverStatus, coverError });
       } catch (error) {
         results.push({
           clientId,

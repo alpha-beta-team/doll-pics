@@ -21,6 +21,7 @@ import {
   X,
 } from 'lucide-react';
 import { api } from '../api/client';
+import { ApiError } from '../api/http';
 import type { Category, Photo } from '../types';
 import { useConfirmDialog } from '../hooks/useConfirmDialog';
 import {
@@ -38,9 +39,11 @@ import {
 import { PhotoEditModal, PhotoPreviewModal } from './PhotosPage';
 import {
   filterPhotos,
+  getEligibleCoverReplacements,
   getUploadActionLabel,
   getUsedCategoryCounts,
   toggleVisibleSelection,
+  setUploadCategoryCover,
   type PhotoStatusFilter,
 } from './photos.utils';
 import {
@@ -67,9 +70,15 @@ interface UploadQueueItem {
   width: number;
   height: number;
   isPublished: boolean;
+  isCategoryCover: boolean;
   progress: number;
   status: UploadStatus;
   error?: string;
+  uploadedPhotoId?: string;
+  coverStatus?: 'assigning' | 'complete' | 'error';
+  coverError?: string;
+  replacementForCategoryId?: string;
+  categoryLocked?: boolean;
   metadataStatus: MetadataGenerationStatus;
   metadataProgress: number | null;
   metadataLoadedBytes?: number;
@@ -78,6 +87,20 @@ interface UploadQueueItem {
   titleEdited: boolean;
   altEdited: boolean;
   generationWarning?: string;
+}
+
+interface CoverConflictCategory {
+  id: string;
+  name: string;
+  currentCoverPhotoId: string;
+}
+
+interface PendingCoverOperation {
+  action: 'delete' | 'unpublish' | 'setCategories';
+  photoIds: string[];
+  categoryIds?: string[];
+  affectedCategories: CoverConflictCategory[];
+  postTransitionPatch?: Partial<Photo>;
 }
 
 const SUPPORTED_UPLOAD_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'];
@@ -162,6 +185,10 @@ export function PhotosWorkspacePage() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [validationAttempted, setValidationAttempted] = useState(false);
+  const [coverOperation, setCoverOperation] = useState<PendingCoverOperation | null>(null);
+  const [coverReplacements, setCoverReplacements] = useState<Record<string, string>>({});
+  const [isCoverTransitioning, setIsCoverTransitioning] = useState(false);
+  const [replacementUploadCategoryId, setReplacementUploadCategoryId] = useState<string | null>(null);
 
   useEffect(() => {
     uploadingFilesRef.current = uploadingFiles;
@@ -228,13 +255,44 @@ export function PhotosWorkspacePage() {
     if (!canReorder) setReorderMode(false);
   }, [canReorder]);
 
-  const withPhotoPending = async (photoId: string, action: () => Promise<void>) => {
+  const openCoverReplacement = (
+    caught: unknown,
+    operation: Omit<PendingCoverOperation, 'affectedCategories'>,
+  ): boolean => {
+    if (!(caught instanceof ApiError) || caught.code !== 'COVER_REPLACEMENT_REQUIRED') return false;
+    const affectedCategories = Array.isArray(caught.body.affectedCategories)
+      ? caught.body.affectedCategories.flatMap((value): CoverConflictCategory[] => {
+          if (!value || typeof value !== 'object') return [];
+          const category = value as Record<string, unknown>;
+          return typeof category.id === 'string' && typeof category.name === 'string'
+            ? [{
+                id: category.id,
+                name: category.name,
+                currentCoverPhotoId: String(category.currentCoverPhotoId ?? ''),
+              }]
+            : [];
+        })
+      : [];
+    if (!affectedCategories.length) return false;
+    setCoverOperation({ ...operation, affectedCategories });
+    setCoverReplacements({});
+    setError(null);
+    return true;
+  };
+
+  const withPhotoPending = async (
+    photoId: string,
+    action: () => Promise<void>,
+    coverContext?: Omit<PendingCoverOperation, 'affectedCategories'>,
+  ) => {
     setPendingPhotoIds(previous => new Set(previous).add(photoId));
     try {
       await action();
       await fetchPhotos();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Failed to update photo');
+      if (!coverContext || !openCoverReplacement(caught, coverContext)) {
+        setError(caught instanceof Error ? caught.message : 'Failed to update photo');
+      }
     } finally {
       setPendingPhotoIds(previous => {
         const next = new Set(previous);
@@ -252,7 +310,12 @@ export function PhotosWorkspacePage() {
       setSelectedPhotos(new Set());
       await fetchPhotos();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Failed to update selected photos');
+      if (isPublished || !openCoverReplacement(caught, {
+        action: 'unpublish',
+        photoIds: [...selectedPhotos],
+      })) {
+        setError(caught instanceof Error ? caught.message : 'Failed to update selected photos');
+      }
     } finally {
       setIsBulkWorking(false);
     }
@@ -274,7 +337,12 @@ export function PhotosWorkspacePage() {
       setSelectedPhotos(new Set());
       await fetchPhotos();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Failed to delete selected photos');
+      if (!openCoverReplacement(caught, {
+        action: 'delete',
+        photoIds: [...selectedPhotos],
+      })) {
+        setError(caught instanceof Error ? caught.message : 'Failed to delete selected photos');
+      }
     } finally {
       setIsBulkWorking(false);
     }
@@ -288,7 +356,63 @@ export function PhotosWorkspacePage() {
       variant: 'danger',
     });
     if (!confirmed) return;
-    await withPhotoPending(photo.id, () => api.deletePhoto(photo.id));
+    await withPhotoPending(
+      photo.id,
+      () => api.deletePhoto(photo.id),
+      { action: 'delete', photoIds: [photo.id] },
+    );
+  };
+
+  const performOriginalCoverOperation = async (operation: PendingCoverOperation) => {
+    if (operation.action === 'delete') {
+      await api.bulkDeletePhotos(operation.photoIds);
+    } else if (operation.action === 'unpublish') {
+      await api.bulkUpdatePhotos(operation.photoIds, { isPublished: false });
+      if (operation.postTransitionPatch) {
+        await api.updatePhoto(operation.photoIds[0], operation.postTransitionPatch);
+      }
+    } else {
+      await api.updatePhoto(
+        operation.photoIds[0],
+        operation.postTransitionPatch ?? { categories: operation.categoryIds ?? [] },
+      );
+    }
+  };
+
+  const handleConfirmCoverTransition = async () => {
+    if (!coverOperation || isCoverTransitioning) return;
+    const replacements = coverOperation.affectedCategories.map(category => ({
+      categoryId: category.id,
+      photoId: coverReplacements[category.id],
+    }));
+    if (replacements.some(replacement => !replacement.photoId)) return;
+    setIsCoverTransitioning(true);
+    try {
+      await api.coverTransition({
+        photoIds: coverOperation.photoIds,
+        action: coverOperation.action,
+        categoryIds: coverOperation.categoryIds,
+        replacements,
+      });
+      if (coverOperation.action !== 'delete' && coverOperation.postTransitionPatch) {
+        await api.updatePhoto(coverOperation.photoIds[0], coverOperation.postTransitionPatch);
+      }
+      setCoverOperation(null);
+      setCoverReplacements({});
+      setSelectedPhotos(new Set());
+      setEditingPhoto(null);
+      await fetchPhotos();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Could not replace the category cover');
+    } finally {
+      setIsCoverTransitioning(false);
+    }
+  };
+
+  const beginReplacementUpload = (categoryId: string) => {
+    setReplacementUploadCategoryId(categoryId);
+    setShowUploadModal(true);
+    window.setTimeout(() => fileInputRef.current?.click(), 0);
   };
 
   const handleDrop = async (targetId: string) => {
@@ -315,42 +439,49 @@ export function PhotosWorkspacePage() {
 
   const addUploadFiles = async (files: File[]) => {
     if (!files.length) return;
-    const invalidType = files.find(file => !SUPPORTED_UPLOAD_TYPES.includes(file.type));
+    const selectedFiles = replacementUploadCategoryId ? files.slice(0, 1) : files;
+    const invalidType = selectedFiles.find(file => !SUPPORTED_UPLOAD_TYPES.includes(file.type));
     if (invalidType) {
       setUploadError(`${invalidType.name}: only JPEG, PNG, WebP and AVIF are supported.`);
       setShowUploadModal(true);
       return;
     }
-    const tooLarge = files.find(file => file.size > MAX_UPLOAD_SIZE);
+    const tooLarge = selectedFiles.find(file => file.size > MAX_UPLOAD_SIZE);
     if (tooLarge) {
       setUploadError(`${tooLarge.name}: maximum upload size is ${MAX_UPLOAD_SIZE_MB} MB.`);
       setShowUploadModal(true);
       return;
     }
     try {
-      const dimensions = await Promise.all(files.map(readImageDimensions));
+      const dimensions = await Promise.all(selectedFiles.map(readImageDimensions));
       const timestamp = Date.now();
       setUploadingFiles(previous => [
         ...previous,
-        ...files.map((file, index): UploadQueueItem => ({
+        ...selectedFiles.map((file, index): UploadQueueItem => ({
           id: `${timestamp}-${index}-${Math.random().toString(36).slice(2, 9)}`,
           file,
           preview: URL.createObjectURL(file),
           title: '',
           altText: '',
-          categoryId: '',
+          categoryId: replacementUploadCategoryId ?? '',
           width: dimensions[index].width,
           height: dimensions[index].height,
           isPublished: true,
+          isCategoryCover: Boolean(replacementUploadCategoryId),
           progress: 0,
           status: 'ready',
-          metadataStatus: 'waiting_for_category',
+          metadataStatus: replacementUploadCategoryId ? 'generation_available' : 'waiting_for_category',
           metadataProgress: null,
           titleEdited: false,
           altEdited: false,
+          replacementForCategoryId: replacementUploadCategoryId ?? undefined,
+          categoryLocked: Boolean(replacementUploadCategoryId),
         })),
       ]);
-      setUploadError(null);
+      setUploadError(replacementUploadCategoryId && files.length > 1
+        ? 'Choose one replacement cover at a time. Only the first selected file was added.'
+        : null);
+      setReplacementUploadCategoryId(null);
       setValidationAttempted(false);
       setShowUploadModal(true);
     } catch (caught) {
@@ -366,6 +497,10 @@ export function PhotosWorkspacePage() {
 
   const updateUploadFile = (id: string, patch: Partial<UploadQueueItem>) => {
     setUploadingFiles(previous => previous.map(file => file.id === id ? { ...file, ...patch } : file));
+  };
+
+  const handleUploadCoverChange = (fileId: string, selected: boolean) => {
+    setUploadingFiles(previous => setUploadCategoryCover(previous, fileId, selected));
   };
 
   const generateMetadataForFile = useCallback(async (fileId: string, categoryId: string) => {
@@ -443,6 +578,17 @@ export function PhotosWorkspacePage() {
     }
   }, [serviceCategories]);
 
+  useEffect(() => {
+    if (!localGenerationCapability.automatic) return;
+    const preselected = uploadingFiles.find(file =>
+      file.categoryId
+      && file.metadataStatus === 'generation_available'
+      && file.replacementForCategoryId
+      && !generationTokensRef.current.has(file.id)
+    );
+    if (preselected) void generateMetadataForFile(preselected.id, preselected.categoryId);
+  }, [generateMetadataForFile, localGenerationCapability.automatic, uploadingFiles]);
+
   const handleUploadCategoryChange = (fileId: string, categoryId: string) => {
     const item = uploadingFilesRef.current.find(file => file.id === fileId);
     if (!item) return;
@@ -455,6 +601,7 @@ export function PhotosWorkspacePage() {
       ? {
           ...file,
           categoryId,
+          isCategoryCover: false,
           metadataStatus: !categoryId
             ? (hasManualMetadata ? 'manually_edited' : 'waiting_for_category')
             : (hasManualMetadata ? 'manually_edited' : shouldGenerate ? 'queued' : 'generation_available'),
@@ -547,6 +694,9 @@ export function PhotosWorkspacePage() {
 
   const closeUpload = () => {
     if (isUploading) return;
+    const wasReplacementUpload = Boolean(
+      replacementUploadCategoryId || uploadingFiles.some(file => file.replacementForCategoryId),
+    );
     uploadingFiles.forEach(file => URL.revokeObjectURL(file.preview));
     generationTokensRef.current.clear();
     resetPhotoCaptionWorker();
@@ -554,6 +704,36 @@ export function PhotosWorkspacePage() {
     setUploadError(null);
     setValidationAttempted(false);
     setShowUploadModal(false);
+    setReplacementUploadCategoryId(null);
+    if (wasReplacementUpload) {
+      setCoverOperation(null);
+      setCoverReplacements({});
+    }
+  };
+
+  const resumePendingCoverOperation = async (operation: PendingCoverOperation) => {
+    uploadingFilesRef.current.forEach(file => URL.revokeObjectURL(file.preview));
+    setUploadingFiles([]);
+    setShowUploadModal(false);
+    setUploadError(null);
+    try {
+      await performOriginalCoverOperation(operation);
+      setCoverOperation(null);
+      setCoverReplacements({});
+      setSelectedPhotos(new Set());
+      setEditingPhoto(null);
+      await fetchPhotos();
+    } catch (caught) {
+      if (!openCoverReplacement(caught, {
+        action: operation.action,
+        photoIds: operation.photoIds,
+        categoryIds: operation.categoryIds,
+        postTransitionPatch: operation.postTransitionPatch,
+      })) {
+        setCoverOperation(null);
+        setError(caught instanceof Error ? caught.message : 'The original photo action could not be resumed');
+      }
+    }
   };
 
   const handleUpload = async () => {
@@ -584,6 +764,7 @@ export function PhotosWorkspacePage() {
           width: file.width,
           height: file.height,
           isPublished: file.isPublished,
+          isCategoryCover: file.isCategoryCover,
         })),
         (clientId, progress) => updateUploadFile(clientId, { progress }),
       );
@@ -591,12 +772,32 @@ export function PhotosWorkspacePage() {
         const result = results.find(item => item.clientId === file.id);
         if (!result) return file;
         return result.status === 'complete'
-          ? { ...file, status: 'complete', progress: 100, error: undefined }
+          ? {
+              ...file,
+              status: 'complete',
+              progress: 100,
+              error: undefined,
+              uploadedPhotoId: result.photo.id,
+              coverStatus: result.coverStatus,
+              coverError: result.coverError,
+            }
           : { ...file, status: 'error', error: result.error };
       }));
       const failed = results.filter(result => result.status === 'error').length;
-      if (failed) setUploadError(`${failed} ${failed === 1 ? 'photo' : 'photos'} could not be uploaded. Fix the issue and retry failed uploads.`);
+      const coverFailed = results.filter(result => result.status === 'complete' && result.coverStatus === 'error').length;
+      if (failed) {
+        setUploadError(`${failed} ${failed === 1 ? 'photo' : 'photos'} could not be uploaded. Fix the issue and retry failed uploads.`);
+      } else if (coverFailed) {
+        setUploadError(`${coverFailed} ${coverFailed === 1 ? 'photo was' : 'photos were'} uploaded, but the category cover could not be updated. Retry the cover update below.`);
+      }
       await fetchPhotos();
+      const completedReplacement = results.find(result => {
+        if (result.status !== 'complete' || result.coverStatus !== 'complete') return false;
+        return pending.some(file => file.id === result.clientId && file.replacementForCategoryId);
+      });
+      if (completedReplacement && coverOperation) {
+        await resumePendingCoverOperation(coverOperation);
+      }
     } catch (caught) {
       setUploadingFiles(previous => previous.map(file =>
         file.status === 'uploading'
@@ -606,6 +807,26 @@ export function PhotosWorkspacePage() {
       setUploadError(caught instanceof Error ? caught.message : 'The upload could not be completed.');
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleRetryCoverUpdate = async (fileId: string) => {
+    const item = uploadingFilesRef.current.find(file => file.id === fileId);
+    if (!item?.uploadedPhotoId || !item.categoryId) return;
+    updateUploadFile(fileId, { coverStatus: 'assigning', coverError: undefined });
+    try {
+      await api.setCategoryCover(item.categoryId, item.uploadedPhotoId);
+      updateUploadFile(fileId, { coverStatus: 'complete', coverError: undefined });
+      setUploadError(null);
+      await fetchPhotos();
+      if (item.replacementForCategoryId && coverOperation) {
+        await resumePendingCoverOperation(coverOperation);
+      }
+    } catch (caught) {
+      updateUploadFile(fileId, {
+        coverStatus: 'error',
+        coverError: caught instanceof Error ? caught.message : 'Category cover update failed',
+      });
     }
   };
 
@@ -777,7 +998,11 @@ export function PhotosWorkspacePage() {
               })}
               onPreview={() => setPreviewPhoto(photo)}
               onEdit={() => setEditingPhoto(photo)}
-              onPublish={() => void withPhotoPending(photo.id, () => api.updatePhoto(photo.id, { isPublished: !photo.isPublished }).then(() => undefined))}
+              onPublish={() => void withPhotoPending(
+                photo.id,
+                () => api.updatePhoto(photo.id, { isPublished: !photo.isPublished }).then(() => undefined),
+                photo.isPublished ? { action: 'unpublish', photoIds: [photo.id] } : undefined,
+              )}
               onFeature={() => void withPhotoPending(photo.id, () => api.updatePhoto(photo.id, { isFeatured: !photo.isFeatured }).then(() => undefined))}
               onDelete={() => void handleDelete(photo)}
               onDragStart={event => { setDraggedPhotoId(photo.id); event.dataTransfer.effectAllowed = 'move'; }}
@@ -866,7 +1091,7 @@ export function PhotosWorkspacePage() {
               <AdminButton type="button" variant="secondary" disabled={isUploading} onClick={() => fileInputRef.current?.click()}><Plus className="h-4 w-4" /> Add more</AdminButton>
               {pendingUploads.length > 0 && <>
                 <AdminButton type="button" variant="quiet" disabled={isUploading} onClick={() => setUploadingFiles(previous => previous.map(file => file.status === 'complete' ? file : { ...file, isPublished: true }))}>Publish all</AdminButton>
-                <AdminButton type="button" variant="quiet" disabled={isUploading} onClick={() => setUploadingFiles(previous => previous.map(file => file.status === 'complete' ? file : { ...file, isPublished: false }))}>Save all as drafts</AdminButton>
+                <AdminButton type="button" variant="quiet" disabled={isUploading} onClick={() => setUploadingFiles(previous => previous.map(file => file.status === 'complete' ? file : { ...file, isPublished: false, isCategoryCover: false }))}>Save all as drafts</AdminButton>
               </>}
             </div>
           </div>
@@ -880,20 +1105,92 @@ export function PhotosWorkspacePage() {
                   key={file.id}
                   item={file}
                   categories={serviceCategories}
+                  currentCoverPhoto={photos.find(photo => photo.id === serviceCategories.find(category => category.id === file.categoryId)?.coverPhotoId)}
                   disabled={isUploading || file.status === 'complete'}
                   showValidation={validationAttempted}
-                  onChange={patch => updateUploadFile(file.id, patch)}
+                  onChange={patch => updateUploadFile(file.id, patch.isPublished === false ? { ...patch, isCategoryCover: false } : patch)}
                   onCategoryChange={categoryId => handleUploadCategoryChange(file.id, categoryId)}
+                  onCoverChange={selected => handleUploadCoverChange(file.id, selected)}
                   onTitleChange={title => handleMetadataEdit(file.id, 'title', title)}
                   onAltTextChange={altText => handleMetadataEdit(file.id, 'altText', altText)}
                   onRegenerate={() => void handleRegenerateMetadata(file.id)}
                   onUseFallback={() => handleUseSafeDetails(file.id)}
+                  onRetryCover={() => void handleRetryCoverUpdate(file.id)}
                   onRemove={() => removeUploadFile(file.id)}
                 />
               ))}
             </div>
           )}
         </div>
+      </AdminModal>
+
+      <AdminModal
+        open={Boolean(coverOperation) && !showUploadModal}
+        title="Select replacement category covers"
+        description="These photos are currently used at the top of public service pages. Every affected category needs a published replacement before the action can continue."
+        onClose={() => {
+          if (isCoverTransitioning) return;
+          setCoverOperation(null);
+          setCoverReplacements({});
+        }}
+        maxWidth="max-w-4xl"
+        footer={coverOperation ? (
+          <div className="flex flex-wrap justify-end gap-2">
+            <AdminButton type="button" variant="secondary" disabled={isCoverTransitioning} onClick={() => { setCoverOperation(null); setCoverReplacements({}); }}>Cancel</AdminButton>
+            <AdminButton
+              type="button"
+              disabled={isCoverTransitioning || coverOperation.affectedCategories.some(category => !coverReplacements[category.id])}
+              onClick={() => void handleConfirmCoverTransition()}
+            >
+              {isCoverTransitioning
+                ? <><Loader2 className="h-4 w-4 animate-spin" /> Updating covers…</>
+                : `Replace covers and ${coverOperation.action === 'delete' ? 'delete' : coverOperation.action === 'unpublish' ? 'unpublish' : 'save categories'}`}
+            </AdminButton>
+          </div>
+        ) : undefined}
+      >
+        {coverOperation && (
+          <div className="space-y-5">
+            {coverOperation.affectedCategories.map(category => {
+              const candidates = getEligibleCoverReplacements(photos, category.id, coverOperation.photoIds);
+              return (
+                <section key={category.id} className="rounded-2xl border border-admin-border p-4">
+                  <div className="mb-3">
+                    <h3 className="font-semibold text-admin-text">{category.name} cover</h3>
+                    <p className="mt-1 text-sm text-admin-subtle">Choose the new image shown at the top of the {category.name} service page.</p>
+                  </div>
+                  {candidates.length ? (
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+                      {candidates.map(photo => {
+                        const selected = coverReplacements[category.id] === photo.id;
+                        return (
+                          <button
+                            key={photo.id}
+                            type="button"
+                            role="radio"
+                            aria-checked={selected}
+                            onClick={() => setCoverReplacements(previous => ({ ...previous, [category.id]: photo.id }))}
+                            className={`overflow-hidden rounded-xl border-2 text-left transition ${selected ? 'border-admin-primary ring-2 ring-admin-primary/20' : 'border-admin-border hover:border-admin-border-strong'}`}
+                          >
+                            <img src={getPhotoSrc(photo)} alt={photo.altText || photo.title} className="aspect-[4/3] w-full object-cover" />
+                            <span className="block truncate px-3 py-2 text-sm font-semibold text-admin-text">{photo.title}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <AdminAlert tone="warning">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <span>No other published {category.name} photo is available.</span>
+                        <AdminButton type="button" variant="secondary" onClick={() => beginReplacementUpload(category.id)}><Upload className="h-4 w-4" /> Upload replacement</AdminButton>
+                      </div>
+                    </AdminAlert>
+                  )}
+                </section>
+              );
+            })}
+          </div>
+        )}
       </AdminModal>
 
       {previewPhoto && <PhotoPreviewModal photo={previewPhoto} photos={visiblePhotos} onClose={() => setPreviewPhoto(null)} onNavigate={setPreviewPhoto} />}
@@ -908,7 +1205,14 @@ export function PhotosWorkspacePage() {
               await fetchPhotos();
               setEditingPhoto(null);
             } catch (caught) {
-              setError(caught instanceof Error ? caught.message : 'Failed to update photo');
+              if (!openCoverReplacement(caught, {
+                action: data.isPublished === false ? 'unpublish' : 'setCategories',
+                photoIds: [editingPhoto.id],
+                categoryIds: data.isPublished === false ? undefined : data.categories,
+                postTransitionPatch: data,
+              })) {
+                setError(caught instanceof Error ? caught.message : 'Failed to update photo');
+              }
             }
           }}
           onSaveImage={async transform => {
@@ -974,6 +1278,7 @@ function PhotoCard({
     .map(categoryId => categoryNames.find(category => category.id === categoryId)?.name)
     .filter(Boolean)
     .join(' · ');
+  const coverCategories = categoryNames.filter(category => category.coverPhotoId === photo.id);
 
   return (
     <article
@@ -999,7 +1304,8 @@ function PhotoCard({
         )}
 
         <div className="absolute right-3 top-3 flex flex-wrap justify-end gap-1.5">
-          {photo.isFeatured && <span className="inline-flex items-center gap-1 rounded-full bg-amber-500 px-2.5 py-1 text-xs font-bold text-white shadow"><Star className="h-3 w-3 fill-current" /> Featured</span>}
+          {coverCategories.map(category => <span key={category.id} className="inline-flex items-center gap-1 rounded-full bg-violet-600 px-2.5 py-1 text-xs font-bold text-white shadow"><ImageIcon className="h-3 w-3" /> {category.name} cover</span>)}
+          {photo.isFeatured && <span className="inline-flex items-center gap-1 rounded-full bg-amber-500 px-2.5 py-1 text-xs font-bold text-white shadow"><Star className="h-3 w-3 fill-current" /> Homepage featured</span>}
           <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold text-white shadow ${photo.isPublished ? 'bg-emerald-600' : 'bg-stone-600'}`}>
             {photo.isPublished ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
             {photo.isPublished ? 'Published' : 'Draft'}
@@ -1018,7 +1324,7 @@ function PhotoCard({
               {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : photo.isPublished ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               {photo.isPublished ? 'Unpublish' : 'Publish'}
             </button>
-            <AdminIconButton type="button" label={photo.isFeatured ? 'Remove from featured' : 'Feature photo'} disabled={pending} onClick={onFeature} className={photo.isFeatured ? 'border-amber-300 bg-amber-50 text-amber-700' : ''}><Star className={`h-4 w-4 ${photo.isFeatured ? 'fill-current' : ''}`} /></AdminIconButton>
+            <AdminIconButton type="button" label={photo.isFeatured ? 'Remove from homepage featured' : 'Add to homepage featured'} disabled={pending} onClick={onFeature} className={photo.isFeatured ? 'border-amber-300 bg-amber-50 text-amber-700' : ''}><Star className={`h-4 w-4 ${photo.isFeatured ? 'fill-current' : ''}`} /></AdminIconButton>
             <AdminIconButton type="button" label={`Edit ${photo.title}`} disabled={pending} onClick={onEdit}><Pencil className="h-4 w-4" /></AdminIconButton>
             <AdminIconButton type="button" label={`Delete ${photo.title}`} disabled={pending} onClick={onDelete} className="text-red-700 hover:border-red-200 hover:bg-red-50"><Trash2 className="h-4 w-4" /></AdminIconButton>
           </div>
@@ -1031,31 +1337,38 @@ function PhotoCard({
 function UploadReviewCard({
   item,
   categories,
+  currentCoverPhoto,
   disabled,
   showValidation,
   onChange,
   onCategoryChange,
+  onCoverChange,
   onTitleChange,
   onAltTextChange,
   onRegenerate,
   onUseFallback,
+  onRetryCover,
   onRemove,
 }: {
   item: UploadQueueItem;
   categories: Category[];
+  currentCoverPhoto?: Photo;
   disabled: boolean;
   showValidation: boolean;
   onChange: (patch: Partial<UploadQueueItem>) => void;
   onCategoryChange: (categoryId: string) => void;
+  onCoverChange: (selected: boolean) => void;
   onTitleChange: (title: string) => void;
   onAltTextChange: (altText: string) => void;
   onRegenerate: () => void;
   onUseFallback: () => void;
+  onRetryCover: () => void;
   onRemove: () => void;
 }) {
   const titleInvalid = showValidation && Boolean(item.categoryId) && !item.title.trim();
   const altInvalid = showValidation && Boolean(item.categoryId) && !item.altText.trim();
   const categoryInvalid = showValidation && !item.categoryId;
+  const selectedCategory = categories.find(category => category.id === item.categoryId);
   const generationBusy = isMetadataBusy(item.metadataStatus);
   const modelLoading = MODEL_LOADING_STATUSES.has(item.metadataStatus);
   const metadataLabel = {
@@ -1119,7 +1432,7 @@ function UploadReviewCard({
 
           <div className="grid gap-4 lg:grid-cols-2">
             <AdminField label="Category *" error={categoryInvalid ? 'Select a category' : undefined}>
-              <select required value={item.categoryId} disabled={disabled} onChange={event => onCategoryChange(event.target.value)} className={`${adminFieldClass} ${categoryInvalid ? 'border-red-500' : ''}`}>
+              <select required value={item.categoryId} disabled={disabled || item.categoryLocked} onChange={event => onCategoryChange(event.target.value)} className={`${adminFieldClass} ${categoryInvalid ? 'border-red-500' : ''}`}>
                 <option value="">Select category</option>
                 {categories.map(category => <option key={category.id} value={category.id}>{category.name}</option>)}
               </select>
@@ -1132,6 +1445,40 @@ function UploadReviewCard({
           <AdminField label="Alt text *" hint="Briefly describe what is visible for accessibility and search." error={altInvalid ? 'Describe what is visible' : undefined}>
             <textarea required rows={2} maxLength={180} value={item.altText} disabled={disabled || !item.categoryId} onChange={event => onAltTextChange(event.target.value)} placeholder={item.categoryId ? 'Generated automatically from the photo' : 'Select a category to enable alt text'} className={`${adminFieldClass} resize-none py-3 ${altInvalid ? 'border-red-500' : ''}`} />
           </AdminField>
+
+          {selectedCategory && (
+            <fieldset disabled={disabled} className="rounded-xl border border-admin-border bg-admin-muted p-3">
+              <legend className="px-1 text-sm font-semibold text-admin-secondary">Category cover</legend>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                {currentCoverPhoto ? (
+                  <img
+                    src={getPhotoSrc(currentCoverPhoto)}
+                    alt={currentCoverPhoto.altText || currentCoverPhoto.title}
+                    className="h-16 w-24 rounded-lg object-cover"
+                  />
+                ) : (
+                  <div className="flex h-16 w-24 items-center justify-center rounded-lg bg-admin-surface text-admin-subtle"><ImageIcon className="h-6 w-6" /></div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-admin-text">
+                    {currentCoverPhoto ? `Current ${selectedCategory.name} cover: ${currentCoverPhoto.title}` : `${selectedCategory.name} does not have a cover yet`}
+                  </p>
+                  <p className="mt-1 text-xs text-admin-subtle">The category cover appears at the top of its public service page.</p>
+                </div>
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={item.isCategoryCover}
+                  onClick={() => onCoverChange(!item.isCategoryCover)}
+                  className={`min-h-11 rounded-xl border px-4 text-sm font-semibold transition ${item.isCategoryCover ? 'border-amber-500 bg-amber-500 text-white' : 'border-admin-border bg-admin-surface text-admin-secondary hover:border-amber-400 hover:text-amber-700'}`}
+                >
+                  <Star className={`mr-2 inline h-4 w-4 ${item.isCategoryCover ? 'fill-current' : ''}`} />
+                  {item.isCategoryCover ? `Selected as ${selectedCategory.name} cover` : `Use as ${selectedCategory.name} cover`}
+                </button>
+              </div>
+              {item.isCategoryCover && <p className="mt-2 text-xs font-semibold text-amber-700">This photo will be published and replace the current category cover after upload.</p>}
+            </fieldset>
+          )}
 
           <fieldset disabled={disabled}>
             <legend className="mb-2 text-sm font-semibold text-admin-secondary">Publishing status</legend>
@@ -1147,6 +1494,17 @@ function UploadReviewCard({
               <div className="h-2 overflow-hidden rounded-full bg-admin-muted"><div className={`h-full transition-all ${item.status === 'error' ? 'bg-red-600' : item.status === 'complete' ? 'bg-emerald-600' : 'bg-admin-primary'}`} style={{ width: `${item.progress}%` }} /></div>
             </div>
           )}
+
+          {item.coverStatus === 'error' && (
+            <AdminAlert tone="warning">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <span>Photo uploaded, but the category cover was not updated: {item.coverError}</span>
+                <AdminButton type="button" variant="secondary" onClick={onRetryCover}>Retry cover update</AdminButton>
+              </div>
+            </AdminAlert>
+          )}
+          {item.coverStatus === 'assigning' && <AdminAlert tone="info">Updating category cover…</AdminAlert>}
+          {item.coverStatus === 'complete' && <AdminAlert tone="success">Category cover updated successfully.</AdminAlert>}
         </div>
       </div>
     </article>

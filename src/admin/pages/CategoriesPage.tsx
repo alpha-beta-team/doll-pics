@@ -16,6 +16,14 @@ interface CategoryWithEdit extends Category {
   isEditing?: boolean;
 }
 
+function categoryPhotoSrc(photo: Photo): string {
+  const url = photo.variants.webp || photo.variants.avif;
+  if (!url || /^(https?:|blob:|data:)/.test(url)) return url;
+  const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001/api';
+  const origin = apiBase.replace(/\/api\/?$/, '');
+  return url.startsWith('/') ? `${origin}${url}` : `${origin}/${url}`;
+}
+
 export function CategoriesPage() {
   const [categories, setCategories] = useState<CategoryWithEdit[]>([]);
   const [photos, setPhotos] = useState<Photo[]>([]);
@@ -150,9 +158,7 @@ export function CategoriesPage() {
 
                 <div className="w-20 h-14 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 relative">
                   {coverPhoto ? (
-                    <div className="w-full h-full flex items-center justify-center text-gray-300">
-                      <ImageIcon className="w-6 h-6" />
-                    </div>
+                    <img src={categoryPhotoSrc(coverPhoto)} alt={coverPhoto.altText || coverPhoto.title} className="h-full w-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-300">
                       <ImageIcon className="w-6 h-6" />
@@ -221,7 +227,11 @@ export function CategoriesPage() {
           onClose={() => setEditingCategory(null)}
           onSave={async data => {
             try {
-              await api.updateCategory(editingCategory.id, data);
+              const { coverPhotoId, ...categoryData } = data;
+              await api.updateCategory(editingCategory.id, categoryData);
+              if (coverPhotoId && coverPhotoId !== editingCategory.coverPhotoId) {
+                await api.setCategoryCover(editingCategory.id, coverPhotoId);
+              }
               const categoriesData = await api.getCategories();
               setCategories(categoriesData);
               setEditingCategory(null);
@@ -266,7 +276,7 @@ function CategoryEditModal({ category, photos, onClose, onSave }: CategoryEditMo
       .replace(/^-|-$/g, '');
   };
 
-  const categoryPhotos = photos.filter(p => p.categories.includes(category.id));
+  const categoryPhotos = photos.filter(p => p.isPublished && p.categories.includes(category.id));
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -373,9 +383,7 @@ function CategoryEditModal({ category, photos, onClose, onSave }: CategoryEditMo
                         : 'border-transparent hover:border-gray-300'
                     }`}
                   >
-                    <div className="w-full h-full flex items-center justify-center">
-                      <ImageIcon className="w-4 h-4 text-gray-300" />
-                    </div>
+                    <img src={categoryPhotoSrc(photo)} alt={photo.altText || photo.title} className="h-full w-full object-cover" />
                     {coverPhotoId === photo.id && (
                       <div className="absolute top-1 right-1 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
                         <Check className="w-2.5 h-2.5 text-white" />

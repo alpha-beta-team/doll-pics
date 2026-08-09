@@ -244,6 +244,7 @@ export function PhotosPage() {
           width: file.width,
           height: file.height,
           isPublished: true,
+          isCategoryCover: false,
         })),
         (clientId, progress) => {
           setUploadingFiles(prev =>

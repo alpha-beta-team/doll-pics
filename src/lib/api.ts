@@ -205,6 +205,10 @@ export const publicApi = {
       init,
     );
   },
+  getCategory: (slug: string) =>
+    publicFetch<import('../shared/types').PublicCategory>(
+      `/categories/${encodeURIComponent(slug)}`,
+    ),
   getPackages: () => publicFetch<PublicPackage[]>('/packages'),
   getPackageCategories: () =>
     publicFetch<PublicPackageCategory[]>('/package-categories'),

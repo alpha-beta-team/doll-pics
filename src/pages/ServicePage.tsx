@@ -177,11 +177,19 @@ function ServicePageContent() {
     }
 
     setApiServiceMedia({ path, images: [] });
-    void publicApi
-      .getPhotos({ category: apiServiceCategory, limit: 24 })
-      .then((photos) => {
+    void Promise.all([
+      publicApi.getCategory(apiServiceCategory).catch(() => null),
+      publicApi.getPhotos({ category: apiServiceCategory, limit: 24 }),
+    ])
+      .then(([category, photos]) => {
         if (!cancelled) {
-          setApiServiceMedia({ path, images: serviceImagesFromApi(photos) });
+          const cover = category?.coverPhotoId && typeof category.coverPhotoId === 'object'
+            ? serviceImagesFromApi([category.coverPhotoId])
+            : [];
+          setApiServiceMedia({
+            path,
+            images: [...cover, ...serviceImagesFromApi(photos)],
+          });
         }
       })
       .catch(() => {

@@ -68,6 +68,12 @@ export function mapPhoto(doc: Record<string, unknown>): Photo {
 
 export function mapCategory(doc: Record<string, unknown>): Category {
   const base = normalizeId(doc);
+  const coverPhoto = doc.coverPhotoId;
+  const coverPhotoId = typeof coverPhoto === 'string'
+    ? coverPhoto
+    : coverPhoto && typeof coverPhoto === 'object'
+      ? String((coverPhoto as { _id?: unknown; id?: unknown })._id ?? (coverPhoto as { id?: unknown }).id ?? '')
+      : null;
   return {
     id: base.id,
     name: (doc.name as string) ?? '',
@@ -75,7 +81,7 @@ export function mapCategory(doc: Record<string, unknown>): Category {
     description: (doc.description as string) ?? '',
     seoTitle: (doc.seoTitle as string) ?? '',
     seoDescription: (doc.seoDescription as string) ?? '',
-    coverPhotoId: doc.coverPhotoId ? String(doc.coverPhotoId) : null,
+    coverPhotoId: coverPhotoId || null,
     order: (doc.order as number) ?? 0,
     isPublished: (doc.isPublished as boolean) ?? false,
   };

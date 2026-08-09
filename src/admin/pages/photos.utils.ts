@@ -45,3 +45,34 @@ export function getUploadActionLabel(total: number, publishCount: number): strin
   if (publishCount === 0) return `Upload ${total} ${noun} as drafts`;
   return `Upload ${total} ${noun} · publish ${publishCount}`;
 }
+
+export function setUploadCategoryCover<T extends {
+  id: string;
+  categoryId: string;
+  isCategoryCover: boolean;
+  isPublished: boolean;
+}>(items: T[], fileId: string, selected: boolean): T[] {
+  const target = items.find(item => item.id === fileId);
+  if (!target?.categoryId) return items;
+  return items.map(item => {
+    if (item.id === fileId) {
+      return { ...item, isCategoryCover: selected, ...(selected ? { isPublished: true } : {}) };
+    }
+    return selected && item.categoryId === target.categoryId
+      ? { ...item, isCategoryCover: false }
+      : item;
+  });
+}
+
+export function getEligibleCoverReplacements(
+  photos: Photo[],
+  categoryId: string,
+  excludedPhotoIds: string[],
+): Photo[] {
+  const excluded = new Set(excludedPhotoIds);
+  return photos.filter(photo =>
+    photo.isPublished
+    && photo.categories.includes(categoryId)
+    && !excluded.has(photo.id),
+  );
+}

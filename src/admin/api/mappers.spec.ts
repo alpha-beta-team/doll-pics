@@ -1,6 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mapBooking, mapEnquiry } from './mappers';
+import { mapBooking, mapCategory, mapEnquiry } from './mappers';
+
+test('mapCategory resolves a populated cover photo id', () => {
+  const category = mapCategory({
+    _id: 'category-1',
+    name: 'Wedding',
+    slug: 'wedding',
+    coverPhotoId: { _id: 'photo-cover', title: 'Cover' },
+  });
+  assert.equal(category.coverPhotoId, 'photo-cover');
+});
 
 test('mapBooking exposes the operations contract and normalizes legacy records', () => {
   const booking = mapBooking({

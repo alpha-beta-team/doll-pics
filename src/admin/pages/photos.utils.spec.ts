@@ -4,7 +4,9 @@ import type { Photo } from '../types';
 import {
   filterPhotos,
   getUploadActionLabel,
+  getEligibleCoverReplacements,
   getUsedCategoryCounts,
+  setUploadCategoryCover,
   toggleVisibleSelection,
 } from './photos.utils';
 
@@ -56,4 +58,28 @@ test('upload action label describes publish intent', () => {
   assert.equal(getUploadActionLabel(2, 2), 'Upload and publish 2 photos');
   assert.equal(getUploadActionLabel(2, 0), 'Upload 2 photos as drafts');
   assert.equal(getUploadActionLabel(3, 1), 'Upload 3 photos · publish 1');
+});
+
+test('selecting an upload cover publishes it and keeps one cover per category', () => {
+  const items = [
+    { id: 'one', categoryId: 'wedding', isCategoryCover: true, isPublished: true },
+    { id: 'two', categoryId: 'wedding', isCategoryCover: false, isPublished: false },
+    { id: 'three', categoryId: 'newborn', isCategoryCover: true, isPublished: true },
+  ];
+  const updated = setUploadCategoryCover(items, 'two', true);
+  assert.deepEqual(updated.map(item => [item.id, item.isCategoryCover, item.isPublished]), [
+    ['one', false, true],
+    ['two', true, true],
+    ['three', true, true],
+  ]);
+});
+
+test('cover replacement candidates are published category photos outside the action', () => {
+  const candidates = getEligibleCoverReplacements([
+    photo({ id: 'current' }),
+    photo({ id: 'eligible' }),
+    photo({ id: 'draft', isPublished: false }),
+    photo({ id: 'other-category', categories: ['newborn'] }),
+  ], 'wedding', ['current']);
+  assert.deepEqual(candidates.map(item => item.id), ['eligible']);
 });

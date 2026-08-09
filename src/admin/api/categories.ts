@@ -37,6 +37,14 @@ export const categoriesApi = {
     return mapCategory(doc);
   },
 
+  async setCategoryCover(categoryId: string, photoId: string): Promise<void> {
+    await request(`/admin/categories/${categoryId}/cover-photo`, {
+      method: 'PATCH',
+      auth: true,
+      body: JSON.stringify({ photoId }),
+    });
+  },
+
   async reorderCategories(categoryIds: string[]): Promise<void> {
     await request('/admin/categories/reorder', {
       method: 'PATCH',

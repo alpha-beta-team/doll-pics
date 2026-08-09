@@ -263,6 +263,14 @@ export type PublicPhoto = {
   categoryIds?: Array<{ name: string; slug: string } | string>;
 };
 
+export type PublicCategory = {
+  _id?: string;
+  id?: string;
+  name: string;
+  slug: string;
+  coverPhotoId?: PublicPhoto | string | null;
+};
+
 /** Admin list/edit photo (flattened URLs for the CMS UI). */
 export type Photo = {
   id: string;
