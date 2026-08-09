@@ -29,6 +29,7 @@ import {
 } from '../lib/analytics';
 import { applyPageSeo, resolveServicePage } from '../lib/seo';
 import { selectServiceImages, type ServiceImage } from '../lib/serviceImages';
+import { getCategoryPhotosCached } from '../lib/categoryPhotoCache';
 import { getPhotoSources, publicApi } from '../lib/api';
 import type { PublicPhoto } from '../shared/types';
 import { enquiryWhatsAppUrl, whatsappDigits } from '../lib/pricing';
@@ -177,8 +178,9 @@ function ServicePageContent() {
     }
 
     setApiServiceMedia({ path, images: [] });
-    void publicApi
-      .getPhotos({ category: apiServiceCategory, limit: 24 })
+    void getCategoryPhotosCached(apiServiceCategory, () =>
+      publicApi.getPhotos({ category: apiServiceCategory, limit: 24 }),
+    )
       .then((photos) => {
         if (!cancelled) {
           setApiServiceMedia({ path, images: serviceImagesFromApi(photos) });

@@ -1,4 +1,5 @@
 import type { ImageTransform, Photo } from '../types';
+import { clearCategoryPhotoCache } from '../../lib/categoryPhotoCache';
 import { request } from './http';
 import { mapPhoto } from './mappers';
 
@@ -57,6 +58,7 @@ export const photosApi = {
         isPublished: data.isPublished,
       }),
     });
+    clearCategoryPhotoCache();
     return mapPhoto(doc);
   },
 
@@ -71,6 +73,7 @@ export const photosApi = {
       auth: true,
       body: JSON.stringify(patch),
     });
+    clearCategoryPhotoCache();
     return mapPhoto(doc);
   },
 
@@ -86,11 +89,13 @@ export const photosApi = {
         body: JSON.stringify({ imageTransform: transform }),
       },
     );
+    clearCategoryPhotoCache();
     return mapPhoto(doc);
   },
 
   async deletePhoto(id: string): Promise<void> {
     await request(`/admin/photos/${id}`, { method: 'DELETE', auth: true });
+    clearCategoryPhotoCache();
   },
 
   async bulkUpdatePhotos(ids: string[], data: Partial<Photo>): Promise<void> {
@@ -106,6 +111,7 @@ export const photosApi = {
       auth: true,
       body: JSON.stringify({ action, ids }),
     });
+    clearCategoryPhotoCache();
   },
 
   async bulkDeletePhotos(ids: string[]): Promise<void> {
@@ -114,6 +120,7 @@ export const photosApi = {
       auth: true,
       body: JSON.stringify({ action: 'delete', ids }),
     });
+    clearCategoryPhotoCache();
   },
 
   async reorderPhotos(photoIds: string[]): Promise<void> {
@@ -122,6 +129,7 @@ export const photosApi = {
       auth: true,
       body: JSON.stringify({ ids: photoIds }),
     });
+    clearCategoryPhotoCache();
   },
 
   async uploadFiles(
@@ -169,6 +177,7 @@ export const photosApi = {
             isPublished: upload.isPublished,
           }),
         });
+        clearCategoryPhotoCache();
         onProgress?.(clientId, 100);
         results.push({ clientId, status: 'complete', photo: mapPhoto(doc) });
       } catch (error) {
