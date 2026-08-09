@@ -173,7 +173,7 @@ export function ImageCropUpload({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60] p-4">
+    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/70 p-4">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-xl overflow-hidden">
         <div className="p-4 border-b border-gray-200 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900">Crop image</h2>

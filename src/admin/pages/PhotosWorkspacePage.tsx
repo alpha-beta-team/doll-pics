@@ -101,6 +101,7 @@ interface PendingCoverOperation {
   categoryIds?: string[];
   affectedCategories: CoverConflictCategory[];
   postTransitionPatch?: Partial<Photo>;
+  newCoverCategoryIds?: string[];
 }
 
 const SUPPORTED_UPLOAD_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'];
@@ -276,6 +277,7 @@ export function PhotosWorkspacePage() {
     if (!affectedCategories.length) return false;
     setCoverOperation({ ...operation, affectedCategories });
     setCoverReplacements({});
+    setEditingPhoto(null);
     setError(null);
     return true;
   };
@@ -397,6 +399,9 @@ export function PhotosWorkspacePage() {
       if (coverOperation.action !== 'delete' && coverOperation.postTransitionPatch) {
         await api.updatePhoto(coverOperation.photoIds[0], coverOperation.postTransitionPatch);
       }
+      await Promise.all((coverOperation.newCoverCategoryIds ?? []).map(categoryId =>
+        api.setCategoryCover(categoryId, coverOperation.photoIds[0]),
+      ));
       setCoverOperation(null);
       setCoverReplacements({});
       setSelectedPhotos(new Set());
@@ -718,6 +723,9 @@ export function PhotosWorkspacePage() {
     setUploadError(null);
     try {
       await performOriginalCoverOperation(operation);
+      await Promise.all((operation.newCoverCategoryIds ?? []).map(categoryId =>
+        api.setCategoryCover(categoryId, operation.photoIds[0]),
+      ));
       setCoverOperation(null);
       setCoverReplacements({});
       setSelectedPhotos(new Set());
@@ -729,6 +737,7 @@ export function PhotosWorkspacePage() {
         photoIds: operation.photoIds,
         categoryIds: operation.categoryIds,
         postTransitionPatch: operation.postTransitionPatch,
+        newCoverCategoryIds: operation.newCoverCategoryIds,
       })) {
         setCoverOperation(null);
         setError(caught instanceof Error ? caught.message : 'The original photo action could not be resumed');
@@ -1199,19 +1208,21 @@ export function PhotosWorkspacePage() {
           photo={editingPhoto}
           categories={categories}
           onClose={() => setEditingPhoto(null)}
-          onSave={async data => {
+          onSave={async (data, coverCategoryIds) => {
             try {
               await api.updatePhoto(editingPhoto.id, data);
+              await Promise.all(coverCategoryIds.map(categoryId => api.setCategoryCover(categoryId, editingPhoto.id)));
               await fetchPhotos();
-              setEditingPhoto(null);
             } catch (caught) {
               if (!openCoverReplacement(caught, {
                 action: data.isPublished === false ? 'unpublish' : 'setCategories',
                 photoIds: [editingPhoto.id],
                 categoryIds: data.isPublished === false ? undefined : data.categories,
                 postTransitionPatch: data,
+                newCoverCategoryIds: coverCategoryIds,
               })) {
                 setError(caught instanceof Error ? caught.message : 'Failed to update photo');
+                throw caught;
               }
             }
           }}

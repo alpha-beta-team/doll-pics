@@ -20,6 +20,13 @@ import {
   Maximize2,
 } from 'lucide-react';
 import { useConfirmDialog } from '../hooks/useConfirmDialog';
+import {
+  AdminAlert,
+  AdminButton,
+  AdminField,
+  AdminModal,
+  adminFieldClass,
+} from '../components/ui';
 
 function resolvePhotoUrl(url: string): string {
   if (!url) return '';
@@ -861,13 +868,14 @@ export function PhotosPage() {
           photo={editingPhoto}
           categories={categories}
           onClose={() => setEditingPhoto(null)}
-          onSave={async data => {
+          onSave={async (data, coverCategoryIds) => {
             try {
               await api.updatePhoto(editingPhoto.id, data);
+              await Promise.all(coverCategoryIds.map(categoryId => api.setCategoryCover(categoryId, editingPhoto.id)));
               await fetchPhotos();
-              setEditingPhoto(null);
             } catch (err) {
               setError(err instanceof Error ? err.message : 'Failed to update photo');
+              throw err;
             }
           }}
           onSaveImage={async transform => {
@@ -1166,7 +1174,7 @@ interface PhotoEditModalProps {
   photo: Photo;
   categories: Category[];
   onClose: () => void;
-  onSave: (data: Partial<Photo>) => Promise<void>;
+  onSave: (data: Partial<Photo>, coverCategoryIds: string[]) => Promise<void>;
   onSaveImage: (transform: ImageTransform | null) => Promise<void>;
 }
 
@@ -1185,11 +1193,27 @@ export function PhotoEditModal({ photo, categories, onClose, onSave, onSaveImage
   const [isImageLoading, setIsImageLoading] = useState(false);
   const [isImageSaving, setIsImageSaving] = useState(false);
   const [imageError, setImageError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [pendingCoverCategoryIds, setPendingCoverCategoryIds] = useState<string[]>([]);
 
   const handleCategoryToggle = (catId: string) => {
-    setSelectedCategories(prev =>
-      prev.includes(catId) ? prev.filter(id => id !== catId) : [...prev, catId]
+    setSelectedCategories(prev => {
+      const removing = prev.includes(catId);
+      if (removing) {
+        setPendingCoverCategoryIds(ids => ids.filter(id => id !== catId));
+        return prev.filter(id => id !== catId);
+      }
+      return [...prev, catId];
+    });
+  };
+
+  const handleCoverToggle = (categoryId: string) => {
+    setPendingCoverCategoryIds(previous =>
+      previous.includes(categoryId)
+        ? previous.filter(id => id !== categoryId)
+        : [...previous, categoryId],
     );
+    setIsPublished(true);
   };
 
   const handleImageEditStart = async () => {
@@ -1257,173 +1281,153 @@ export function PhotoEditModal({ photo, categories, onClose, onSave, onSaveImage
   };
 
   const handleSave = async () => {
+    if (!title.trim() || !altText.trim() || !selectedCategories.length) {
+      setSaveError('Add a title, alt text, and at least one category before saving.');
+      return;
+    }
     setIsSaving(true);
-    await onSave({
-      title,
-      altText,
-      categories: selectedCategories,
-      isFeatured,
-      isPublished,
-      location,
-      year,
-      });
-    setIsSaving(false);
+    setSaveError(null);
+    try {
+      await onSave({
+        title: title.trim(),
+        altText: altText.trim(),
+        categories: selectedCategories,
+        isFeatured,
+        isPublished,
+        location: location.trim(),
+        year: year.trim(),
+      }, pendingCoverCategoryIds);
+      onClose();
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : 'Could not save the photo.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
+  const categoryRows = categories.filter(category =>
+    selectedCategories.includes(category.id) || category.coverPhotoId === photo.id,
+  );
+  const activeCoverNames = categories
+    .filter(category => category.coverPhotoId === photo.id)
+    .map(category => category.name);
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden">
-        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">Edit Photo</h2>
-          <button type="button" onClick={onClose} aria-label="Close" className="p-1 hover:bg-gray-100 rounded">
-            <X className="w-5 h-5 text-gray-500" aria-hidden="true" />
-          </button>
-        </div>
-
-        <div className="p-4 space-y-4 max-h-[70vh] overflow-y-auto">
-          <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
-            {getPhotoSrc(photo) ? (
-              <img
-                src={getPhotoSrc(photo)}
-                alt={photo.altText || photo.title}
-                className="w-full h-full object-contain"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <ImageIcon className="w-10 h-10 text-gray-300" />
+    <>
+      <AdminModal
+        open
+        title="Edit photo"
+        description="Update gallery details, category covers, and publishing settings."
+        onClose={onClose}
+        maxWidth="max-w-6xl"
+        footer={(
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-xs text-admin-subtle">* Required fields</p>
+            <div className="flex gap-2">
+              <AdminButton type="button" variant="secondary" disabled={isSaving} onClick={onClose}>Cancel</AdminButton>
+              <AdminButton type="button" disabled={isSaving || isImageSaving} onClick={() => void handleSave()}>
+                {isSaving ? 'Saving changes…' : 'Save changes'}
+              </AdminButton>
+            </div>
+          </div>
+        )}
+      >
+        <div className="grid gap-6 lg:grid-cols-[minmax(260px,0.8fr)_minmax(0,1.35fr)]">
+          <aside className="lg:sticky lg:top-0 lg:self-start">
+            <div className="relative overflow-hidden rounded-2xl bg-admin-muted">
+              {getPhotoSrc(photo) ? (
+                <img src={getPhotoSrc(photo)} alt={photo.altText || photo.title} className="aspect-[4/5] max-h-[520px] w-full object-contain" />
+              ) : (
+                <div className="flex aspect-[4/5] items-center justify-center"><ImageIcon className="h-10 w-10 text-admin-subtle" /></div>
+              )}
+              <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
+                <span className={`rounded-full px-2.5 py-1 text-xs font-bold text-white shadow ${isPublished ? 'bg-emerald-600' : 'bg-stone-600'}`}>{isPublished ? 'Published' : 'Draft'}</span>
+                {activeCoverNames.map(name => <span key={name} className="rounded-full bg-violet-600 px-2.5 py-1 text-xs font-bold text-white shadow">{name} cover</span>)}
               </div>
-            )}
-          </div>
+            </div>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+              <AdminButton type="button" variant="secondary" disabled={isImageLoading || isImageSaving} onClick={() => void handleImageEditStart()}>
+                {isImageLoading ? 'Loading image…' : 'Crop / resize'}
+              </AdminButton>
+              <AdminButton type="button" variant="secondary" disabled={isImageLoading || isImageSaving || !photo.imageTransform} onClick={() => void handleRestoreOriginal()}>
+                Restore original
+              </AdminButton>
+            </div>
+            {imageError && <div className="mt-3"><AdminAlert tone="danger">{imageError}</AdminAlert></div>}
+          </aside>
 
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={handleImageEditStart}
-              disabled={isImageLoading || isImageSaving}
-              className="flex-1 px-3 py-2 text-sm font-medium text-blue-700 border border-blue-200 bg-blue-50 hover:bg-blue-100 rounded-lg disabled:opacity-50"
-            >
-              {isImageLoading ? 'Loading image...' : 'Crop / Resize Image'}
-            </button>
-            <button
-              type="button"
-              onClick={handleRestoreOriginal}
-              disabled={isImageLoading || isImageSaving || !photo.imageTransform}
-              className="px-3 py-2 text-sm font-medium text-gray-700 border border-gray-300 hover:bg-gray-50 rounded-lg disabled:opacity-50"
-            >
-              Restore Original
-            </button>
-          </div>
-          {imageError && <p className="text-sm text-red-600">{imageError}</p>}
+          <div className="space-y-5">
+            {saveError && <AdminAlert tone="danger">{saveError}</AdminAlert>}
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-            <input
-              type="text"
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+            <section className="rounded-2xl border border-admin-border p-4 sm:p-5">
+              <h3 className="font-semibold text-admin-text">Photo details</h3>
+              <div className="mt-4 space-y-4">
+                <AdminField label="Title *"><input value={title} maxLength={70} onChange={event => setTitle(event.target.value)} className={adminFieldClass} /></AdminField>
+                <AdminField label="Alt text *" hint="Describe only what is visible. This supports accessibility and image search.">
+                  <textarea value={altText} maxLength={180} rows={3} onChange={event => setAltText(event.target.value)} className={`${adminFieldClass} resize-none py-3`} />
+                </AdminField>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <AdminField label="Location"><input value={location} onChange={event => setLocation(event.target.value)} placeholder="Erode, Tamil Nadu" className={adminFieldClass} /></AdminField>
+                  <AdminField label="Year"><input value={year} inputMode="numeric" maxLength={4} onChange={event => setYear(event.target.value)} placeholder="2026" className={adminFieldClass} /></AdminField>
+                </div>
+              </div>
+            </section>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Alt Text{' '}
-              <span className="text-xs font-normal text-gray-400">
-                (Important for SEO and accessibility)
-              </span>
-            </label>
-            <textarea
-              value={altText}
-              onChange={e => setAltText(e.target.value)}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-              placeholder="Describe this image for screen readers and search engines..."
-            />
-          </div>
+            <section className="rounded-2xl border border-admin-border p-4 sm:p-5">
+              <h3 className="font-semibold text-admin-text">Categories and service-page covers</h3>
+              <p className="mt-1 text-sm text-admin-subtle">Select categories first, then choose whether this photo should appear at the top of each service page.</p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {categories.map(category => {
+                  const selected = selectedCategories.includes(category.id);
+                  const currentCover = category.coverPhotoId === photo.id;
+                  return (
+                    <button key={category.id} type="button" aria-pressed={selected} onClick={() => handleCategoryToggle(category.id)} className={`min-h-11 rounded-xl border px-3.5 text-sm font-semibold transition ${selected ? 'border-admin-primary bg-admin-primary-soft text-admin-primary' : currentCover ? 'border-amber-300 bg-amber-50 text-amber-800' : 'border-admin-border bg-admin-surface text-admin-secondary hover:border-admin-border-strong'}`}>
+                      {selected && <Check className="mr-1.5 inline h-4 w-4" />}{category.name}{currentCover ? ' · Current cover' : ''}
+                    </button>
+                  );
+                })}
+              </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Categories
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {categories.map(cat => (
-                <button
-                  key={cat.id}
-                  onClick={() => handleCategoryToggle(cat.id)}
-                  className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
-                    selectedCategories.includes(cat.id)
-                      ? 'bg-blue-50 border-blue-500 text-blue-700'
-                      : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  {cat.name}
+              {categoryRows.length > 0 && (
+                <div className="mt-4 space-y-2 border-t border-admin-border pt-4">
+                  {categoryRows.map(category => {
+                    const selected = selectedCategories.includes(category.id);
+                    const currentCover = category.coverPhotoId === photo.id;
+                    const pendingCover = pendingCoverCategoryIds.includes(category.id);
+                    return (
+                      <div key={category.id} className="flex flex-col gap-3 rounded-xl bg-admin-muted p-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <p className="text-sm font-semibold text-admin-text">{category.name} service-page cover</p>
+                          <p className="mt-0.5 text-xs text-admin-subtle">{currentCover && !selected ? 'Removing this category requires choosing a replacement cover.' : currentCover ? 'This photo currently appears at the top of the service page.' : pendingCover ? 'This photo will replace the current cover after saving.' : 'The existing category cover will stay unchanged.'}</p>
+                        </div>
+                        {currentCover ? (
+                          <span className="inline-flex min-h-10 items-center gap-2 self-start rounded-xl bg-violet-100 px-3 text-sm font-semibold text-violet-800 sm:self-auto"><Check className="h-4 w-4" /> Current cover</span>
+                        ) : selected ? (
+                          <button type="button" aria-pressed={pendingCover} onClick={() => handleCoverToggle(category.id)} className={`min-h-10 rounded-xl border px-3 text-sm font-semibold transition ${pendingCover ? 'border-violet-600 bg-violet-600 text-white' : 'border-admin-border bg-admin-surface text-admin-secondary hover:border-violet-400 hover:text-violet-700'}`}>
+                            {pendingCover ? <><Check className="mr-1.5 inline h-4 w-4" />Selected as cover</> : `Use as ${category.name} cover`}
+                          </button>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+
+            <section className="rounded-2xl border border-admin-border p-4 sm:p-5">
+              <h3 className="font-semibold text-admin-text">Publishing</h3>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <button type="button" aria-pressed={isPublished} onClick={() => { setIsPublished(previous => { const next = !previous; if (!next) setPendingCoverCategoryIds([]); return next; }); }} className={`min-h-12 rounded-xl border px-4 text-left text-sm font-semibold transition ${isPublished ? 'border-emerald-600 bg-emerald-50 text-emerald-800' : 'border-admin-border text-admin-secondary'}`}>
+                  {isPublished ? <Eye className="mr-2 inline h-4 w-4" /> : <EyeOff className="mr-2 inline h-4 w-4" />}{isPublished ? 'Published' : 'Saved as draft'}
                 </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-              <input
-                type="text"
-                value={location}
-                onChange={e => setLocation(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Tuscany, Italy"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Year</label>
-              <input
-                type="text"
-                value={year}
-                onChange={e => setYear(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="2024"
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={isFeatured}
-                onChange={e => setIsFeatured(e.target.checked)}
-                className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="text-sm text-gray-700">Featured on homepage</span>
-            </label>
-
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={isPublished}
-                onChange={e => setIsPublished(e.target.checked)}
-                className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="text-sm text-gray-700">Published</span>
-            </label>
+                <button type="button" aria-pressed={isFeatured} onClick={() => setIsFeatured(previous => !previous)} className={`min-h-12 rounded-xl border px-4 text-left text-sm font-semibold transition ${isFeatured ? 'border-amber-500 bg-amber-50 text-amber-800' : 'border-admin-border text-admin-secondary'}`}>
+                  <Star className={`mr-2 inline h-4 w-4 ${isFeatured ? 'fill-current' : ''}`} />{isFeatured ? 'Homepage featured' : 'Not featured on homepage'}
+                </button>
+              </div>
+            </section>
           </div>
         </div>
-
-        <div className="p-4 border-t border-gray-200 flex justify-end gap-3">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-50"
-          >
-            {isSaving ? 'Saving...' : 'Save Changes'}
-          </button>
-        </div>
-      </div>
+      </AdminModal>
       {imageFile && (
         <ImageCropUpload
           source={imageFile.file}
@@ -1443,6 +1447,6 @@ export function PhotoEditModal({ photo, categories, onClose, onSave, onSaveImage
           maxOutputHeight={photo.height || undefined}
         />
       )}
-    </div>
+    </>
   );
 }
