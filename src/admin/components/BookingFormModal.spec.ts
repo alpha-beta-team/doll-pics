@@ -1,6 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { packagePrefill } from './bookingForm.utils';
+import {
+  BOOKING_WIZARD_FIELD_LABELS,
+  BOOKING_WIZARD_STEPS,
+  canOpenBookingWizardStep,
+  initialHighestCompletedStep,
+  invalidateBookingWizardProgress,
+  packagePrefill,
+  validateBookingWizardStep,
+} from './bookingForm.utils';
 import type { Package } from '../types';
 
 const pricedPackage = {
@@ -22,4 +30,67 @@ test('unpriced package leaves the current agreed total untouched', () => {
     agreedTotal: undefined,
     shootType: 'Wedding',
   });
+});
+
+const validWizardValues = {
+  customerName: 'Anita Kumar',
+  customerPhone: '98765 43210',
+  bookingDate: '',
+  startTime: '',
+  endTime: '',
+};
+
+test('booking wizard exposes all four steps and explicit field requirements', () => {
+  assert.deepEqual(BOOKING_WIZARD_STEPS.map(step => step.label), [
+    'Customer',
+    'Shoot details',
+    'Price & team',
+    'Optional details',
+  ]);
+  assert.match(BOOKING_WIZARD_FIELD_LABELS.customerName, /Required$/);
+  assert.match(BOOKING_WIZARD_FIELD_LABELS.customerPhone, /Required$/);
+  assert.match(BOOKING_WIZARD_FIELD_LABELS.shootType, /Required$/);
+  for (const [field, label] of Object.entries(BOOKING_WIZARD_FIELD_LABELS)) {
+    if (['customerName', 'customerPhone', 'shootType'].includes(field)) continue;
+    assert.match(label, /Optional$/);
+  }
+});
+
+test('booking wizard validates required customer fields', () => {
+  assert.deepEqual(validateBookingWizardStep(0, {
+    ...validWizardValues,
+    customerName: ' ',
+    customerPhone: '1234',
+  }), {
+    customerName: 'Enter the customer\u2019s name.',
+    customerPhone: 'Enter a 10-digit Indian phone number; +91, spaces and hyphens are accepted.',
+  });
+  assert.deepEqual(validateBookingWizardStep(0, validWizardValues), {});
+});
+
+test('booking wizard permits empty optional shoot fields but validates a partial time window', () => {
+  assert.deepEqual(validateBookingWizardStep(1, validWizardValues), {});
+  assert.deepEqual(validateBookingWizardStep(2, validWizardValues), {});
+  assert.deepEqual(validateBookingWizardStep(3, validWizardValues), {});
+  assert.deepEqual(validateBookingWizardStep(1, {
+    ...validWizardValues,
+    bookingDate: '2030-02-10',
+    startTime: '10:00',
+  }), { time: 'Enter both a start time and an end time.' });
+  assert.deepEqual(validateBookingWizardStep(1, {
+    ...validWizardValues,
+    bookingDate: '2030-02-10',
+    startTime: '10:00',
+    endTime: '12:00',
+  }), {});
+});
+
+test('booking wizard restores and invalidates completed-step navigation', () => {
+  assert.equal(initialHighestCompletedStep(0), -1);
+  assert.equal(initialHighestCompletedStep(3), 2);
+  assert.equal(canOpenBookingWizardStep(1, 0, 2), true);
+  assert.equal(canOpenBookingWizardStep(3, 0, 2), false);
+  assert.equal(canOpenBookingWizardStep(0, 0, 2), false);
+  assert.equal(invalidateBookingWizardProgress(2, 1), 0);
+  assert.equal(invalidateBookingWizardProgress(2, 0), -1);
 });

@@ -4,7 +4,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { RequireAuth } from "./components/Layout";
 import { LoginPage } from "./pages/LoginPage";
 import { DashboardPage } from "./pages/DashboardPage";
-import { PhotosPage } from "./pages/PhotosPage";
+import { PhotosWorkspacePage as PhotosPage } from "./pages/PhotosWorkspacePage";
 import { CategoriesPage } from "./pages/CategoriesPage";
 import { PackagesPage } from "./pages/PackagesPage";
 import { PackageCategoriesPage } from "./pages/PackageCategoriesPage";

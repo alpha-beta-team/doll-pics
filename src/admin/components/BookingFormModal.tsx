@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   AlertCircle,
   CalendarDays,
+  Check,
   ChevronDown,
   IndianRupee,
   MapPin,
@@ -10,10 +11,18 @@ import {
 } from 'lucide-react';
 import { SHOOT_TYPE_OPTIONS } from '../../lib/shootTypes';
 import type { Booking, BookingWritePayload, Enquiry, Package, PaymentMethod, TeamMember } from '../types';
-import { packagePrefill } from './bookingForm.utils';
+import {
+  BOOKING_WIZARD_FIELD_LABELS,
+  BOOKING_WIZARD_STEPS,
+  canOpenBookingWizardStep,
+  initialHighestCompletedStep,
+  invalidateBookingWizardProgress,
+  packagePrefill,
+  validateBookingWizardStep,
+  type BookingWizardFieldErrors,
+} from './bookingForm.utils';
 import { bookingDurationLabel, bookingTimeWindowError } from '../../shared/bookingTime';
 import { buildQuickConversionPayload, localDateValue } from './quickEntry.utils';
-import { phoneNumberError } from './quickEntry.utils';
 import { CustomerLookupPanel } from './CustomerLookupPanel';
 import type { CustomerLookupResponse } from '../types';
 import { ApiError } from '../api/http';
@@ -83,10 +92,11 @@ function BookingWizard({
     : 'new';
   const draftKey = `doll_admin_booking_draft:${booking?.id || enquiry?.id || scheduleDraftSuffix}`;
   const stored = readBookingDraft(draftKey);
+  const restoredStep = stored?.step && stored.step >= 0 && stored.step <= 3 ? stored.step : 0;
   const [customerName, setCustomerName] = useState(stored?.customerName ?? booking?.customerName ?? enquiry?.name ?? '');
   const [customerPhone, setCustomerPhone] = useState(stored?.customerPhone ?? booking?.customerPhone ?? enquiry?.phone ?? '');
   const [customerEmail, setCustomerEmail] = useState(stored?.customerEmail ?? booking?.customerEmail ?? enquiry?.email ?? '');
-  const [shootType, setShootType] = useState(stored?.shootType ?? booking?.shootType ?? enquiry?.shootType ?? 'Wedding');
+  const [shootType, setShootType] = useState(stored?.shootType || booking?.shootType || enquiry?.shootType || 'Wedding');
   const [preferredEvent, setPreferredEvent] = useState(stored?.preferredEvent ?? booking?.preferredEvent ?? enquiry?.preferredEvent ?? '');
   const [bookingDate, setBookingDate] = useState(stored?.bookingDate ?? booking?.bookingDate ?? enquiry?.bookingDate ?? initialSchedule?.bookingDate ?? '');
   const [startTime, setStartTime] = useState(stored?.startTime ?? booking?.startTime ?? enquiry?.startTime ?? initialSchedule?.startTime ?? '');
@@ -114,12 +124,62 @@ function BookingWizard({
     stored?.whatsappNotificationsEnabled ?? booking?.whatsappNotificationsEnabled ?? false,
   );
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<BookingWizardFieldErrors>({});
   const [saving, setSaving] = useState(false);
-  const [step, setStep] = useState(stored?.step && stored.step >= 0 && stored.step <= 3 ? stored.step : 0);
+  const [step, setStep] = useState(restoredStep);
+  const [highestCompletedStep, setHighestCompletedStep] = useState(
+    initialHighestCompletedStep(restoredStep),
+  );
   const [customerLookup, setCustomerLookup] = useState<CustomerLookupResponse | null>(null);
   const [newShootConfirmed, setNewShootConfirmed] = useState(false);
   const [customerLookupChecking, setCustomerLookupChecking] = useState(false);
-  const steps = ['Customer', 'Shoot', 'Price & payment', 'Optional details'];
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const restoreFocusRef = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    restoreFocusRef.current = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    window.setTimeout(() => {
+      const initialField = dialogRef.current?.querySelector<HTMLElement>('[data-wizard-autofocus]');
+      const closeButton = dialogRef.current?.querySelector<HTMLElement>('[aria-label="Close"]');
+      (initialField || closeButton)?.focus();
+    }, 0);
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onCloseRef.current();
+        return;
+      }
+      if (event.key !== 'Tab' || !dialogRef.current) return;
+      const focusable = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])',
+      ));
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', handleKeyDown);
+      restoreFocusRef.current?.focus();
+    };
+  }, []);
 
   useEffect(() => {
     const draft: BookingDraft = {
@@ -138,17 +198,59 @@ function BookingWizard({
     setShootType(prefill.shootType);
   };
 
+  const validationValues = () => ({
+    customerName,
+    customerPhone,
+    bookingDate,
+    startTime,
+    endTime,
+  });
+
+  const focusFirstFieldError = (invalidStep: number, errors: BookingWizardFieldErrors) => {
+    let id = '';
+    if (invalidStep === 0) {
+      id = errors.customerName ? 'booking-customer-name' : 'booking-customer-phone';
+    } else if (invalidStep === 1 && errors.time) {
+      id = !bookingDate ? 'booking-date' : !startTime ? 'booking-start-time' : 'booking-end-time';
+    }
+    if (id) window.setTimeout(() => document.getElementById(id)?.focus(), 0);
+  };
+
+  const openCompletedStep = (targetStep: number) => {
+    if (!canOpenBookingWizardStep(targetStep, step, highestCompletedStep)) return;
+    setError('');
+    setFieldErrors({});
+    setStep(targetStep);
+  };
+
+  const invalidateStep = (editedStep: number) => {
+    setHighestCompletedStep(current => invalidateBookingWizardProgress(current, editedStep));
+  };
+
   const submit = async () => {
-    if (customerName.trim().length < 2) return setError('Customer name is required.');
-    const phoneError = phoneNumberError(customerPhone);
-    if (phoneError) return setError(phoneError);
+    const customerErrors = validateBookingWizardStep(0, validationValues());
+    if (Object.keys(customerErrors).length) {
+      setError('');
+      setFieldErrors(customerErrors);
+      setHighestCompletedStep(-1);
+      setStep(0);
+      focusFirstFieldError(0, customerErrors);
+      return;
+    }
     if (!booking && !enquiry && customerLookup?.active.length && !newShootConfirmed) return setError('Open the active record or confirm this is a separate shoot.');
     if (!booking && !enquiry && customerLookupChecking) return setError('Wait a moment while customer history is checked.');
-    if (enquiry && !bookingDate) return setError('Choose the confirmed booking date.');
-    const timeError = bookingTimeWindowError(bookingDate, startTime, endTime);
-    if (timeError) return setError(timeError);
+    const shootErrors = validateBookingWizardStep(1, validationValues());
+    if (Object.keys(shootErrors).length) {
+      setError('');
+      setFieldErrors(shootErrors);
+      setHighestCompletedStep(current => Math.min(current, 0));
+      setStep(1);
+      focusFirstFieldError(1, shootErrors);
+      return;
+    }
     setSaving(true);
     setError('');
+    setFieldErrors({});
     const payload: BookingWritePayload = {
       customerName: customerName.trim(),
       customerPhone: customerPhone.trim(),
@@ -201,98 +303,126 @@ function BookingWizard({
   };
 
   const nextStep = () => {
-    if (step === 0 && customerName.trim().length < 2) {
-      return setError('Customer name is required.');
-    }
-    if (step === 0 && phoneNumberError(customerPhone)) {
-      return setError(phoneNumberError(customerPhone)!);
+    const nextErrors = validateBookingWizardStep(step, validationValues());
+    if (Object.keys(nextErrors).length) {
+      setError('');
+      setFieldErrors(nextErrors);
+      focusFirstFieldError(step, nextErrors);
+      return;
     }
     if (step === 0 && !booking && !enquiry && customerLookup?.active.length && !newShootConfirmed) {
       return setError('Open the active record or confirm this is a separate shoot.');
     }
     if (step === 0 && !booking && !enquiry && customerLookupChecking) return setError('Wait a moment while customer history is checked.');
-    if (step === 1 && enquiry && !bookingDate) {
-      return setError('Choose the confirmed booking date.');
-    }
-    if (step === 1) {
-      const timeError = bookingTimeWindowError(bookingDate, startTime, endTime);
-      if (timeError) return setError(timeError);
-    }
     setError('');
+    setFieldErrors({});
+    setHighestCompletedStep(current => Math.max(current, step));
     setStep(value => value + 1);
   };
 
   const input = 'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
-        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-          <div><h2 className="text-lg font-semibold text-slate-900">{booking ? 'Edit booking' : enquiry ? 'Convert enquiry to booking' : 'Create booking'}</h2><p className="mt-0.5 text-xs font-medium text-blue-600">Step {step + 1} of 4 · {steps[step]}</p></div>
-          <button onClick={onClose} className="rounded-lg p-2 hover:bg-slate-100" aria-label="Close">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 sm:items-center sm:p-4">
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="booking-wizard-title" className="flex max-h-[96dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-2xl bg-white shadow-xl sm:max-h-[92dvh] sm:rounded-2xl">
+        <div className="border-b border-slate-200 px-4 py-4 sm:px-5">
+          <div className="flex items-center justify-between">
+            <div><h2 id="booking-wizard-title" className="text-lg font-semibold text-slate-900">{booking ? 'Edit booking' : enquiry ? 'Convert enquiry to booking' : 'Create booking'}</h2><p className="mt-0.5 text-xs font-medium text-slate-500">Step {step + 1} of {BOOKING_WIZARD_STEPS.length}</p></div>
+            <button type="button" onClick={onClose} className="rounded-lg p-2 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" aria-label="Close">
             <X className="h-5 w-5" />
-          </button>
+            </button>
+          </div>
+          <nav className="mt-4" aria-label="Booking progress">
+            <ol className="grid grid-cols-4 gap-1.5 sm:gap-3">
+              {BOOKING_WIZARD_STEPS.map((wizardStep, index) => {
+                const current = index === step;
+                const completed = !current && index <= highestCompletedStep;
+                const accessible = canOpenBookingWizardStep(index, step, highestCompletedStep);
+                return (
+                  <li key={wizardStep.label} className="min-w-0">
+                    <button
+                      type="button"
+                      disabled={!accessible}
+                      onClick={() => openCompletedStep(index)}
+                      aria-current={current ? 'step' : undefined}
+                      aria-label={`${wizardStep.label}${current ? ', current step' : completed ? ', completed' : ', not yet available'}`}
+                      className={`flex w-full flex-col items-center gap-1.5 rounded-lg px-0.5 py-1 text-center outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${accessible ? 'cursor-pointer hover:bg-slate-50' : 'cursor-default'}`}
+                    >
+                      <span className={`flex h-7 w-7 items-center justify-center rounded-full border text-xs font-bold ${completed ? 'border-emerald-600 bg-emerald-600 text-white' : current ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-300 bg-white text-slate-400'}`}>
+                        {completed ? <Check className="h-4 w-4" aria-hidden="true" /> : index + 1}
+                      </span>
+                      <span className={`text-[10px] font-semibold leading-tight sm:text-xs ${current ? 'text-blue-700' : completed ? 'text-emerald-700' : 'text-slate-400'}`}>{wizardStep.label}</span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ol>
+          </nav>
         </div>
-        <div className="space-y-5 overflow-y-auto p-5">
+        <div className="space-y-5 overflow-y-auto p-4 sm:p-5">
+          <div className="rounded-xl bg-slate-50 p-3">
+            <p className="text-sm font-medium text-slate-700">{BOOKING_WIZARD_STEPS[step].description}</p>
+            <p className="mt-1 text-xs text-slate-500">Required fields must be completed. Optional details can be added later.</p>
+          </div>
           {error && (
-            <div className="flex gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            <div role="alert" className="flex gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
               <AlertCircle className="h-4 w-4 shrink-0" />{error}
             </div>
           )}
 
           {step === 0 && <section className="space-y-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Customer</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Customer details</h3>
             <div className="grid gap-3 sm:grid-cols-2">
-              <label className="text-sm text-slate-700">Name *<input className={`${input} mt-1`} value={customerName} onChange={e => setCustomerName(e.target.value)} /></label>
-              <label className="text-sm text-slate-700">Phone *<input type="tel" inputMode="tel" maxLength={20} className={`${input} mt-1`} value={customerPhone} onChange={e => { setCustomerPhone(e.target.value); setCustomerLookup(null); setNewShootConfirmed(false); }} /></label>
-              <label className="text-sm text-slate-700 sm:col-span-2">Email<input type="email" className={`${input} mt-1`} value={customerEmail} onChange={e => setCustomerEmail(e.target.value)} /></label>
+              <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.customerName}<input id="booking-customer-name" data-wizard-autofocus required className={`${input} mt-1 ${fieldErrors.customerName ? 'border-red-400 focus:border-red-500 focus:ring-red-100' : ''}`} value={customerName} aria-invalid={Boolean(fieldErrors.customerName)} aria-describedby={fieldErrors.customerName ? 'booking-customer-name-error' : undefined} onChange={e => { setCustomerName(e.target.value); setFieldErrors(current => ({ ...current, customerName: undefined })); invalidateStep(0); }} />{fieldErrors.customerName && <span id="booking-customer-name-error" className="mt-1 block text-xs font-medium text-red-600">{fieldErrors.customerName}</span>}</label>
+              <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.customerPhone}<input id="booking-customer-phone" required type="tel" inputMode="tel" maxLength={20} className={`${input} mt-1 ${fieldErrors.customerPhone ? 'border-red-400 focus:border-red-500 focus:ring-red-100' : ''}`} value={customerPhone} aria-invalid={Boolean(fieldErrors.customerPhone)} aria-describedby={fieldErrors.customerPhone ? 'booking-customer-phone-error' : undefined} onChange={e => { setCustomerPhone(e.target.value); setCustomerLookup(null); setNewShootConfirmed(false); setFieldErrors(current => ({ ...current, customerPhone: undefined })); invalidateStep(0); }} />{fieldErrors.customerPhone && <span id="booking-customer-phone-error" className="mt-1 block text-xs font-medium text-red-600">{fieldErrors.customerPhone}</span>}</label>
+              <label className="text-sm text-slate-700 sm:col-span-2">{BOOKING_WIZARD_FIELD_LABELS.customerEmail}<input type="email" className={`${input} mt-1`} value={customerEmail} onChange={e => setCustomerEmail(e.target.value)} /></label>
             </div>
-            {!booking && !enquiry && <CustomerLookupPanel phone={customerPhone} allowNewShoot newShootConfirmed={newShootConfirmed} onConfirmNewShoot={() => { setNewShootConfirmed(true); setError(''); }} onUseContact={contact => { setCustomerName(contact.customerName); setCustomerEmail(contact.email); }} onResult={setCustomerLookup} onChecking={setCustomerLookupChecking} />}
+            {!booking && !enquiry && <CustomerLookupPanel phone={customerPhone} allowNewShoot newShootConfirmed={newShootConfirmed} onConfirmNewShoot={() => { setNewShootConfirmed(true); setError(''); }} onUseContact={contact => { setCustomerName(contact.customerName); setCustomerEmail(contact.email); setFieldErrors(current => ({ ...current, customerName: undefined })); invalidateStep(0); }} onResult={setCustomerLookup} onChecking={setCustomerLookupChecking} />}
           </section>}
 
           {step === 1 && <section className="space-y-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Session</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Shoot details</h3>
             <div className="grid gap-3 sm:grid-cols-2">
-              <label className="text-sm text-slate-700">Photography service<select className={`${input} mt-1`} value={shootType} onChange={e => setShootType(e.target.value)}>{SHOOT_TYPE_OPTIONS.map(type => <option key={type}>{type}</option>)}</select></label>
-              <label className="text-sm text-slate-700">Preferred event<input className={`${input} mt-1`} value={preferredEvent} onChange={e => setPreferredEvent(e.target.value)} /></label>
-              <label className="text-sm text-slate-700">Booking date<input type="date" className={`${input} mt-1`} value={bookingDate} onChange={e => setBookingDate(e.target.value)} /></label>
-              <label className="text-sm text-slate-700">Location<input className={`${input} mt-1`} value={location} onChange={e => setLocation(e.target.value)} /></label>
-              <label className="text-sm text-slate-700">Start time<input type="time" className={`${input} mt-1`} value={startTime} onChange={e => setStartTime(e.target.value)} /></label>
-              <label className="text-sm text-slate-700">End time<input type="time" min={startTime || undefined} className={`${input} mt-1`} value={endTime} onChange={e => setEndTime(e.target.value)} /></label>
-              {(startTime || endTime) && <p className="text-xs text-slate-500 sm:col-span-2">{bookingDurationLabel(startTime, endTime) || 'Enter both times; the end must be later than the start.'}</p>}
+              <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.shootType}<select data-wizard-autofocus required className={`${input} mt-1`} value={shootType} onChange={e => setShootType(e.target.value)}>{SHOOT_TYPE_OPTIONS.map(type => <option key={type}>{type}</option>)}</select></label>
+              <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.preferredEvent}<input className={`${input} mt-1`} value={preferredEvent} onChange={e => setPreferredEvent(e.target.value)} /></label>
+              <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.bookingDate}<input id="booking-date" type="date" className={`${input} mt-1 ${fieldErrors.time && !bookingDate ? 'border-red-400 focus:border-red-500 focus:ring-red-100' : ''}`} value={bookingDate} aria-invalid={Boolean(fieldErrors.time && !bookingDate)} aria-describedby={fieldErrors.time ? 'booking-time-error booking-time-hint' : 'booking-time-hint'} onChange={e => { setBookingDate(e.target.value); setFieldErrors(current => ({ ...current, time: undefined })); invalidateStep(1); }} /></label>
+              <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.location}<input className={`${input} mt-1`} value={location} onChange={e => setLocation(e.target.value)} /></label>
+              <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.startTime}<input id="booking-start-time" type="time" className={`${input} mt-1 ${fieldErrors.time ? 'border-red-400 focus:border-red-500 focus:ring-red-100' : ''}`} value={startTime} aria-invalid={Boolean(fieldErrors.time)} aria-describedby={fieldErrors.time ? 'booking-time-error booking-time-hint' : 'booking-time-hint'} onChange={e => { setStartTime(e.target.value); setFieldErrors(current => ({ ...current, time: undefined })); invalidateStep(1); }} /></label>
+              <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.endTime}<input id="booking-end-time" type="time" min={startTime || undefined} className={`${input} mt-1 ${fieldErrors.time ? 'border-red-400 focus:border-red-500 focus:ring-red-100' : ''}`} value={endTime} aria-invalid={Boolean(fieldErrors.time)} aria-describedby={fieldErrors.time ? 'booking-time-error booking-time-hint' : 'booking-time-hint'} onChange={e => { setEndTime(e.target.value); setFieldErrors(current => ({ ...current, time: undefined })); invalidateStep(1); }} /></label>
+              <div className="sm:col-span-2"><p id="booking-time-hint" className="text-xs text-slate-500">Start and end times are optional, but enter both when scheduling a time.</p>{fieldErrors.time ? <p id="booking-time-error" className="mt-1 text-xs font-medium text-red-600">{fieldErrors.time}</p> : (startTime || endTime) && <p className="mt-1 text-xs text-slate-500">{bookingDurationLabel(startTime, endTime) || 'Enter both times; the end must be later than the start.'}</p>}</div>
             </div>
           </section>}
 
           {step === 2 && <section className="space-y-3">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Package and ownership</h3>
             <div className="grid gap-3 sm:grid-cols-2">
-              <label className="text-sm text-slate-700">Package<select className={`${input} mt-1`} value={packageId} onChange={e => handlePackage(e.target.value)}><option value="">No package</option>{packages.map(item => <option key={item.id} value={item.id}>{item.name}{item.isPublished ? '' : ' (unpublished)'}</option>)}</select></label>
-              <label className="text-sm text-slate-700">Agreed total (₹)<input type="number" min="0" className={`${input} mt-1`} value={agreedTotal} onChange={e => setAgreedTotal(e.target.value)} placeholder="Not decided" /></label>
-              <label className="text-sm text-slate-700">Assigned team member<select className={`${input} mt-1`} value={assignedTeamMemberId} onChange={e => setAssignedTeamMemberId(e.target.value)}><option value="">Unassigned</option>{teamMembers.map(member => <option key={member.id} value={member.id}>{member.name}</option>)}</select></label>
-              <label className="text-sm text-slate-700">Payment due date<input type="date" className={`${input} mt-1`} value={paymentDueDate} onChange={e => setPaymentDueDate(e.target.value)} /></label>
-              {enquiry && <label className="text-sm text-slate-700">Advance received (₹)<input type="number" min="0" className={`${input} mt-1`} value={advanceAmount} onChange={e => setAdvanceAmount(e.target.value)} placeholder="Optional" /></label>}
-              {enquiry && Number(advanceAmount) > 0 && <label className="text-sm text-slate-700">Advance method<select className={`${input} mt-1`} value={advanceMethod} onChange={e => setAdvanceMethod(e.target.value as PaymentMethod)}><option value="upi">UPI</option><option value="cash">Cash</option><option value="bank_transfer">Bank transfer</option><option value="card">Card</option><option value="other">Other</option></select></label>}
+              <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.package}<select data-wizard-autofocus className={`${input} mt-1`} value={packageId} onChange={e => handlePackage(e.target.value)}><option value="">No package</option>{packages.map(item => <option key={item.id} value={item.id}>{item.name}{item.isPublished ? '' : ' (unpublished)'}</option>)}</select></label>
+              <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.agreedTotal}<input type="number" min="0" className={`${input} mt-1`} value={agreedTotal} onChange={e => setAgreedTotal(e.target.value)} placeholder="Not decided" /></label>
+              <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.assignedTeamMember}<select className={`${input} mt-1`} value={assignedTeamMemberId} onChange={e => setAssignedTeamMemberId(e.target.value)}><option value="">Unassigned</option>{teamMembers.map(member => <option key={member.id} value={member.id}>{member.name}</option>)}</select></label>
+              <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.paymentDueDate}<input type="date" className={`${input} mt-1`} value={paymentDueDate} onChange={e => setPaymentDueDate(e.target.value)} /></label>
+              {enquiry && <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.advanceAmount}<input type="number" min="0" className={`${input} mt-1`} value={advanceAmount} onChange={e => setAdvanceAmount(e.target.value)} placeholder="Optional" /></label>}
+              {enquiry && Number(advanceAmount) > 0 && <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.advanceMethod}<select className={`${input} mt-1`} value={advanceMethod} onChange={e => setAdvanceMethod(e.target.value as PaymentMethod)}><option value="upi">UPI</option><option value="cash">Cash</option><option value="bank_transfer">Bank transfer</option><option value="card">Card</option><option value="other">Other</option></select></label>}
             </div>
           </section>}
 
           {step === 3 && <section className="space-y-3">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Next action</h3>
             <div className="grid gap-3 sm:grid-cols-2">
-              <label className="text-sm text-slate-700">Follow-up date and time<input type="datetime-local" className={`${input} mt-1`} value={nextFollowUpAt} onChange={e => setNextFollowUpAt(e.target.value)} /></label>
-              <label className="text-sm text-slate-700">Follow-up note<input className={`${input} mt-1`} value={followUpNote} onChange={e => setFollowUpNote(e.target.value)} /></label>
+              <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.followUpAt}<input data-wizard-autofocus type="datetime-local" className={`${input} mt-1`} value={nextFollowUpAt} onChange={e => setNextFollowUpAt(e.target.value)} /></label>
+              <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.followUpNote}<input className={`${input} mt-1`} value={followUpNote} onChange={e => setFollowUpNote(e.target.value)} /></label>
             </div>
-            <label className="block text-sm text-slate-700">Internal notes<textarea rows={3} className={`${input} mt-1 resize-y`} value={notes} onChange={e => setNotes(e.target.value)} /></label>
+            <label className="block text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.notes}<textarea rows={3} className={`${input} mt-1 resize-y`} value={notes} onChange={e => setNotes(e.target.value)} /></label>
           </section>}
 
           {step === 3 && <section className="space-y-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-emerald-800">WhatsApp updates</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-emerald-800">{BOOKING_WIZARD_FIELD_LABELS.whatsapp}</h3>
             <label className="flex items-start gap-3 text-sm text-emerald-950"><input type="checkbox" className="mt-1" checked={whatsappOptIn} onChange={e => { setWhatsappOptIn(e.target.checked); if (!e.target.checked) setWhatsappNotificationsEnabled(false); }} /><span>Customer has explicitly agreed to receive booking and photoshoot updates through WhatsApp.</span></label>
             <label className="flex items-start gap-3 text-sm text-emerald-950"><input type="checkbox" className="mt-1" checked={whatsappNotificationsEnabled} disabled={!whatsappOptIn} onChange={e => setWhatsappNotificationsEnabled(e.target.checked)} /><span>Enable automated booking notifications (English).</span></label>
           </section>}
         </div>
-        <div className="grid grid-cols-2 gap-2 border-t border-slate-200 px-5 py-4">
-          <button onClick={step === 0 ? onClose : () => setStep(value => value - 1)} className="h-12 rounded-xl border border-slate-300 px-4 text-sm font-semibold text-slate-700">{step === 0 ? 'Cancel' : 'Back'}</button>
-          {step < 3 ? <button onClick={nextStep} className="h-12 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white">Next</button> : <button onClick={() => void submit()} disabled={saving} className="h-12 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white disabled:opacity-50">{saving ? 'Saving…' : enquiry ? 'Confirm booking' : 'Save booking'}</button>}
+        <div className="grid grid-cols-2 gap-2 border-t border-slate-200 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-5">
+          <button type="button" onClick={step === 0 ? onClose : () => { setError(''); setFieldErrors({}); setStep(value => value - 1); }} className="h-12 rounded-xl border border-slate-300 px-4 text-sm font-semibold text-slate-700 outline-none hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-blue-500">{step === 0 ? 'Cancel' : 'Back'}</button>
+          {step < 3 ? <button type="button" onClick={nextStep} className="h-12 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white outline-none hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">Next</button> : <button type="button" onClick={() => void submit()} disabled={saving} className="h-12 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white outline-none hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50">{saving ? 'Saving…' : enquiry ? 'Confirm booking' : 'Save booking'}</button>}
         </div>
       </div>
     </div>

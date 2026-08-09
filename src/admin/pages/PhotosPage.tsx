@@ -236,16 +236,18 @@ export function PhotosPage() {
     try {
       await api.uploadFiles(
         uploadingFiles.map(file => ({
+          clientId: file.id,
           file: file.file,
           title: file.title.trim(),
           altText: file.altText.trim(),
           categoryId: file.categoryId,
           width: file.width,
           height: file.height,
+          isPublished: true,
         })),
-        (fileName, progress) => {
+        (clientId, progress) => {
           setUploadingFiles(prev =>
-            prev.map(file => file.file.name === fileName ? { ...file, progress } : file),
+            prev.map(file => file.id === clientId ? { ...file, progress } : file),
           );
         },
       );
@@ -1069,7 +1071,7 @@ interface PhotoPreviewModalProps {
   onNavigate: (photo: Photo) => void;
 }
 
-function PhotoPreviewModal({ photo, photos, onClose, onNavigate }: PhotoPreviewModalProps) {
+export function PhotoPreviewModal({ photo, photos, onClose, onNavigate }: PhotoPreviewModalProps) {
   const [failed, setFailed] = useState(false);
   const src = getPhotoSrc(photo);
   const currentIndex = photos.findIndex(p => p.id === photo.id);
@@ -1167,7 +1169,7 @@ interface PhotoEditModalProps {
   onSaveImage: (transform: ImageTransform | null) => Promise<void>;
 }
 
-function PhotoEditModal({ photo, categories, onClose, onSave, onSaveImage }: PhotoEditModalProps) {
+export function PhotoEditModal({ photo, categories, onClose, onSave, onSaveImage }: PhotoEditModalProps) {
   const [title, setTitle] = useState(photo.title);
   const [altText, setAltText] = useState(photo.altText);
   const [selectedCategories, setSelectedCategories] = useState<string[]>(photo.categories);

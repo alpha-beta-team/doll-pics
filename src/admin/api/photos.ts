@@ -2,6 +2,21 @@ import type { ImageTransform, Photo } from '../types';
 import { request } from './http';
 import { mapPhoto } from './mappers';
 
+export interface PhotoUploadInput {
+  clientId: string;
+  file: File;
+  title: string;
+  altText: string;
+  categoryId: string;
+  width: number;
+  height: number;
+  isPublished: boolean;
+}
+
+export type PhotoUploadResult =
+  | { clientId: string; status: 'complete'; photo: Photo }
+  | { clientId: string; status: 'error'; error: string };
+
 async function getPhotos(filters?: {
   category?: string;
   published?: boolean;
@@ -110,59 +125,61 @@ export const photosApi = {
   },
 
   async uploadFiles(
-    uploads: {
-      file: File;
-      title: string;
-      altText: string;
-      categoryId: string;
-      width: number;
-      height: number;
-    }[],
-    onProgress?: (fileId: string, progress: number) => void,
-  ): Promise<Photo[]> {
-    const docs: Record<string, unknown>[] = [];
+    uploads: PhotoUploadInput[],
+    onProgress?: (clientId: string, progress: number) => void,
+  ): Promise<PhotoUploadResult[]> {
+    const results: PhotoUploadResult[] = [];
     for (const upload of uploads) {
-      const signed = await request<{
-        storageKey: string;
-        uploadUrl: string;
-        headers: { 'Content-Type': string };
-      }>('/admin/photos/uploads/presign', {
-        method: 'POST',
-        auth: true,
-        body: JSON.stringify({
-          originalFilename: upload.file.name,
-          mimeType: upload.file.type,
-          categoryId: upload.categoryId,
-        }),
-      });
+      const clientId = upload.clientId;
+      try {
+        const signed = await request<{
+          storageKey: string;
+          uploadUrl: string;
+          headers: { 'Content-Type': string };
+        }>('/admin/photos/uploads/presign', {
+          method: 'POST',
+          auth: true,
+          body: JSON.stringify({
+            originalFilename: upload.file.name,
+            mimeType: upload.file.type,
+            categoryId: upload.categoryId,
+          }),
+        });
 
-      await putWithProgress(
-        signed.uploadUrl,
-        upload.file,
-        signed.headers['Content-Type'],
-        (progress) => onProgress?.(upload.file.name, progress),
-      );
+        await putWithProgress(
+          signed.uploadUrl,
+          upload.file,
+          signed.headers['Content-Type'],
+          (progress) => onProgress?.(clientId, progress),
+        );
 
-      const doc = await request<Record<string, unknown>>('/admin/photos/uploads/confirm', {
-        method: 'POST',
-        auth: true,
-        body: JSON.stringify({
-          storageKey: signed.storageKey,
-          originalFilename: upload.file.name,
-          title: upload.title,
-          altText: upload.altText,
-          categoryId: upload.categoryId,
-          mimeType: upload.file.type,
-          size: upload.file.size,
-          width: upload.width,
-          height: upload.height,
-          isPublished: true,
-        }),
-      });
-      docs.push(doc);
-      onProgress?.(upload.file.name, 100);
+        const doc = await request<Record<string, unknown>>('/admin/photos/uploads/confirm', {
+          method: 'POST',
+          auth: true,
+          body: JSON.stringify({
+            storageKey: signed.storageKey,
+            originalFilename: upload.file.name,
+            title: upload.title,
+            altText: upload.altText,
+            categoryId: upload.categoryId,
+            mimeType: upload.file.type,
+            size: upload.file.size,
+            width: upload.width,
+            height: upload.height,
+            isPublished: upload.isPublished,
+          }),
+        });
+        onProgress?.(clientId, 100);
+        results.push({ clientId, status: 'complete', photo: mapPhoto(doc) });
+      } catch (error) {
+        results.push({
+          clientId,
+          status: 'error',
+          error: error instanceof Error ? error.message : 'Upload failed',
+        });
+      }
     }
-    return docs.map(mapPhoto);
+    return results;
   },
 };
 
