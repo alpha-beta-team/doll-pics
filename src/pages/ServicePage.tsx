@@ -117,8 +117,9 @@ function resolveApiServiceCategory(path: string, serviceLabel?: string): string 
   if (configured) return configured;
 
   const normalizedLabel = normalizeServiceName(serviceLabel ?? '');
-  if (normalizedLabel === 'baby shower') return 'baby-shower';
-  return undefined;
+  return normalizedLabel
+    ? normalizedLabel.replace(/\s+/g, '-')
+    : undefined;
 }
 
 function serviceImagesFromApi(photos: PublicPhoto[]): ServiceImage[] {
@@ -149,7 +150,7 @@ function serviceImagesFromApi(photos: PublicPhoto[]): ServiceImage[] {
 function ServicePageContent() {
   const { pathname } = useLocation();
   const path = normalizePathname(pathname);
-  const { siteContent, featuredWork, galleryImages } = useSiteData();
+  const { siteContent } = useSiteData();
   const serviceLinks = getPublishedServiceNavLinks(
     siteContent.serviceNavLinks,
   );
@@ -234,13 +235,13 @@ function ServicePageContent() {
 
   const { hero, gallery, inline } = selectServiceImages({
     imageCategories: page.imageCategories,
-    fallbackImages: page.fallbackImages,
     sourceImages:
       apiServiceMedia.path === path ? apiServiceMedia.images : [],
-    sourceOnly: Boolean(apiServiceCategory),
+    // Service pages intentionally render category API media only.
+    sourceOnly: true,
     inlineCount: page.sections.length,
-    featuredWork,
-    galleryImages,
+    featuredWork: [],
+    galleryImages: [],
   });
   const shootType = resolveShootType(
     path,
