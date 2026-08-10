@@ -14,6 +14,8 @@ import {
   FolderOpen,
 } from 'lucide-react';
 import { useConfirmDialog } from '../hooks/useConfirmDialog';
+import { useFeatureAccess } from '../access/useFeatureAccess';
+import { ReadOnlyNotice } from '../components/ReadOnlyNotice';
 
 const UNCATEGORIZED_KEY = '__uncategorized__';
 const ALL_CATEGORIES_KEY = '__all__';
@@ -86,6 +88,7 @@ interface PackageGroup {
 }
 
 export function PackagesPage() {
+  const { canManage, isReadOnly } = useFeatureAccess('packages');
   const confirmDialog = useConfirmDialog();
   const [packages, setPackages] = useState<Package[]>([]);
   const [categories, setCategories] = useState<PackageCategory[]>([]);
@@ -311,14 +314,14 @@ export function PackagesPage() {
       <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
         <AlertCircle className="w-5 h-5 flex-shrink-0" />
         <span>{error}</span>
-        <button
+        {canManage ? <button
           type="button"
           onClick={() => setError(null)}
           aria-label="Dismiss error"
           className="ml-auto hover:text-red-900"
         >
           <X className="w-4 h-4" aria-hidden="true" />
-        </button>
+        </button> : isReadOnly ? <ReadOnlyNotice /> : null}
       </div>
     );
   }
@@ -422,7 +425,7 @@ export function PackagesPage() {
                       </p>
                     </div>
                   </div>
-                  {group.categoryId && (
+                  {canManage && group.categoryId && (
                     <button
                       type="button"
                       onClick={() => openCreate(group.categoryId)}
@@ -437,7 +440,7 @@ export function PackagesPage() {
                 {group.packages.length === 0 ? (
                   <div className="px-4 py-8 text-center">
                     <p className="text-sm text-gray-500">No packages in this category yet</p>
-                    {group.categoryId && (
+                    {canManage && group.categoryId && (
                       <button
                         type="button"
                         onClick={() => openCreate(group.categoryId)}
@@ -452,7 +455,7 @@ export function PackagesPage() {
                     {group.packages.map((pkg) => (
                       <div
                         key={pkg.id}
-                        draggable
+                        draggable={canManage}
                         onDragStart={(e) => handleDragStart(e, pkg.id)}
                         onDragOver={handleDragOver}
                         onDrop={(e) => handleDrop(e, pkg.id, group.key)}
@@ -460,9 +463,9 @@ export function PackagesPage() {
                           draggedId === pkg.id ? 'bg-blue-50 opacity-50' : ''
                         }`}
                       >
-                        <div className="cursor-move p-1 text-gray-300 group-hover:text-gray-500 mt-0.5">
+                        {canManage && <div className="cursor-move p-1 text-gray-300 group-hover:text-gray-500 mt-0.5">
                           <GripVertical className="w-4 h-4" />
-                        </div>
+                        </div>}
 
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
@@ -494,7 +497,7 @@ export function PackagesPage() {
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {canManage && <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
                             type="button"
                             onClick={() => setEditingPackage(pkg)}
@@ -527,7 +530,7 @@ export function PackagesPage() {
                           >
                             <Trash2 className="w-4 h-4" aria-hidden="true" />
                           </button>
-                        </div>
+                        </div>}
                       </div>
                     ))}
                   </div>
@@ -538,7 +541,7 @@ export function PackagesPage() {
         </div>
       )}
 
-      {(editingPackage || isCreating) && (
+      {canManage && (editingPackage || isCreating) && (
         <PackageEditModal
           pkg={isCreating ? null : editingPackage}
           categories={categories}

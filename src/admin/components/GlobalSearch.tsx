@@ -23,10 +23,13 @@ import {
   searchResultDestination,
   searchResultGroups,
 } from './globalSearch.utils';
+import { useFeatureAccess } from '../access/useFeatureAccess';
 
 type SearchState = 'idle' | 'loading' | 'success' | 'error';
 
 export function GlobalSearch() {
+  const { canView: canViewEnquiries } = useFeatureAccess('enquiries');
+  const { canView: canViewBookings } = useFeatureAccess('bookings');
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -96,7 +99,13 @@ export function GlobalSearch() {
     setActiveIndex(-1);
     const timeout = window.setTimeout(async () => {
       try {
-        const nextResponse = await api.searchAdmin(trimmed, controller.signal);
+        const rawResponse = await api.searchAdmin(trimmed, controller.signal);
+        const nextResponse = {
+          ...rawResponse,
+          enquiries: canViewEnquiries ? rawResponse.enquiries : [],
+          bookings: canViewBookings ? rawResponse.bookings : [],
+          total: (canViewEnquiries ? rawResponse.enquiries.length : 0) + (canViewBookings ? rawResponse.bookings.length : 0),
+        };
         setResponse(nextResponse);
         setState('success');
         setActiveIndex(nextResponse.total > 0 ? 0 : -1);
@@ -112,7 +121,7 @@ export function GlobalSearch() {
       window.clearTimeout(timeout);
       controller.abort();
     };
-  }, [open, query, retryVersion]);
+  }, [canViewBookings, canViewEnquiries, open, query, retryVersion]);
 
   useEffect(() => {
     const active = results[activeIndex];
@@ -157,6 +166,8 @@ export function GlobalSearch() {
   };
 
   let runningIndex = -1;
+
+  if (!canViewEnquiries && !canViewBookings) return null;
 
   return (
     <>

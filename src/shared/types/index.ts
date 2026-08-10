@@ -618,12 +618,25 @@ export type UserRole = 'owner' | 'sales' | 'content_manager';
 
 export type UserAccessArea =
   | 'dashboard'
-  | 'payments'
+  | 'today'
   | 'enquiries'
   | 'bookings'
   | 'schedule'
-  | 'content'
+  | 'occasions'
+  | 'quotations'
+  | 'payments'
   | 'photos'
+  | 'categories'
+  | 'packages'
+  | 'package_categories'
+  | 'hero_slides'
+  | 'story_scenes'
+  | 'statistics'
+  | 'testimonials'
+  | 'behind_scenes'
+  | 'team_members'
+  | 'site_content'
+  | 'integrations'
   | 'users';
 
 export type UserAccessLevel = 'manage' | 'view' | 'none';
@@ -634,6 +647,7 @@ export type User = {
   id: string;
   email: string;
   name: string;
+  jobTitle?: string;
   role: UserRole;
   permissionOverrides?: UserPermissionOverrides;
   isActive: boolean;

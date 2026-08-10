@@ -1,11 +1,14 @@
 import { api } from '../api/client';
 import type { HeroSlide } from '../types';
 import { SimpleOrderedPage, FieldInput } from '../components/SimpleOrderedPage';
+import { useFeatureAccess } from '../access/useFeatureAccess';
 
 export function HeroSlidesPage() {
+  const { isReadOnly } = useFeatureAccess('hero_slides');
   return (
     <SimpleOrderedPage<HeroSlide>
       title="Hero Slides"
+      readOnly={isReadOnly}
       description="Manage homepage hero carousel slides"
       fetchItems={api.getHeroSlides}
       createItem={(data) => api.createHeroSlide(data as Omit<HeroSlide, 'id'>)}

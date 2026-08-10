@@ -37,6 +37,8 @@ import {
   adminFieldClass,
 } from '../components/ui';
 import { PhotoEditModal, PhotoPreviewModal } from './PhotosPage';
+import { useFeatureAccess } from '../access/useFeatureAccess';
+import { ReadOnlyNotice } from '../components/ReadOnlyNotice';
 import {
   filterPhotos,
   getEligibleCoverReplacements,
@@ -158,6 +160,7 @@ function readImageDimensions(file: File): Promise<{ width: number; height: numbe
 }
 
 export function PhotosWorkspacePage() {
+  const { canManage, isReadOnly } = useFeatureAccess('photos');
   const confirmDialog = useConfirmDialog();
   const localGenerationCapability = useMemo(
     () => getLocalMetadataGenerationCapability(),
@@ -866,7 +869,7 @@ export function PhotosWorkspacePage() {
         eyebrow="Portfolio library"
         title="Photos"
         description={`${photos.length} photos · ${publishedCount} published · ${photos.length - publishedCount} drafts`}
-        actions={
+        actions={canManage ? (
           <>
             <AdminButton
               type="button"
@@ -885,17 +888,17 @@ export function PhotosWorkspacePage() {
               <Upload className="h-4 w-4" /> Upload photos
             </AdminButton>
           </>
-        }
+        ) : isReadOnly ? <ReadOnlyNotice /> : undefined}
       />
 
-      <input
+      {canManage && <input
         ref={fileInputRef}
         type="file"
         accept="image/jpeg,image/png,image/webp,image/avif"
         multiple
         onChange={handleFileInput}
         className="hidden"
-      />
+      />}
 
       {error && (
         <div className="relative">
@@ -956,7 +959,7 @@ export function PhotosWorkspacePage() {
         </div>
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-admin-border pt-3 text-sm">
           <span className="text-admin-subtle">Showing <strong className="text-admin-text">{visiblePhotos.length}</strong> of {photos.length}</span>
-          {!reorderMode && visiblePhotos.length > 0 && (
+          {canManage && !reorderMode && visiblePhotos.length > 0 && (
             <button type="button" onClick={() => setSelectedPhotos(previous => toggleVisibleSelection(previous, visibleIds))} className="inline-flex min-h-10 items-center gap-2 rounded-xl px-3 font-semibold text-admin-secondary hover:bg-admin-muted hover:text-admin-text">
               {allVisibleSelected ? <CheckSquare className="h-5 w-5 text-admin-primary" /> : <Square className="h-5 w-5" />}
               {allVisibleSelected ? 'Clear visible selection' : `Select all ${visiblePhotos.length} visible`}
@@ -965,7 +968,7 @@ export function PhotosWorkspacePage() {
         </div>
       </AdminFilterBar>
 
-      {selectedPhotos.size > 0 && !reorderMode && (
+      {canManage && selectedPhotos.size > 0 && !reorderMode && (
         <div className="sticky top-3 z-30 flex flex-wrap items-center gap-2 rounded-2xl border border-admin-primary/30 bg-admin-surface p-3 shadow-lg">
           <span className="mr-2 text-sm font-semibold text-admin-text">{selectedPhotos.size} selected</span>
           <AdminButton type="button" variant="secondary" disabled={isBulkWorking} onClick={() => void handleBulkPublish(true)}><Eye className="h-4 w-4" /> Publish</AdminButton>
@@ -975,7 +978,7 @@ export function PhotosWorkspacePage() {
         </div>
       )}
 
-      {reorderMode && (
+      {canManage && reorderMode && (
         <AdminAlert tone="info">Drag photos using their handles. Reordering is available only in the unfiltered All Photos view.</AdminAlert>
       )}
 
@@ -986,7 +989,7 @@ export function PhotosWorkspacePage() {
           description={filtersActive ? 'Try another category, publishing status, or search.' : 'Upload your first portfolio photo.'}
           action={filtersActive
             ? <AdminButton type="button" variant="secondary" onClick={() => { setSelectedCategory(''); setStatusFilter('all'); setSearchQuery(''); }}>Clear filters</AdminButton>
-            : <AdminButton type="button" onClick={() => fileInputRef.current?.click()}><Upload className="h-4 w-4" /> Upload photos</AdminButton>}
+            : canManage ? <AdminButton type="button" onClick={() => fileInputRef.current?.click()}><Upload className="h-4 w-4" /> Upload photos</AdminButton> : undefined}
         />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
@@ -998,6 +1001,7 @@ export function PhotosWorkspacePage() {
               selected={selectedPhotos.has(photo.id)}
               pending={pendingPhotoIds.has(photo.id)}
               reorderMode={reorderMode}
+              canManage={canManage}
               dragging={draggedPhotoId === photo.id}
               onSelect={() => setSelectedPhotos(previous => {
                 const next = new Set(previous);
@@ -1021,7 +1025,7 @@ export function PhotosWorkspacePage() {
         </div>
       )}
 
-      <AdminModal
+      {canManage && <AdminModal
         open={showUploadModal}
         title={isUploading ? 'Uploading photos' : uploadingFiles.length ? 'Review and publish' : 'Choose photos'}
         description="Add details and decide which photos should appear on the website."
@@ -1131,9 +1135,9 @@ export function PhotosWorkspacePage() {
             </div>
           )}
         </div>
-      </AdminModal>
+      </AdminModal>}
 
-      <AdminModal
+      {canManage && <AdminModal
         open={Boolean(coverOperation) && !showUploadModal}
         title="Select replacement category covers"
         description="These photos are currently used at the top of public service pages. Every affected category needs a published replacement before the action can continue."
@@ -1200,10 +1204,10 @@ export function PhotosWorkspacePage() {
             })}
           </div>
         )}
-      </AdminModal>
+      </AdminModal>}
 
       {previewPhoto && <PhotoPreviewModal photo={previewPhoto} photos={visiblePhotos} onClose={() => setPreviewPhoto(null)} onNavigate={setPreviewPhoto} />}
-      {editingPhoto && (
+      {canManage && editingPhoto && (
         <PhotoEditModal
           photo={editingPhoto}
           categories={categories}
@@ -1258,6 +1262,7 @@ function PhotoCard({
   selected,
   pending,
   reorderMode,
+  canManage,
   dragging,
   onSelect,
   onPreview,
@@ -1273,6 +1278,7 @@ function PhotoCard({
   selected: boolean;
   pending: boolean;
   reorderMode: boolean;
+  canManage: boolean;
   dragging: boolean;
   onSelect: () => void;
   onPreview: () => void;
@@ -1293,7 +1299,7 @@ function PhotoCard({
 
   return (
     <article
-      draggable={reorderMode}
+      draggable={canManage && reorderMode}
       onDragStart={onDragStart}
       onDragOver={event => { if (reorderMode) { event.preventDefault(); event.dataTransfer.dropEffect = 'move'; } }}
       onDrop={event => { event.preventDefault(); onDrop(); }}
@@ -1306,13 +1312,13 @@ function PhotoCard({
             : <span className="flex h-full items-center justify-center"><ImageIcon className="h-9 w-9" /></span>}
         </button>
 
-        {reorderMode ? (
+        {canManage && reorderMode ? (
           <span className="absolute left-3 top-3 flex h-11 items-center gap-2 rounded-xl bg-stone-950/75 px-3 text-sm font-semibold text-white shadow-lg"><GripVertical className="h-5 w-5" /> Drag</span>
-        ) : (
+        ) : canManage ? (
           <button type="button" role="checkbox" aria-checked={selected} onClick={onSelect} className={`absolute left-3 top-3 flex h-11 w-11 items-center justify-center rounded-xl border-2 shadow-lg transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-focus ${selected ? 'border-admin-primary bg-admin-primary text-white' : 'border-white bg-white/95 text-admin-secondary hover:text-admin-primary'}`} aria-label={`${selected ? 'Deselect' : 'Select'} ${photo.title}`}>
             {selected ? <Check className="h-5 w-5" /> : <Square className="h-5 w-5" />}
           </button>
-        )}
+        ) : null}
 
         <div className="absolute right-3 top-3 flex flex-wrap justify-end gap-1.5">
           {coverCategories.map(category => <span key={category.id} className="inline-flex items-center gap-1 rounded-full bg-violet-600 px-2.5 py-1 text-xs font-bold text-white shadow"><ImageIcon className="h-3 w-3" /> {category.name} cover</span>)}
@@ -1329,7 +1335,7 @@ function PhotoCard({
       <div className="p-4">
         <h2 className="truncate font-semibold text-admin-text" title={photo.title}>{photo.title}</h2>
         <p className="mt-1 min-h-5 truncate text-xs text-admin-subtle" title={categoryLabel}>{categoryLabel || 'Uncategorised'}</p>
-        {!reorderMode && (
+        {canManage && !reorderMode && (
           <div className="mt-4 grid grid-cols-[1fr_auto_auto_auto] gap-2 border-t border-admin-border pt-3">
             <button type="button" disabled={pending} onClick={onPublish} className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-xl px-3 text-sm font-semibold transition disabled:opacity-50 ${photo.isPublished ? 'bg-admin-muted text-admin-secondary hover:text-admin-text' : 'bg-admin-primary text-white hover:bg-admin-primary-hover'}`}>
               {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : photo.isPublished ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}

@@ -23,15 +23,11 @@ import {
   UserCog,
   Users,
 } from 'lucide-react';
-import type { User } from '../types';
+import { canManage, canView, FEATURE_CATALOG, type FeatureDetails, type FeatureFlagId } from '../access/roles';
+import type { User, UserAccessArea } from '../types';
 
-export type AdminPermission = 'authenticated' | 'owner';
-export type AdminFeatureFlag =
-  | 'reports'
-  | 'portfolio'
-  | 'packages'
-  | 'website'
-  | 'integrations';
+export type NavigationAccess = { feature: UserAccessArea; level: 'view' | 'manage' };
+export type AdminFeatureFlag = FeatureFlagId;
 
 export type NavigationNode = {
   id: string;
@@ -39,7 +35,7 @@ export type NavigationNode = {
   route?: string;
   icon: LucideIcon;
   children?: NavigationNode[];
-  requiredPermission: AdminPermission;
+  access?: NavigationAccess;
   featureFlag?: AdminFeatureFlag;
   displayOrder: number;
   mobileQuickOrder?: number;
@@ -74,93 +70,92 @@ const leaf = (
   route: string,
   icon: LucideIcon,
   displayOrder: number,
-  requiredPermission: AdminPermission = 'authenticated',
+  feature?: UserAccessArea,
   options: Pick<NavigationNode, 'featureFlag' | 'mobileQuickOrder'> = {},
-): NavigationNode => ({
-  id,
-  label,
-  route,
+): NavigationNode => {
+  const registered = feature ? FEATURE_CATALOG[feature] : undefined;
+  const navigation = registered?.navigation as FeatureDetails['navigation'] | undefined;
+  return {
+  id: navigation?.id ?? id,
+  label: navigation?.label ?? label,
+  route: registered?.routes[0] ?? route,
   icon,
-  displayOrder,
-  requiredPermission,
-  ...options,
-});
+  displayOrder: navigation?.displayOrder ?? displayOrder,
+  access: feature ? { feature, level: 'view' } : undefined,
+  featureFlag: navigation?.featureFlag ?? options.featureFlag,
+  mobileQuickOrder: navigation?.mobileQuickOrder ?? options.mobileQuickOrder,
+};
+};
 
 export const PRIMARY_NAVIGATION: NavigationNode[] = [
   {
     id: 'overview',
     label: 'Overview',
     icon: Home,
-    requiredPermission: 'authenticated',
     displayOrder: 10,
     children: [
-      leaf('today', 'Today', '/admin/today', Home, 10, 'authenticated', { mobileQuickOrder: 10 }),
-      leaf('schedule', 'Schedule', '/admin/schedule', CalendarRange, 20, 'authenticated', { mobileQuickOrder: 20 }),
-      leaf('reports-summary', 'Reports Summary', '/admin/dashboard', BarChart3, 30, 'owner', { featureFlag: 'reports' }),
+      leaf('today', 'Today', '/admin/today', Home, 10, 'today', { mobileQuickOrder: 10 }),
+      leaf('schedule', 'Schedule', '/admin/schedule', CalendarRange, 20, 'schedule', { mobileQuickOrder: 20 }),
+      leaf('reports-summary', 'Dashboard', '/admin/dashboard', BarChart3, 30, 'dashboard', { featureFlag: 'reports' }),
     ],
   },
   {
     id: 'studio-operations',
     label: 'Studio Operations',
     icon: CalendarDays,
-    requiredPermission: 'authenticated',
     displayOrder: 20,
     children: [
-      leaf('bookings', 'Bookings', '/admin/bookings', CalendarDays, 10, 'authenticated', { mobileQuickOrder: 40 }),
-      leaf('enquiries', 'Enquiries', '/admin/enquiries', Mail, 20, 'authenticated', { mobileQuickOrder: 30 }),
-      leaf('occasions', 'Occasions', '/admin/occasions', CalendarHeart, 30),
+      leaf('bookings', 'Bookings', '/admin/bookings', CalendarDays, 10, 'bookings', { mobileQuickOrder: 40 }),
+      leaf('enquiries', 'Enquiries', '/admin/enquiries', Mail, 20, 'enquiries', { mobileQuickOrder: 30 }),
+      leaf('occasions', 'Occasions', '/admin/occasions', CalendarHeart, 30, 'occasions'),
     ],
   },
   {
     id: 'sales-finance',
     label: 'Sales & Finance',
     icon: CircleDollarSign,
-    requiredPermission: 'authenticated',
     displayOrder: 30,
     children: [
-      leaf('quotations', 'Quotations', '/admin/quotations', FileSignature, 10),
-      leaf('payments', 'Payments', '/admin/payments', CircleDollarSign, 20),
+      leaf('quotations', 'Quotations', '/admin/quotations', FileSignature, 10, 'quotations'),
+      leaf('payments', 'Payments', '/admin/payments', CircleDollarSign, 20, 'payments'),
     ],
   },
   {
     id: 'portfolio',
     label: 'Portfolio',
     icon: Images,
-    requiredPermission: 'owner',
     featureFlag: 'portfolio',
     displayOrder: 40,
     children: [
-      leaf('photos', 'Photos', '/admin/photos', Images, 10, 'owner'),
-      leaf('categories', 'Categories', '/admin/categories', FolderOpen, 20, 'owner'),
-      leaf('behind-scenes', 'Behind the Scenes', '/admin/behind-scenes', Camera, 30, 'owner'),
+      leaf('photos', 'Photos', '/admin/photos', Images, 10, 'photos'),
+      leaf('categories', 'Categories', '/admin/categories', FolderOpen, 20, 'categories'),
+      leaf('behind-scenes', 'Behind the Scenes', '/admin/behind-scenes', Camera, 30, 'behind_scenes'),
     ],
   },
   {
     id: 'packages',
     label: 'Packages',
     icon: Package,
-    requiredPermission: 'owner',
     featureFlag: 'packages',
     displayOrder: 50,
     children: [
-      leaf('all-packages', 'All Packages', '/admin/packages', Package, 10, 'owner'),
-      leaf('package-categories', 'Package Categories', '/admin/package-categories', Tags, 20, 'owner'),
+      leaf('all-packages', 'All Packages', '/admin/packages', Package, 10, 'packages'),
+      leaf('package-categories', 'Package Categories', '/admin/package-categories', Tags, 20, 'package_categories'),
     ],
   },
   {
     id: 'website',
     label: 'Website',
     icon: PanelsTopLeft,
-    requiredPermission: 'owner',
     featureFlag: 'website',
     displayOrder: 60,
     children: [
-      leaf('hero-slides', 'Hero Slides', '/admin/hero-slides', Image, 10, 'owner'),
-      leaf('story-scenes', 'Story Scenes', '/admin/story-scenes', FileText, 20, 'owner'),
-      leaf('statistics', 'Statistics', '/admin/stats', BarChart3, 30, 'owner'),
-      leaf('testimonials', 'Testimonials', '/admin/testimonials', MessageSquareQuote, 40, 'owner'),
-      leaf('team-members', 'Team Members', '/admin/team-members', Users, 50, 'owner'),
-      leaf('site-content', 'General Site Content', '/admin/site-content', FileText, 60, 'owner'),
+      leaf('hero-slides', 'Hero Slides', '/admin/hero-slides', Image, 10, 'hero_slides'),
+      leaf('story-scenes', 'Story Scenes', '/admin/story-scenes', FileText, 20, 'story_scenes'),
+      leaf('statistics', 'Statistics', '/admin/stats', BarChart3, 30, 'statistics'),
+      leaf('testimonials', 'Testimonials', '/admin/testimonials', MessageSquareQuote, 40, 'testimonials'),
+      leaf('team-members', 'Team Members', '/admin/team-members', Users, 50, 'team_members'),
+      leaf('site-content', 'General Site Content', '/admin/site-content', FileText, 60, 'site_content'),
     ],
   },
 ];
@@ -170,11 +165,10 @@ export const UTILITY_NAVIGATION: NavigationNode[] = [
     id: 'studio-settings',
     label: 'Studio Settings',
     icon: Settings,
-    requiredPermission: 'owner',
     displayOrder: 10,
     children: [
-      leaf('staff-accounts', 'Staff Accounts', '/admin/users', UserCog, 10, 'owner'),
-      leaf('integrations', 'Integrations', '/admin/integrations', Plug, 20, 'owner', { featureFlag: 'integrations' }),
+      leaf('staff-accounts', 'Staff Accounts', '/admin/users', UserCog, 10, 'users'),
+      leaf('integrations', 'Integrations', '/admin/integrations', Plug, 20, 'integrations', { featureFlag: 'integrations' }),
     ],
   },
   leaf('help', 'Quick Guide / Help', '/admin/help', HelpCircle, 20),
@@ -188,23 +182,25 @@ export const ADMIN_FEATURE_FLAGS: AdminFeatureFlags = {
   integrations: true,
 };
 
-function canAccess(permission: AdminPermission, role?: User['role']) {
-  if (!role) return false;
-  return permission === 'authenticated' || role === 'owner';
+function meetsAccess(user: User | null | undefined, access?: NavigationAccess) {
+  if (!access) return Boolean(user);
+  return access.level === 'manage'
+    ? canManage(user, access.feature)
+    : canView(user, access.feature);
 }
 
 export function resolveNavigation(
   nodes: NavigationNode[],
-  role?: User['role'],
+  user?: User | null,
   featureFlags: AdminFeatureFlags = ADMIN_FEATURE_FLAGS,
 ): NavigationNode[] {
   return nodes
-    .filter((node) => canAccess(node.requiredPermission, role))
+    .filter((node) => meetsAccess(user, node.access))
     .filter((node) => !node.featureFlag || featureFlags[node.featureFlag] !== false)
     .map((node) => ({
       ...node,
       children: node.children
-        ? resolveNavigation(node.children, role, featureFlags)
+        ? resolveNavigation(node.children, user, featureFlags)
         : undefined,
     }))
     .filter((node) => !node.children || node.children.length > 0)

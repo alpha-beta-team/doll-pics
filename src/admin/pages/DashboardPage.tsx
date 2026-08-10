@@ -27,6 +27,7 @@ import { createDashboardMockData } from '../data/dashboardMockData';
 import type { Booking, Enquiry, WeeklyOwnerReport } from '../types';
 import { formatTimeWindow } from '../../shared/bookingTime';
 import { AdminButton, AdminPageHeader } from '../components/ui';
+import { useFeatureAccess } from '../access/useFeatureAccess';
 
 type Period = 7 | 30 | 90 | 'all';
 
@@ -87,6 +88,9 @@ function money(value: number) {
 }
 
 export function DashboardPage() {
+  const { canView: canViewEnquiries } = useFeatureAccess('enquiries');
+  const { canView: canViewBookings } = useFeatureAccess('bookings');
+  const { canView: canViewPayments } = useFeatureAccess('payments');
   const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [period, setPeriod] = useState<Period>(30);
@@ -105,20 +109,22 @@ export function DashboardPage() {
     setError(null);
 
     const [enquiriesResult, bookingsResult, weeklyResult] = await Promise.allSettled([
-      api.getEnquiries(),
-      api.getBookings(),
-      api.getWeeklyOwnerReport(),
+      canViewEnquiries ? api.getEnquiries() : Promise.resolve<Enquiry[]>([]),
+      canViewBookings ? api.getBookings() : Promise.resolve<Booking[]>([]),
+      canViewPayments ? api.getWeeklyOwnerReport() : Promise.resolve<WeeklyOwnerReport | null>(null),
     ]);
 
     const failures: string[] = [];
     const loadedEnquiries = enquiriesResult.status === 'fulfilled' ? enquiriesResult.value : null;
     const loadedBookings = bookingsResult.status === 'fulfilled' ? bookingsResult.value : null;
-    if (!loadedEnquiries) failures.push('enquiries');
-    if (!loadedBookings) failures.push('bookings');
-    if (weeklyResult.status === 'fulfilled') {
+    if (canViewEnquiries && !loadedEnquiries) failures.push('enquiries');
+    if (canViewBookings && !loadedBookings) failures.push('bookings');
+    if (weeklyResult.status === 'fulfilled' && weeklyResult.value) {
       setWeeklyReport(weeklyResult.value);
-    } else {
+    } else if (canViewPayments) {
       failures.push('weekly report');
+    } else {
+      setWeeklyReport(null);
     }
 
     const forceMockData = import.meta.env.VITE_ADMIN_DASHBOARD_MOCK_DATA === 'true';
@@ -127,8 +133,8 @@ export function DashboardPage() {
 
     if (useMockData) {
       const mockData = createDashboardMockData();
-      setEnquiries(mockData.enquiries);
-      setBookings(mockData.bookings);
+      setEnquiries(canViewEnquiries ? mockData.enquiries : []);
+      setBookings(canViewBookings ? mockData.bookings : []);
       setIsUsingMockData(true);
     } else {
       if (loadedEnquiries) setEnquiries(loadedEnquiries);
@@ -141,7 +147,7 @@ export function DashboardPage() {
     }
     setIsLoading(false);
     setIsRefreshing(false);
-  }, []);
+  }, [canViewBookings, canViewEnquiries, canViewPayments]);
 
   useEffect(() => {
     void loadDashboard();
@@ -260,12 +266,12 @@ export function DashboardPage() {
       draftsMissingDetails: draftBookings.filter((booking) =>
         !booking.bookingDate || !booking.shootType || !booking.location || booking.agreedTotal == null,
       ).length,
-      outstandingBalances: bookings.filter(booking =>
+      outstandingBalances: canViewPayments ? bookings.filter(booking =>
         booking.status !== 'cancelled' && (booking.paymentSummary.balanceDue ?? 0) > 0,
-      ).length,
+      ).length : 0,
       newLeads: enquiries.filter((enquiry) => enquiry.status === 'new' && !bookedEnquiryIds.has(enquiry.id)).length,
     };
-  }, [bookings, enquiries, period]);
+  }, [bookings, canViewPayments, enquiries, period]);
 
   const periodDescription =
     period === 'all' ? 'across all recorded enquiries' : `from the last ${period} days`;
@@ -283,38 +289,37 @@ export function DashboardPage() {
     { label: 'Cancelled', count: bookings.filter(item => item.status === 'cancelled').length, color: 'bg-rose-500' },
   ];
   const attentionItems = [
-    {
+    ...(canViewEnquiries ? [{
       label: 'New enquiries to review',
       value: dashboard.newLeads,
       detail: 'Unopened leads in the inbox',
       to: '/admin/enquiries',
       icon: Inbox,
       iconClass: 'bg-blue-50 text-blue-600',
-    },
-    {
+    }] : []),
+    ...(canViewBookings ? [{
       label: 'Follow-up reminders due',
       value: dashboard.dueReminders,
       detail: 'Overdue booking follow-ups',
       to: '/admin/bookings',
       icon: Clock3,
       iconClass: 'bg-amber-50 text-amber-600',
-    },
-    {
+    }, {
       label: 'Drafts missing details',
       value: dashboard.draftsMissingDetails,
       detail: 'Complete these booking records',
       to: '/admin/bookings',
       icon: CalendarClock,
       iconClass: 'bg-rose-50 text-rose-600',
-    },
-    {
+    }] : []),
+    ...(canViewBookings && canViewPayments ? [{
       label: 'Outstanding balances',
       value: dashboard.outstandingBalances,
       detail: 'Bookings with payment still due',
       to: '/admin/bookings',
       icon: CircleDollarSign,
       iconClass: 'bg-emerald-50 text-emerald-600',
-    },
+    }] : []),
   ];
 
   return (
@@ -361,7 +366,7 @@ export function DashboardPage() {
         </div>
       )}
 
-      {weeklyReport && (
+      {canViewPayments && weeklyReport && (
         <section className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-5 shadow-sm sm:p-6" aria-label="Latest weekly owner report">
           <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
             <div>
@@ -403,11 +408,11 @@ export function DashboardPage() {
 
       {isLoading ? (
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Loading dashboard metrics">
-          {Array.from({ length: 4 }, (_, index) => <MetricSkeleton key={index} />)}
+          {Array.from({ length: Math.max(1, Number(canViewEnquiries) + Number(canViewBookings) + (canViewEnquiries && canViewBookings ? 2 : 0)) }, (_, index) => <MetricSkeleton key={index} />)}
         </section>
       ) : (
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Studio overview">
-          <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          {canViewEnquiries && <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-medium text-slate-500">New enquiries</p>
@@ -429,9 +434,9 @@ export function DashboardPage() {
                 {dashboard.trend?.label ?? 'All recorded enquiries'}
               </span>
             </div>
-          </article>
+          </article>}
 
-          <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          {canViewEnquiries && canViewBookings && <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-medium text-slate-500">Active opportunities</p>
@@ -444,9 +449,9 @@ export function DashboardPage() {
             <p className="mt-4 text-xs text-slate-500">
               {dashboard.openLeads.length} open leads · {dashboard.draftBookings.length} draft bookings
             </p>
-          </article>
+          </article>}
 
-          <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          {canViewEnquiries && canViewBookings && <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-medium text-slate-500">Lead conversion</p>
@@ -459,9 +464,9 @@ export function DashboardPage() {
             <p className="mt-4 text-xs text-slate-500">
               {dashboard.convertedCount} of {dashboard.periodEnquiries.length} enquiries became bookings
             </p>
-          </article>
+          </article>}
 
-          <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          {canViewBookings && <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-medium text-slate-500">Shoots next 30 days</p>
@@ -476,16 +481,16 @@ export function DashboardPage() {
                 ? `Next: ${formatRelativeDate(dashboard.upcoming[0].bookingDate)}`
                 : 'No confirmed shoots scheduled'}
             </p>
-          </article>
+          </article>}
         </section>
       )}
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+      {canViewBookings && <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
         <div className="flex items-center justify-between gap-4"><div><h2 className="font-semibold text-slate-900">Booking workflow</h2><p className="mt-1 text-sm text-slate-500">Current count at every operational stage.</p></div><Link to="/admin/bookings" className="flex items-center gap-1 text-sm font-medium text-blue-600">View bookings <ArrowRight className="h-4 w-4" /></Link></div>
         <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-5">{workflowStages.map(stage => <div key={stage.label} className="rounded-xl bg-slate-50 p-3"><span className={`block h-1.5 w-8 rounded-full ${stage.color}`} /><p className="mt-3 text-2xl font-semibold text-slate-900">{stage.count}</p><p className="mt-1 text-xs text-slate-500">{stage.label}</p></div>)}</div>
-      </section>
+      </section>}
 
-      <section className="grid gap-5 xl:grid-cols-[1.08fr_0.92fr]">
+      {canViewEnquiries && canViewBookings && <section className="grid gap-5 xl:grid-cols-[1.08fr_0.92fr]">
         <article className="rounded-2xl border border-slate-200 bg-white shadow-sm">
           <div className="flex items-start justify-between gap-4 border-b border-slate-100 p-5 sm:p-6">
             <div>
@@ -577,10 +582,10 @@ export function DashboardPage() {
             )}
           </div>
         </article>
-      </section>
+      </section>}
 
-      <section className="grid gap-5 xl:grid-cols-[0.92fr_1.08fr]">
-        <article className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+      {(attentionItems.length > 0 || canViewBookings) && <section className="grid gap-5 xl:grid-cols-2">
+        {attentionItems.length > 0 && <article className="rounded-2xl border border-slate-200 bg-white shadow-sm">
           <div className="flex items-center justify-between border-b border-slate-100 p-5 sm:p-6">
             <div>
               <h2 className="font-semibold text-slate-900">Needs attention</h2>
@@ -601,9 +606,9 @@ export function DashboardPage() {
               </Link>
             ))}
           </div>
-        </article>
+        </article>}
 
-        <article className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        {canViewBookings && <article className="rounded-2xl border border-slate-200 bg-white shadow-sm">
           <div className="flex items-center justify-between border-b border-slate-100 p-5 sm:p-6">
             <div>
               <h2 className="font-semibold text-slate-900">Upcoming shoots</h2>
@@ -638,8 +643,8 @@ export function DashboardPage() {
               <p className="mt-1 text-xs text-slate-500">Confirmed bookings will appear here.</p>
             </div>
           )}
-        </article>
-      </section>
+        </article>}
+      </section>}
     </div>
   );
 }

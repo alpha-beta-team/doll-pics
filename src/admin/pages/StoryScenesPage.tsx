@@ -1,11 +1,14 @@
 import { api } from '../api/client';
 import type { StoryScene } from '../types';
 import { SimpleOrderedPage, FieldInput } from '../components/SimpleOrderedPage';
+import { useFeatureAccess } from '../access/useFeatureAccess';
 
 export function StoryScenesPage() {
+  const { isReadOnly } = useFeatureAccess('story_scenes');
   return (
     <SimpleOrderedPage<StoryScene>
       title="Story Scenes"
+      readOnly={isReadOnly}
       description="Manage scroll storytelling scenes"
       fetchItems={api.getStoryScenes}
       createItem={(data) => api.createStoryScene(data as Omit<StoryScene, 'id'>)}

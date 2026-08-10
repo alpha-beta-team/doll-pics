@@ -2,7 +2,8 @@ import type { User } from '../types';
 import { normalizePermissionOverrides, normalizeUserRole } from '../access/roles';
 import { request } from './http';
 
-type AdminUserResponse = Omit<User, 'role' | 'permissionOverrides'> & {
+type AdminUserResponse = Omit<User, 'jobTitle' | 'role' | 'permissionOverrides'> & {
+  jobTitle?: unknown;
   role?: unknown;
   permissionOverrides?: unknown;
 };
@@ -10,6 +11,7 @@ type AdminUserResponse = Omit<User, 'role' | 'permissionOverrides'> & {
 export function normalizeAdminUser(user: AdminUserResponse): User {
   return {
     ...user,
+    jobTitle: typeof user.jobTitle === 'string' ? user.jobTitle : '',
     role: normalizeUserRole(user.role),
     permissionOverrides: normalizePermissionOverrides(user.permissionOverrides),
   };
@@ -22,6 +24,7 @@ export const usersApi = {
   },
   async createAdminUser(data: {
     name: string;
+    jobTitle: string;
     email: string;
     temporaryPassword: string;
     role: User['role'];
@@ -32,7 +35,7 @@ export const usersApi = {
     });
     return normalizeAdminUser(user);
   },
-  async updateAdminUser(id: string, data: Partial<Pick<User, 'name' | 'role' | 'permissionOverrides' | 'isActive'>>): Promise<User> {
+  async updateAdminUser(id: string, data: Partial<Pick<User, 'name' | 'jobTitle' | 'role' | 'permissionOverrides' | 'isActive'>>): Promise<User> {
     const user = await request<AdminUserResponse>(`/admin/users/${id}`, {
       method: 'PATCH', auth: true, body: JSON.stringify(data),
     });

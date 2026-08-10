@@ -7,6 +7,8 @@ import { EnquiryStageBadge } from '../components/EnquiryStageBadge';
 import { whatsappUrl } from '../contact';
 import type { Enquiry, EnquiryStage } from '../types';
 import { AdminButton, AdminPageHeader } from '../components/ui';
+import { useFeatureAccess } from '../access/useFeatureAccess';
+import { ReadOnlyNotice } from '../components/ReadOnlyNotice';
 
 const STAGES: Array<{ value: EnquiryStage | 'all'; label: string }> = [
   { value: 'all', label: 'All' },
@@ -18,6 +20,7 @@ const STAGES: Array<{ value: EnquiryStage | 'all'; label: string }> = [
 ];
 
 export function WorkEnquiriesPage() {
+  const { canManage, isReadOnly } = useFeatureAccess('enquiries');
   const navigate = useNavigate();
   const location = useLocation();
   const [params, setParams] = useSearchParams();
@@ -55,7 +58,7 @@ export function WorkEnquiriesPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-5">
-      <AdminPageHeader eyebrow="Studio Operations" title="Who needs a reply?" description="Every new customer starts here." actions={<AdminButton onClick={() => setParams({ new: '1' })} className="hidden sm:inline-flex"><Plus className="h-4 w-4" />Add enquiry</AdminButton>} />
+      <AdminPageHeader eyebrow="Studio Operations" title="Who needs a reply?" description="Every new customer starts here." actions={canManage ? <AdminButton onClick={() => setParams({ new: '1' })} className="hidden sm:inline-flex"><Plus className="h-4 w-4" />Add enquiry</AdminButton> : <ReadOnlyNotice />} />
 
       {error && <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"><AlertCircle className="h-5 w-5" />{error}<button className="ml-auto font-semibold" onClick={() => void load()}>Try again</button></div>}
 
@@ -118,6 +121,7 @@ export function WorkEnquiriesPage() {
               {item.nextFollowUpAt && <p className={`mt-3 flex items-center gap-2 rounded-lg px-3 py-2 text-sm ${new Date(item.nextFollowUpAt) < new Date() ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-800'}`}><CalendarClock className="h-4 w-4 shrink-0" />{new Date(item.nextFollowUpAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}</p>}
             </Link>
             <div className="mt-4 flex items-center gap-2 border-t border-slate-100 pt-3">
+              {!isReadOnly && <>
               <a
                 href={`tel:${item.phone}`}
                 className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-focus"
@@ -136,6 +140,7 @@ export function WorkEnquiriesPage() {
               >
                 <MessageCircle className="h-5 w-5" />
               </a>
+              </>}
               <button
                 type="button"
                 onClick={() => navigate(`/admin/enquiries/${item.id}`)}
@@ -150,7 +155,7 @@ export function WorkEnquiriesPage() {
         </section>
       )}
 
-      {params.get('new') === '1' && <EnquiryFormModal initialContact={occasionContact} draftKey={occasionContact ? `doll_admin_enquiry_draft:occasion:${occasionContact.id}` : undefined} onClose={closeForm} onSaved={item => { closeForm(); navigate(`/admin/enquiries/${item.id}`); }} />}
+      {canManage && params.get('new') === '1' && <EnquiryFormModal initialContact={occasionContact} draftKey={occasionContact ? `doll_admin_enquiry_draft:occasion:${occasionContact.id}` : undefined} onClose={closeForm} onSaved={item => { closeForm(); navigate(`/admin/enquiries/${item.id}`); }} />}
     </div>
   );
 }

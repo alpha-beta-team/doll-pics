@@ -15,6 +15,7 @@ function mapUser(data: {
   id?: string;
   email: string;
   name?: string;
+  jobTitle?: string;
   role?: unknown;
   permissionOverrides?: unknown;
   isActive?: boolean;
@@ -24,6 +25,7 @@ function mapUser(data: {
     id: data.id || 'admin',
     email: data.email,
     name: data.name || 'Studio Admin',
+    jobTitle: data.jobTitle || '',
     role: normalizeUserRole(data.role, 'owner'),
     permissionOverrides: normalizePermissionOverrides(data.permissionOverrides),
     isActive: data.isActive !== false,
@@ -41,6 +43,7 @@ export const authApi = {
       email: string;
       id?: string;
       name?: string;
+      jobTitle?: string;
       role?: unknown;
       permissionOverrides?: unknown;
       isActive?: boolean;
@@ -71,6 +74,7 @@ export const authApi = {
         id: string;
         email: string;
         name?: string;
+        jobTitle?: string;
         role?: unknown;
         permissionOverrides?: unknown;
         isActive?: boolean;

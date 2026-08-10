@@ -11,6 +11,8 @@ import {
   X,
   Check,
 } from 'lucide-react';
+import { useFeatureAccess } from '../access/useFeatureAccess';
+import { ReadOnlyNotice } from '../components/ReadOnlyNotice';
 
 interface CategoryWithEdit extends Category {
   isEditing?: boolean;
@@ -25,6 +27,7 @@ function categoryPhotoSrc(photo: Photo): string {
 }
 
 export function CategoriesPage() {
+  const { canManage, isReadOnly } = useFeatureAccess('categories');
   const [categories, setCategories] = useState<CategoryWithEdit[]>([]);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -128,11 +131,14 @@ export function CategoriesPage() {
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
         <h1 className="text-2xl font-semibold text-gray-900">Categories</h1>
         <p className="text-gray-500 mt-1">
           Manage your portfolio categories. Drag to reorder.
         </p>
+        </div>
+        {isReadOnly && <ReadOnlyNotice />}
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -144,7 +150,7 @@ export function CategoriesPage() {
             return (
               <div
                 key={category.id}
-                draggable
+                draggable={canManage}
                 onDragStart={e => handleDragStart(e, category.id)}
                 onDragOver={handleDragOver}
                 onDrop={e => handleDrop(e, category.id)}
@@ -152,9 +158,9 @@ export function CategoriesPage() {
                   draggedId === category.id ? 'bg-blue-50 opacity-50' : ''
                 }`}
               >
-                <div className="cursor-move p-1 text-gray-400 hover:text-gray-600">
+                {canManage && <div className="cursor-move p-1 text-gray-400 hover:text-gray-600">
                   <GripVertical className="w-5 h-5" />
-                </div>
+                </div>}
 
                 <div className="w-20 h-14 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 relative">
                   {coverPhoto ? (
@@ -188,7 +194,7 @@ export function CategoriesPage() {
                   <p className="text-xs text-gray-400 mt-1">{photoCount} photos</p>
                 </div>
 
-                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                {canManage && <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
                     type="button"
                     onClick={() => setEditingCategory(category)}
@@ -213,14 +219,14 @@ export function CategoriesPage() {
                       <Eye className="w-4 h-4" aria-hidden="true" />
                     )}
                   </button>
-                </div>
+                </div>}
               </div>
             );
           })}
         </div>
       </div>
 
-      {editingCategory && (
+      {canManage && editingCategory && (
         <CategoryEditModal
           category={editingCategory}
           photos={photos}

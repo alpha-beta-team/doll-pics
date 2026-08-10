@@ -81,6 +81,13 @@ export function invalidateBookingWizardProgress(highestCompletedStep: number, ed
   return Math.min(highestCompletedStep, editedStep - 1);
 }
 
+export function discardBookingFormDraft(
+  storage: Pick<Storage, 'removeItem'>,
+  draftKey: string,
+) {
+  storage.removeItem(draftKey);
+}
+
 export function packageMatchesShootType(item: Package, shootType: string): boolean {
   const packageService = (item.categoryName || item.shootType || '').trim().toLocaleLowerCase();
   return Boolean(packageService) && packageService === shootType.trim().toLocaleLowerCase();

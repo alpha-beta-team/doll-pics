@@ -1,11 +1,14 @@
 import { api } from '../api/client';
 import type { Stat } from '../types';
 import { SimpleOrderedPage, FieldInput } from '../components/SimpleOrderedPage';
+import { useFeatureAccess } from '../access/useFeatureAccess';
 
 export function StatsPage() {
+  const { isReadOnly } = useFeatureAccess('statistics');
   return (
     <SimpleOrderedPage<Stat>
       title="Statistics"
+      readOnly={isReadOnly}
       description="Publish a statistic only after its evidence is recorded internally"
       fetchItems={api.getStats}
       createItem={(data) => api.createStat(data as Omit<Stat, 'id'>)}

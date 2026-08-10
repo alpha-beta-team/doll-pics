@@ -4,11 +4,14 @@ import type { TeamMember } from '../types';
 import { SimpleOrderedPage, FieldInput } from '../components/SimpleOrderedPage';
 import { ImageCropUpload } from '../components/ImageCropUpload';
 import { Upload } from 'lucide-react';
+import { useFeatureAccess } from '../access/useFeatureAccess';
 
 export function TeamMembersPage() {
+  const { isReadOnly } = useFeatureAccess('team_members');
   return (
     <SimpleOrderedPage<TeamMember>
       title="Team Members"
+      readOnly={isReadOnly}
       description="Publish only current team profiles with an approved biography and portrait"
       fetchItems={api.getTeamMembers}
       createItem={(data) => api.createTeamMember(data as Omit<TeamMember, 'id'>)}

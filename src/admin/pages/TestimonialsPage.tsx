@@ -1,11 +1,14 @@
 import { api } from '../api/client';
 import type { Testimonial } from '../types';
 import { SimpleOrderedPage, FieldInput } from '../components/SimpleOrderedPage';
+import { useFeatureAccess } from '../access/useFeatureAccess';
 
 export function TestimonialsPage() {
+  const { isReadOnly } = useFeatureAccess('testimonials');
   return (
     <SimpleOrderedPage<Testimonial>
       title="Testimonials"
+      readOnly={isReadOnly}
       description="Publish only genuine client feedback with recorded publication consent"
       fetchItems={api.getTestimonials}
       createItem={(data) => api.createTestimonial(data as Omit<Testimonial, 'id'>)}

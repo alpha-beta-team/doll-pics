@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   AlertCircle,
+  AlertTriangle,
   CalendarDays,
   Check,
   ChevronDown,
@@ -11,12 +12,13 @@ import {
   X,
 } from 'lucide-react';
 import { SHOOT_TYPE_OPTIONS } from '../../lib/shootTypes';
-import type { Booking, BookingWritePayload, Enquiry, Package, PaymentMethod, TeamMember } from '../types';
+import type { Booking, BookingWritePayload, Enquiry, Package, PaymentMethod, ScheduleConflictResponse, TeamMember } from '../types';
 import {
   BOOKING_WIZARD_FIELD_LABELS,
   BOOKING_WIZARD_STEPS,
   NEW_BOOKING_DEFAULTS,
   canOpenBookingWizardStep,
+  discardBookingFormDraft,
   initialHighestCompletedStep,
   invalidateBookingWizardProgress,
   packageMatchesShootType,
@@ -30,8 +32,10 @@ import { buildQuickConversionPayload, localDateValue } from './quickEntry.utils'
 import { CustomerLookupPanel } from './CustomerLookupPanel';
 import type { CustomerLookupResponse } from '../types';
 import { ApiError } from '../api/http';
+import { api } from '../api/client';
+import { useFeatureAccess } from '../access/useFeatureAccess';
 import { useConfirmDialog } from '../hooks/useConfirmDialog';
-import { endTimeFor, formatScheduleTime, timeToMinutes } from '../pages/schedule.utils';
+import { endTimeFor, formatScheduleTime, minutesToTime, timeToMinutes } from '../pages/schedule.utils';
 
 type Props = {
   booking?: Booking | null;
@@ -75,6 +79,63 @@ function localDateTime(value?: string) {
   return new Date(date.getTime() - offset).toISOString().slice(0, 16);
 }
 
+type ScheduleAvailability = {
+  conflicts: ScheduleConflictResponse | null;
+  checking: boolean;
+  error: string;
+};
+
+function useScheduleAvailability(
+  bookingDate: string,
+  startTime: string,
+  endTime: string,
+  excludeBookingId?: string,
+): ScheduleAvailability {
+  const [conflicts, setConflicts] = useState<ScheduleConflictResponse | null>(null);
+  const [checking, setChecking] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const invalidWindow = !bookingDate || !startTime || !endTime
+      || Boolean(bookingTimeWindowError(bookingDate, startTime, endTime));
+    if (invalidWindow) {
+      setConflicts(null);
+      setChecking(false);
+      setError('');
+      return;
+    }
+
+    const controller = new AbortController();
+    setChecking(true);
+    setConflicts(null);
+    setError('');
+    const timer = window.setTimeout(() => {
+      void api.checkScheduleConflicts({
+        bookingDate,
+        startTime,
+        endTime,
+        excludeBookingId,
+      }, controller.signal)
+        .then(setConflicts)
+        .catch(err => {
+          if ((err as Error).name !== 'AbortError') {
+            setError(err instanceof Error ? err.message : 'Could not check schedule availability.');
+          }
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setChecking(false);
+        });
+    }, 250);
+
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [bookingDate, endTime, excludeBookingId, startTime]);
+
+  return { conflicts, checking, error };
+}
+
 export function BookingFormModal(props: Props) {
   if (props.enquiry && !props.booking) {
     return <QuickConversionForm {...props} enquiry={props.enquiry} />;
@@ -92,6 +153,7 @@ function BookingWizard({
   initialSchedule,
 }: Props) {
   const confirm = useConfirmDialog();
+  const { canView: canViewPayments } = useFeatureAccess('payments');
   const scheduleDraftSuffix = initialSchedule
     ? `${initialSchedule.bookingDate}:${initialSchedule.startTime}`
     : 'new';
@@ -142,13 +204,23 @@ function BookingWizard({
   const [customerLookup, setCustomerLookup] = useState<CustomerLookupResponse | null>(null);
   const [newShootConfirmed, setNewShootConfirmed] = useState(false);
   const [customerLookupChecking, setCustomerLookupChecking] = useState(false);
+  const scheduleAvailability = useScheduleAvailability(
+    bookingDate,
+    startTime,
+    endTime,
+    booking?.id,
+  );
   const dialogRef = useRef<HTMLDivElement>(null);
   const restoreFocusRef = useRef<HTMLElement | null>(null);
   const onCloseRef = useRef(onClose);
+  const closeAndDiscardDraft = useCallback(() => {
+    discardBookingFormDraft(localStorage, draftKey);
+    onClose();
+  }, [draftKey, onClose]);
 
   useEffect(() => {
-    onCloseRef.current = onClose;
-  }, [onClose]);
+    onCloseRef.current = closeAndDiscardDraft;
+  }, [closeAndDiscardDraft]);
 
   useEffect(() => {
     restoreFocusRef.current = document.activeElement as HTMLElement | null;
@@ -265,6 +337,18 @@ function BookingWizard({
       focusFirstFieldError(1, shootErrors);
       return;
     }
+    if (scheduleAvailability.checking) {
+      setStep(1);
+      return setError('Wait while schedule availability is checked.');
+    }
+    if (scheduleAvailability.error) {
+      setStep(1);
+      return setError('Schedule availability could not be verified. Change the time or try again.');
+    }
+    if (scheduleAvailability.conflicts?.blocked) {
+      setStep(1);
+      return setError('This time overlaps another active booking. Choose another time.');
+    }
     setSaving(true);
     setError('');
     setFieldErrors({});
@@ -281,9 +365,9 @@ function BookingWizard({
       packageId: packageId || null,
       agreedTotal: agreedTotal === '' ? null : Number(agreedTotal),
       assignedTeamMemberId: assignedTeamMemberId || null,
-      advanceAmount: enquiry && Number(advanceAmount) > 0 ? Number(advanceAmount) : undefined,
-      advanceMethod: enquiry && Number(advanceAmount) > 0 ? advanceMethod : undefined,
-      paymentDueDate,
+      advanceAmount: canViewPayments && enquiry && Number(advanceAmount) > 0 ? Number(advanceAmount) : undefined,
+      advanceMethod: canViewPayments && enquiry && Number(advanceAmount) > 0 ? advanceMethod : undefined,
+      paymentDueDate: canViewPayments ? paymentDueDate : undefined,
       nextFollowUpAt: nextFollowUpAt ? new Date(nextFollowUpAt).toISOString() : undefined,
       followUpNote: followUpNote.trim() || undefined,
       notes: notes.trim(),
@@ -331,6 +415,9 @@ function BookingWizard({
       return setError('Open the active record or confirm this is a separate shoot.');
     }
     if (step === 0 && !booking && !enquiry && customerLookupChecking) return setError('Wait a moment while customer history is checked.');
+    if (step === 1 && scheduleAvailability.checking) return setError('Wait while schedule availability is checked.');
+    if (step === 1 && scheduleAvailability.error) return setError('Schedule availability could not be verified. Change the time or try again.');
+    if (step === 1 && scheduleAvailability.conflicts?.blocked) return setError('This time overlaps another active booking. Choose another time.');
     setError('');
     setFieldErrors({});
     setHighestCompletedStep(current => Math.max(current, step));
@@ -349,7 +436,7 @@ function BookingWizard({
         <div className="border-b border-slate-200 px-4 py-4 sm:px-5">
           <div className="flex items-center justify-between">
             <div><h2 id="booking-wizard-title" className="text-lg font-semibold text-slate-900">{booking ? 'Edit booking' : enquiry ? 'Convert enquiry to booking' : 'Create booking'}</h2><p className="mt-0.5 text-xs font-medium text-slate-500">Step {step + 1} of {BOOKING_WIZARD_STEPS.length}</p></div>
-            <button type="button" onClick={onClose} className="rounded-lg p-2 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" aria-label="Close">
+            <button type="button" onClick={closeAndDiscardDraft} className="rounded-lg p-2 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" aria-label="Close">
             <X className="h-5 w-5" />
             </button>
           </div>
@@ -406,7 +493,7 @@ function BookingWizard({
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.shootType} <span className="font-semibold text-red-600" aria-hidden="true">*</span><span className="sr-only"> required</span><select data-wizard-autofocus required className={`${input} mt-1`} value={shootType} onChange={e => handleShootType(e.target.value)}>{SHOOT_TYPE_OPTIONS.map(type => <option key={type}>{type}</option>)}</select></label>
               <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.preferredEvent}<input className={`${input} mt-1`} value={preferredEvent} onChange={e => setPreferredEvent(e.target.value)} /></label>
-              <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.bookingDate}<input id="booking-date" type="date" className={`${input} mt-1 ${fieldErrors.time && !bookingDate ? 'border-red-400 focus:border-red-500 focus:ring-red-100' : ''}`} value={bookingDate} aria-invalid={Boolean(fieldErrors.time && !bookingDate)} aria-describedby={fieldErrors.time ? 'booking-time-error booking-time-hint' : 'booking-time-hint'} onChange={e => { setBookingDate(e.target.value); setFieldErrors(current => ({ ...current, time: undefined })); invalidateStep(1); }} /></label>
+              <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.bookingDate}<input id="booking-date" type="date" className={`${input} mt-1 ${fieldErrors.time && !bookingDate ? 'border-red-400 focus:border-red-500 focus:ring-red-100' : ''}`} value={bookingDate} aria-invalid={Boolean(fieldErrors.time && !bookingDate)} aria-describedby={fieldErrors.time ? 'booking-time-error booking-time-hint' : 'booking-time-hint'} onChange={e => { setBookingDate(e.target.value); setError(''); setFieldErrors(current => ({ ...current, time: undefined })); invalidateStep(1); }} /></label>
               <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.location}<input className={`${input} mt-1`} value={location} onChange={e => setLocation(e.target.value)} /></label>
               <div className="sm:col-span-2">
                 <ShootDurationSelector
@@ -414,9 +501,10 @@ function BookingWizard({
                   startTime={startTime}
                   endTime={endTime}
                   error={fieldErrors.time}
-                  onStartTimeChange={value => { setStartTime(value); setEndTime(''); setFieldErrors(current => ({ ...current, time: undefined })); invalidateStep(1); }}
-                  onEndTimeChange={value => { setEndTime(value); setFieldErrors(current => ({ ...current, time: undefined })); invalidateStep(1); }}
-                  onClear={() => { setStartTime(''); setEndTime(''); setFieldErrors(current => ({ ...current, time: undefined })); invalidateStep(1); }}
+                  availability={scheduleAvailability}
+                  onStartTimeChange={value => { setStartTime(value); setEndTime(''); setError(''); setFieldErrors(current => ({ ...current, time: undefined })); invalidateStep(1); }}
+                  onEndTimeChange={value => { setEndTime(value); setError(''); setFieldErrors(current => ({ ...current, time: undefined })); invalidateStep(1); }}
+                  onClear={() => { setStartTime(''); setEndTime(''); setError(''); setFieldErrors(current => ({ ...current, time: undefined })); invalidateStep(1); }}
                 />
               </div>
             </div>
@@ -428,9 +516,9 @@ function BookingWizard({
               <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.package}<select data-wizard-autofocus className={`${input} mt-1`} value={packageId} onChange={e => handlePackage(e.target.value)}><option value="">No package</option>{selectedPackageOutsideFilter && <option value={selectedPackageOutsideFilter.id}>{selectedPackageOutsideFilter.name} (current · other service)</option>}{matchingPackages.map(item => <option key={item.id} value={item.id}>{item.name}{item.isPublished ? '' : ' (unpublished)'}</option>)}</select><span className="mt-1 block text-xs text-slate-500">Showing {shootType} packages only.</span></label>
               <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.agreedTotal}<input type="number" min="0" className={`${input} mt-1`} value={agreedTotal} onChange={e => setAgreedTotal(e.target.value)} placeholder="Not decided" /></label>
               <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.assignedTeamMember}<select className={`${input} mt-1`} value={assignedTeamMemberId} onChange={e => setAssignedTeamMemberId(e.target.value)}><option value="">Unassigned</option>{teamMembers.map(member => <option key={member.id} value={member.id}>{member.name}</option>)}</select></label>
-              <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.paymentDueDate}<input type="date" className={`${input} mt-1`} value={paymentDueDate} onChange={e => setPaymentDueDate(e.target.value)} /></label>
-              {enquiry && <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.advanceAmount}<input type="number" min="0" className={`${input} mt-1`} value={advanceAmount} onChange={e => setAdvanceAmount(e.target.value)} /></label>}
-              {enquiry && Number(advanceAmount) > 0 && <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.advanceMethod}<select className={`${input} mt-1`} value={advanceMethod} onChange={e => setAdvanceMethod(e.target.value as PaymentMethod)}><option value="upi">UPI</option><option value="cash">Cash</option><option value="bank_transfer">Bank transfer</option><option value="card">Card</option><option value="other">Other</option></select></label>}
+              {canViewPayments && <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.paymentDueDate}<input type="date" className={`${input} mt-1`} value={paymentDueDate} onChange={e => setPaymentDueDate(e.target.value)} /></label>}
+              {canViewPayments && enquiry && <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.advanceAmount}<input type="number" min="0" className={`${input} mt-1`} value={advanceAmount} onChange={e => setAdvanceAmount(e.target.value)} /></label>}
+              {canViewPayments && enquiry && Number(advanceAmount) > 0 && <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.advanceMethod}<select className={`${input} mt-1`} value={advanceMethod} onChange={e => setAdvanceMethod(e.target.value as PaymentMethod)}><option value="upi">UPI</option><option value="cash">Cash</option><option value="bank_transfer">Bank transfer</option><option value="card">Card</option><option value="other">Other</option></select></label>}
             </div>
           </section>}
 
@@ -450,8 +538,8 @@ function BookingWizard({
           </section>}
         </div>
         <div className="grid grid-cols-2 gap-2 border-t border-slate-200 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-5">
-          <button type="button" onClick={step === 0 ? onClose : () => { setError(''); setFieldErrors({}); setStep(value => value - 1); }} className="h-12 rounded-xl border border-slate-300 px-4 text-sm font-semibold text-slate-700 outline-none hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-blue-500">{step === 0 ? 'Cancel' : 'Back'}</button>
-          {step < 3 ? <button type="button" onClick={nextStep} className="h-12 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white outline-none hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">Next</button> : <button type="button" onClick={() => void submit()} disabled={saving} className="h-12 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white outline-none hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50">{saving ? 'Saving…' : enquiry ? 'Confirm booking' : 'Save booking'}</button>}
+          <button type="button" onClick={step === 0 ? closeAndDiscardDraft : () => { setError(''); setFieldErrors({}); setStep(value => value - 1); }} className="h-12 rounded-xl border border-slate-300 px-4 text-sm font-semibold text-slate-700 outline-none hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-blue-500">{step === 0 ? 'Cancel' : 'Back'}</button>
+          {step < 3 ? <button type="button" onClick={nextStep} disabled={step === 1 && (scheduleAvailability.checking || Boolean(scheduleAvailability.error) || Boolean(scheduleAvailability.conflicts?.blocked))} className="h-12 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white outline-none hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">{step === 1 && scheduleAvailability.checking ? 'Checking…' : 'Next'}</button> : <button type="button" onClick={() => void submit()} disabled={saving || scheduleAvailability.checking || Boolean(scheduleAvailability.error) || Boolean(scheduleAvailability.conflicts?.blocked)} className="h-12 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white outline-none hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50">{saving ? 'Saving…' : enquiry ? 'Confirm booking' : 'Save booking'}</button>}
         </div>
       </div>
     </div>
@@ -465,6 +553,7 @@ function ShootDurationSelector({
   startTime,
   endTime,
   error,
+  availability,
   onStartTimeChange,
   onEndTimeChange,
   onClear,
@@ -473,6 +562,7 @@ function ShootDurationSelector({
   startTime: string;
   endTime: string;
   error?: string;
+  availability: ScheduleAvailability;
   onStartTimeChange: (value: string) => void;
   onEndTimeChange: (value: string) => void;
   onClear: () => void;
@@ -485,6 +575,10 @@ function ShootDurationSelector({
   const [customEndTime, setCustomEndTime] = useState(endTime);
   const [customError, setCustomError] = useState('');
   const canChooseDuration = Boolean(bookingDate && startTime);
+  const earlyMorningStart = startTime && timeToMinutes(startTime) < 6 * 60;
+  const afternoonEquivalent = earlyMorningStart
+    ? minutesToTime(timeToMinutes(startTime) + 12 * 60)
+    : '';
 
   const choosePreset = (hours: PresetDuration) => {
     if (!canChooseDuration) return;
@@ -533,12 +627,14 @@ function ShootDurationSelector({
         />
       </label>
       <p id="booking-time-hint" className="mt-1 text-xs text-slate-500">{bookingDate ? 'Leave the shoot time blank if it is not decided yet.' : 'Choose a booking date before setting the shoot time.'}</p>
+      {earlyMorningStart && <div className="mt-3 flex items-start gap-2 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900" role="alert"><AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" /><div><strong className="block">You selected {formatScheduleTime(startTime)} — after midnight.</strong><span className="mt-0.5 block text-xs">If you meant afternoon, use {formatScheduleTime(afternoonEquivalent)}.</span><button type="button" onClick={() => onStartTimeChange(afternoonEquivalent)} className="mt-2 rounded-lg border border-amber-400 bg-white px-3 py-2 text-xs font-semibold text-amber-900">Change to {formatScheduleTime(afternoonEquivalent)}</button></div></div>}
 
       <div className="mt-3 grid gap-2">
         {([1, 2, 3] as const).map(hours => {
           const crossesMidnight = startTime ? timeToMinutes(startTime) + hours * 60 >= 24 * 60 : false;
           const disabled = !canChooseDuration || crossesMidnight;
           const selected = selectedPreset === hours && !customOpen;
+          const selectedBlocked = selected && Boolean(availability.conflicts?.blocked);
           const calculatedEndTime = startTime && !crossesMidnight ? endTimeFor(startTime, hours) : '';
           return (
             <button
@@ -548,10 +644,10 @@ function ShootDurationSelector({
               disabled={disabled}
               aria-pressed={selected}
               onClick={() => choosePreset(hours)}
-              className={`flex min-h-14 items-center justify-between rounded-xl border px-4 text-left outline-none transition focus-visible:ring-2 focus-visible:ring-blue-500 ${selected ? 'border-emerald-600 bg-emerald-50 text-emerald-900' : 'border-slate-300 bg-white text-slate-800 hover:border-blue-400'} disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400`}
+              className={`flex min-h-14 items-center justify-between rounded-xl border px-4 text-left outline-none transition focus-visible:ring-2 focus-visible:ring-blue-500 ${selectedBlocked ? 'border-red-500 bg-red-50 text-red-800' : selected ? 'border-emerald-600 bg-emerald-50 text-emerald-900' : 'border-slate-300 bg-white text-slate-800 hover:border-blue-400'} disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400`}
             >
               <span><strong className="block text-sm">{hours} hour{hours === 1 ? '' : 's'}</strong><span className="mt-0.5 block text-xs">{calculatedEndTime ? `${formatScheduleTime(startTime)}–${formatScheduleTime(calculatedEndTime)}` : crossesMidnight ? 'Ends after midnight' : 'Select a start time first'}</span></span>
-              {selected ? <Check className="h-5 w-5 text-emerald-600" aria-hidden="true" /> : <ChevronRight className="h-5 w-5" aria-hidden="true" />}
+              {selectedBlocked ? <span className="text-xs font-semibold">Unavailable</span> : selected ? <Check className="h-5 w-5 text-emerald-600" aria-hidden="true" /> : <ChevronRight className="h-5 w-5" aria-hidden="true" />}
             </button>
           );
         })}
@@ -571,9 +667,30 @@ function ShootDurationSelector({
       {customOpen && <div className="mt-2 rounded-xl border border-slate-200 bg-white p-3"><label className="text-sm text-slate-700">Shoot ends at<input id="booking-end-time" autoFocus type="time" min={startTime || undefined} value={customEndTime} onChange={event => { setCustomEndTime(event.target.value); setCustomError(''); }} className={`mt-1 h-11 w-full rounded-lg border bg-white px-3 text-sm outline-none focus:ring-2 ${customError || error ? 'border-red-400 focus:border-red-500 focus:ring-red-100' : 'border-slate-300 focus:border-blue-500 focus:ring-blue-100'}`} /></label>{customError && <p className="mt-1 text-xs font-medium text-red-600">{customError}</p>}<button type="button" onClick={applyCustom} className="mt-3 h-11 w-full rounded-xl bg-blue-600 text-sm font-semibold text-white hover:bg-blue-700">Apply custom duration</button></div>}
 
       {error && <p id="booking-time-error" className="mt-2 text-xs font-medium text-red-600">{error}</p>}
-      {!error && startTime && endTime && <p className="mt-2 text-xs font-medium text-emerald-700">Selected: {formatScheduleTime(startTime)}–{formatScheduleTime(endTime)} · {bookingDurationLabel(startTime, endTime)}</p>}
+      {!error && startTime && endTime && !availability.conflicts?.blocked && <p className="mt-2 text-xs font-medium text-emerald-700">Selected: {formatScheduleTime(startTime)}–{formatScheduleTime(endTime)} · {bookingDurationLabel(startTime, endTime)}</p>}
+      <ScheduleAvailabilityNotice availability={availability} />
     </section>
   );
+}
+
+function ScheduleAvailabilityNotice({ availability }: { availability: ScheduleAvailability }) {
+  if (availability.checking) {
+    return <p className="mt-3 text-sm font-medium text-slate-500" role="status">Checking schedule availability…</p>;
+  }
+  if (availability.error) {
+    return <div className="mt-3 flex gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700" role="alert"><AlertCircle className="h-5 w-5 shrink-0" /><span><strong>Availability check failed.</strong> {availability.error}</span></div>;
+  }
+  if (availability.conflicts?.timedConflicts.length) {
+    return <div className="mt-3 space-y-2" aria-live="polite">{availability.conflicts.timedConflicts.map(conflict => <div key={conflict.id} className="flex gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"><AlertCircle className="h-5 w-5 shrink-0" /><span><strong>Time unavailable.</strong> {conflict.customerName} is booked {formatScheduleTime(conflict.startTime)}–{formatScheduleTime(conflict.endTime)}.</span></div>)}</div>;
+  }
+  if (availability.conflicts?.requiresUntimedConfirmation) {
+    const count = availability.conflicts.untimedConflicts.length;
+    return <div className="mt-3 flex gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800" role="status"><AlertTriangle className="h-5 w-5 shrink-0" /><span>{count} active booking{count === 1 ? '' : 's'} on this date {count === 1 ? 'has' : 'have'} no time. Confirmation will be required before saving.</span></div>;
+  }
+  if (availability.conflicts) {
+    return <p className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-emerald-700" role="status"><Check className="h-4 w-4" />This time is available.</p>;
+  }
+  return null;
 }
 
 type QuickFieldErrors = Partial<Record<'bookingDate' | 'time' | 'agreedTotal' | 'advanceAmount', string>>;
@@ -586,7 +703,12 @@ function QuickConversionForm({
   onSave,
 }: Props & { enquiry: Enquiry }) {
   const confirm = useConfirmDialog();
+  const { canView: canViewPayments } = useFeatureAccess('payments');
   const draftKey = `doll_admin_booking_draft:${enquiry.id}`;
+  const closeAndDiscardDraft = () => {
+    discardBookingFormDraft(localStorage, draftKey);
+    onClose();
+  };
   const stored = readBookingDraft(draftKey);
   const [bookingDate, setBookingDate] = useState(stored?.bookingDate ?? enquiry.bookingDate ?? '');
   const [startTime, setStartTime] = useState(stored?.startTime ?? enquiry.startTime ?? '');
@@ -605,6 +727,7 @@ function QuickConversionForm({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<QuickFieldErrors>({});
+  const scheduleAvailability = useScheduleAvailability(bookingDate, startTime, endTime);
 
   useEffect(() => {
     const draft: BookingDraft = {
@@ -653,7 +776,7 @@ function QuickConversionForm({
     if (agreedTotal !== '' && (!Number.isFinite(Number(agreedTotal)) || Number(agreedTotal) < 0)) {
       nextErrors.agreedTotal = 'Enter a valid amount or leave it blank.';
     }
-    if (advanceAmount !== '' && (!Number.isFinite(Number(advanceAmount)) || Number(advanceAmount) < 0)) {
+    if (canViewPayments && advanceAmount !== '' && (!Number.isFinite(Number(advanceAmount)) || Number(advanceAmount) < 0)) {
       nextErrors.advanceAmount = 'Enter a valid amount or leave it blank.';
     }
     setFieldErrors(nextErrors);
@@ -663,6 +786,9 @@ function QuickConversionForm({
       window.setTimeout(() => document.getElementById(`quick-booking-${firstError}`)?.focus(), 0);
       return;
     }
+    if (scheduleAvailability.checking) return setError('Wait while schedule availability is checked.');
+    if (scheduleAvailability.error) return setError('Schedule availability could not be verified. Change the time or try again.');
+    if (scheduleAvailability.conflicts?.blocked) return setError('This time overlaps another active booking. Choose another time.');
 
     setSaving(true);
     setError('');
@@ -676,9 +802,9 @@ function QuickConversionForm({
         packageId,
         agreedTotal,
         assignedTeamMemberId,
-        advanceAmount,
+        advanceAmount: canViewPayments ? advanceAmount : '',
         advanceMethod,
-        paymentDueDate,
+        paymentDueDate: canViewPayments ? paymentDueDate : '',
         notes,
       });
     try {
@@ -718,7 +844,7 @@ function QuickConversionForm({
       <div className="flex h-dvh w-full flex-col bg-white shadow-2xl sm:h-auto sm:max-h-[94dvh] sm:max-w-2xl sm:rounded-2xl">
         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
           <div><h2 id="quick-booking-title" className="text-lg font-semibold text-slate-900">Confirm booking</h2><p className="text-sm text-slate-500">Customer details come from the enquiry.</p></div>
-          <button type="button" onClick={onClose} className="flex h-11 w-11 items-center justify-center rounded-xl hover:bg-slate-100" aria-label="Close"><X className="h-5 w-5" /></button>
+          <button type="button" onClick={closeAndDiscardDraft} className="flex h-11 w-11 items-center justify-center rounded-xl hover:bg-slate-100" aria-label="Close"><X className="h-5 w-5" /></button>
         </div>
 
         <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-4 sm:p-5">
@@ -730,19 +856,20 @@ function QuickConversionForm({
 
           <section>
             <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800"><CalendarDays className="h-4 w-4 text-blue-600" /> Confirmed date</h3>
-            <div className="mt-3 grid grid-cols-2 gap-2"><button type="button" onClick={() => { setBookingDate(today); clearFieldError('bookingDate'); }} className={dateChoice(bookingDate === today)}>Today</button><button type="button" onClick={() => { setBookingDate(tomorrow); clearFieldError('bookingDate'); }} className={dateChoice(bookingDate === tomorrow)}>Tomorrow</button></div>
-            <label className="mt-3 block text-sm font-medium text-slate-700">Choose another date<input id="quick-booking-bookingDate" autoFocus type="date" className={input} value={bookingDate} onChange={event => { setBookingDate(event.target.value); clearFieldError('bookingDate'); }} aria-invalid={Boolean(fieldErrors.bookingDate)} />{fieldErrors.bookingDate && <span className="mt-1 block text-xs font-medium text-red-600">{fieldErrors.bookingDate}</span>}</label>
-            <div className="mt-3 grid grid-cols-2 gap-3"><label className="text-sm font-medium text-slate-700">Start time<input id="quick-booking-time" type="time" className={input} value={startTime} onChange={event => { setStartTime(event.target.value); clearFieldError('time'); }} aria-invalid={Boolean(fieldErrors.time)} /></label><label className="text-sm font-medium text-slate-700">End time<input type="time" min={startTime || undefined} className={input} value={endTime} onChange={event => { setEndTime(event.target.value); clearFieldError('time'); }} aria-invalid={Boolean(fieldErrors.time)} /></label></div>
+            <div className="mt-3 grid grid-cols-2 gap-2"><button type="button" onClick={() => { setBookingDate(today); setError(''); clearFieldError('bookingDate'); }} className={dateChoice(bookingDate === today)}>Today</button><button type="button" onClick={() => { setBookingDate(tomorrow); setError(''); clearFieldError('bookingDate'); }} className={dateChoice(bookingDate === tomorrow)}>Tomorrow</button></div>
+            <label className="mt-3 block text-sm font-medium text-slate-700">Choose another date<input id="quick-booking-bookingDate" autoFocus type="date" className={input} value={bookingDate} onChange={event => { setBookingDate(event.target.value); setError(''); clearFieldError('bookingDate'); }} aria-invalid={Boolean(fieldErrors.bookingDate)} />{fieldErrors.bookingDate && <span className="mt-1 block text-xs font-medium text-red-600">{fieldErrors.bookingDate}</span>}</label>
+            <div className="mt-3 grid grid-cols-2 gap-3"><label className="text-sm font-medium text-slate-700">Start time<input id="quick-booking-time" type="time" className={input} value={startTime} onChange={event => { setStartTime(event.target.value); setError(''); clearFieldError('time'); }} aria-invalid={Boolean(fieldErrors.time)} /></label><label className="text-sm font-medium text-slate-700">End time<input type="time" min={startTime || undefined} className={input} value={endTime} onChange={event => { setEndTime(event.target.value); setError(''); clearFieldError('time'); }} aria-invalid={Boolean(fieldErrors.time)} /></label></div>
             {(startTime || endTime || fieldErrors.time) && <p className={`mt-2 text-xs ${fieldErrors.time ? 'font-medium text-red-600' : 'text-slate-500'}`}>{fieldErrors.time || bookingDurationLabel(startTime, endTime) || 'Enter both times; the end must be later than the start.'}</p>}
+            <ScheduleAvailabilityNotice availability={scheduleAvailability} />
           </section>
 
           <section className="rounded-2xl border border-slate-200 p-4">
-            <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800"><IndianRupee className="h-4 w-4 text-emerald-600" /> Package and advance</h3>
+            <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800"><IndianRupee className="h-4 w-4 text-emerald-600" /> Package and pricing</h3>
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               <label className="text-sm font-medium text-slate-700">Package<select className={input} value={packageId} onChange={event => handlePackage(event.target.value)}><option value="">No package</option>{packages.map(item => <option key={item.id} value={item.id}>{item.name}{item.isPublished ? '' : ' (unpublished)'}</option>)}</select></label>
               <label className="text-sm font-medium text-slate-700">Agreed total (₹)<input id="quick-booking-agreedTotal" type="number" min="0" inputMode="decimal" className={input} value={agreedTotal} onChange={event => { setAgreedTotal(event.target.value); clearFieldError('agreedTotal'); }} placeholder="Not decided" aria-invalid={Boolean(fieldErrors.agreedTotal)} />{fieldErrors.agreedTotal && <span className="mt-1 block text-xs font-medium text-red-600">{fieldErrors.agreedTotal}</span>}</label>
-              <label className="text-sm font-medium text-slate-700">Advance received (₹)<input id="quick-booking-advanceAmount" type="number" min="0" inputMode="decimal" className={input} value={advanceAmount} onChange={event => { setAdvanceAmount(event.target.value); clearFieldError('advanceAmount'); }} placeholder="Optional" aria-invalid={Boolean(fieldErrors.advanceAmount)} />{fieldErrors.advanceAmount && <span className="mt-1 block text-xs font-medium text-red-600">{fieldErrors.advanceAmount}</span>}</label>
-              {Number(advanceAmount) > 0 && <label className="text-sm font-medium text-slate-700">Advance method<select className={input} value={advanceMethod} onChange={event => setAdvanceMethod(event.target.value as PaymentMethod)}><option value="upi">UPI</option><option value="cash">Cash</option><option value="bank_transfer">Bank transfer</option><option value="card">Card</option><option value="other">Other</option></select></label>}
+              {canViewPayments && <label className="text-sm font-medium text-slate-700">Advance received (₹)<input id="quick-booking-advanceAmount" type="number" min="0" inputMode="decimal" className={input} value={advanceAmount} onChange={event => { setAdvanceAmount(event.target.value); clearFieldError('advanceAmount'); }} placeholder="Optional" aria-invalid={Boolean(fieldErrors.advanceAmount)} />{fieldErrors.advanceAmount && <span className="mt-1 block text-xs font-medium text-red-600">{fieldErrors.advanceAmount}</span>}</label>}
+              {canViewPayments && Number(advanceAmount) > 0 && <label className="text-sm font-medium text-slate-700">Advance method<select className={input} value={advanceMethod} onChange={event => setAdvanceMethod(event.target.value as PaymentMethod)}><option value="upi">UPI</option><option value="cash">Cash</option><option value="bank_transfer">Bank transfer</option><option value="card">Card</option><option value="other">Other</option></select></label>}
             </div>
           </section>
 
@@ -752,12 +879,12 @@ function QuickConversionForm({
             <label className="text-sm font-medium text-slate-700">Preferred event<input className={input} value={preferredEvent} onChange={event => setPreferredEvent(event.target.value)} /></label>
             <label className="text-sm font-medium text-slate-700 sm:col-span-2">Location<div className="relative"><MapPin className="pointer-events-none absolute left-3 top-1/2 mt-0.5 h-4 w-4 -translate-y-1/2 text-slate-400" /><input className={`${input} pl-9`} value={location} onChange={event => setLocation(event.target.value)} /></div></label>
             <label className="text-sm font-medium text-slate-700">Assigned team member<select className={input} value={assignedTeamMemberId} onChange={event => setAssignedTeamMemberId(event.target.value)}><option value="">Unassigned</option>{teamMembers.map(member => <option key={member.id} value={member.id}>{member.name}</option>)}</select></label>
-            <label className="text-sm font-medium text-slate-700">Payment due date<input type="date" className={input} value={paymentDueDate} onChange={event => setPaymentDueDate(event.target.value)} /></label>
+            {canViewPayments && <label className="text-sm font-medium text-slate-700">Payment due date<input type="date" className={input} value={paymentDueDate} onChange={event => setPaymentDueDate(event.target.value)} /></label>}
             <label className="text-sm font-medium text-slate-700 sm:col-span-2">Internal notes<textarea rows={3} className={`${input} h-auto py-3`} value={notes} onChange={event => setNotes(event.target.value)} /></label>
           </section>}
         </div>
 
-        <div className="grid grid-cols-2 gap-3 border-t border-slate-200 bg-white p-4 pb-[max(1rem,env(safe-area-inset-bottom))]"><button type="button" onClick={onClose} className="h-12 rounded-xl border border-slate-300 font-semibold text-slate-700">Cancel</button><button type="button" onClick={() => void submit()} disabled={saving} className="h-12 rounded-xl bg-blue-600 font-semibold text-white disabled:opacity-50">{saving ? 'Confirming…' : 'Confirm booking'}</button></div>
+        <div className="grid grid-cols-2 gap-3 border-t border-slate-200 bg-white p-4 pb-[max(1rem,env(safe-area-inset-bottom))]"><button type="button" onClick={closeAndDiscardDraft} className="h-12 rounded-xl border border-slate-300 font-semibold text-slate-700">Cancel</button><button type="button" onClick={() => void submit()} disabled={saving || scheduleAvailability.checking || Boolean(scheduleAvailability.error) || Boolean(scheduleAvailability.conflicts?.blocked)} className="h-12 rounded-xl bg-blue-600 font-semibold text-white disabled:opacity-50">{saving ? 'Confirming…' : scheduleAvailability.checking ? 'Checking…' : 'Confirm booking'}</button></div>
       </div>
     </div>
   );

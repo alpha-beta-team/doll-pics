@@ -1,11 +1,14 @@
 import { api } from '../api/client';
 import type { BehindScene } from '../types';
 import { SimpleOrderedPage, FieldInput } from '../components/SimpleOrderedPage';
+import { useFeatureAccess } from '../access/useFeatureAccess';
 
 export function BehindScenesPage() {
+  const { isReadOnly } = useFeatureAccess('behind_scenes');
   return (
     <SimpleOrderedPage<BehindScene>
       title="Behind the Scenes"
+      readOnly={isReadOnly}
       description="Publish only genuine Doll Pictures process media with an accurate description"
       fetchItems={api.getBehindScenes}
       createItem={(data) => api.createBehindScene(data as Omit<BehindScene, 'id'>)}

@@ -10,6 +10,7 @@ import {
   AdminPageHeader,
   adminFieldClass,
 } from './ui';
+import { ReadOnlyNotice } from './ReadOnlyNotice';
 
 export interface OrderedItem {
   id: string;
@@ -30,6 +31,7 @@ interface SimpleOrderedPageProps<T extends OrderedItem> {
   ) => ReactNode;
   getEmptyItem: () => Partial<T>;
   renderPreview?: (item: T) => ReactNode;
+  readOnly?: boolean;
 }
 
 export function SimpleOrderedPage<T extends OrderedItem>({
@@ -42,6 +44,7 @@ export function SimpleOrderedPage<T extends OrderedItem>({
   renderForm,
   getEmptyItem,
   renderPreview,
+  readOnly = false,
 }: SimpleOrderedPageProps<T>) {
   const confirmDialog = useConfirmDialog();
   const [items, setItems] = useState<T[]>([]);
@@ -116,7 +119,7 @@ export function SimpleOrderedPage<T extends OrderedItem>({
         eyebrow="Website"
         title={title}
         description={description}
-        actions={<AdminButton onClick={() => setEditing(getEmptyItem())}><Plus className="h-4 w-4" />Add</AdminButton>}
+        actions={readOnly ? <ReadOnlyNotice /> : <AdminButton onClick={() => setEditing(getEmptyItem())}><Plus className="h-4 w-4" />Add</AdminButton>}
       />
 
       {error && (
@@ -127,7 +130,7 @@ export function SimpleOrderedPage<T extends OrderedItem>({
         {items.map(item => (
           <AdminCard key={item.id} className="flex items-center gap-4 p-4">
             {renderPreview?.(item)}
-            <div className="flex items-center gap-2 ml-auto shrink-0">
+            {!readOnly && <div className="flex items-center gap-2 ml-auto shrink-0">
               <button
                 type="button"
                 onClick={() => handleToggle(item)}
@@ -152,19 +155,19 @@ export function SimpleOrderedPage<T extends OrderedItem>({
               >
                 <Trash2 className="w-4 h-4" aria-hidden="true" />
               </button>
-            </div>
+            </div>}
           </AdminCard>
         ))}
       </div>
 
-      <AdminModal
+      {!readOnly && <AdminModal
         open={Boolean(editing)}
         onClose={() => setEditing(null)}
         title={`${editing?.id ? 'Edit' : 'Add'} ${title.slice(0, -1)}`}
         footer={<div className="flex justify-end gap-3"><AdminButton variant="secondary" onClick={() => setEditing(null)}>Cancel</AdminButton><AdminButton onClick={() => void handleSave()} disabled={isSaving}>{isSaving ? 'Saving…' : 'Save'}</AdminButton></div>}
       >
         {editing && <div className="space-y-4">{renderForm(editing, (field, value) => setEditing(prev => ({ ...prev, [field]: value } as Partial<T>)))}</div>}
-      </AdminModal>
+      </AdminModal>}
     </div>
   );
 }

@@ -13,13 +13,13 @@ export function MobileBottomNav() {
   const { user } = useAuth();
   const { openMobile, mobileOpen } = useAdminShell();
   const location = useLocation();
-  const primary = resolveNavigation(PRIMARY_NAVIGATION, user?.role);
+  const primary = resolveNavigation(PRIMARY_NAVIGATION, user);
   const items = mobileQuickNavigation(primary);
   const activeRoute = activeNavigationRoute(primary, location.pathname);
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-30 grid h-[calc(4.25rem+env(safe-area-inset-bottom))] grid-cols-5 border-t border-admin-border bg-admin-surface/95 px-1 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_25px_rgba(54,50,43,0.08)] backdrop-blur md:hidden"
+      className="fixed inset-x-0 bottom-0 z-30 grid h-[calc(4.25rem+env(safe-area-inset-bottom))] grid-flow-col auto-cols-fr border-t border-admin-border bg-admin-surface/95 px-1 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_25px_rgba(54,50,43,0.08)] backdrop-blur md:hidden"
       aria-label="Daily work"
       aria-hidden={mobileOpen ? true : undefined}
     >

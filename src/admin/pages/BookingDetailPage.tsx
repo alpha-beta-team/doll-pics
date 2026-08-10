@@ -29,7 +29,8 @@ import type {
 } from '../types';
 import { BookingFormModal } from '../components/BookingFormModal';
 import { useConfirmDialog } from '../hooks/useConfirmDialog';
-import { useAuth } from '../contexts/AuthContext';
+import { useFeatureAccess } from '../access/useFeatureAccess';
+import { ReadOnlyNotice } from '../components/ReadOnlyNotice';
 import {
   deliveryWhatsAppMessage,
   deliveryWhatsAppUrl,
@@ -101,7 +102,9 @@ function Card({ title, action, children }: { title: string; action?: React.React
 }
 
 export function BookingDetailPage() {
-  const { user } = useAuth();
+  const { canManage: canManageBooking, isReadOnly } = useFeatureAccess('bookings');
+  const { canView: canViewPayments } = useFeatureAccess('payments');
+  const { canManage: canManageIntegrations } = useFeatureAccess('integrations');
   const confirmDialog = useConfirmDialog();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -139,9 +142,11 @@ export function BookingDetailPage() {
     setError('');
     try {
       const [row, packageRows, memberRows, messageRows, reviewConfig] = await Promise.all([
-        api.getBooking(id), api.getPackages(), api.getTeamMembers(),
-        api.getBookingWhatsAppMessages(id).catch(() => []),
-        api.getReviewConfig().catch(() => ({ googleReviewUrl: '' })),
+        api.getBooking(id),
+        canManageBooking ? api.getPackages() : Promise.resolve<Package[]>([]),
+        canManageBooking ? api.getTeamMembers() : Promise.resolve<TeamMember[]>([]),
+        canManageBooking ? api.getBookingWhatsAppMessages(id).catch(() => []) : Promise.resolve<WhatsAppMessageSummary[]>([]),
+        canManageBooking ? api.getReviewConfig().catch(() => ({ googleReviewUrl: '' })) : Promise.resolve({ googleReviewUrl: '' }),
       ]);
       if (!row) throw new Error('Booking not found');
       sync(row);
@@ -154,7 +159,7 @@ export function BookingDetailPage() {
     } finally {
       setLoading(false);
     }
-  }, [id, sync]);
+  }, [canManageBooking, id, sync]);
 
   useEffect(() => { void load(); }, [load]);
 
@@ -378,7 +383,7 @@ export function BookingDetailPage() {
 
       <header className="flex flex-col justify-between gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm lg:flex-row lg:items-start">
         <div><div className="flex flex-wrap items-center gap-3"><h1 className="text-2xl font-semibold text-slate-900">{booking.customerName}</h1><span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusStyles[booking.status]}`}>{booking.status.replace('_', ' ')}</span></div><p className="mt-2 text-sm text-slate-500">{booking.packageName || booking.shootType || 'Photography session'} · {formatDay(booking.bookingDate)}{booking.startTime && booking.endTime ? ` · ${formatTimeWindow(booking.startTime, booking.endTime)}` : ''}</p></div>
-        <div className="flex flex-wrap gap-2"><button type="button" onClick={() => setMessageOpen('booking_confirmation')} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700"><MessageCircle className="h-4 w-4" />WhatsApp</button><button onClick={() => setEditing(true)} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700"><Pencil className="h-4 w-4" />Edit</button>{actions.map(action => <button key={action.label} disabled={saving} onClick={() => void transition(action.status)} className={`min-h-11 rounded-lg px-3 py-2 text-sm font-medium ${'primary' in action && action.primary ? 'bg-blue-600 text-white' : 'border border-slate-300 text-slate-700'}`}>{action.label}</button>)}</div>
+        {canManageBooking ? <div className="flex flex-wrap gap-2"><button type="button" onClick={() => setMessageOpen('booking_confirmation')} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700"><MessageCircle className="h-4 w-4" />WhatsApp</button><button onClick={() => setEditing(true)} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700"><Pencil className="h-4 w-4" />Edit</button>{actions.map(action => <button key={action.label} disabled={saving} onClick={() => void transition(action.status)} className={`min-h-11 rounded-lg px-3 py-2 text-sm font-medium ${'primary' in action && action.primary ? 'bg-blue-600 text-white' : 'border border-slate-300 text-slate-700'}`}>{action.label}</button>)}</div> : isReadOnly ? <ReadOnlyNotice /> : null}
       </header>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -387,26 +392,26 @@ export function BookingDetailPage() {
           {booking.notes && <div className="mt-5 rounded-lg bg-slate-50 p-4 text-sm whitespace-pre-wrap text-slate-700">{booking.notes}</div>}
         </Card>
 
-        <Card title="Payment" action={<button onClick={() => setPaymentModal('new')} className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600"><Plus className="h-4 w-4" />Add payment</button>}>
+        {canViewPayments && <Card title="Payment" action={<button onClick={() => setPaymentModal('new')} className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600"><Plus className="h-4 w-4" />Add payment</button>}>
           <div className="grid grid-cols-3 gap-3 rounded-xl bg-slate-50 p-4 text-center"><div><p className="text-xs text-slate-500">Agreed</p><p className="mt-1 font-semibold text-slate-900">{money(booking.agreedTotal)}</p></div><div><p className="text-xs text-slate-500">Paid</p><p className="mt-1 font-semibold text-emerald-700">{money(booking.paymentSummary.amountPaid)}</p></div><div><p className="text-xs text-slate-500">Balance</p><p className="mt-1 font-semibold text-slate-900">{money(booking.paymentSummary.balanceDue)}</p></div></div>
           <div className="mt-4 flex items-center justify-between text-sm"><span className="capitalize text-slate-600">{booking.paymentSummary.status}</span><span className="text-slate-500">Due {formatDay(booking.paymentDueDate)}</span></div>
-          <div className="mt-4 divide-y divide-slate-100">{booking.payments.map(payment => <div key={payment.id} className="flex items-center gap-3 py-3"><CircleDollarSign className="h-5 w-5 text-emerald-600" /><div className="min-w-0 flex-1"><p className="font-medium text-slate-800">{money(payment.amount)}</p><p className="text-xs capitalize text-slate-500">{formatDay(payment.paidAt)} · {payment.method.replace('_', ' ')}{payment.note ? ` · ${payment.note}` : ''}</p></div>{user?.role === 'owner' && <><button onClick={() => setPaymentModal(payment)} className="p-2 text-slate-500" aria-label="Edit payment"><Pencil className="h-4 w-4" /></button><button onClick={() => void deletePayment(payment)} className="p-2 text-red-500" aria-label="Delete payment"><Trash2 className="h-4 w-4" /></button></>}</div>)}{!booking.payments.length && <p className="py-5 text-center text-sm text-slate-500">No payments recorded.</p>}</div>
-        </Card>
+          <div className="mt-4 divide-y divide-slate-100">{booking.payments.map(payment => <div key={payment.id} className="flex items-center gap-3 py-3"><CircleDollarSign className="h-5 w-5 text-emerald-600" /><div className="min-w-0 flex-1"><p className="font-medium text-slate-800">{money(payment.amount)}</p><p className="text-xs capitalize text-slate-500">{formatDay(payment.paidAt)} · {payment.method.replace('_', ' ')}{payment.note ? ` · ${payment.note}` : ''}</p></div><><button onClick={() => setPaymentModal(payment)} className="p-2 text-slate-500" aria-label="Edit payment"><Pencil className="h-4 w-4" /></button><button onClick={() => void deletePayment(payment)} className="p-2 text-red-500" aria-label="Delete payment"><Trash2 className="h-4 w-4" /></button></></div>)}{!booking.payments.length && <p className="py-5 text-center text-sm text-slate-500">No payments recorded.</p>}</div>
+        </Card>}
 
-        <Card title="Next follow-up" action={booking.nextFollowUpAt ? <button onClick={() => void run(() => api.completeBookingFollowUp(booking.id))} className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-600"><Check className="h-4 w-4" />Complete</button> : undefined}>
+        {canManageBooking && <Card title="Next follow-up" action={booking.nextFollowUpAt ? <button onClick={() => void run(() => api.completeBookingFollowUp(booking.id))} className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-600"><Check className="h-4 w-4" />Complete</button> : undefined}>
           {booking.nextFollowUpAt && <div className={`mb-4 rounded-lg p-3 text-sm ${followUpOverdue ? 'bg-red-50 text-red-700' : 'bg-blue-50 text-blue-700'}`}><Clock3 className="mr-2 inline h-4 w-4" />{formatDateTime(booking.nextFollowUpAt)}{followUpOverdue ? ' · Overdue' : ''}</div>}
           <FollowUpShortcuts value={followUpAt} onChange={setFollowUpAt} disabled={saving} /><input value={followUpNote} onChange={e => setFollowUpNote(e.target.value)} placeholder="What needs to happen?" className="mt-3 h-12 w-full rounded-xl border border-slate-300 px-3 text-sm" /><button onClick={saveFollowUp} disabled={saving || !followUpAt} className="mt-3 min-h-11 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50">{booking.nextFollowUpAt ? 'Reschedule follow-up' : 'Schedule follow-up'}</button>
-        </Card>
+        </Card>}
 
-        <Card title="WhatsApp automation" action={<button onClick={() => void load()} className="text-slate-400" aria-label="Refresh messages"><RefreshCw className="h-4 w-4" /></button>}>
+        {canManageBooking && <Card title="WhatsApp automation" action={<button onClick={() => void load()} className="text-slate-400" aria-label="Refresh messages"><RefreshCw className="h-4 w-4" /></button>}>
           <div className="grid gap-4 sm:grid-cols-2"><Field label="Consent">{booking.whatsappOptIn ? `Recorded ${formatDateTime(booking.whatsappOptInAt)}` : 'Not recorded'}</Field><Field label="Source">{booking.whatsappOptInSource || '—'}</Field><Field label="Opt-out">{booking.whatsappOptOutAt ? formatDateTime(booking.whatsappOptOutAt) : 'No'}</Field><Field label="Language">English</Field></div>
           <button onClick={toggleNotifications} disabled={!booking.whatsappOptIn || Boolean(booking.whatsappOptOutAt) || saving} className={`mt-4 rounded-lg px-3 py-2 text-sm font-medium ${booking.whatsappNotificationsEnabled ? 'bg-emerald-600 text-white' : 'border border-slate-300 text-slate-700'} disabled:opacity-50`}>{booking.whatsappNotificationsEnabled ? 'Automated updates enabled' : 'Enable automated updates'}</button>
           <div className="mt-5 divide-y divide-slate-100">{messages.slice(0, 8).map(message => <div key={message.id} className="flex items-center gap-3 py-3"><MessageCircle className="h-4 w-4 text-emerald-600" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-slate-700">{message.eventType.replace(/_/g, ' ')}</p><p className="text-xs text-slate-500">{formatDateTime(message.scheduledAt)} · {message.status}</p>{message.failureReason && <p className="mt-1 text-xs text-red-600">{message.failureReason}</p>}</div>{message.status === 'failed' && <button onClick={() => void retryMessage(message.id)} className="text-xs font-medium text-blue-600">Retry</button>}</div>)}{!messages.length && <p className="py-4 text-center text-sm text-slate-500">No automated messages yet.</p>}</div>
-        </Card>
+        </Card>}
 
         <Card
           title="Google Calendar"
-          action={user?.role === 'owner' ? (
+          action={canManageIntegrations ? (
             <button
               type="button"
               onClick={() => void retryCalendarSync()}
@@ -444,7 +449,7 @@ export function BookingDetailPage() {
           </div>
           {calendarStatus === 'failed' && (
             <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">
-              Calendar could not be updated. {user?.role === 'owner' ? 'Use Retry after checking the integration.' : 'Please tell the owner.'}
+              Calendar could not be updated. {canManageIntegrations ? 'Use Retry after checking the integration.' : 'Please tell the owner.'}
               {booking.calendarSyncErrorCode ? ` Code: ${booking.calendarSyncErrorCode}` : ''}
             </p>
           )}
@@ -453,7 +458,7 @@ export function BookingDetailPage() {
           )}
         </Card>
 
-        {booking.status === 'delivered' && <Card title="Review request">
+        {canManageBooking && booking.status === 'delivered' && <Card title="Review request">
           <div className="flex flex-wrap items-center justify-between gap-3"><div><span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${booking.reviewStatus === 'received' ? 'bg-emerald-100 text-emerald-700' : booking.reviewStatus === 'skipped' ? 'bg-slate-100 text-slate-600' : 'bg-amber-100 text-amber-800'}`}>{booking.reviewStatus.replace('_', ' ')}</span><p className="mt-2 text-sm text-slate-500">Requested {booking.reviewRequestCount} time{booking.reviewRequestCount === 1 ? '' : 's'}{booking.reviewLastRequestedAt ? ` · last ${formatDateTime(booking.reviewLastRequestedAt)}` : ''}</p></div></div>
           <div className="mt-4 flex flex-wrap gap-2">{!['received', 'skipped'].includes(booking.reviewStatus) && <><button type="button" disabled={saving || !reviewUrl || Boolean(booking.whatsappOptOutAt)} onClick={() => setMessageOpen('review_request')} className="min-h-11 rounded-lg bg-emerald-600 px-3 text-sm font-semibold text-white disabled:opacity-50">{booking.reviewRequestCount ? 'Request again' : 'Request review'}</button><button type="button" disabled={saving} onClick={() => void updateReview('received')} className="min-h-11 rounded-lg border border-emerald-300 px-3 text-sm font-semibold text-emerald-700">Mark received</button><button type="button" disabled={saving} onClick={() => void updateReview('skipped')} className="min-h-11 rounded-lg border border-slate-300 px-3 text-sm font-semibold text-slate-600">Skip</button></>}{['received', 'skipped'].includes(booking.reviewStatus) && <button type="button" disabled={saving} onClick={() => void updateReview('reopened')} className="min-h-11 rounded-lg border border-blue-300 px-3 text-sm font-semibold text-blue-700">Reopen</button>}</div>
           {booking.whatsappOptOutAt && !['received', 'skipped'].includes(booking.reviewStatus) && <p className="mt-3 text-sm text-amber-700">Review template is disabled because this customer opted out of WhatsApp.</p>}
@@ -462,8 +467,8 @@ export function BookingDetailPage() {
       </div>
 
       <CustomerLookupPanel phone={booking.customerPhone} current={{ type: 'booking', id: booking.id }} />
-      <ImportantDatesPanel phone={booking.customerPhone} customerName={booking.customerName} email={booking.customerEmail} source={{ type: 'booking', id: booking.id }} />
-      <VoiceNotesPanel recordType="booking" recordId={booking.id} />
+      {canManageBooking && <ImportantDatesPanel phone={booking.customerPhone} customerName={booking.customerName} email={booking.customerEmail} source={{ type: 'booking', id: booking.id }} />}
+      {canManageBooking && <VoiceNotesPanel recordType="booking" recordId={booking.id} />}
 
       <Card title="Schedule history">
         <div className="divide-y divide-slate-100">
@@ -472,17 +477,17 @@ export function BookingDetailPage() {
         </div>
       </Card>
 
-      <Card title="Delivery / Google Drive" action={<button onClick={saveDrive} disabled={saving} className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white">Save links</button>}>
+      {canManageBooking && <Card title="Delivery / Google Drive" action={<button onClick={saveDrive} disabled={saving} className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white">Save links</button>}>
         <div className="grid gap-3 sm:grid-cols-3">{[['Gallery folder', driveGalleryUrl, setDriveGalleryUrl], ['Edited photos', driveEditedUrl, setDriveEditedUrl], ['RAW files', driveRawsUrl, setDriveRawsUrl]].map(([label, value, setter]) => <label key={label as string} className="text-sm text-slate-700">{label as string}<div className="mt-1 flex gap-2"><input value={value as string} onChange={e => (setter as (value: string) => void)(e.target.value)} className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm" />{value && <a href={value as string} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-300 p-2"><ExternalLink className="h-4 w-4" /></a>}</div></label>)}</div>
         <textarea value={driveNotes} onChange={e => setDriveNotes(e.target.value)} placeholder="Delivery note" className="mt-3 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" rows={2} />
         {hasDeliveryLink && <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4"><p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">WhatsApp message preview</p><p className="whitespace-pre-wrap text-sm leading-6 text-slate-700">{deliveryWhatsAppMessage(deliveryContext)}</p></div>}
         {deliveryDirty && <p className="mt-3 text-sm text-amber-700">Save the delivery links before sharing or marking this booking delivered.</p>}
         <div className="mt-4 flex flex-wrap gap-2"><button onClick={openDelivery} disabled={!hasDeliveryLink || deliveryDirty || !whatsappDigits(booking.customerPhone)} className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-40"><MessageCircle className="h-4 w-4" />Review and open WhatsApp</button>{booking.status === 'shoot_completed' && <button onClick={() => void markDelivered()} disabled={!hasDeliveryLink || deliveryDirty || saving} className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-40"><CalendarCheck className="h-4 w-4" />Mark delivered</button>}{booking.deliverySentAt && <span className="inline-flex items-center gap-1.5 text-sm text-violet-700"><CheckCircle className="h-4 w-4" />Delivered {formatDateTime(booking.deliverySentAt)}</span>}</div>
-      </Card>
+      </Card>}
 
-      {editing && <BookingFormModal booking={booking} packages={packages} teamMembers={teamMembers} onClose={() => setEditing(false)} onSave={saveEdit} />}
-      {messageOpen && <WhatsAppComposer initialTemplate={messageOpen} context={{ customerName: booking.customerName, phone: booking.customerPhone, service: booking.shootType || booking.packageName, bookingDate: booking.bookingDate, startTime: booking.startTime, endTime: booking.endTime, location: booking.location, balanceDue: booking.paymentSummary.balanceDue, paymentDueDate: booking.paymentDueDate, reviewUrl, consentRecorded: booking.whatsappOptIn, optedOut: Boolean(booking.whatsappOptOutAt) }} onOpened={messageOpen === 'review_request' ? () => updateReview('requested') : undefined} onClose={() => setMessageOpen(null)} />}
-      {paymentModal && <PaymentModal payment={paymentModal === 'new' ? null : paymentModal} onClose={() => setPaymentModal(null)} onSave={async data => { const updated = paymentModal === 'new' ? await api.addBookingPayment(booking.id, data) : await api.updateBookingPayment(booking.id, paymentModal.id, data); sync(updated); setPaymentModal(null); }} />}
+      {canManageBooking && editing && <BookingFormModal booking={booking} packages={packages} teamMembers={teamMembers} onClose={() => setEditing(false)} onSave={saveEdit} />}
+      {canManageBooking && messageOpen && <WhatsAppComposer initialTemplate={messageOpen} context={{ customerName: booking.customerName, phone: booking.customerPhone, service: booking.shootType || booking.packageName, bookingDate: booking.bookingDate, startTime: booking.startTime, endTime: booking.endTime, location: booking.location, balanceDue: canViewPayments ? booking.paymentSummary.balanceDue : undefined, paymentDueDate: canViewPayments ? booking.paymentDueDate : undefined, reviewUrl, consentRecorded: booking.whatsappOptIn, optedOut: Boolean(booking.whatsappOptOutAt) }} onOpened={messageOpen === 'review_request' ? () => updateReview('requested') : undefined} onClose={() => setMessageOpen(null)} />}
+      {canViewPayments && paymentModal && <PaymentModal payment={paymentModal === 'new' ? null : paymentModal} onClose={() => setPaymentModal(null)} onSave={async data => { const updated = paymentModal === 'new' ? await api.addBookingPayment(booking.id, data) : await api.updateBookingPayment(booking.id, paymentModal.id, data); sync(updated); setPaymentModal(null); }} />}
     </div>
   );
 }

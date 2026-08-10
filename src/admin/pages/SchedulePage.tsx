@@ -19,6 +19,8 @@ import {
   visibleHourBounds, windowsOverlap,
 } from './schedule.utils';
 import { AdminIconButton, AdminPageHeader } from '../components/ui';
+import { useFeatureAccess } from '../access/useFeatureAccess';
+import { ReadOnlyNotice } from '../components/ReadOnlyNotice';
 
 type ViewMode = 'day' | 'week';
 type SlotChoice = { bookingDate: string; startTime: string };
@@ -32,7 +34,7 @@ const STATUS_CLASS: Record<ScheduleBookingItem['status'], string> = {
   cancelled: 'border-red-400 bg-red-50 text-red-800 opacity-70',
 };
 
-function whatsappContext(item: ScheduleBookingItem | Booking): ManualWhatsAppContext {
+function whatsappContext(item: ScheduleBookingItem | Booking, includePayments: boolean): ManualWhatsAppContext {
   return {
     customerName: item.customerName,
     phone: 'customerPhone' in item ? item.customerPhone : '',
@@ -43,7 +45,7 @@ function whatsappContext(item: ScheduleBookingItem | Booking): ManualWhatsAppCon
     location: item.location,
     optedOut: Boolean(item.whatsappOptOutAt),
     consentRecorded: item.whatsappOptIn,
-    ...('paymentSummary' in item ? {
+    ...('paymentSummary' in item && includePayments ? {
       balanceDue: item.paymentSummary.balanceDue,
       paymentDueDate: item.paymentDueDate,
     } : {}),
@@ -51,6 +53,8 @@ function whatsappContext(item: ScheduleBookingItem | Booking): ManualWhatsAppCon
 }
 
 export function SchedulePage() {
+  const { canManage, isReadOnly } = useFeatureAccess('schedule');
+  const { canView: canViewPayments } = useFeatureAccess('payments');
   const navigate = useNavigate();
   const confirm = useConfirmDialog();
   const [view, setView] = useState<ViewMode>(() =>
@@ -114,10 +118,11 @@ export function SchedulePage() {
   }, [loadSchedule]);
 
   useEffect(() => {
+    if (!canManage) return;
     void Promise.all([api.getPackages(), api.getTeamMembers()])
       .then(([packageRows, memberRows]) => { setPackages(packageRows); setTeamMembers(memberRows); })
       .catch(() => undefined);
-  }, []);
+  }, [canManage]);
 
   const move = (direction: -1 | 1) => setAnchorDate(current =>
     addScheduleDays(current, direction * (view === 'week' ? 7 : 1)),
@@ -134,7 +139,7 @@ export function SchedulePage() {
       const updated = await api.transitionBooking(item.id, 'cancelled');
       setSelected(null);
       await loadSchedule(true);
-      setComposer({ context: whatsappContext(updated), template: 'booking_cancelled' });
+      setComposer({ context: whatsappContext(updated, canViewPayments), template: 'booking_cancelled' });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to cancel booking');
     }
@@ -158,6 +163,7 @@ export function SchedulePage() {
           </div>
           <label className="flex h-11 items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700"><input type="checkbox" checked={showCancelled} onChange={event => setShowCancelled(event.target.checked)} /> Show cancelled</label>
           <AdminIconButton label="Refresh schedule" onClick={() => void loadSchedule(true)} disabled={refreshing}><RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} /></AdminIconButton>
+          {isReadOnly && <ReadOnlyNotice />}
         </>} />
 
       <section className="hidden flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm md:flex">
@@ -179,22 +185,23 @@ export function SchedulePage() {
       {existingOverlaps.length > 0 && <div className="flex items-start gap-2 rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-800" role="alert"><AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" /><div><p className="font-semibold">Existing booking overlap detected</p>{existingOverlaps.slice(0, 3).map(({ item, other }) => <p key={`${item.id}-${other.id}`} className="mt-1">{formatScheduleDay(item.bookingDate)}: {item.customerName} overlaps {other.customerName}.</p>)}</div></div>}
 
       {loading ? <div className="flex h-72 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" /></div> : <>
-        {isMobile && <MobileDayAgenda date={dateFrom} bookings={bookings} onBooking={setSelected} onEmptySlot={value => setSlot(value)} />}
-        {!isMobile && <ScheduleCalendar dates={dates} bookings={bookings} onBooking={setSelected} onEmptySlot={value => setSlot(value)} />}
+        {isMobile && <MobileDayAgenda date={dateFrom} bookings={bookings} canManage={canManage} onBooking={item => canManage ? setSelected(item) : navigate(`/admin/bookings/${item.id}`)} onEmptySlot={value => setSlot(value)} />}
+        {!isMobile && <ScheduleCalendar dates={dates} bookings={bookings} canManage={canManage} onBooking={item => canManage ? setSelected(item) : navigate(`/admin/bookings/${item.id}`)} onEmptySlot={value => setSlot(value)} />}
       </>}
 
-      {slot && <DurationSheet slot={slot} bookings={bookings} onClose={() => setSlot(null)} onChoose={endTime => { setCreatingAt({ ...slot, endTime }); setSlot(null); }} />}
-      {creatingAt && <BookingFormModal packages={packages} teamMembers={teamMembers} initialSchedule={creatingAt} onClose={() => setCreatingAt(null)} onSave={saveNew} />}
-      {selected && <BookingActionSheet item={selected} onClose={() => setSelected(null)} onOpen={() => navigate(`/admin/bookings/${selected.id}`)} onWhatsApp={() => { setComposer({ context: whatsappContext(selected), template: 'booking_confirmation' }); setSelected(null); }} onReschedule={() => { setRescheduling(selected); setSelected(null); }} onCancel={() => void cancelBooking(selected)} />}
-      {rescheduling && <RescheduleSheet item={rescheduling} visibleBookings={bookings} onClose={() => setRescheduling(null)} onSaved={async updated => { setRescheduling(null); await loadSchedule(true); setComposer({ context: whatsappContext(updated), template: 'booking_rescheduled' }); }} />}
-      {composer && <WhatsAppComposer context={composer.context} initialTemplate={composer.template} onClose={() => setComposer(null)} />}
+      {canManage && slot && <DurationSheet slot={slot} bookings={bookings} onClose={() => setSlot(null)} onChoose={endTime => { setCreatingAt({ ...slot, endTime }); setSlot(null); }} />}
+      {canManage && creatingAt && <BookingFormModal packages={packages} teamMembers={teamMembers} initialSchedule={creatingAt} onClose={() => setCreatingAt(null)} onSave={saveNew} />}
+      {canManage && selected && <BookingActionSheet item={selected} onClose={() => setSelected(null)} onOpen={() => navigate(`/admin/bookings/${selected.id}`)} onWhatsApp={() => { setComposer({ context: whatsappContext(selected, canViewPayments), template: 'booking_confirmation' }); setSelected(null); }} onReschedule={() => { setRescheduling(selected); setSelected(null); }} onCancel={() => void cancelBooking(selected)} />}
+      {canManage && rescheduling && <RescheduleSheet item={rescheduling} visibleBookings={bookings} onClose={() => setRescheduling(null)} onSaved={async updated => { setRescheduling(null); await loadSchedule(true); setComposer({ context: whatsappContext(updated, canViewPayments), template: 'booking_rescheduled' }); }} />}
+      {canManage && composer && <WhatsAppComposer context={composer.context} initialTemplate={composer.template} onClose={() => setComposer(null)} />}
     </div>
   );
 }
 
-function MobileDayAgenda({ date, bookings, onBooking, onEmptySlot }: {
+function MobileDayAgenda({ date, bookings, canManage, onBooking, onEmptySlot }: {
   date: string;
   bookings: ScheduleBookingItem[];
+  canManage: boolean;
   onBooking: (item: ScheduleBookingItem) => void;
   onEmptySlot: (slot: SlotChoice) => void;
 }) {
@@ -202,7 +209,7 @@ function MobileDayAgenda({ date, bookings, onBooking, onEmptySlot }: {
   const unknown = dayBookings.filter(item => !item.startTime || !item.endTime);
   const timed = dayBookings.filter(item => item.startTime && item.endTime);
   const activeShootCount = timed.filter(item => item.status !== 'cancelled').length;
-  const available = Array.from({ length: 9 }, (_, index) => minutesToTime((11 + index) * 60))
+  const available = (canManage ? Array.from({ length: 9 }, (_, index) => minutesToTime((11 + index) * 60)) : [])
     .filter(startTime => !slotHasConflict(bookings, date, startTime, endTimeFor(startTime, 1)));
   const entries: Array<
     | { kind: 'booking'; minute: number; item: ScheduleBookingItem }
@@ -239,9 +246,10 @@ function MobileDayAgenda({ date, bookings, onBooking, onEmptySlot }: {
   </section>;
 }
 
-function ScheduleCalendar({ dates, bookings, onBooking, onEmptySlot }: {
+function ScheduleCalendar({ dates, bookings, canManage, onBooking, onEmptySlot }: {
   dates: string[];
   bookings: ScheduleBookingItem[];
+  canManage: boolean;
   onBooking: (item: ScheduleBookingItem) => void;
   onEmptySlot: (slot: SlotChoice) => void;
 }) {
@@ -257,15 +265,16 @@ function ScheduleCalendar({ dates, bookings, onBooking, onEmptySlot }: {
         <div className="grid border-b border-slate-200 bg-slate-50" style={{ gridTemplateColumns: `64px repeat(${dates.length}, minmax(180px, 1fr))` }}><div />{dates.map(date => <div key={date} className={`border-l border-slate-200 px-3 py-3 text-center ${date === kolkataToday() ? 'bg-blue-50' : ''}`}><p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{formatScheduleDay(date, { weekday: 'short' })}</p><p className="mt-0.5 text-sm font-semibold text-slate-900">{formatScheduleDay(date, { day: 'numeric', month: 'short' })}</p></div>)}</div>
         <div className="grid" style={{ gridTemplateColumns: `64px repeat(${dates.length}, minmax(180px, 1fr))` }}>
           <div className="relative bg-slate-50" style={{ height }}>{Array.from({ length: endHour - startHour }, (_, index) => <span key={index} className="absolute right-2 -translate-y-2 text-[11px] font-medium text-slate-400" style={{ top: index * rowHeight }}>{formatScheduleTime(minutesToTime((startHour + index) * 60))}</span>)}</div>
-          {dates.map(date => <DayLane key={date} date={date} bookings={timed.filter(item => item.bookingDate === date)} allBookings={bookings} startHour={startHour} endHour={endHour} rowHeight={rowHeight} height={height} onBooking={onBooking} onEmptySlot={onEmptySlot} />)}
+          {dates.map(date => <DayLane key={date} date={date} bookings={timed.filter(item => item.bookingDate === date)} allBookings={bookings} canManage={canManage} startHour={startHour} endHour={endHour} rowHeight={rowHeight} height={height} onBooking={onBooking} onEmptySlot={onEmptySlot} />)}
         </div>
       </div>
     </div>
   </section>;
 }
 
-function DayLane({ date, bookings, allBookings, startHour, endHour, rowHeight, height, onBooking, onEmptySlot }: {
+function DayLane({ date, bookings, allBookings, canManage, startHour, endHour, rowHeight, height, onBooking, onEmptySlot }: {
   date: string; bookings: ScheduleBookingItem[]; allBookings: ScheduleBookingItem[];
+  canManage: boolean;
   startHour: number; endHour: number; rowHeight: number; height: number;
   onBooking: (item: ScheduleBookingItem) => void; onEmptySlot: (slot: SlotChoice) => void;
 }) {
@@ -274,7 +283,7 @@ function DayLane({ date, bookings, allBookings, startHour, endHour, rowHeight, h
       const hour = startHour + index;
       const startTime = minutesToTime(hour * 60);
       const endTime = minutesToTime((hour + 1) * 60);
-      const creatable = hour >= 11 && hour < 20 && !slotHasConflict(allBookings, date, startTime, endTime);
+      const creatable = canManage && hour >= 11 && hour < 20 && !slotHasConflict(allBookings, date, startTime, endTime);
       return <button key={hour} type="button" disabled={!creatable} onClick={() => onEmptySlot({ bookingDate: date, startTime })} className="group absolute left-0 right-0 border-t border-slate-100 text-left disabled:cursor-default" style={{ top: index * rowHeight, height: rowHeight }} aria-label={creatable ? `Create booking ${formatScheduleDay(date)} at ${formatScheduleTime(startTime)}` : undefined}><span className={`ml-2 inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-[10px] font-semibold opacity-0 transition ${creatable ? 'group-hover:opacity-100 hover:bg-blue-50 hover:text-blue-700' : ''}`}><Plus className="h-3 w-3" />Add</span></button>;
     })}
     {bookings.map(item => {

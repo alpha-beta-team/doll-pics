@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { RequireAuth } from "./components/Layout";
 import { LoginPage } from "./pages/LoginPage";
@@ -31,16 +31,8 @@ import { QuotationsPage } from "./pages/QuotationsPage";
 import { QuotationCanvasEditorPage } from "./pages/QuotationCanvasEditorPage";
 import { applyPageSeo } from "../lib/seo";
 import { ConfirmDialogProvider } from "./components/ConfirmDialog";
-import { useAuth } from "./contexts/AuthContext";
-
-function OwnerRoute() {
-  const { user } = useAuth();
-  return user?.role === "owner" ? (
-    <Outlet />
-  ) : (
-    <Navigate to="/admin/today" replace />
-  );
-}
+import { AccessRoute, DefaultAdminRedirect } from "./components/AccessRoute";
+import { AccessDeniedPage } from "./pages/AccessDeniedPage";
 
 function useAdminNoIndex() {
   useEffect(() => {
@@ -92,42 +84,72 @@ export default function AdminApp() {
             <Route path="login" element={<LoginPage />} />
             <Route path="change-password" element={<ChangePasswordPage />} />
             <Route path="/" element={<RequireAuth />}>
-              <Route index element={<Navigate to="/admin/today" replace />} />
-              <Route path="today" element={<TodayPage />} />
-              <Route path="enquiries" element={<WorkEnquiriesPage />} />
-              <Route path="enquiries/:id" element={<EnquiryDetailPage />} />
-              <Route path="bookings" element={<BookingsPage />} />
-              <Route path="bookings/:id" element={<BookingDetailPage />} />
-              <Route path="schedule" element={<SchedulePage />} />
-              <Route path="occasions" element={<OccasionsPage />} />
-              <Route path="quotations" element={<QuotationsPage />} />
-              <Route
-                path="quotations/:id"
-                element={<QuotationCanvasEditorPage />}
-              />
-              <Route path="payments" element={<PaymentsPage />} />
+              <Route index element={<DefaultAdminRedirect />} />
+              <Route path="access-denied" element={<AccessDeniedPage />} />
               <Route path="help" element={<HelpPage />} />
-              <Route element={<OwnerRoute />}>
+              <Route element={<AccessRoute feature="today" />}><Route path="today" element={<TodayPage />} /></Route>
+              <Route element={<AccessRoute feature="enquiries" />}>
+                <Route path="enquiries" element={<WorkEnquiriesPage />} />
+                <Route path="enquiries/:id" element={<EnquiryDetailPage />} />
+              </Route>
+              <Route element={<AccessRoute feature="bookings" />}>
+                <Route path="bookings" element={<BookingsPage />} />
+                <Route path="bookings/:id" element={<BookingDetailPage />} />
+              </Route>
+              <Route element={<AccessRoute feature="schedule" />}><Route path="schedule" element={<SchedulePage />} /></Route>
+              <Route element={<AccessRoute feature="occasions" />}><Route path="occasions" element={<OccasionsPage />} /></Route>
+              <Route element={<AccessRoute feature="quotations" />}>
+                <Route path="quotations" element={<QuotationsPage />} />
+                <Route path="quotations/:id" element={<QuotationCanvasEditorPage />} />
+              </Route>
+              <Route element={<AccessRoute feature="payments" />}><Route path="payments" element={<PaymentsPage />} /></Route>
+              <Route element={<AccessRoute feature="dashboard" />}>
                 <Route path="dashboard" element={<DashboardPage />} />
+              </Route>
+              <Route element={<AccessRoute feature="users" />}>
                 <Route path="users" element={<UsersPage />} />
+              </Route>
+              <Route element={<AccessRoute feature="integrations" />}>
                 <Route path="integrations" element={<IntegrationsPage />} />
+              </Route>
+              <Route element={<AccessRoute feature="photos" />}>
                 <Route path="photos" element={<PhotosPage />} />
+              </Route>
+              <Route element={<AccessRoute feature="categories" />}>
                 <Route path="categories" element={<CategoriesPage />} />
+              </Route>
+              <Route element={<AccessRoute feature="packages" />}>
                 <Route path="packages" element={<PackagesPage />} />
+              </Route>
+              <Route element={<AccessRoute feature="package_categories" />}>
                 <Route
                   path="package-categories"
                   element={<PackageCategoriesPage />}
                 />
+              </Route>
+              <Route element={<AccessRoute feature="site_content" />}>
                 <Route path="site-content" element={<SiteContentPage />} />
+              </Route>
+              <Route element={<AccessRoute feature="hero_slides" />}>
                 <Route path="hero-slides" element={<HeroSlidesPage />} />
+              </Route>
+              <Route element={<AccessRoute feature="story_scenes" />}>
                 <Route path="story-scenes" element={<StoryScenesPage />} />
+              </Route>
+              <Route element={<AccessRoute feature="statistics" />}>
                 <Route path="stats" element={<StatsPage />} />
+              </Route>
+              <Route element={<AccessRoute feature="testimonials" />}>
                 <Route path="testimonials" element={<TestimonialsPage />} />
+              </Route>
+              <Route element={<AccessRoute feature="behind_scenes" />}>
                 <Route path="behind-scenes" element={<BehindScenesPage />} />
+              </Route>
+              <Route element={<AccessRoute feature="team_members" />}>
                 <Route path="team-members" element={<TeamMembersPage />} />
               </Route>
             </Route>
-            <Route path="*" element={<Navigate to="/admin/today" replace />} />
+            <Route path="*" element={<DefaultAdminRedirect />} />
           </Routes>
         </ConfirmDialogProvider>
       </AuthProvider>

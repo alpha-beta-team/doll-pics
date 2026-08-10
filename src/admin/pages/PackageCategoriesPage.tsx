@@ -13,6 +13,8 @@ import {
   FolderOpen,
 } from 'lucide-react';
 import { useConfirmDialog } from '../hooks/useConfirmDialog';
+import { useFeatureAccess } from '../access/useFeatureAccess';
+import { ReadOnlyNotice } from '../components/ReadOnlyNotice';
 
 function slugify(value: string): string {
   return value
@@ -23,6 +25,7 @@ function slugify(value: string): string {
 }
 
 export function PackageCategoriesPage() {
+  const { canManage, isReadOnly } = useFeatureAccess('package_categories');
   const confirmDialog = useConfirmDialog();
   const [categories, setCategories] = useState<PackageCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -119,14 +122,14 @@ export function PackageCategoriesPage() {
       <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
         <AlertCircle className="w-5 h-5 flex-shrink-0" />
         <span>{error}</span>
-        <button
+        {canManage ? <button
           type="button"
           onClick={() => setError(null)}
           aria-label="Dismiss error"
           className="ml-auto hover:text-red-900"
         >
           <X className="w-4 h-4" aria-hidden="true" />
-        </button>
+        </button> : isReadOnly ? <ReadOnlyNotice /> : null}
       </div>
     );
   }
@@ -162,7 +165,7 @@ export function PackageCategoriesPage() {
             {categories.map((cat) => (
               <div
                 key={cat.id}
-                draggable
+                draggable={canManage}
                 onDragStart={(e) => handleDragStart(e, cat.id)}
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, cat.id)}
@@ -170,9 +173,9 @@ export function PackageCategoriesPage() {
                   draggedId === cat.id ? 'bg-blue-50 opacity-50' : ''
                 }`}
               >
-                <div className="cursor-move p-1 text-gray-400 hover:text-gray-600 mt-1">
+                {canManage && <div className="cursor-move p-1 text-gray-400 hover:text-gray-600 mt-1">
                   <GripVertical className="w-5 h-5" />
-                </div>
+                </div>}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="text-sm font-medium text-gray-900">{cat.name}</h3>
@@ -200,7 +203,7 @@ export function PackageCategoriesPage() {
                     <p className="text-sm text-gray-500 mt-1 line-clamp-2">{cat.description}</p>
                   ) : null}
                 </div>
-                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                {canManage && <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
                     type="button"
                     onClick={() => setEditing(cat)}
@@ -229,14 +232,14 @@ export function PackageCategoriesPage() {
                   >
                     <Trash2 className="w-4 h-4" aria-hidden="true" />
                   </button>
-                </div>
+                </div>}
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {(editing || isCreating) && (
+      {canManage && (editing || isCreating) && (
         <CategoryEditModal
           category={isCreating ? null : editing}
           onClose={() => {

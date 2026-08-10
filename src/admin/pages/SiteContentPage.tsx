@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
+import { useFeatureAccess } from '../access/useFeatureAccess';
+import { ReadOnlyNotice } from '../components/ReadOnlyNotice';
 import type { ServiceNavLink, SiteContent } from '../types';
 import {
   Save,
@@ -55,6 +57,7 @@ function emptyServiceLink(order: number): ServiceNavLink {
 }
 
 export function SiteContentPage() {
+  const { canManage, isReadOnly } = useFeatureAccess('site_content');
   const [content, setContent] = useState<SiteContent>(defaultSiteContent);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -171,7 +174,7 @@ export function SiteContentPage() {
             Manage your website's global content and settings
           </p>
         </div>
-        <button
+        {canManage ? <button
           onClick={handleSave}
           disabled={isSaving}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
@@ -187,7 +190,7 @@ export function SiteContentPage() {
               Save Changes
             </>
           )}
-        </button>
+        </button> : isReadOnly ? <ReadOnlyNotice /> : null}
       </div>
 
       {error && (
@@ -207,7 +210,7 @@ export function SiteContentPage() {
         </div>
       )}
 
-      <div className="space-y-6">
+      <fieldset disabled={!canManage} className={`space-y-6 ${!canManage ? 'pointer-events-none [&_button]:hidden [&_input]:bg-gray-50 [&_textarea]:bg-gray-50 [&_select]:bg-gray-50' : ''}`}>
         <section className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center gap-2 mb-4">
             <Camera className="w-5 h-5 text-gray-400" />
@@ -669,7 +672,7 @@ export function SiteContentPage() {
           </div>
         </section>
 
-        <div className="flex justify-end">
+        {canManage && <div className="flex justify-end">
           <button
             onClick={handleSave}
             disabled={isSaving}
@@ -687,8 +690,8 @@ export function SiteContentPage() {
               </>
             )}
           </button>
-        </div>
-      </div>
+        </div>}
+      </fieldset>
     </div>
   );
 }

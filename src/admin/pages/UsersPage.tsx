@@ -5,6 +5,7 @@ import {
   Eye,
   EyeOff,
   KeyRound,
+  LockKeyhole,
   Pencil,
   Plus,
   Power,
@@ -17,8 +18,10 @@ import {
 } from 'lucide-react';
 import {
   getEffectiveAccess,
-  getAccessSummary,
   getOverrideCount,
+  FEATURE_CATALOG,
+  FEATURE_GROUPS,
+  isOwnerLockedFeature,
   ROLE_ACCESS_AREAS,
   ROLE_CATALOG,
   ROLE_ORDER,
@@ -153,7 +156,7 @@ export function UsersPage() {
                   type="search"
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Search by name or email"
+                  placeholder="Search by name, title, or email"
                   className="min-h-11 w-full rounded-xl border border-admin-control bg-admin-surface pl-10 pr-3 text-sm text-admin-text outline-none transition placeholder:text-admin-subtle focus:border-admin-focus focus:ring-2 focus:ring-admin-focus/20"
                 />
               </label>
@@ -250,11 +253,12 @@ type UserListProps = {
 function DesktopUsersTable({ users, updatingUserId, onEdit, onReset, onToggle }: UserListProps) {
   return (
     <AdminTableSurface className="hidden md:block">
-      <table className="w-full min-w-[780px] text-left text-sm">
+      <table className="w-full min-w-[920px] text-left text-sm">
         <thead className="border-b border-admin-border bg-admin-muted/60 text-xs font-semibold uppercase tracking-wide text-admin-subtle">
           <tr>
             <th className="px-5 py-3">Team member</th>
-            <th className="px-5 py-3">Role</th>
+            <th className="px-5 py-3">Title</th>
+            <th className="px-5 py-3">Access role</th>
             <th className="px-5 py-3">Status</th>
             <th className="px-5 py-3 text-right">Actions</th>
           </tr>
@@ -263,8 +267,9 @@ function DesktopUsersTable({ users, updatingUserId, onEdit, onReset, onToggle }:
           {users.map((user) => (
             <tr key={user.id} className="transition hover:bg-admin-muted/40">
               <td className="px-5 py-4">
-                <UserIdentity user={user} />
+                <UserIdentity user={user} showJobTitle={false} />
               </td>
+              <td className="px-5 py-4 text-admin-secondary">{user.jobTitle || '—'}</td>
               <td className="px-5 py-4"><RoleSummary user={user} /></td>
               <td className="px-5 py-4"><AccountStatus user={user} /></td>
               <td className="px-5 py-4">
@@ -317,7 +322,7 @@ function MobileUsersList({ users, updatingUserId, onEdit, onReset, onToggle }: U
   );
 }
 
-function UserIdentity({ user }: { user: User }) {
+function UserIdentity({ user, showJobTitle = true }: { user: User; showJobTitle?: boolean }) {
   return (
     <div className="flex min-w-0 items-center gap-3">
       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-admin-muted text-sm font-bold text-admin-primary">
@@ -325,6 +330,7 @@ function UserIdentity({ user }: { user: User }) {
       </span>
       <div className="min-w-0">
         <p className="truncate font-semibold text-admin-text">{user.name}</p>
+        {showJobTitle && user.jobTitle && <p className="truncate text-sm font-medium text-admin-secondary">{user.jobTitle}</p>}
         <p className="truncate text-sm text-admin-subtle">{user.email}</p>
       </div>
     </div>
@@ -375,6 +381,7 @@ function UserDrawer({
 }) {
   const isNew = !user;
   const [name, setName] = useState(user?.name ?? '');
+  const [jobTitle, setJobTitle] = useState(user?.jobTitle ?? '');
   const [email, setEmail] = useState(user?.email ?? '');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -407,6 +414,7 @@ function UserDrawer({
       const saved = isNew
         ? await api.createAdminUser({
           name: name.trim(),
+          jobTitle: jobTitle.trim(),
           email: email.trim().toLocaleLowerCase(),
           temporaryPassword: password,
           role,
@@ -414,6 +422,7 @@ function UserDrawer({
         })
         : await api.updateAdminUser(user.id, {
           name: name.trim(),
+          jobTitle: jobTitle.trim(),
           role,
           permissionOverrides: savedOverrides,
           isActive,
@@ -451,6 +460,16 @@ function UserDrawer({
               value={name}
               onChange={(event) => { setName(event.target.value); setErrors((current) => ({ ...current, name: undefined })); }}
               autoComplete="name"
+            />
+          </AdminField>
+
+          <AdminField label="Job title" hint="Displayed for identification; it does not control access.">
+            <input
+              className={adminFieldClass}
+              value={jobTitle}
+              onChange={(event) => setJobTitle(event.target.value)}
+              placeholder="For example, Senior Photographer"
+              autoComplete="organization-title"
             />
           </AdminField>
 
@@ -555,26 +574,21 @@ function UserDrawer({
 }
 
 function AccessPreview({ role, overrides }: { role: UserRole; overrides: UserPermissionOverrides }) {
-  const summary = role === 'owner'
-    ? getAccessSummary(role)
-    : ROLE_ACCESS_AREAS
-      .filter(({ id }) => getEffectiveAccess(role, id, overrides) !== 'none')
-      .map(({ id, label }) => {
-        const level = getEffectiveAccess(role, id, overrides);
-        const customized = overrides[id] !== undefined;
-        return `${label}${level === 'view' ? ' (view only)' : ''}${customized ? ' · customized' : ''}`;
-      });
+  const visible = ROLE_ACCESS_AREAS.filter(({ id }) => getEffectiveAccess(role, id, overrides) !== 'none');
+  const manageCount = visible.filter(({ id }) => getEffectiveAccess(role, id, overrides) === 'manage').length;
+  const viewCount = visible.length - manageCount;
+  const customizedCount = getOverrideCount(overrides);
   return (
     <section className="rounded-xl border border-admin-border bg-admin-muted/40 p-4">
-      <h3 className="text-sm font-semibold text-admin-text">Access preview</h3>
-      <div className="mt-3 grid gap-2 sm:grid-cols-2">
-        {summary.map((item) => (
-          <div key={item} className="flex items-start gap-2 text-sm text-admin-secondary">
-            <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /> {item}
-          </div>
-        ))}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 className="text-sm font-semibold text-admin-text">Access preview</h3>
+        {customizedCount > 0 && <AdminBadge className="bg-violet-100 text-violet-800">{customizedCount} customized</AdminBadge>}
       </div>
-      <p className="mt-3 text-xs leading-5 text-admin-subtle">This preview combines the selected role with this user’s individual overrides.</p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {manageCount > 0 && <AccessBadge level="manage" label={`${manageCount} areas`} />}
+        {viewCount > 0 && <AccessBadge level="view" label={`${viewCount} areas`} />}
+      </div>
+      <p className="mt-3 text-xs leading-5 text-admin-subtle">Effective access combines the selected role with this user’s individual changes.</p>
     </section>
   );
 }
@@ -593,16 +607,28 @@ function PermissionOverridesPanel({
   const overrideCount = getOverrideCount(overrides);
   const [expanded, setExpanded] = useState(overrideCount > 0);
   const [showCustomizedOnly, setShowCustomizedOnly] = useState(false);
-  const visibleAreas = showCustomizedOnly
-    ? ROLE_ACCESS_AREAS.filter(({ id }) => overrides[id] !== undefined)
-    : ROLE_ACCESS_AREAS;
-  const grantsSensitiveAccess = (overrides.payments === 'view' || overrides.payments === 'manage')
-    || (overrides.users === 'view' || overrides.users === 'manage');
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(FEATURE_GROUPS.map((group) => [
+      group.id,
+      ROLE_ACCESS_AREAS.some(({ id }) => FEATURE_CATALOG[id].group === group.id && overrides[id] !== undefined),
+    ])),
+  );
 
   const setOverride = (area: UserAccessArea, value: OverrideChoice) => {
     const next = { ...overrides };
     if (value === 'inherit') delete next[area];
     else next[area] = value;
+    onChange(next);
+    if (value !== 'inherit') {
+      setExpandedGroups((current) => ({ ...current, [FEATURE_CATALOG[area].group]: true }));
+    }
+  };
+
+  const resetGroup = (groupId: string) => {
+    const next = { ...overrides };
+    ROLE_ACCESS_AREAS.forEach(({ id }) => {
+      if (FEATURE_CATALOG[id].group === groupId) delete next[id];
+    });
     onChange(next);
   };
 
@@ -671,51 +697,85 @@ function PermissionOverridesPanel({
             </div>
           </div>
 
-          {grantsSensitiveAccess && (
-            <div className="mx-3 mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">
-              Sensitive payment or staff access has been added outside this role.
-            </div>
-          )}
-
-          <div className="px-3 pb-3 pt-3">
-            <div className="hidden grid-cols-[minmax(0,1fr)_110px_150px] gap-3 border-b border-admin-border px-3 pb-2 text-[11px] font-bold uppercase tracking-wider text-admin-subtle sm:grid">
-              <span>Area</span>
-              <span>Role default</span>
-              <span>Custom access</span>
-            </div>
-            <div className="divide-y divide-admin-border">
-            {visibleAreas.map((area) => {
-              const defaultLevel = ROLE_CATALOG[role].access[area.id];
-              const selectedValue: OverrideChoice = overrides[area.id] ?? 'inherit';
-              const customized = selectedValue !== 'inherit';
+          <div className="space-y-2 p-3">
+            {FEATURE_GROUPS.map((group) => {
+              const areas = ROLE_ACCESS_AREAS.filter(({ id }) => FEATURE_CATALOG[id].group === group.id);
+              const visibleAreas = showCustomizedOnly ? areas.filter(({ id }) => overrides[id] !== undefined) : areas;
+              const groupOverrideCount = areas.filter(({ id }) => overrides[id] !== undefined).length;
+              if (showCustomizedOnly && visibleAreas.length === 0) return null;
+              const groupExpanded = Boolean(expandedGroups[group.id]);
               return (
-                <div key={area.id} className={`grid grid-cols-[minmax(0,1fr)_140px] items-center gap-3 px-3 py-2.5 sm:grid-cols-[minmax(0,1fr)_110px_150px] ${customized ? 'bg-violet-50/70' : ''}`}>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      {customized && <span className="h-2 w-2 shrink-0 rounded-full bg-violet-600" aria-label="Customized" />}
-                      <p className="truncate text-sm font-semibold text-admin-text">{area.label}</p>
-                    </div>
-                    <div className="mt-1 sm:hidden"><AccessBadge level={defaultLevel} /></div>
+                <section key={group.id} className="overflow-hidden rounded-xl border border-admin-border">
+                  <div className="flex items-center gap-2 bg-admin-muted/40 pr-2">
+                    <button
+                      type="button"
+                      aria-expanded={groupExpanded}
+                      onClick={() => setExpandedGroups((current) => ({ ...current, [group.id]: !groupExpanded }))}
+                      className="flex min-w-0 flex-1 items-center gap-3 px-3 py-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-admin-focus"
+                    >
+                      <ChevronDown className={`h-4 w-4 shrink-0 text-admin-subtle transition ${groupExpanded ? 'rotate-180' : ''}`} />
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-sm font-semibold text-admin-text">{group.label}</span>
+                        <span className="block truncate text-xs text-admin-subtle">{group.description}</span>
+                      </span>
+                      {groupOverrideCount > 0 && <AdminBadge className="bg-violet-100 text-violet-800">{groupOverrideCount}</AdminBadge>}
+                    </button>
+                    {groupOverrideCount > 0 && (
+                      <button type="button" onClick={() => resetGroup(group.id)} className="inline-flex h-9 items-center gap-1 rounded-lg px-2 text-xs font-semibold text-admin-secondary hover:bg-admin-surface">
+                        <RotateCcw className="h-3.5 w-3.5" /> Reset
+                      </button>
+                    )}
                   </div>
-                  <div className="hidden sm:block"><AccessBadge level={defaultLevel} /></div>
-                  <select
-                    aria-label={`Custom access for ${area.label}`}
-                    value={selectedValue}
-                    onChange={(event) => setOverride(area.id, event.target.value as OverrideChoice)}
-                    className={`h-9 w-full rounded-lg border bg-admin-surface px-2.5 text-sm font-medium text-admin-text outline-none transition focus:border-admin-focus focus:ring-2 focus:ring-admin-focus/20 ${customized ? 'border-violet-300' : 'border-admin-control'}`}
-                  >
-                    <option value="inherit">Role default</option>
-                    <option value="none">No access</option>
-                    <option value="view">View only</option>
-                    <option value="manage">Manage</option>
-                  </select>
-                </div>
+                  {groupExpanded && (
+                    <div className="divide-y divide-admin-border">
+                      {visibleAreas.map((area) => {
+                        const defaultLevel = ROLE_CATALOG[role].access[area.id];
+                        const selectedValue: OverrideChoice = overrides[area.id] ?? 'inherit';
+                        const customized = selectedValue !== 'inherit';
+                        const locked = isOwnerLockedFeature(area.id);
+                        const choices: Array<{ value: OverrideChoice; label: string }> = [
+                          { value: 'inherit', label: 'Default' },
+                          ...FEATURE_CATALOG[area.id].supportedLevels.map((level) => ({
+                            value: level as OverrideChoice,
+                            label: level === 'none' ? 'None' : level === 'view' ? 'View' : 'Manage',
+                          })),
+                        ];
+                        return (
+                          <div key={area.id} className={`p-3 ${customized ? 'bg-violet-50/60' : 'bg-admin-surface'}`}>
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <div className="flex min-w-0 items-center gap-2">
+                                {customized && <span className="h-2 w-2 shrink-0 rounded-full bg-violet-600" aria-label="Customized" />}
+                                <span className="text-sm font-semibold text-admin-text">{area.label}</span>
+                                {locked && <LockKeyhole className="h-3.5 w-3.5 text-amber-700" aria-label="Owner only" />}
+                              </div>
+                              <AccessBadge level={defaultLevel} />
+                            </div>
+                            {locked ? (
+                              <p className="mt-2 text-xs text-admin-subtle">Owner only · protected by existing backend guards</p>
+                            ) : (
+                              <div className="mt-2 grid grid-cols-4 rounded-lg border border-admin-control bg-admin-muted p-1" aria-label={`Custom access for ${area.label}`}>
+                                {choices.map((choice) => (
+                                  <button
+                                    key={choice.value}
+                                    type="button"
+                                    aria-pressed={selectedValue === choice.value}
+                                    onClick={() => setOverride(area.id, choice.value)}
+                                    className={`min-h-8 rounded-md px-1.5 text-xs font-semibold transition ${selectedValue === choice.value ? 'bg-admin-surface text-admin-text shadow-sm' : 'text-admin-subtle hover:text-admin-secondary'}`}
+                                  >
+                                    {choice.label}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </section>
               );
             })}
-            {visibleAreas.length === 0 && (
-              <p className="p-6 text-center text-sm text-admin-subtle">No customized permissions yet.</p>
-            )}
-            </div>
+            {showCustomizedOnly && overrideCount === 0 && <p className="p-6 text-center text-sm text-admin-subtle">No customized access yet.</p>}
           </div>
         </div>
       )}
@@ -802,7 +862,8 @@ function RolesOverview() {
               <h2 className="mt-4 text-lg font-semibold text-admin-text">{details.label}</h2>
               <p className="mt-1 text-sm leading-6 text-admin-subtle">{details.description}</p>
               <div className="mt-4 flex flex-wrap gap-2">
-                {getAccessSummary(role).map((item) => <AdminBadge key={item}>{item}</AdminBadge>)}
+                <AccessBadge level="manage" label={`${ROLE_ACCESS_AREAS.filter(({ id }) => details.access[id] === 'manage').length} manage`} />
+                <AccessBadge level="view" label={`${ROLE_ACCESS_AREAS.filter(({ id }) => details.access[id] === 'view').length} view only`} />
               </div>
             </AdminCard>
           );
@@ -821,27 +882,34 @@ function RolesOverview() {
               {ROLE_ORDER.map((role) => <th key={role} className="px-5 py-3">{ROLE_CATALOG[role].label}</th>)}
             </tr>
           </thead>
-          <tbody className="divide-y divide-admin-border">
-            {ROLE_ACCESS_AREAS.map((area) => (
-              <tr key={area.id}>
-                <th className="px-5 py-4 font-semibold text-admin-text">{area.label}</th>
-                {ROLE_ORDER.map((role) => (
-                  <td key={role} className="px-5 py-4"><AccessBadge level={ROLE_CATALOG[role].access[area.id]} /></td>
-                ))}
+          {FEATURE_GROUPS.map((group) => (
+            <tbody key={group.id} className="divide-y divide-admin-border border-b border-admin-border last:border-b-0">
+              <tr className="bg-admin-muted/45">
+                <th colSpan={ROLE_ORDER.length + 1} className="px-5 py-2 text-xs font-bold uppercase tracking-wide text-admin-secondary">{group.label}</th>
               </tr>
-            ))}
-          </tbody>
+              {ROLE_ACCESS_AREAS.filter(({ id }) => FEATURE_CATALOG[id].group === group.id).map((area) => (
+                <tr key={area.id}>
+                  <th className="px-5 py-3 font-semibold text-admin-text">
+                    <span className="inline-flex items-center gap-2">{area.label}{isOwnerLockedFeature(area.id) && <LockKeyhole className="h-3.5 w-3.5 text-amber-700" />}</span>
+                  </th>
+                  {ROLE_ORDER.map((role) => (
+                    <td key={role} className="px-5 py-3"><AccessBadge level={ROLE_CATALOG[role].access[area.id]} /></td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          ))}
         </table>
       </AdminTableSurface>
 
       <AdminAlert tone="info">
-        This overview documents the planned role model only. Page visibility, route guards, and API permissions are unchanged in this phase.
+        Navigation, frontend routes, and page controls use this catalog. Owner-locked settings also keep their existing backend guards; other frontend restrictions are not an API security boundary.
       </AdminAlert>
     </div>
   );
 }
 
-function AccessBadge({ level }: { level: RoleAccessLevel }) {
+function AccessBadge({ level, label }: { level: RoleAccessLevel; label?: string }) {
   const styles: Record<RoleAccessLevel, string> = {
     manage: 'bg-emerald-100 text-emerald-800',
     view: 'bg-blue-100 text-blue-800',
@@ -852,5 +920,5 @@ function AccessBadge({ level }: { level: RoleAccessLevel }) {
     view: 'View only',
     none: 'No access',
   };
-  return <AdminBadge className={styles[level]}>{level !== 'none' && <Check className="mr-1 h-3 w-3" />}{labels[level]}</AdminBadge>;
+  return <AdminBadge className={styles[level]}>{level !== 'none' && <Check className="mr-1 h-3 w-3" />}{label ?? labels[level]}</AdminBadge>;
 }

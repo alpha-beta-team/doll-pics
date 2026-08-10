@@ -89,5 +89,5 @@ export function formatScheduleTime(value: string) {
   if (!value) return 'Time not set';
   return new Intl.DateTimeFormat('en-IN', {
     hour: 'numeric', minute: '2-digit', timeZone: SCHEDULE_TIMEZONE,
-  }).format(new Date(`2000-01-01T${value}:00+05:30`));
+  }).format(new Date(`2000-01-01T${value}:00+05:30`)).toUpperCase();
 }

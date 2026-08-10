@@ -30,6 +30,7 @@ import {
 import { SidebarSection } from './SidebarSection';
 import { SidebarItem } from './SidebarItem';
 import { SidebarGroup } from './SidebarGroup';
+import { canManage } from '../../access/roles';
 
 type SidebarProps = {
   workspaces?: StudioWorkspace[];
@@ -53,8 +54,8 @@ export function Sidebar({
   const [profileOpen, setProfileOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
-  const visiblePrimary = resolveNavigation(PRIMARY_NAVIGATION, user?.role);
-  const visibleUtility = resolveNavigation(UTILITY_NAVIGATION, user?.role);
+  const visiblePrimary = resolveNavigation(PRIMARY_NAVIGATION, user);
+  const visibleUtility = resolveNavigation(UTILITY_NAVIGATION, user);
   const allVisible = [...visiblePrimary, ...visibleUtility];
   const activeRoute = activeNavigationRoute(allVisible, location.pathname);
   const workspace = workspaces.find((item) => item.id === activeWorkspaceId) ?? workspaces[0];
@@ -236,7 +237,7 @@ export function Sidebar({
           )}
         </div>
 
-        <div className={showCollapsedChrome ? 'px-2 py-3' : 'px-3 py-4'}>
+        {canManage(user, 'bookings') && <div className={showCollapsedChrome ? 'px-2 py-3' : 'px-3 py-4'}>
           <Link
             to="/admin/bookings?new=1"
             onClick={handleNavigate}
@@ -250,7 +251,7 @@ export function Sidebar({
               <span role="tooltip" className="pointer-events-none absolute left-full z-[70] ml-3 whitespace-nowrap rounded-lg border border-admin-border bg-admin-surface px-2.5 py-1.5 text-xs font-semibold text-admin-text opacity-0 shadow-xl transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">New Booking</span>
             )}
           </Link>
-        </div>
+        </div>}
 
         <nav
           id="admin-sidebar-nav"

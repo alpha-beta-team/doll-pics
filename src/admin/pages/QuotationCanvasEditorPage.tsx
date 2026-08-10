@@ -33,6 +33,9 @@ import { SIDEBAR_COLLAPSED_WIDTH, SIDEBAR_EXPANDED_WIDTH } from "../nav/config";
 import type { QuotationAssets, WeddingQuotation } from "../types";
 import { quotationToken } from "../quotationForm";
 import { draftToQuotationPresentation } from "../../components/quotation/quotationPresentationModel";
+import { QuotationPresentation } from "../../components/quotation/QuotationPresentation";
+import { ReadOnlyNotice } from "../components/ReadOnlyNotice";
+import { useFeatureAccess } from "../access/useFeatureAccess";
 import { QuotationCanvas } from "../quotationCanvas/QuotationCanvas";
 import { QuotationInspector } from "../quotationCanvas/QuotationInspector";
 import {
@@ -61,6 +64,7 @@ const toolbarButton =
   "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-admin-control bg-admin-muted px-3 text-sm font-semibold text-admin-secondary transition hover:border-admin-focus hover:text-admin-text disabled:cursor-not-allowed disabled:opacity-35";
 
 export function QuotationCanvasEditorPage() {
+  const { isReadOnly } = useFeatureAccess("quotations");
   const { id = "" } = useParams();
   const [quote, setQuote] = useState<WeddingQuotation | null>(null);
   const [assets, setAssets] = useState<QuotationAssets | null>(null);
@@ -75,11 +79,13 @@ export function QuotationCanvasEditorPage() {
       ]);
       setQuote(row);
       setAssets(assetRows);
-      const enquiry = await api.getEnquiry(row.enquiryId);
-      setConsent({
-        recorded: Boolean(enquiry?.whatsappOptIn),
-        optedOut: Boolean(enquiry?.whatsappOptOutAt),
-      });
+      if (!isReadOnly) {
+        const enquiry = await api.getEnquiry(row.enquiryId);
+        setConsent({
+          recorded: Boolean(enquiry?.whatsappOptIn),
+          optedOut: Boolean(enquiry?.whatsappOptOutAt),
+        });
+      }
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : "Could not load quotation.",
@@ -87,7 +93,7 @@ export function QuotationCanvasEditorPage() {
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, isReadOnly]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -101,6 +107,20 @@ export function QuotationCanvasEditorPage() {
     return (
       <div className="rounded-xl border border-red-900 bg-red-950/40 p-5 text-red-300">
         {error || "Quotation not found."}
+      </div>
+    );
+  if (isReadOnly)
+    return (
+      <div className="mx-auto max-w-6xl space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Link to="/admin/quotations" className="text-sm font-semibold text-admin-secondary hover:text-admin-text">
+            Back to quotations
+          </Link>
+          <ReadOnlyNotice />
+        </div>
+        <QuotationPresentation
+          quotation={draftToQuotationPresentation(quote.draft, assets, quote)}
+        />
       </div>
     );
   return (
