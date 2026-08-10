@@ -25,12 +25,17 @@ export function orderedCrud<T>(
       return mapper(doc);
     },
     update: async (id: string, data: Record<string, unknown>): Promise<T> => {
+      // `id`/`_id` identify the route resource and are not writable DTO fields.
+      // SimpleOrderedPage edits mapped records, so remove both before PATCHing.
+      const patch = { ...data };
+      delete patch.id;
+      delete patch._id;
       const doc = await request<Record<string, unknown>>(
         `/admin/${resource}/${id}`,
         {
           method: 'PATCH',
           auth: true,
-          body: JSON.stringify(data),
+          body: JSON.stringify(patch),
         },
       );
       return mapper(doc);

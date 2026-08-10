@@ -15,6 +15,7 @@ interface ImageCropUploadProps {
   source: File | string;
   initialCrop?: PixelCrop | null;
   initialCropPercentages?: { x: number; y: number; width: number; height: number } | null;
+  aspect?: number;
   outputWidth?: number;
   outputHeight?: number;
   maxOutputWidth?: number;
@@ -29,6 +30,7 @@ export function ImageCropUpload({
   source,
   initialCrop,
   initialCropPercentages,
+  aspect,
   outputWidth: initialOutputWidth,
   outputHeight: initialOutputHeight,
   maxOutputWidth,
@@ -90,15 +92,41 @@ export function ImageCropUpload({
     const renderedHeight = image.getBoundingClientRect().height || image.height;
     if (!naturalWidth || !naturalHeight || !renderedWidth || !renderedHeight) return;
 
-    const cropWidth = Math.min(naturalWidth, Math.max(1, Math.round(initialCrop?.width ?? naturalWidth)));
-    const cropHeight = Math.min(naturalHeight, Math.max(1, Math.round(initialCrop?.height ?? naturalHeight)));
-    const sourceCrop: PixelCrop = {
-      unit: 'px',
-      x: Math.max(0, Math.min(naturalWidth - cropWidth, Math.round(initialCrop?.x ?? 0))),
-      y: Math.max(0, Math.min(naturalHeight - cropHeight, Math.round(initialCrop?.y ?? 0))),
-      width: cropWidth,
-      height: cropHeight,
-    };
+    let sourceCrop: PixelCrop;
+    if (initialCrop) {
+      const cropWidth = Math.min(naturalWidth, Math.max(1, Math.round(initialCrop.width)));
+      const cropHeight = Math.min(naturalHeight, Math.max(1, Math.round(initialCrop.height)));
+      sourceCrop = {
+        unit: 'px',
+        x: Math.max(0, Math.min(naturalWidth - cropWidth, Math.round(initialCrop.x))),
+        y: Math.max(0, Math.min(naturalHeight - cropHeight, Math.round(initialCrop.y))),
+        width: cropWidth,
+        height: cropHeight,
+      };
+    } else if (aspect && aspect > 0) {
+      const sourceAspect = naturalWidth / naturalHeight;
+      const cropWidth = sourceAspect > aspect
+        ? Math.round(naturalHeight * aspect)
+        : naturalWidth;
+      const cropHeight = sourceAspect > aspect
+        ? naturalHeight
+        : Math.round(naturalWidth / aspect);
+      sourceCrop = {
+        unit: 'px',
+        x: Math.round((naturalWidth - cropWidth) / 2),
+        y: Math.round((naturalHeight - cropHeight) / 2),
+        width: cropWidth,
+        height: cropHeight,
+      };
+    } else {
+      sourceCrop = {
+        unit: 'px',
+        x: 0,
+        y: 0,
+        width: naturalWidth,
+        height: naturalHeight,
+      };
+    }
 
     setSourceSize({ width: naturalWidth, height: naturalHeight });
     setDisplaySize({ width: renderedWidth, height: renderedHeight });
@@ -201,7 +229,7 @@ export function ImageCropUpload({
                 />
               </div>
             ) : (
-              <ReactCrop crop={crop} onChange={setCrop} onComplete={handleCropComplete} keepSelection ruleOfThirds>
+              <ReactCrop crop={crop} onChange={setCrop} onComplete={handleCropComplete} aspect={aspect} keepSelection ruleOfThirds>
                 <img src={previewUrl} alt="Crop preview" onLoad={handleImageLoad} className="max-h-[420px] max-w-full object-contain" />
               </ReactCrop>
             )

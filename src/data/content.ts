@@ -1,23 +1,7 @@
 // Curated, regionally relevant Pexels fallbacks used until real CMS/R2 work is published.
 // Keep these cohesive: the homepage should never fall back to generic demo imagery.
 
-export const heroSlides = [
-  {
-    image:
-      "https://images.pexels.com/photos/5759215/pexels-photo-5759215.jpeg?auto=compress&cs=tinysrgb&w=1600",
-    label: "Wedding Stories",
-  },
-  {
-    image:
-      "https://images.pexels.com/photos/8765030/pexels-photo-8765030.jpeg?auto=compress&cs=tinysrgb&w=1600",
-    label: "Newborn",
-  },
-  {
-    image:
-      "https://images.pexels.com/photos/19780151/pexels-photo-19780151.jpeg?auto=compress&cs=tinysrgb&w=1600",
-    label: "Celebrations",
-  },
-];
+export const heroSlides: Array<{ image: string; label: string }> = [];
 
 export const storyScenes = [
   {

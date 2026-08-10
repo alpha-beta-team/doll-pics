@@ -329,6 +329,9 @@ export function mapHeroSlide(doc: Record<string, unknown>): HeroSlide {
   return mapOrderedItem(doc, (base) => ({
     ...base,
     image: (doc.image as string) ?? '',
+    imageOriginal: (doc.imageOriginal as string) ?? '',
+    imageStorageKey: (doc.imageStorageKey as string) ?? '',
+    imageTransform: (doc.imageTransform as HeroSlide['imageTransform']) ?? null,
     label: (doc.label as string) ?? '',
   }));
 }

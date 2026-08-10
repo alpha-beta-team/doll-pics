@@ -69,18 +69,6 @@
     ],
     "imageCategories": ["Wedding", "Pre-Wedding"],
     "fallbackImages": [
-      {
-        "src": "https://images.pexels.com/photos/169198/pexels-photo-169198.jpeg?auto=compress&cs=tinysrgb&w=1200",
-        "alt": "Bride and groom wedding portrait by Doll Pictures"
-      },
-      {
-        "src": "https://images.pexels.com/photos/1024968/pexels-photo-1024968.jpeg?auto=compress&cs=tinysrgb&w=1200",
-        "alt": "Pre-wedding couple portrait at golden hour"
-      },
-      {
-        "src": "https://images.pexels.com/photos/2253870/pexels-photo-2253870.jpeg?auto=compress&cs=tinysrgb&w=1200",
-        "alt": "Emotional wedding day portrait"
-      }
     ]
   },
   "/pre-wedding-packages-erode": {
@@ -138,14 +126,6 @@
     ],
     "imageCategories": ["Pre-Wedding", "Wedding"],
     "fallbackImages": [
-      {
-        "src": "https://images.pexels.com/photos/1024968/pexels-photo-1024968.jpeg?auto=compress&cs=tinysrgb&w=1200",
-        "alt": "Pre-wedding couple portrait at golden hour"
-      },
-      {
-        "src": "https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=1200",
-        "alt": "Timeless couple portrait by Doll Pictures"
-      }
     ]
   },
   "/maternity-packages-erode": {
@@ -202,10 +182,6 @@
     ],
     "imageCategories": ["Maternity"],
     "fallbackImages": [
-      {
-        "src": "https://images.pexels.com/photos/2958995/pexels-photo-2958995.jpeg?auto=compress&cs=tinysrgb&w=1200",
-        "alt": "Maternity portrait by Doll Pictures"
-      }
     ]
   },
   "/newborn-packages-erode": {
@@ -265,12 +241,7 @@
       }
     ],
     "imageCategories": ["Newborn"],
-    "fallbackImages": [
-      {
-        "src": "https://images.pexels.com/photos/3662667/pexels-photo-3662667.jpeg?auto=compress&cs=tinysrgb&w=1200",
-        "alt": "Newborn baby photography by Doll Pictures"
-      }
-    ]
+    "fallbackImages": []
   },
   "/baby-milestone-packages-erode": {
     "title": "Baby Milestone Photography Packages in Erode | Doll Pictures",
@@ -320,10 +291,6 @@
     ],
     "imageCategories": ["Baby Milestone"],
     "fallbackImages": [
-      {
-        "src": "https://images.pexels.com/photos/796444/pexels-photo-796444.jpeg?auto=compress&cs=tinysrgb&w=1200",
-        "alt": "Baby milestone photography by Doll Pictures"
-      }
     ]
   },
   "/cake-smash-packages-erode": {
@@ -374,10 +341,6 @@
     ],
     "imageCategories": ["Cake Smash"],
     "fallbackImages": [
-      {
-        "src": "https://images.pexels.com/photos/1721932/pexels-photo-1721932.jpeg?auto=compress&cs=tinysrgb&w=1200",
-        "alt": "Cake smash photography by Doll Pictures"
-      }
     ]
   },
   "/family-packages-erode": {
@@ -432,10 +395,6 @@
     ],
     "imageCategories": ["Family"],
     "fallbackImages": [
-      {
-        "src": "https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=1200",
-        "alt": "Family portrait photography by Doll Pictures"
-      }
     ]
   }
 }

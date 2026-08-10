@@ -313,6 +313,9 @@ export type Category = CmsMeta & {
 
 export type HeroSlide = CmsMeta & {
   image: string;
+  imageOriginal: string;
+  imageStorageKey: string;
+  imageTransform: ImageTransform | null;
   label: string;
 };
 
