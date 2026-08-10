@@ -21,10 +21,10 @@ export function BookingFaq() {
         <div className="section-label mb-4">FAQ</div>
         <h2
           id="booking-faq-heading"
-          className="font-display text-4xl font-light leading-tight text-ink-50 md:text-5xl"
+          className="font-display text-4xl font-normal leading-[1.08] tracking-[-0.015em] text-ink-50 md:text-5xl"
         >
           Questions before you
-          <span className="italic text-gradient-gold"> book.</span>
+          <span className="italic text-gold-300"> book.</span>
         </h2>
         <p className="mt-4 max-w-xl text-[0.95rem] leading-relaxed text-ink-200/70">
           Clear answers about booking, coverage, packages, and timelines.
@@ -36,7 +36,7 @@ export function BookingFaq() {
               key={faq.question}
               className="group rounded-2xl border border-hairline/10 bg-ink-900/40 px-5 py-4 open:border-gold-400/30"
             >
-              <summary className="cursor-pointer list-none font-display text-xl font-light text-ink-50 marker:content-none [&::-webkit-details-marker]:hidden">
+              <summary className="cursor-pointer list-none font-display text-xl font-normal text-ink-50 marker:content-none [&::-webkit-details-marker]:hidden">
                 <span className="flex items-start justify-between gap-4">
                   <span className="pr-2">{faq.question}</span>
                   <span

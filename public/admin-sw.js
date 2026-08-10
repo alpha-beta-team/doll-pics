@@ -1,5 +1,5 @@
-const CACHE_NAME = 'doll-work-shell-v2';
-const SHELL = ['/admin', '/admin/today', '/manifest.webmanifest', '/logo-doll.png', '/apple-touch-icon.png'];
+const CACHE_NAME = 'doll-work-shell-v4';
+const SHELL = ['/admin', '/admin/today', '/manifest.webmanifest', '/logo-doll.png?v=20260810'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(SHELL)));

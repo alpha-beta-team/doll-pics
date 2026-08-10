@@ -8,7 +8,6 @@
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
   "icons": [
-    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" },
-    { "src": "/logo-doll.png", "sizes": "any", "type": "image/png", "purpose": "any maskable" }
+    { "src": "/logo-doll.png?v=20260810", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ]
 }
