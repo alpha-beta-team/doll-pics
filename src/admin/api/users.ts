@@ -1,28 +1,47 @@
 import type { User } from '../types';
+import { normalizePermissionOverrides, normalizeUserRole } from '../access/roles';
 import { request } from './http';
 
+type AdminUserResponse = Omit<User, 'role' | 'permissionOverrides'> & {
+  role?: unknown;
+  permissionOverrides?: unknown;
+};
+
+export function normalizeAdminUser(user: AdminUserResponse): User {
+  return {
+    ...user,
+    role: normalizeUserRole(user.role),
+    permissionOverrides: normalizePermissionOverrides(user.permissionOverrides),
+  };
+}
+
 export const usersApi = {
-  getAdminUsers(): Promise<User[]> {
-    return request<User[]>('/admin/users', { auth: true });
+  async getAdminUsers(): Promise<User[]> {
+    const users = await request<AdminUserResponse[]>('/admin/users', { auth: true });
+    return users.map(normalizeAdminUser);
   },
-  createAdminUser(data: {
+  async createAdminUser(data: {
     name: string;
     email: string;
     temporaryPassword: string;
     role: User['role'];
+    permissionOverrides?: User['permissionOverrides'];
   }): Promise<User> {
-    return request<User>('/admin/users', {
+    const user = await request<AdminUserResponse>('/admin/users', {
       method: 'POST', auth: true, body: JSON.stringify(data),
     });
+    return normalizeAdminUser(user);
   },
-  updateAdminUser(id: string, data: Partial<Pick<User, 'name' | 'role' | 'isActive'>>): Promise<User> {
-    return request<User>(`/admin/users/${id}`, {
+  async updateAdminUser(id: string, data: Partial<Pick<User, 'name' | 'role' | 'permissionOverrides' | 'isActive'>>): Promise<User> {
+    const user = await request<AdminUserResponse>(`/admin/users/${id}`, {
       method: 'PATCH', auth: true, body: JSON.stringify(data),
     });
+    return normalizeAdminUser(user);
   },
-  resetAdminUserPassword(id: string, temporaryPassword: string): Promise<User> {
-    return request<User>(`/admin/users/${id}/reset-password`, {
+  async resetAdminUserPassword(id: string, temporaryPassword: string): Promise<User> {
+    const user = await request<AdminUserResponse>(`/admin/users/${id}/reset-password`, {
       method: 'POST', auth: true, body: JSON.stringify({ temporaryPassword }),
     });
+    return normalizeAdminUser(user);
   },
 };

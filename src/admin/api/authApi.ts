@@ -1,4 +1,5 @@
 import type { User } from '../types';
+import { normalizePermissionOverrides, normalizeUserRole } from '../access/roles';
 import { request } from './http';
 import { authStorage } from './authStorage';
 
@@ -14,7 +15,8 @@ function mapUser(data: {
   id?: string;
   email: string;
   name?: string;
-  role?: User['role'];
+  role?: unknown;
+  permissionOverrides?: unknown;
   isActive?: boolean;
   mustChangePassword?: boolean;
 }): User {
@@ -22,7 +24,8 @@ function mapUser(data: {
     id: data.id || 'admin',
     email: data.email,
     name: data.name || 'Studio Admin',
-    role: data.role || 'owner',
+    role: normalizeUserRole(data.role, 'owner'),
+    permissionOverrides: normalizePermissionOverrides(data.permissionOverrides),
     isActive: data.isActive !== false,
     mustChangePassword: data.mustChangePassword === true,
   };
@@ -38,7 +41,8 @@ export const authApi = {
       email: string;
       id?: string;
       name?: string;
-      role?: User['role'];
+      role?: unknown;
+      permissionOverrides?: unknown;
       isActive?: boolean;
       mustChangePassword?: boolean;
     }>('/auth/login', {
@@ -67,7 +71,8 @@ export const authApi = {
         id: string;
         email: string;
         name?: string;
-        role?: User['role'];
+        role?: unknown;
+        permissionOverrides?: unknown;
         isActive?: boolean;
         mustChangePassword?: boolean;
       }>(

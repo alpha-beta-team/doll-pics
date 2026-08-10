@@ -614,11 +614,28 @@ export type BookingWritePayload = {
   acknowledgeUntimedConflict?: boolean;
 };
 
+export type UserRole = 'owner' | 'sales' | 'content_manager';
+
+export type UserAccessArea =
+  | 'dashboard'
+  | 'payments'
+  | 'enquiries'
+  | 'bookings'
+  | 'schedule'
+  | 'content'
+  | 'photos'
+  | 'users';
+
+export type UserAccessLevel = 'manage' | 'view' | 'none';
+
+export type UserPermissionOverrides = Partial<Record<UserAccessArea, UserAccessLevel>>;
+
 export type User = {
   id: string;
   email: string;
   name: string;
-  role: 'owner' | 'operations';
+  role: UserRole;
+  permissionOverrides?: UserPermissionOverrides;
   isActive: boolean;
   mustChangePassword: boolean;
 };
