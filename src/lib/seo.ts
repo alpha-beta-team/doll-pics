@@ -20,11 +20,13 @@ import {
   normalizePathname,
   resolvePackagePage as resolvePackagePageCore,
   resolveServicePage as resolveServicePageCore,
+  serviceCatalogFromPages,
   type FaqItem,
   type PackageNavLinkLike,
   type PackagePageContent,
   type PageSeo,
   type SeoPagesData,
+  type ServiceCatalogItem,
   type ServiceNavLinkLike,
   type ServicePageContent,
 } from './seo-core';
@@ -33,6 +35,7 @@ export type {
   FaqItem,
   PackagePageContent,
   PageSeo,
+  ServiceCatalogItem,
   ServicePageContent,
 } from './seo-core';
 
@@ -74,6 +77,8 @@ const servicePageEntries = Object.fromEntries(
     },
   ]),
 );
+
+const STATIC_SERVICE_CATALOG = serviceCatalogFromPages(servicePages);
 
 const packagePageEntries = Object.fromEntries(
   Object.entries(packagePages).map(([path, page]) => [
@@ -186,12 +191,25 @@ function removeJsonLd(id: string) {
   document.getElementById(id)?.remove();
 }
 
-export function buildLocalBusinessJsonLd(contact?: {
-  phone?: string;
-  email?: string;
-  socials?: Record<string, string>;
-}) {
-  return buildLocalBusinessJsonLdCore(SITE_URL, seoData, contact);
+type BusinessSeoOptions = {
+  contact?: {
+    phone?: string;
+    email?: string;
+    socials?: Record<string, string>;
+  };
+  services?: ServiceCatalogItem[];
+};
+
+export function getStaticServiceCatalog(): ServiceCatalogItem[] {
+  return STATIC_SERVICE_CATALOG.map((service) => ({ ...service }));
+}
+
+export function buildLocalBusinessJsonLd(options?: BusinessSeoOptions) {
+  return buildLocalBusinessJsonLdCore(SITE_URL, seoData, options);
+}
+
+export function applyBusinessSeo(options?: BusinessSeoOptions) {
+  upsertJsonLd('seo-jsonld-business', buildLocalBusinessJsonLd(options));
 }
 
 export function buildServiceJsonLd(
@@ -232,11 +250,6 @@ export function buildFaqPageJsonLd(faqs: FaqItem[] = SITE_FAQS) {
 export function applyPageSeo(
   seo: PageSeo,
   options?: {
-    contact?: {
-      phone?: string;
-      email?: string;
-      socials?: Record<string, string>;
-    };
     faqs?: FaqItem[];
     packagePage?: PackagePageContent | null;
     servicePage?: ServicePageContent | null;
@@ -275,11 +288,6 @@ export function applyPageSeo(
   upsertMeta('name', 'twitter:image', image);
 
   upsertLink('canonical', url);
-
-  upsertJsonLd(
-    'seo-jsonld-business',
-    buildLocalBusinessJsonLd(options?.contact),
-  );
 
   upsertJsonLd('seo-jsonld-webpage', {
     '@context': 'https://schema.org',

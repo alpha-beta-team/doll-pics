@@ -466,8 +466,8 @@ export type ConvertEnquiryPayload = {
 
 export type CreateEnquiryPayload = {
   name: string;
-  email: string;
-  phone?: string;
+  email?: string;
+  phone: string;
   shootType: string;
   preferredEvent?: string;
   bookingDate?: string;
@@ -476,7 +476,7 @@ export type CreateEnquiryPayload = {
   location?: string;
   whatsappOptIn?: boolean;
   preferredLanguage?: string;
-  message: string;
+  message?: string;
 };
 
 export type BookingPayment = {

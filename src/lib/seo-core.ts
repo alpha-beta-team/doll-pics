@@ -23,6 +23,7 @@ export type ServiceNavLinkLike = {
   label: string;
   path: string;
   description: string;
+  order?: number;
   seoTitle?: string;
   seoDescription?: string;
   heading?: string;
@@ -33,6 +34,12 @@ export type ServiceNavLinkLike = {
     imageUrl?: string | null;
     imageAlt?: string;
   }>;
+};
+
+export type ServiceCatalogItem = {
+  name: string;
+  path: string;
+  order?: number;
 };
 
 export type PackageNavLinkLike = {
@@ -118,7 +125,6 @@ export type SeoPagesData = {
     closes: string;
   }>;
   serviceAreas?: string[];
-  offerCatalog?: Array<{ name: string }>;
   sameAs?: string[];
   pages: Record<
     string,
@@ -372,31 +378,103 @@ function buildAreaServed(seoPages: SeoPagesData) {
   ];
 }
 
-function buildOfferCatalog(seoPages: SeoPagesData) {
-  const items = seoPages.offerCatalog ?? [];
+export function serviceCatalogFromLinks(
+  links: ServiceNavLinkLike[],
+): ServiceCatalogItem[] {
+  return links.map((link, index) => ({
+    name: link.label,
+    path: link.path,
+    order: link.order ?? index,
+  }));
+}
+
+export function serviceCatalogFromPages(
+  pages: Record<
+    string,
+    { label?: string; serviceName?: string; heading?: string }
+  >,
+): ServiceCatalogItem[] {
+  return Object.entries(pages).map(([path, page], index) => ({
+    name:
+      page.label ||
+      page.serviceName ||
+      page.heading ||
+      'Photography service',
+    path,
+    order: index,
+  }));
+}
+
+function normalizeServiceCatalog(
+  services: ServiceCatalogItem[],
+): ServiceCatalogItem[] {
+  const seen = new Set<string>();
+
+  return services
+    .map((service, index) => {
+      const name = service.name.trim();
+      const rawPath = service.path.trim();
+      const path = rawPath
+        ? normalizePathname(rawPath.startsWith('/') ? rawPath : `/${rawPath}`)
+        : '';
+
+      return {
+        name,
+        path,
+        order: Number.isFinite(service.order) ? service.order : index,
+        index,
+      };
+    })
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.index - b.index)
+    .filter((service) => {
+      if (
+        !service.name ||
+        !service.path ||
+        service.path === '/services' ||
+        seen.has(service.path)
+      ) {
+        return false;
+      }
+      seen.add(service.path);
+      return true;
+    })
+    .map(({ name, path, order }) => ({ name, path, order }));
+}
+
+function buildOfferCatalog(siteUrl: string, services: ServiceCatalogItem[]) {
+  const items = normalizeServiceCatalog(services);
   if (!items.length) return undefined;
   return {
     '@type': 'OfferCatalog',
     name: 'Photography services',
-    itemListElement: items.map((item) => ({
-      '@type': 'Offer',
-      itemOffered: {
-        '@type': 'Service',
-        name: item.name,
-      },
-    })),
+    itemListElement: items.map((item) => {
+      const url = absoluteUrl(siteUrl, item.path);
+      return {
+        '@type': 'Offer',
+        itemOffered: {
+          '@type': 'Service',
+          '@id': `${url}#service`,
+          name: item.name,
+          url,
+        },
+      };
+    }),
   };
 }
 
 export function buildLocalBusinessJsonLd(
   siteUrl: string,
   seoPages: SeoPagesData,
-  contact?: {
-    phone?: string;
-    email?: string;
-    socials?: Record<string, string>;
+  options?: {
+    contact?: {
+      phone?: string;
+      email?: string;
+      socials?: Record<string, string>;
+    };
+    services?: ServiceCatalogItem[];
   },
 ) {
+  const contact = options?.contact;
   const studioId = `${siteUrl}/#studio`;
   const fromContact = Object.values(contact?.socials ?? {}).filter(Boolean);
   const sameAs = [...new Set([...(seoPages.sameAs ?? []), ...fromContact])];
@@ -430,7 +508,7 @@ export function buildLocalBusinessJsonLd(
       }),
     ),
     areaServed: buildAreaServed(seoPages),
-    hasOfferCatalog: buildOfferCatalog(seoPages),
+    hasOfferCatalog: buildOfferCatalog(siteUrl, options?.services ?? []),
     sameAs: sameAs.length ? sameAs : undefined,
   };
 }

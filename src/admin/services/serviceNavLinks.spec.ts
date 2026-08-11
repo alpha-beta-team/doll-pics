@@ -11,6 +11,7 @@ import {
   MAX_SERVICE_SECTIONS,
   serviceCategorySlug,
   validateService,
+  validateServiceForPublish,
 } from './serviceNavLinks';
 
 function service(id: string, path: string, order: number): ServiceNavLink {
@@ -96,6 +97,40 @@ test('validates required, unsafe, and duplicate service paths', () => {
 
   const editing = { ...existing[0], label: 'Maternity portraits' };
   assert.deepEqual(validateService(editing, existing), {});
+});
+
+test('requires every editor section to be complete before publishing', () => {
+  const draft = createEmptyService(0);
+  assert.deepEqual(validateServiceForPublish(draft, []), {
+    label: 'Enter a service label.',
+    path: 'Enter a public path.',
+    sections: 'Enter a heading and body for every page section.',
+    description: 'Enter a card description.',
+    imageUrl: 'Upload a card image.',
+    heading: 'Enter a page heading.',
+    lead: 'Enter a lead paragraph.',
+    seoTitle: 'Enter an SEO title.',
+    seoDescription: 'Enter a meta description.',
+  });
+
+  const complete = {
+    ...draft,
+    label: 'Wedding',
+    path: '/wedding-photography-erode',
+    description: 'Candid wedding photography.',
+    imageUrl: '/uploads/wedding.webp',
+    heading: 'Wedding photography in Erode',
+    lead: 'Candid, cinematic coverage for your wedding celebrations.',
+    seoTitle: 'Wedding Photographers in Erode | Doll Pictures',
+    seoDescription: 'Wedding photography and films in Erode.',
+    sections: [{
+      heading: 'A complete wedding story',
+      body: 'Candid photography and cinematic films for every celebration.',
+      imageUrl: '',
+      imageAlt: '',
+    }],
+  };
+  assert.deepEqual(validateServiceForPublish(complete, []), {});
 });
 
 test('reorders dragged services and renumbers every row', () => {

@@ -6,7 +6,68 @@ import {
   type HTMLAttributes,
   type ReactNode,
 } from 'react';
-import { AlertCircle, Inbox, Loader2, X, type LucideIcon } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { AlertCircle, ArrowLeft, Inbox, Loader2, X, type LucideIcon } from 'lucide-react';
+
+export type AdminBreadcrumbItem = {
+  label: string;
+  to?: string;
+};
+
+export function AdminBreadcrumbs({
+  items,
+  backAction,
+}: {
+  items: AdminBreadcrumbItem[];
+  backAction?: {
+    label: string;
+    onClick: () => void;
+  };
+}) {
+  if (items.length === 0) return null;
+
+  return (
+    <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-2">
+      {backAction && (
+        <button
+          type="button"
+          onClick={backAction.onClick}
+          aria-label={backAction.label}
+          title={backAction.label}
+          className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-admin-gold/35 text-admin-gold outline-none transition-colors hover:border-admin-primary/60 hover:bg-admin-muted hover:text-admin-primary focus-visible:ring-2 focus-visible:ring-admin-focus focus-visible:ring-offset-2 focus-visible:ring-offset-admin-canvas"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+        </button>
+      )}
+      <ol className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+        {items.map((item, index) => {
+          const isCurrent = index === items.length - 1 && !item.to;
+          return (
+            <li key={`${item.label}-${index}`} className="inline-flex min-w-0 items-center gap-2">
+              {index > 0 && (
+                <span aria-hidden="true" className="text-admin-gold/70">
+                  ·
+                </span>
+              )}
+              {item.to ? (
+                <Link
+                  to={item.to}
+                  className="rounded-sm text-admin-gold outline-none transition-colors hover:text-admin-primary focus-visible:ring-2 focus-visible:ring-admin-focus focus-visible:ring-offset-2 focus-visible:ring-offset-admin-canvas"
+                >
+                  {item.label}
+                </Link>
+              ) : (
+                <span aria-current={isCurrent ? 'page' : undefined} className="truncate text-admin-gold">
+                  {item.label}
+                </span>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
+  );
+}
 
 export function AdminPageHeader({
   eyebrow,

@@ -1,9 +1,10 @@
-import type { LucideIcon } from 'lucide-react';
+import { AlertTriangle, type LucideIcon } from 'lucide-react';
 
 export type AdminTab = {
   id: string;
   label: string;
   icon?: LucideIcon;
+  warning?: string;
 };
 
 export function AdminTabs({
@@ -60,6 +61,15 @@ export function AdminTabs({
             >
               {Icon && <Icon className="h-4 w-4" aria-hidden="true" />}
               {tab.label}
+              {tab.warning && (
+                <span
+                  className="inline-flex text-amber-600"
+                  title={tab.warning}
+                >
+                  <AlertTriangle className="h-4 w-4" aria-hidden="true" />
+                  <span className="sr-only"> — {tab.warning}</span>
+                </span>
+              )}
               {active && <span className="absolute inset-x-2 bottom-[-1px] h-0.5 rounded-full bg-admin-primary" />}
             </button>
           );

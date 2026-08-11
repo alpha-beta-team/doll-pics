@@ -66,15 +66,19 @@ export function Services() {
                 <span className="h-px w-16 bg-gold-400/60" aria-hidden="true" />
               </p>
               <h1 className="max-w-6xl font-display text-[clamp(3.5rem,8vw,8.4rem)] font-light leading-[0.84] tracking-[-0.045em] text-ink-50">
-                Crafted for every
-                <span className="block italic text-gold-300">chapter of life.</span>
+                Wedding, Baby &amp; Family
+                <span className="block italic text-gold-300">
+                  Photography Services in Erode
+                </span>
               </h1>
             </div>
 
             <div className="lg:col-span-3 lg:pb-2">
               <p className="max-w-md border-l border-hairline/15 pl-5 text-sm leading-7 text-ink-200/75 sm:text-base">
-                Wedding, maternity, newborn, milestone, cake-smash and family
-                photography from our Erode studio, with travel across Tamil Nadu.
+                From weddings and maternity journeys to newborn milestones,
+                toddler portraits, cake smashes, birthdays and family
+                celebrations, Doll Pictures creates warm, natural photography
+                from our Erode studio, with travel available across Tamil Nadu.
               </p>
               <p className="mt-7 text-[10px] font-semibold uppercase tracking-[0.22em] text-gold-400">
                 Choose your experience

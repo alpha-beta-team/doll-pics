@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import { GoogleAnalytics } from './components/GoogleAnalytics';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { SiteDataProvider } from './contexts/SiteDataContext';
+import { useBusinessSeo } from './hooks/useBusinessSeo';
 import { Site } from './pages/Site';
 import { SECTION_PATHS } from './lib/navigation';
 
@@ -50,10 +51,16 @@ function PublicLoading() {
   );
 }
 
+function PublicBusinessSeo() {
+  useBusinessSeo();
+  return null;
+}
+
 function PublicLayout() {
   return (
     <ThemeProvider>
       <SiteDataProvider>
+        <PublicBusinessSeo />
         <Outlet />
       </SiteDataProvider>
     </ThemeProvider>

@@ -1,11 +1,12 @@
-import type { SiteContent } from '../types';
+import type { ImageTransform, SiteContent } from '../types';
 import { request } from './http';
 import { mapSiteContent } from './mappers';
 
-type ServiceSectionImageResult = {
+type ServiceImageResult = {
   url: string;
   originalUrl: string;
   storageKey: string;
+  imageTransform: ImageTransform | null;
 };
 
 async function getSiteContent(): Promise<SiteContent> {
@@ -17,6 +18,20 @@ async function getSiteContent(): Promise<SiteContent> {
 
 export const siteContentApi = {
   getSiteContent,
+
+  uploadServiceCardImage(
+    file: File,
+    transform: ImageTransform | null = null,
+  ) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('imageTransform', JSON.stringify(transform));
+    return request<ServiceImageResult>('/admin/media/service-card', {
+      method: 'POST',
+      auth: true,
+      body: formData,
+    });
+  },
 
   async updateSiteContent(data: Partial<SiteContent>): Promise<SiteContent> {
     const current = await getSiteContent();
@@ -45,7 +60,7 @@ export const siteContentApi = {
   uploadServiceSectionImage(file: File) {
     const formData = new FormData();
     formData.append('file', file);
-    return request<ServiceSectionImageResult>('/admin/media/service-section', {
+    return request<ServiceImageResult>('/admin/media/service-section', {
       method: 'POST',
       auth: true,
       body: formData,

@@ -6,6 +6,7 @@ import {
   ArrowUp,
   AlertCircle,
   CheckCircle2,
+  EyeOff,
   ExternalLink,
   FileText,
   Globe2,
@@ -23,8 +24,10 @@ import { useFeatureAccess } from '../access/useFeatureAccess';
 import { api } from '../api/client';
 import { AdminTabs, type AdminTab } from '../components/AdminTabs';
 import { ReadOnlyNotice } from '../components/ReadOnlyNotice';
+import { ServiceCardImageUpload } from '../components/ServiceCardImageUpload';
 import {
   AdminAlert,
+  AdminBreadcrumbs,
   AdminButton,
   AdminCard,
   AdminEmptyState,
@@ -47,7 +50,9 @@ import {
   serviceCategorySlug,
   sortAndRenumberServices,
   type ServiceFormErrors,
+  type ServicePublishField,
   validateService,
+  validateServiceForPublish,
 } from '../services/serviceNavLinks';
 import type { Photo, ServiceContentSection, ServiceNavLink } from '../types';
 
@@ -61,6 +66,45 @@ const EDITOR_TABS: AdminTab[] = [
 type EditorTab = 'details' | 'page' | 'sections' | 'seo';
 type EditorLocationState = { notice?: string } | null;
 type SaveToastState = { tone: 'success' | 'error'; message: string } | null;
+
+const PUBLISH_FIELDS_BY_TAB: Record<EditorTab, ServicePublishField[]> = {
+  details: ['label', 'path', 'description', 'icon', 'imageUrl'],
+  page: ['heading', 'lead'],
+  sections: ['sections'],
+  seo: ['seoTitle', 'seoDescription'],
+};
+
+const PUBLISH_FIELD_TAB = Object.fromEntries(
+  Object.entries(PUBLISH_FIELDS_BY_TAB).flatMap(([tab, fields]) =>
+    fields.map((field) => [field, tab]),
+  ),
+) as Record<ServicePublishField, EditorTab>;
+
+const PUBLISH_FIELD_LABELS: Record<ServicePublishField, string> = {
+  label: 'Service label',
+  path: 'Public path',
+  description: 'Card description',
+  icon: 'Icon',
+  imageUrl: 'Card image',
+  heading: 'Page heading',
+  lead: 'Lead paragraph',
+  seoTitle: 'SEO title',
+  seoDescription: 'Meta description',
+  sections: 'Page sections',
+};
+
+const PUBLISH_FIELD_IDS: Record<ServicePublishField, string> = {
+  label: 'service-label',
+  path: 'service-path',
+  description: 'service-description',
+  icon: 'service-icon',
+  imageUrl: 'service-image',
+  heading: 'service-heading',
+  lead: 'service-lead',
+  seoTitle: 'service-seo-title',
+  seoDescription: 'service-seo-description',
+  sections: 'service-section-0-heading',
+};
 
 function editorTab(value: string | null): EditorTab {
   return value === 'page' || value === 'sections' || value === 'seo'
@@ -173,8 +217,9 @@ export function ServiceEditorPage() {
 
   const update = <K extends keyof ServiceNavLink>(field: K, value: ServiceNavLink[K]) => {
     setForm((current) => current ? { ...current, [field]: value } : current);
-    if (field === 'label' || field === 'path') {
-      setErrors((current) => ({ ...current, [field]: undefined }));
+    const publishField = field as ServicePublishField;
+    if (PUBLISH_FIELD_TAB[publishField]) {
+      setErrors((current) => ({ ...current, [publishField]: undefined }));
     }
     setError('');
   };
@@ -233,32 +278,29 @@ export function ServiceEditorPage() {
     navigate('/admin/services');
   };
 
-  const save = async () => {
-    if (!form || saving || !canManage) return;
-    const prepared = prepareServiceForSave(form);
-    const nextErrors = validateService(prepared, services);
+  const showErrors = (nextErrors: ServiceFormErrors) => {
     setErrors(nextErrors);
-    if (Object.keys(nextErrors).length > 0) {
-      setToast({
-        tone: 'error',
-        message: nextErrors.sections
-          || nextErrors.label
-          || nextErrors.path
-          || 'Please correct the highlighted fields before saving.',
-      });
-      changeTab(nextErrors.sections ? 'sections' : 'details');
-      if (nextErrors.sections) setSelectedSectionIndex(0);
-      window.requestAnimationFrame(() => {
-        const fieldId = nextErrors.sections
-          ? 'service-section-0-heading'
-          : nextErrors.label
-            ? 'service-label'
-            : 'service-path';
-        document.getElementById(fieldId)?.focus();
-      });
-      return;
+    const firstField = (Object.keys(PUBLISH_FIELD_IDS) as ServicePublishField[])
+      .find((field) => nextErrors[field]);
+    if (!firstField) return;
+    setToast({
+      tone: 'error',
+      message: nextErrors[firstField]
+        || 'Please correct the highlighted fields before saving.',
+    });
+    if (firstField === 'sections') {
+      const invalidSection = form?.sections.findIndex(
+        (section) => !section.heading.trim() || !section.body.trim(),
+      ) ?? -1;
+      setSelectedSectionIndex(Math.max(0, invalidSection));
     }
+    changeTab(PUBLISH_FIELD_TAB[firstField]);
+    window.requestAnimationFrame(() => {
+      document.getElementById(PUBLISH_FIELD_IDS[firstField])?.focus();
+    });
+  };
 
+  const persist = async (prepared: ServiceNavLink, notice: string) => {
     setSaving(true);
     setError('');
     setToast(null);
@@ -283,17 +325,13 @@ export function ServiceEditorPage() {
       setServices(ordered);
       setForm(saved);
       setBaseline(JSON.stringify(saved));
-      setToast({
-        tone: 'success',
-        message: isNew && !saved.isPublished
-          ? 'Service created as a draft.'
-          : 'Service changes saved successfully.',
-      });
+      setErrors({});
+      setToast({ tone: 'success', message: notice });
 
       if (isNew && saved.id) {
         navigate(`/admin/services/${encodeURIComponent(saved.id)}?tab=${activeTab}`, {
           replace: true,
-          state: { notice: saved.isPublished ? 'Service created and published.' : 'Service created as a draft.' },
+          state: { notice },
         });
       }
     } catch (cause) {
@@ -305,6 +343,60 @@ export function ServiceEditorPage() {
       setSaving(false);
     }
   };
+
+  const save = async () => {
+    if (!form || saving || !canManage) return;
+    const prepared = prepareServiceForSave(form);
+    const nextErrors = prepared.isPublished
+      ? validateServiceForPublish(prepared, services)
+      : validateService(prepared, services);
+    if (Object.keys(nextErrors).length > 0) {
+      showErrors(nextErrors);
+      return;
+    }
+    await persist(
+      prepared,
+      isNew ? 'Service created as a draft.' : 'Service saved.',
+    );
+  };
+
+  const setPublication = async (isPublished: boolean) => {
+    if (!form || saving || !canManage) return;
+    const prepared = prepareServiceForSave({ ...form, isPublished });
+    const nextErrors = isPublished
+      ? validateServiceForPublish(prepared, services)
+      : validateService(prepared, services);
+    if (Object.keys(nextErrors).length > 0) {
+      showErrors(nextErrors);
+      return;
+    }
+    await persist(
+      prepared,
+      isPublished
+        ? isNew ? 'Service created and published.' : 'Service published.'
+        : 'Service unpublished and saved as a draft.',
+    );
+  };
+
+  const publishErrors = form
+    ? validateServiceForPublish(prepareServiceForSave(form), services)
+    : {};
+  const publishIssuesByTab = (Object.keys(PUBLISH_FIELDS_BY_TAB) as EditorTab[])
+    .map((tab) => ({
+      tab,
+      fields: PUBLISH_FIELDS_BY_TAB[tab].filter((field) => publishErrors[field]),
+    }))
+    .filter(({ fields }) => fields.length > 0);
+  const publishReady = publishIssuesByTab.length === 0;
+  const editorTabs = EDITOR_TABS.map((tab) => {
+    const issues = publishIssuesByTab.find((item) => item.tab === tab.id)?.fields ?? [];
+    return {
+      ...tab,
+      warning: issues.length > 0
+        ? `${issues.length} required field${issues.length === 1 ? '' : 's'} need attention: ${issues.map((field) => PUBLISH_FIELD_LABELS[field]).join(', ')}`
+        : undefined,
+    };
+  });
 
   const panelId = `service-editor-${activeTab}-panel`;
   const tabId = `service-editor-${activeTab}-tab`;
@@ -344,7 +436,18 @@ export function ServiceEditorPage() {
     <div className="mx-auto max-w-5xl space-y-6 pb-20">
       <SaveToast toast={toast} onClose={() => setToast(null)} />
       <AdminPageHeader
-        eyebrow="Website · Services"
+        eyebrow={(
+          <AdminBreadcrumbs
+            backAction={{
+              label: 'Back to services',
+              onClick: () => void leave(),
+            }}
+            items={[
+              { label: 'Website', to: '/admin/site-content' },
+              { label: 'Services', to: '/admin/services' },
+            ]}
+          />
+        )}
         title={title}
         description={isNew
           ? 'Create the service as a draft, complete its content, and publish it when ready.'
@@ -362,17 +465,67 @@ export function ServiceEditorPage() {
                 Open live page <ExternalLink className="h-4 w-4" aria-hidden="true" />
               </a>
             )}
-            <AdminButton variant="secondary" onClick={() => void leave()}>
-              <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back
-            </AdminButton>
+            {canManage && (
+              form.isPublished ? (
+                <AdminButton
+                  variant="secondary"
+                  onClick={() => void setPublication(false)}
+                  disabled={saving}
+                >
+                  <EyeOff className="h-4 w-4" aria-hidden="true" />
+                  {saving ? 'Saving…' : 'Unpublish'}
+                </AdminButton>
+              ) : (
+                <span
+                  className="inline-flex"
+                  title={publishReady ? 'Publish this service' : 'Complete all required fields before publishing'}
+                >
+                  <AdminButton
+                    onClick={() => void setPublication(true)}
+                    disabled={saving || !publishReady}
+                    aria-describedby={!publishReady ? 'service-publish-requirements' : undefined}
+                  >
+                    <Globe2 className="h-4 w-4" aria-hidden="true" />
+                    {saving ? 'Publishing…' : 'Publish'}
+                  </AdminButton>
+                </span>
+              )
+            )}
           </>
         )}
       />
 
       {error && <AdminAlert>{error}</AdminAlert>}
 
+      {publishIssuesByTab.length > 0 && (
+        <AdminAlert tone="warning">
+          <div id="service-publish-requirements">
+            <p className="font-semibold">
+              Complete all required fields before {form.isPublished ? 'saving this published service' : 'publishing'}.
+            </p>
+            <ul className="mt-2 space-y-1">
+              {publishIssuesByTab.map(({ tab, fields }) => {
+                const tabLabel = EDITOR_TABS.find((item) => item.id === tab)?.label ?? tab;
+                return (
+                  <li key={tab}>
+                    <button
+                      type="button"
+                      className="rounded-sm text-left underline decoration-amber-700/40 underline-offset-2 outline-none hover:decoration-current focus-visible:ring-2 focus-visible:ring-admin-focus"
+                      onClick={() => changeTab(tab)}
+                    >
+                      <span className="font-semibold">{tabLabel}:</span>{' '}
+                      {fields.map((field) => PUBLISH_FIELD_LABELS[field]).join(', ')}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </AdminAlert>
+      )}
+
       <AdminTabs
-        tabs={EDITOR_TABS}
+        tabs={editorTabs}
         value={activeTab}
         onChange={changeTab}
         label="Service editor"
@@ -383,20 +536,22 @@ export function ServiceEditorPage() {
           {activeTab === 'details' && (
             <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
               <AdminCard className="space-y-5 p-5 sm:p-6">
-                <AdminField label="Service label" error={errors.label} hint="Used in navigation, cards, and generated landing-page fallbacks.">
+                <AdminField label={<RequiredLabel>Service label</RequiredLabel>} error={errors.label} hint="Used in navigation, cards, and generated landing-page fallbacks.">
                   <input
                     id="service-label"
                     type="text"
+                    required
                     value={form.label}
                     onChange={(event) => update('label', event.target.value)}
                     className={adminFieldClass}
                     placeholder="Maternity"
                   />
                 </AdminField>
-                <AdminField label="Public path" error={errors.path} hint="Use a unique path without spaces, query parameters, or a hash.">
+                <AdminField label={<RequiredLabel>Public path</RequiredLabel>} error={errors.path} hint="Use a unique path without spaces, query parameters, or a hash.">
                   <input
                     id="service-path"
                     type="text"
+                    required
                     value={form.path}
                     onChange={(event) => update('path', event.target.value)}
                     onBlur={() => update('path', normalizeServicePath(form.path))}
@@ -404,8 +559,10 @@ export function ServiceEditorPage() {
                     placeholder="/maternity-photography-erode"
                   />
                 </AdminField>
-                <AdminField label="Card description" hint="Short supporting copy shown on the homepage service card and used as a content fallback.">
+                <AdminField label={<RequiredLabel>Card description</RequiredLabel>} error={errors.description} hint="Short supporting copy shown on the homepage service card.">
                   <textarea
+                    id="service-description"
+                    required
                     value={form.description}
                     onChange={(event) => update('description', event.target.value)}
                     rows={3}
@@ -414,8 +571,10 @@ export function ServiceEditorPage() {
                   />
                 </AdminField>
                 <div className="grid gap-5 sm:grid-cols-2">
-                  <AdminField label="Icon">
+                  <AdminField label={<RequiredLabel>Icon</RequiredLabel>} error={errors.icon}>
                     <select
+                      id="service-icon"
+                      required
                       value={form.icon}
                       onChange={(event) => update('icon', event.target.value)}
                       className={adminFieldClass}
@@ -423,15 +582,14 @@ export function ServiceEditorPage() {
                       {SERVICE_ICON_OPTIONS.map((icon) => <option key={icon} value={icon}>{icon}</option>)}
                     </select>
                   </AdminField>
-                  <AdminField label="Image URL" hint="Used on the homepage service card.">
-                    <input
-                      type="url"
-                      value={form.imageUrl}
-                      onChange={(event) => update('imageUrl', event.target.value)}
-                      className={adminFieldClass}
-                      placeholder="https://…"
-                    />
-                  </AdminField>
+                  <ServiceCardImageUpload
+                    id="service-image"
+                    value={form.imageUrl}
+                    disabled={!canManage}
+                    required
+                    error={errors.imageUrl}
+                    onChange={(url) => update('imageUrl', url)}
+                  />
                 </div>
               </AdminCard>
 
@@ -446,28 +604,32 @@ export function ServiceEditorPage() {
 
           {activeTab === 'page' && (
             <AdminCard className="space-y-5 p-5 sm:p-6">
-                <div>
-                  <h2 className="font-semibold text-admin-text">Landing-page introduction</h2>
-                  <p className="mt-1 text-sm text-admin-subtle">Blank fields keep the existing static or generated fallback content.</p>
-                </div>
-                <AdminField label="Page heading (H1)" hint="Primary heading displayed on the service landing page.">
-                  <input
-                    type="text"
-                    value={form.heading ?? ''}
-                    onChange={(event) => update('heading', event.target.value)}
-                    className={adminFieldClass}
-                    placeholder="Maternity photography in Erode"
-                  />
-                </AdminField>
-                <AdminField label="Lead paragraph" hint="Introductory copy directly beneath the page heading.">
-                  <textarea
-                    value={form.lead ?? ''}
-                    onChange={(event) => update('lead', event.target.value)}
-                    rows={5}
-                    className={`${adminFieldClass} min-h-36 resize-y py-3`}
-                    placeholder="Introduce this photography experience…"
-                  />
-                </AdminField>
+              <div>
+                <h2 className="font-semibold text-admin-text">Landing-page introduction</h2>
+                <p className="mt-1 text-sm text-admin-subtle">Both fields are required before this service can be published.</p>
+              </div>
+              <AdminField label={<RequiredLabel>Page heading (H1)</RequiredLabel>} error={errors.heading} hint="Primary heading displayed on the service landing page.">
+                <input
+                  id="service-heading"
+                  type="text"
+                  required
+                  value={form.heading ?? ''}
+                  onChange={(event) => update('heading', event.target.value)}
+                  className={adminFieldClass}
+                  placeholder="Maternity photography in Erode"
+                />
+              </AdminField>
+              <AdminField label={<RequiredLabel>Lead paragraph</RequiredLabel>} error={errors.lead} hint="Introductory copy directly beneath the page heading.">
+                <textarea
+                  id="service-lead"
+                  required
+                  value={form.lead ?? ''}
+                  onChange={(event) => update('lead', event.target.value)}
+                  rows={5}
+                  className={`${adminFieldClass} min-h-36 resize-y py-3`}
+                  placeholder="Introduce this photography experience…"
+                />
+              </AdminField>
             </AdminCard>
           )}
 
@@ -586,19 +748,23 @@ export function ServiceEditorPage() {
               <AdminCard className="space-y-5 p-5 sm:p-6">
                 <div>
                   <h2 className="font-semibold text-admin-text">Search appearance</h2>
-                  <p className="mt-1 text-sm text-admin-subtle">These optional fields override the static SEO defaults after the site rebuilds.</p>
+                  <p className="mt-1 text-sm text-admin-subtle">Complete both fields to make this service ready to publish.</p>
                 </div>
-                <AdminField label="SEO title" hint={`${(form.seoTitle ?? '').length}/60 characters · Aim for roughly 50–60 characters.`}>
+                <AdminField label={<RequiredLabel>SEO title</RequiredLabel>} error={errors.seoTitle} hint={`${(form.seoTitle ?? '').length}/60 characters · Aim for roughly 50–60 characters.`}>
                   <input
+                    id="service-seo-title"
                     type="text"
+                    required
                     value={form.seoTitle ?? ''}
                     onChange={(event) => update('seoTitle', event.target.value)}
                     className={adminFieldClass}
                     placeholder="Maternity Photoshoot in Erode | Doll Pictures"
                   />
                 </AdminField>
-                <AdminField label="Meta description" hint={`${(form.seoDescription ?? '').length}/160 characters · Aim for roughly 140–160 characters.`}>
+                <AdminField label={<RequiredLabel>Meta description</RequiredLabel>} error={errors.seoDescription} hint={`${(form.seoDescription ?? '').length}/160 characters · Aim for roughly 140–160 characters.`}>
                   <textarea
+                    id="service-seo-description"
+                    required
                     value={form.seoDescription ?? ''}
                     onChange={(event) => update('seoDescription', event.target.value)}
                     rows={4}
@@ -606,26 +772,6 @@ export function ServiceEditorPage() {
                     placeholder="Personalized maternity photography in Erode…"
                   />
                 </AdminField>
-              </AdminCard>
-
-              <AdminCard className="p-5 sm:p-6">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <h2 className="font-semibold text-admin-text">Publication status</h2>
-                    <p className="mt-1 max-w-2xl text-sm text-admin-subtle">
-                      Published services appear in navigation, homepage cards, landing routes, and the sitemap. SEO changes request a frontend rebuild.
-                    </p>
-                  </div>
-                  <label className="inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-3 rounded-xl border border-admin-border px-4 text-sm font-semibold text-admin-secondary">
-                    <input
-                      type="checkbox"
-                      checked={form.isPublished}
-                      onChange={(event) => update('isPublished', event.target.checked)}
-                      className="h-4 w-4 rounded border-admin-control text-admin-primary focus:ring-admin-focus"
-                    />
-                    Published
-                  </label>
-                </div>
               </AdminCard>
             </div>
           )}
@@ -641,7 +787,7 @@ export function ServiceEditorPage() {
             <AdminButton variant="secondary" onClick={() => void leave()} disabled={saving}>Cancel</AdminButton>
             <AdminButton onClick={() => void save()} disabled={saving || !dirty}>
               <Save className="h-4 w-4" aria-hidden="true" />
-              {saving ? 'Saving…' : isNew ? 'Create service' : 'Save changes'}
+              {saving ? 'Saving…' : isNew ? 'Save draft' : 'Save changes'}
             </AdminButton>
           </div>
         </div>
@@ -699,6 +845,15 @@ function SaveToast({
   );
 }
 
+function RequiredLabel({ children }: { children: string }) {
+  return (
+    <>
+      {children}<span className="text-red-700" aria-hidden="true"> *</span>
+      <span className="sr-only"> required</span>
+    </>
+  );
+}
+
 function ServiceImagePreview({ src }: { src: string }) {
   const [failed, setFailed] = useState(false);
 
@@ -710,7 +865,7 @@ function ServiceImagePreview({ src }: { src: string }) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 text-admin-subtle">
         <ImageIcon className="h-8 w-8" aria-hidden="true" />
-        <span className="text-sm">{failed ? 'Image could not be loaded' : 'No image URL'}</span>
+        <span className="text-sm">{failed ? 'Image could not be loaded' : 'No image uploaded'}</span>
       </div>
     );
   }
