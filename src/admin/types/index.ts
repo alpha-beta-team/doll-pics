@@ -26,6 +26,7 @@ export type {
   PackageCategory,
   Photo,
   PricingMode,
+  ServiceContentSection,
   ServiceNavLink,
   SiteContent,
   Stat,

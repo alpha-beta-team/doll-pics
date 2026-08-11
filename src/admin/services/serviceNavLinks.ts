@@ -1,4 +1,7 @@
-import type { ServiceNavLink } from '../types';
+import type { ServiceContentSection, ServiceNavLink } from '../types';
+
+export const MIN_SERVICE_SECTIONS = 1;
+export const MAX_SERVICE_SECTIONS = 6;
 
 export const SERVICE_ICON_OPTIONS = [
   'Heart',
@@ -10,7 +13,11 @@ export const SERVICE_ICON_OPTIONS = [
   'Plane',
 ] as const;
 
-export type ServiceFormErrors = Partial<Record<'label' | 'path', string>>;
+export type ServiceFormErrors = Partial<Record<'label' | 'path' | 'sections', string>>;
+
+export function createEmptyServiceSection(): ServiceContentSection {
+  return { heading: '', body: '', imageUrl: '', imageAlt: '' };
+}
 
 export function createEmptyService(order: number): ServiceNavLink {
   return {
@@ -23,6 +30,7 @@ export function createEmptyService(order: number): ServiceNavLink {
     seoDescription: '',
     heading: '',
     lead: '',
+    sections: [createEmptyServiceSection()],
     order,
     isPublished: false,
   };
@@ -37,6 +45,14 @@ export function normalizeServicePath(value: string): string {
     : withLeadingSlash;
 }
 
+export function serviceCategorySlug(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 export function validateService(
   service: ServiceNavLink,
   services: ServiceNavLink[],
@@ -46,6 +62,14 @@ export function validateService(
   const path = normalizeServicePath(service.path);
 
   if (!label) errors.label = 'Enter a service label.';
+
+  if (service.sections.length < MIN_SERVICE_SECTIONS) {
+    errors.sections = 'Add at least one page section.';
+  } else if (service.sections.length > MAX_SERVICE_SECTIONS) {
+    errors.sections = `Use no more than ${MAX_SERVICE_SECTIONS} page sections.`;
+  } else if (service.sections.some((section) => !section.heading.trim() || !section.body.trim())) {
+    errors.sections = 'Enter a heading and body for every page section.';
+  }
 
   if (!path) {
     errors.path = 'Enter a public path.';
@@ -139,5 +163,12 @@ export function prepareServiceForSave(service: ServiceNavLink): ServiceNavLink {
     seoDescription: service.seoDescription?.trim() ?? '',
     heading: service.heading?.trim() ?? '',
     lead: service.lead?.trim() ?? '',
+    sections: service.sections.map((section) => ({
+      ...section,
+      heading: section.heading.trim(),
+      body: section.body.trim(),
+      imageUrl: section.imageUrl.trim(),
+      imageAlt: section.imageAlt.trim(),
+    })),
   };
 }

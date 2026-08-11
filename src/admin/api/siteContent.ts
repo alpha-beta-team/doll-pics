@@ -2,6 +2,12 @@ import type { SiteContent } from '../types';
 import { request } from './http';
 import { mapSiteContent } from './mappers';
 
+type ServiceSectionImageResult = {
+  url: string;
+  originalUrl: string;
+  storageKey: string;
+};
+
 async function getSiteContent(): Promise<SiteContent> {
   const doc = await request<Record<string, unknown>>('/admin/site-content', {
     auth: true,
@@ -18,9 +24,15 @@ export const siteContentApi = {
     // Strip empty ids so Mongo can create new subdocs
     const payload = {
       ...merged,
-      serviceNavLinks: (merged.serviceNavLinks ?? []).map(({ id, ...rest }) =>
-        id ? { _id: id, ...rest } : rest,
-      ),
+      serviceNavLinks: (merged.serviceNavLinks ?? []).map(({ id, sections, ...rest }) => ({
+        ...(id ? { _id: id } : {}),
+        ...rest,
+        sections: sections.map(({ id: sectionId, ...section }) => ({
+          ...(sectionId ? { _id: sectionId } : {}),
+          ...section,
+          imageUrl: section.imageUrl.trim() || null,
+        })),
+      })),
     };
     await request('/admin/site-content', {
       method: 'PUT',
@@ -28,5 +40,15 @@ export const siteContentApi = {
       body: JSON.stringify(payload),
     });
     return getSiteContent();
+  },
+
+  uploadServiceSectionImage(file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    return request<ServiceSectionImageResult>('/admin/media/service-section', {
+      method: 'POST',
+      auth: true,
+      body: formData,
+    });
   },
 };

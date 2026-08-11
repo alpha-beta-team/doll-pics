@@ -23,6 +23,7 @@ const content: SiteContent = {
     description: '',
     icon: 'Camera',
     imageUrl: '',
+    sections: [{ heading: 'Introduction', body: 'Details', imageUrl: '', imageAlt: '' }],
     order: 0,
     isPublished: true,
   }],

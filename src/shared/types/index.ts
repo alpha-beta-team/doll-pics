@@ -88,6 +88,23 @@ export type CmsMeta = {
 
 // —— Navigation / site content ——————————————————————————————
 
+export type ServiceContentSection = {
+  id?: string;
+  heading: string;
+  body: string;
+  imageUrl: string;
+  imageAlt: string;
+};
+
+export type ServiceContentSectionInput = {
+  _id?: string;
+  id?: string;
+  heading?: string;
+  body?: string;
+  imageUrl?: string | null;
+  imageAlt?: string;
+};
+
 export type ServiceNavLink = {
   id?: string;
   label: string;
@@ -99,6 +116,7 @@ export type ServiceNavLink = {
   seoDescription?: string;
   heading?: string;
   lead?: string;
+  sections: ServiceContentSection[];
   order: number;
   isPublished: boolean;
 };
@@ -116,6 +134,7 @@ export type ServiceNavLinkInput = {
   seoDescription?: string;
   heading?: string;
   lead?: string;
+  sections?: ServiceContentSectionInput[];
   order?: number;
   isPublished?: boolean;
 };
@@ -287,6 +306,8 @@ export type Photo = {
     webp: string;
     avif: string;
     original: string;
+    /** Largest optimized WebP, suitable for full-width content sections. */
+    large?: string;
     sizes: number[];
   };
   imageTransform: ImageTransform | null;

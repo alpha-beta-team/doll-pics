@@ -127,7 +127,7 @@ export function defaultPackagePathForSlug(slug: string): string {
 }
 
 export function normalizeServiceNavLinks(
-  links?: ServiceNavLinkInput[] | Array<Partial<ServiceNavLink> & { _id?: string }> | null,
+  links?: Array<ServiceNavLinkInput | (Partial<ServiceNavLink> & { _id?: string })> | null,
 ): ServiceNavLink[] {
   if (!links?.length) return [];
   return links
@@ -139,6 +139,13 @@ export function normalizeServiceNavLinks(
         description: link.description?.trim() || '',
         icon: link.icon?.trim() || 'Camera',
         imageUrl: link.imageUrl?.trim() || '',
+        sections: (link.sections ?? []).map((section) => ({
+          id: section.id ?? ('_id' in section ? section._id : undefined),
+          heading: section.heading?.trim() || '',
+          body: section.body?.trim() || '',
+          imageUrl: section.imageUrl?.trim() || '',
+          imageAlt: section.imageAlt?.trim() || '',
+        })).filter((section) => section.heading && section.body),
         order: typeof link.order === 'number' ? link.order : index,
         isPublished: link.isPublished !== false,
       };
@@ -156,7 +163,7 @@ export function normalizeServiceNavLinks(
 }
 
 export function getPublishedServiceNavLinks(
-  links?: Array<Partial<ServiceNavLink> & { _id?: string }> | null,
+  links?: Array<ServiceNavLinkInput | (Partial<ServiceNavLink> & { _id?: string })> | null,
 ): ServiceNavLink[] {
   return normalizeServiceNavLinks(links).filter((link) => link.isPublished);
 }
