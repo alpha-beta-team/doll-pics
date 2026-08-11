@@ -10,7 +10,18 @@ export const SERVICE_ICON_OPTIONS = [
   'Plane',
 ] as const;
 
-export type ServiceFormErrors = Partial<Record<'label' | 'path', string>>;
+export type ServicePublishField =
+  | 'label'
+  | 'path'
+  | 'description'
+  | 'icon'
+  | 'imageUrl'
+  | 'heading'
+  | 'lead'
+  | 'seoTitle'
+  | 'seoDescription';
+
+export type ServiceFormErrors = Partial<Record<ServicePublishField, string>>;
 
 export function createEmptyService(order: number): ServiceNavLink {
   return {
@@ -64,6 +75,23 @@ export function validateService(
     });
     if (duplicate) errors.path = 'Another service already uses this path.';
   }
+
+  return errors;
+}
+
+export function validateServiceForPublish(
+  service: ServiceNavLink,
+  services: ServiceNavLink[],
+): ServiceFormErrors {
+  const errors = validateService(service, services);
+
+  if (!service.description.trim()) errors.description = 'Enter a card description.';
+  if (!service.icon.trim()) errors.icon = 'Choose an icon.';
+  if (!service.imageUrl.trim()) errors.imageUrl = 'Upload a card image.';
+  if (!service.heading?.trim()) errors.heading = 'Enter a page heading.';
+  if (!service.lead?.trim()) errors.lead = 'Enter a lead paragraph.';
+  if (!service.seoTitle?.trim()) errors.seoTitle = 'Enter an SEO title.';
+  if (!service.seoDescription?.trim()) errors.seoDescription = 'Enter a meta description.';
 
   return errors;
 }

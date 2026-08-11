@@ -16,10 +16,16 @@ const MAX_UPLOAD_SIZE = MAX_UPLOAD_SIZE_MB * 1024 * 1024;
 export function ServiceCardImageUpload({
   value,
   disabled = false,
+  required = false,
+  error: fieldError,
+  id,
   onChange,
 }: {
   value: string;
   disabled?: boolean;
+  required?: boolean;
+  error?: string;
+  id?: string;
   onChange: (url: string) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -51,15 +57,18 @@ export function ServiceCardImageUpload({
   return (
     <div>
       <label className="block text-sm font-medium text-admin-secondary">
-        Card image
+        Card image{required && <span className="text-red-700" aria-hidden="true"> *</span>}
+        {required && <span className="sr-only"> required</span>}
       </label>
       <button
+        id={id}
         type="button"
         disabled={disabled}
+        aria-invalid={Boolean(fieldError)}
         onClick={() => inputRef.current?.click()}
         onDragOver={(event) => event.preventDefault()}
         onDrop={handleDrop}
-        className="mt-1 flex min-h-11 w-full items-center gap-3 rounded-xl border border-dashed border-admin-control bg-admin-muted px-3 text-left outline-none transition hover:border-admin-primary/50 hover:bg-admin-surface focus-visible:ring-2 focus-visible:ring-admin-focus focus-visible:ring-offset-2 focus-visible:ring-offset-admin-canvas disabled:cursor-not-allowed disabled:opacity-60"
+        className={`mt-1 flex min-h-11 w-full items-center gap-3 rounded-xl border border-dashed bg-admin-muted px-3 text-left outline-none transition hover:border-admin-primary/50 hover:bg-admin-surface focus-visible:ring-2 focus-visible:ring-admin-focus focus-visible:ring-offset-2 focus-visible:ring-offset-admin-canvas disabled:cursor-not-allowed disabled:opacity-60 ${fieldError ? 'border-red-500' : 'border-admin-control'}`}
       >
         <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-admin-surface text-admin-primary shadow-sm">
           {value ? (
@@ -89,9 +98,13 @@ export function ServiceCardImageUpload({
           event.target.value = '';
         }}
       />
-      <p className="mt-1.5 text-xs leading-5 text-admin-subtle">
-        JPEG, PNG, WebP or AVIF · up to {MAX_UPLOAD_SIZE_MB} MB
-      </p>
+      {fieldError ? (
+        <p className="mt-1.5 text-xs font-medium text-red-700">{fieldError}</p>
+      ) : (
+        <p className="mt-1.5 text-xs leading-5 text-admin-subtle">
+          JPEG, PNG, WebP or AVIF · up to {MAX_UPLOAD_SIZE_MB} MB
+        </p>
+      )}
       {error ? (
         <p role="alert" className="mt-1.5 text-sm text-red-700">
           {error}
