@@ -12,7 +12,7 @@ import {
   X,
 } from 'lucide-react';
 import { SHOOT_TYPE_OPTIONS } from '../../lib/shootTypes';
-import type { Booking, BookingWritePayload, Enquiry, Package, PaymentMethod, ScheduleConflictResponse, TeamMember } from '../types';
+import type { Booking, BookingWritePayload, Enquiry, Package, PaymentMethod, ScheduleConflictResponse, StaffAccountOption } from '../types';
 import {
   BOOKING_WIZARD_FIELD_LABELS,
   BOOKING_WIZARD_STEPS,
@@ -41,7 +41,7 @@ type Props = {
   booking?: Booking | null;
   enquiry?: Enquiry | null;
   packages: Package[];
-  teamMembers: TeamMember[];
+  staffAccounts: StaffAccountOption[];
   onClose: () => void;
   onSave: (payload: BookingWritePayload) => Promise<void>;
   initialSchedule?: { bookingDate: string; startTime: string; endTime: string };
@@ -59,7 +59,7 @@ type BookingDraft = {
   location: string;
   packageId: string;
   agreedTotal: string;
-  assignedTeamMemberId: string;
+  assignedStaffAccountId: string;
   advanceAmount: string;
   advanceMethod: PaymentMethod;
   paymentDueDate: string;
@@ -147,7 +147,7 @@ function BookingWizard({
   booking,
   enquiry,
   packages,
-  teamMembers,
+  staffAccounts,
   onClose,
   onSave,
   initialSchedule,
@@ -175,8 +175,8 @@ function BookingWizard({
   const [agreedTotal, setAgreedTotal] = useState(
     stored?.agreedTotal ?? (booking?.agreedTotal == null ? '' : String(booking.agreedTotal)),
   );
-  const [assignedTeamMemberId, setAssignedTeamMemberId] = useState(
-    stored?.assignedTeamMemberId ?? booking?.assignedTeamMemberId ?? '',
+  const [assignedStaffAccountId, setAssignedStaffAccountId] = useState(
+    stored?.assignedStaffAccountId ?? booking?.assignedStaffAccountId ?? '',
   );
   const [advanceAmount, setAdvanceAmount] = useState(stored?.advanceAmount ?? '');
   const [advanceMethod, setAdvanceMethod] = useState<PaymentMethod>(stored?.advanceMethod ?? 'upi');
@@ -265,12 +265,12 @@ function BookingWizard({
   useEffect(() => {
     const draft: BookingDraft = {
       customerName, customerPhone, customerEmail, shootType, preferredEvent,
-      bookingDate, startTime, endTime, location, packageId, agreedTotal, assignedTeamMemberId,
+      bookingDate, startTime, endTime, location, packageId, agreedTotal, assignedStaffAccountId,
       advanceAmount, advanceMethod, paymentDueDate, nextFollowUpAt, followUpNote, notes, whatsappOptIn,
       whatsappNotificationsEnabled, step,
     };
     localStorage.setItem(draftKey, JSON.stringify(draft));
-  }, [advanceAmount, advanceMethod, agreedTotal, assignedTeamMemberId, bookingDate, customerEmail, customerName, customerPhone, draftKey, endTime, followUpNote, location, nextFollowUpAt, notes, packageId, paymentDueDate, preferredEvent, shootType, startTime, step, whatsappNotificationsEnabled, whatsappOptIn]);
+  }, [advanceAmount, advanceMethod, agreedTotal, assignedStaffAccountId, bookingDate, customerEmail, customerName, customerPhone, draftKey, endTime, followUpNote, location, nextFollowUpAt, notes, packageId, paymentDueDate, preferredEvent, shootType, startTime, step, whatsappNotificationsEnabled, whatsappOptIn]);
 
   const handlePackage = (id: string) => {
     setPackageId(id);
@@ -364,7 +364,7 @@ function BookingWizard({
       location: location.trim(),
       packageId: packageId || null,
       agreedTotal: agreedTotal === '' ? null : Number(agreedTotal),
-      assignedTeamMemberId: assignedTeamMemberId || null,
+      assignedStaffAccountId: assignedStaffAccountId || null,
       advanceAmount: canViewPayments && enquiry && Number(advanceAmount) > 0 ? Number(advanceAmount) : undefined,
       advanceMethod: canViewPayments && enquiry && Number(advanceAmount) > 0 ? advanceMethod : undefined,
       paymentDueDate: canViewPayments ? paymentDueDate : undefined,
@@ -515,7 +515,7 @@ function BookingWizard({
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.package}<select data-wizard-autofocus className={`${input} mt-1`} value={packageId} onChange={e => handlePackage(e.target.value)}><option value="">No package</option>{selectedPackageOutsideFilter && <option value={selectedPackageOutsideFilter.id}>{selectedPackageOutsideFilter.name} (current · other service)</option>}{matchingPackages.map(item => <option key={item.id} value={item.id}>{item.name}{item.isPublished ? '' : ' (unpublished)'}</option>)}</select><span className="mt-1 block text-xs text-slate-500">Showing {shootType} packages only.</span></label>
               <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.agreedTotal}<input type="number" min="0" className={`${input} mt-1`} value={agreedTotal} onChange={e => setAgreedTotal(e.target.value)} placeholder="Not decided" /></label>
-              <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.assignedTeamMember}<select className={`${input} mt-1`} value={assignedTeamMemberId} onChange={e => setAssignedTeamMemberId(e.target.value)}><option value="">Unassigned</option>{teamMembers.map(member => <option key={member.id} value={member.id}>{member.name}</option>)}</select></label>
+              <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.assignedStaffAccount}<select className={`${input} mt-1`} value={assignedStaffAccountId} onChange={e => setAssignedStaffAccountId(e.target.value)}><option value="">Unassigned</option>{booking?.assignedStaffAccountId && !staffAccounts.some(account => account.id === booking.assignedStaffAccountId) && <option value={booking.assignedStaffAccountId}>{booking.assignedStaffAccountName || 'Previous assignee'} (current)</option>}{staffAccounts.map(account => <option key={account.id} value={account.id}>{account.name}{account.jobTitle ? ` · ${account.jobTitle}` : ''}</option>)}</select></label>
               {canViewPayments && <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.paymentDueDate}<input type="date" className={`${input} mt-1`} value={paymentDueDate} onChange={e => setPaymentDueDate(e.target.value)} /></label>}
               {canViewPayments && enquiry && <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.advanceAmount}<input type="number" min="0" className={`${input} mt-1`} value={advanceAmount} onChange={e => setAdvanceAmount(e.target.value)} /></label>}
               {canViewPayments && enquiry && Number(advanceAmount) > 0 && <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.advanceMethod}<select className={`${input} mt-1`} value={advanceMethod} onChange={e => setAdvanceMethod(e.target.value as PaymentMethod)}><option value="upi">UPI</option><option value="cash">Cash</option><option value="bank_transfer">Bank transfer</option><option value="card">Card</option><option value="other">Other</option></select></label>}
@@ -698,7 +698,7 @@ type QuickFieldErrors = Partial<Record<'bookingDate' | 'time' | 'agreedTotal' | 
 function QuickConversionForm({
   enquiry,
   packages,
-  teamMembers,
+  staffAccounts,
   onClose,
   onSave,
 }: Props & { enquiry: Enquiry }) {
@@ -718,7 +718,7 @@ function QuickConversionForm({
   const [location, setLocation] = useState(stored?.location ?? enquiry.location ?? '');
   const [packageId, setPackageId] = useState(stored?.packageId ?? '');
   const [agreedTotal, setAgreedTotal] = useState(stored?.agreedTotal ?? '');
-  const [assignedTeamMemberId, setAssignedTeamMemberId] = useState(stored?.assignedTeamMemberId ?? '');
+  const [assignedStaffAccountId, setAssignedStaffAccountId] = useState(stored?.assignedStaffAccountId ?? '');
   const [advanceAmount, setAdvanceAmount] = useState(stored?.advanceAmount ?? '');
   const [advanceMethod, setAdvanceMethod] = useState<PaymentMethod>(stored?.advanceMethod ?? 'upi');
   const [paymentDueDate, setPaymentDueDate] = useState(stored?.paymentDueDate ?? '');
@@ -742,7 +742,7 @@ function QuickConversionForm({
       location,
       packageId,
       agreedTotal,
-      assignedTeamMemberId,
+      assignedStaffAccountId,
       advanceAmount,
       advanceMethod,
       paymentDueDate,
@@ -754,7 +754,7 @@ function QuickConversionForm({
       step: 0,
     };
     localStorage.setItem(draftKey, JSON.stringify(draft));
-  }, [advanceAmount, advanceMethod, agreedTotal, assignedTeamMemberId, bookingDate, draftKey, endTime, enquiry.email, enquiry.name, enquiry.phone, enquiry.whatsappNotificationsEnabled, enquiry.whatsappOptIn, location, notes, packageId, paymentDueDate, preferredEvent, shootType, startTime]);
+  }, [advanceAmount, advanceMethod, agreedTotal, assignedStaffAccountId, bookingDate, draftKey, endTime, enquiry.email, enquiry.name, enquiry.phone, enquiry.whatsappNotificationsEnabled, enquiry.whatsappOptIn, location, notes, packageId, paymentDueDate, preferredEvent, shootType, startTime]);
 
   const handlePackage = (id: string) => {
     setPackageId(id);
@@ -801,7 +801,7 @@ function QuickConversionForm({
         location,
         packageId,
         agreedTotal,
-        assignedTeamMemberId,
+        assignedStaffAccountId,
         advanceAmount: canViewPayments ? advanceAmount : '',
         advanceMethod,
         paymentDueDate: canViewPayments ? paymentDueDate : '',
@@ -878,7 +878,7 @@ function QuickConversionForm({
             <label className="text-sm font-medium text-slate-700">Photography service<select className={input} value={shootType} onChange={event => setShootType(event.target.value)}><option value="">Not decided</option>{SHOOT_TYPE_OPTIONS.map(type => <option key={type}>{type}</option>)}</select></label>
             <label className="text-sm font-medium text-slate-700">Preferred event<input className={input} value={preferredEvent} onChange={event => setPreferredEvent(event.target.value)} /></label>
             <label className="text-sm font-medium text-slate-700 sm:col-span-2">Location<div className="relative"><MapPin className="pointer-events-none absolute left-3 top-1/2 mt-0.5 h-4 w-4 -translate-y-1/2 text-slate-400" /><input className={`${input} pl-9`} value={location} onChange={event => setLocation(event.target.value)} /></div></label>
-            <label className="text-sm font-medium text-slate-700">Assigned team member<select className={input} value={assignedTeamMemberId} onChange={event => setAssignedTeamMemberId(event.target.value)}><option value="">Unassigned</option>{teamMembers.map(member => <option key={member.id} value={member.id}>{member.name}</option>)}</select></label>
+            <label className="text-sm font-medium text-slate-700">Assigned staff account<select className={input} value={assignedStaffAccountId} onChange={event => setAssignedStaffAccountId(event.target.value)}><option value="">Unassigned</option>{staffAccounts.map(account => <option key={account.id} value={account.id}>{account.name}{account.jobTitle ? ` · ${account.jobTitle}` : ''}</option>)}</select></label>
             {canViewPayments && <label className="text-sm font-medium text-slate-700">Payment due date<input type="date" className={input} value={paymentDueDate} onChange={event => setPaymentDueDate(event.target.value)} /></label>}
             <label className="text-sm font-medium text-slate-700 sm:col-span-2">Internal notes<textarea rows={3} className={`${input} h-auto py-3`} value={notes} onChange={event => setNotes(event.target.value)} /></label>
           </section>}

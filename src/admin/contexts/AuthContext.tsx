@@ -1,13 +1,13 @@
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
-import type { User } from '../types';
+import type { StaffAccount } from '../types';
 import { api } from '../api/client';
 import { authStorage } from '../api/authStorage';
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  user: User | null;
+  user: StaffAccount | null;
   token: string | null;
-  login: (email: string, password: string) => Promise<User>;
+  login: (email: string, password: string) => Promise<StaffAccount>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   logout: () => Promise<void>;
   isLoading: boolean;
@@ -16,7 +16,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<StaffAccount | null>(null);
   const [token, setToken] = useState<string | null>(() => {
     return authStorage.getToken();
   });

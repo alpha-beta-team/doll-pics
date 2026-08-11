@@ -43,12 +43,12 @@ import {
   AdminTableSurface,
   adminFieldClass,
 } from '../components/ui';
-import type { User, UserAccessArea, UserPermissionOverrides, UserRole } from '../types';
-import { filterAdminUsers } from './users.utils';
+import type { StaffAccount, StaffAccessArea, StaffPermissionOverrides, StaffAccountRole } from '../types';
+import { filterStaffAccounts } from './staffAccounts.utils';
 
-type PageTab = 'users' | 'roles';
+type PageTab = 'accounts' | 'roles';
 
-type UserFormErrors = Partial<Record<'name' | 'email' | 'password', string>>;
+type StaffAccountFormErrors = Partial<Record<'name' | 'email' | 'password', string>>;
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -58,22 +58,22 @@ function initials(name: string) {
   return value.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
 }
 
-export function UsersPage() {
-  const [activeTab, setActiveTab] = useState<PageTab>('users');
-  const [users, setUsers] = useState<User[]>([]);
+export function StaffAccountsPage() {
+  const [activeTab, setActiveTab] = useState<PageTab>('accounts');
+  const [accounts, setAccounts] = useState<StaffAccount[]>([]);
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [drawerUser, setDrawerUser] = useState<User | 'new' | null>(null);
-  const [resetUser, setResetUser] = useState<User | null>(null);
-  const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
+  const [drawerAccount, setDrawerAccount] = useState<StaffAccount | 'new' | null>(null);
+  const [resetAccount, setResetAccount] = useState<StaffAccount | null>(null);
+  const [updatingAccountId, setUpdatingAccountId] = useState<string | null>(null);
 
-  const loadUsers = useCallback(async () => {
+  const loadStaffAccounts = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      setUsers(await api.getAdminUsers());
+      setAccounts(await api.getStaffAccounts());
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Could not load staff accounts.');
     } finally {
@@ -82,38 +82,38 @@ export function UsersPage() {
   }, []);
 
   useEffect(() => {
-    void loadUsers();
-  }, [loadUsers]);
+    void loadStaffAccounts();
+  }, [loadStaffAccounts]);
 
-  const visibleUsers = useMemo(() => filterAdminUsers(users, query), [query, users]);
+  const visibleAccounts = useMemo(() => filterStaffAccounts(accounts, query), [accounts, query]);
 
-  const saveUser = (saved: User, isNew: boolean) => {
-    setUsers((current) => isNew
+  const saveStaffAccount = (saved: StaffAccount, isNew: boolean) => {
+    setAccounts((current) => isNew
       ? [...current, saved]
-      : current.map((user) => user.id === saved.id ? saved : user));
-    setDrawerUser(null);
+      : current.map((account) => account.id === saved.id ? saved : account));
+    setDrawerAccount(null);
     setError('');
     setSuccess(isNew ? `${saved.name} was added.` : `${saved.name} was updated.`);
   };
 
-  const toggleUser = async (user: User) => {
-    setUpdatingUserId(user.id);
+  const toggleStaffAccount = async (account: StaffAccount) => {
+    setUpdatingAccountId(account.id);
     setError('');
     setSuccess('');
     try {
-      const saved = await api.updateAdminUser(user.id, { isActive: !user.isActive });
-      setUsers((current) => current.map((item) => item.id === saved.id ? saved : item));
+      const saved = await api.updateStaffAccount(account.id, { isActive: !account.isActive });
+      setAccounts((current) => current.map((item) => item.id === saved.id ? saved : item));
       setSuccess(`${saved.name} is now ${saved.isActive ? 'active' : 'inactive'}.`);
     } catch (updateError) {
       setError(updateError instanceof Error ? updateError.message : 'Could not update the account.');
     } finally {
-      setUpdatingUserId(null);
+      setUpdatingAccountId(null);
     }
   };
 
-  const finishPasswordReset = (saved: User) => {
-    setUsers((current) => current.map((item) => item.id === saved.id ? saved : item));
-    setResetUser(null);
+  const finishPasswordReset = (saved: StaffAccount) => {
+    setAccounts((current) => current.map((item) => item.id === saved.id ? saved : item));
+    setResetAccount(null);
     setError('');
     setSuccess(`A temporary password was set for ${saved.name}.`);
   };
@@ -122,19 +122,19 @@ export function UsersPage() {
     <div className="mx-auto max-w-6xl space-y-6">
       <AdminPageHeader
         eyebrow="Studio Settings"
-        title="Users & Access"
+        title="Staff Accounts & Access"
         description="Manage staff accounts and review what each fixed role is intended to access."
-        actions={activeTab === 'users' ? (
-          <AdminButton onClick={() => { setSuccess(''); setDrawerUser('new'); }}>
-            <Plus className="h-4 w-4" /> Add team member
+        actions={activeTab === 'accounts' ? (
+          <AdminButton onClick={() => { setSuccess(''); setDrawerAccount('new'); }}>
+            <Plus className="h-4 w-4" /> Add staff account
           </AdminButton>
         ) : undefined}
       />
 
-      <div className="border-b border-admin-border" role="tablist" aria-label="Users and roles">
+      <div className="border-b border-admin-border" role="tablist" aria-label="Staff accounts and roles">
         <div className="flex gap-1">
-          <TabButton active={activeTab === 'users'} onClick={() => setActiveTab('users')}>
-            <UsersRound className="h-4 w-4" /> Users
+          <TabButton active={activeTab === 'accounts'} onClick={() => setActiveTab('accounts')}>
+            <UsersRound className="h-4 w-4" /> Staff Accounts
           </TabButton>
           <TabButton active={activeTab === 'roles'} onClick={() => setActiveTab('roles')}>
             <ShieldCheck className="h-4 w-4" /> Roles Overview
@@ -142,15 +142,15 @@ export function UsersPage() {
         </div>
       </div>
 
-      {activeTab === 'users' ? (
-        <section role="tabpanel" aria-label="Users">
+      {activeTab === 'accounts' ? (
+        <section role="tabpanel" aria-label="Staff accounts">
           <div className="space-y-4">
             {error && <AdminAlert>{error}</AdminAlert>}
             {success && <AdminAlert tone="success">{success}</AdminAlert>}
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <label className="relative block w-full sm:max-w-sm">
-                <span className="sr-only">Search team members</span>
+                <span className="sr-only">Search staff accounts</span>
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-admin-subtle" />
                 <input
                   type="search"
@@ -162,42 +162,42 @@ export function UsersPage() {
               </label>
               {!loading && (
                 <p className="text-sm text-admin-subtle">
-                  {visibleUsers.length} {visibleUsers.length === 1 ? 'team member' : 'team members'}
+                  {visibleAccounts.length} {visibleAccounts.length === 1 ? 'staff account' : 'staff accounts'}
                 </p>
               )}
             </div>
 
             {loading ? (
-              <AdminCard><AdminLoadingState label="Loading team members…" /></AdminCard>
-            ) : users.length === 0 ? (
+              <AdminCard><AdminLoadingState label="Loading staff accounts…" /></AdminCard>
+            ) : accounts.length === 0 ? (
               <AdminEmptyState
                 icon={UsersRound}
-                title="No team members yet"
+                title="No staff accounts yet"
                 description="Add a staff account and choose the role that best matches their work."
-                action={<AdminButton onClick={() => setDrawerUser('new')}><Plus className="h-4 w-4" /> Add team member</AdminButton>}
+                action={<AdminButton onClick={() => setDrawerAccount('new')}><Plus className="h-4 w-4" /> Add staff account</AdminButton>}
               />
-            ) : visibleUsers.length === 0 ? (
+            ) : visibleAccounts.length === 0 ? (
               <AdminEmptyState
                 icon={Search}
-                title="No matching team members"
+                title="No matching staff accounts"
                 description="Try a different name or email address."
                 action={<AdminButton variant="secondary" onClick={() => setQuery('')}>Clear search</AdminButton>}
               />
             ) : (
               <>
-                <DesktopUsersTable
-                  users={visibleUsers}
-                  updatingUserId={updatingUserId}
-                  onEdit={setDrawerUser}
-                  onReset={setResetUser}
-                  onToggle={(user) => void toggleUser(user)}
+                <DesktopStaffAccountsTable
+                  accounts={visibleAccounts}
+                  updatingAccountId={updatingAccountId}
+                  onEdit={setDrawerAccount}
+                  onReset={setResetAccount}
+                  onToggle={(account) => void toggleStaffAccount(account)}
                 />
-                <MobileUsersList
-                  users={visibleUsers}
-                  updatingUserId={updatingUserId}
-                  onEdit={setDrawerUser}
-                  onReset={setResetUser}
-                  onToggle={(user) => void toggleUser(user)}
+                <MobileStaffAccountsList
+                  accounts={visibleAccounts}
+                  updatingAccountId={updatingAccountId}
+                  onEdit={setDrawerAccount}
+                  onReset={setResetAccount}
+                  onToggle={(account) => void toggleStaffAccount(account)}
                 />
               </>
             )}
@@ -209,18 +209,18 @@ export function UsersPage() {
         </section>
       )}
 
-      <UserDrawer
-        key={drawerUser === 'new' ? 'new' : drawerUser?.id ?? 'closed'}
-        open={drawerUser !== null}
-        user={drawerUser === 'new' ? undefined : drawerUser ?? undefined}
-        onClose={() => setDrawerUser(null)}
-        onSaved={saveUser}
+      <StaffAccountDrawer
+        key={`staff-account-drawer:${drawerAccount === 'new' ? 'new' : drawerAccount?.id ?? 'closed'}`}
+        open={drawerAccount !== null}
+        account={drawerAccount === 'new' ? undefined : drawerAccount ?? undefined}
+        onClose={() => setDrawerAccount(null)}
+        onSaved={saveStaffAccount}
       />
 
       <ResetPasswordDialog
-        key={resetUser?.id ?? 'closed'}
-        user={resetUser}
-        onClose={() => setResetUser(null)}
+        key={`password-reset:${resetAccount?.id ?? 'closed'}`}
+        account={resetAccount}
+        onClose={() => setResetAccount(null)}
         onSaved={finishPasswordReset}
       />
     </div>
@@ -242,21 +242,21 @@ function TabButton({ active, onClick, children }: { active: boolean; onClick: ()
   );
 }
 
-type UserListProps = {
-  users: User[];
-  updatingUserId: string | null;
-  onEdit: (user: User) => void;
-  onReset: (user: User) => void;
-  onToggle: (user: User) => void;
+type StaffAccountListProps = {
+  accounts: StaffAccount[];
+  updatingAccountId: string | null;
+  onEdit: (account: StaffAccount) => void;
+  onReset: (account: StaffAccount) => void;
+  onToggle: (account: StaffAccount) => void;
 };
 
-function DesktopUsersTable({ users, updatingUserId, onEdit, onReset, onToggle }: UserListProps) {
+function DesktopStaffAccountsTable({ accounts, updatingAccountId, onEdit, onReset, onToggle }: StaffAccountListProps) {
   return (
     <AdminTableSurface className="hidden md:block">
       <table className="w-full min-w-[920px] text-left text-sm">
         <thead className="border-b border-admin-border bg-admin-muted/60 text-xs font-semibold uppercase tracking-wide text-admin-subtle">
           <tr>
-            <th className="px-5 py-3">Team member</th>
+            <th className="px-5 py-3">Staff account</th>
             <th className="px-5 py-3">Title</th>
             <th className="px-5 py-3">Access role</th>
             <th className="px-5 py-3">Status</th>
@@ -264,23 +264,23 @@ function DesktopUsersTable({ users, updatingUserId, onEdit, onReset, onToggle }:
           </tr>
         </thead>
         <tbody className="divide-y divide-admin-border">
-          {users.map((user) => (
-            <tr key={user.id} className="transition hover:bg-admin-muted/40">
+          {accounts.map((account) => (
+            <tr key={account.id} className="transition hover:bg-admin-muted/40">
               <td className="px-5 py-4">
-                <UserIdentity user={user} showJobTitle={false} />
+                <StaffAccountIdentity account={account} showJobTitle={false} />
               </td>
-              <td className="px-5 py-4 text-admin-secondary">{user.jobTitle || '—'}</td>
-              <td className="px-5 py-4"><RoleSummary user={user} /></td>
-              <td className="px-5 py-4"><AccountStatus user={user} /></td>
+              <td className="px-5 py-4 text-admin-secondary">{account.jobTitle || '—'}</td>
+              <td className="px-5 py-4"><RoleSummary account={account} /></td>
+              <td className="px-5 py-4"><AccountStatus account={account} /></td>
               <td className="px-5 py-4">
                 <div className="flex justify-end gap-2">
-                  <AdminIconButton label={`Edit ${user.name}`} onClick={() => onEdit(user)}><Pencil className="h-4 w-4" /></AdminIconButton>
-                  <AdminIconButton label={`Reset password for ${user.name}`} onClick={() => onReset(user)}><KeyRound className="h-4 w-4" /></AdminIconButton>
+                  <AdminIconButton label={`Edit ${account.name}`} onClick={() => onEdit(account)}><Pencil className="h-4 w-4" /></AdminIconButton>
+                  <AdminIconButton label={`Reset password for ${account.name}`} onClick={() => onReset(account)}><KeyRound className="h-4 w-4" /></AdminIconButton>
                   <AdminIconButton
-                    label={`${user.isActive ? 'Deactivate' : 'Activate'} ${user.name}`}
-                    disabled={updatingUserId === user.id}
-                    onClick={() => onToggle(user)}
-                    className={user.isActive ? 'hover:border-red-300 hover:bg-red-50 hover:text-red-700' : 'hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700'}
+                    label={`${account.isActive ? 'Deactivate' : 'Activate'} ${account.name}`}
+                    disabled={updatingAccountId === account.id}
+                    onClick={() => onToggle(account)}
+                    className={account.isActive ? 'hover:border-red-300 hover:bg-red-50 hover:text-red-700' : 'hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700'}
                   >
                     <Power className="h-4 w-4" />
                   </AdminIconButton>
@@ -294,26 +294,26 @@ function DesktopUsersTable({ users, updatingUserId, onEdit, onReset, onToggle }:
   );
 }
 
-function MobileUsersList({ users, updatingUserId, onEdit, onReset, onToggle }: UserListProps) {
+function MobileStaffAccountsList({ accounts, updatingAccountId, onEdit, onReset, onToggle }: StaffAccountListProps) {
   return (
     <div className="space-y-3 md:hidden">
-      {users.map((user) => (
-        <AdminCard key={user.id} className="p-4">
-          <UserIdentity user={user} />
+      {accounts.map((account) => (
+        <AdminCard key={account.id} className="p-4">
+          <StaffAccountIdentity account={account} />
           <div className="mt-4 flex flex-wrap gap-2">
-            <RoleSummary user={user} />
-            <AccountStatus user={user} />
+            <RoleSummary account={account} />
+            <AccountStatus account={account} />
           </div>
           <div className="mt-4 grid grid-cols-3 gap-2 border-t border-admin-border pt-4">
-            <AdminButton variant="secondary" className="px-2" onClick={() => onEdit(user)}><Pencil className="h-4 w-4" /> Edit</AdminButton>
-            <AdminButton variant="secondary" className="px-2" onClick={() => onReset(user)}><KeyRound className="h-4 w-4" /> Password</AdminButton>
+            <AdminButton variant="secondary" className="px-2" onClick={() => onEdit(account)}><Pencil className="h-4 w-4" /> Edit</AdminButton>
+            <AdminButton variant="secondary" className="px-2" onClick={() => onReset(account)}><KeyRound className="h-4 w-4" /> Password</AdminButton>
             <AdminButton
               variant="quiet"
-              className={user.isActive ? 'px-2 text-red-700' : 'px-2 text-emerald-700'}
-              disabled={updatingUserId === user.id}
-              onClick={() => onToggle(user)}
+              className={account.isActive ? 'px-2 text-red-700' : 'px-2 text-emerald-700'}
+              disabled={updatingAccountId === account.id}
+              onClick={() => onToggle(account)}
             >
-              <Power className="h-4 w-4" /> {user.isActive ? 'Disable' : 'Enable'}
+              <Power className="h-4 w-4" /> {account.isActive ? 'Disable' : 'Enable'}
             </AdminButton>
           </div>
         </AdminCard>
@@ -322,32 +322,32 @@ function MobileUsersList({ users, updatingUserId, onEdit, onReset, onToggle }: U
   );
 }
 
-function UserIdentity({ user, showJobTitle = true }: { user: User; showJobTitle?: boolean }) {
+function StaffAccountIdentity({ account, showJobTitle = true }: { account: StaffAccount; showJobTitle?: boolean }) {
   return (
     <div className="flex min-w-0 items-center gap-3">
       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-admin-muted text-sm font-bold text-admin-primary">
-        {initials(user.name)}
+        {initials(account.name)}
       </span>
       <div className="min-w-0">
-        <p className="truncate font-semibold text-admin-text">{user.name}</p>
-        {showJobTitle && user.jobTitle && <p className="truncate text-sm font-medium text-admin-secondary">{user.jobTitle}</p>}
-        <p className="truncate text-sm text-admin-subtle">{user.email}</p>
+        <p className="truncate font-semibold text-admin-text">{account.name}</p>
+        {showJobTitle && account.jobTitle && <p className="truncate text-sm font-medium text-admin-secondary">{account.jobTitle}</p>}
+        <p className="truncate text-sm text-admin-subtle">{account.email}</p>
       </div>
     </div>
   );
 }
 
-function RoleBadge({ role }: { role: UserRole }) {
+function RoleBadge({ role }: { role: StaffAccountRole }) {
   const details = ROLE_CATALOG[role];
   return <AdminBadge className={details.badgeClassName}>{details.label}</AdminBadge>;
 }
 
-function RoleSummary({ user }: { user: User }) {
-  const overrideCount = getOverrideCount(user.permissionOverrides);
+function RoleSummary({ account }: { account: StaffAccount }) {
+  const overrideCount = getOverrideCount(account.permissionOverrides);
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <RoleBadge role={user.role} />
-      {overrideCount > 0 && user.role !== 'owner' && (
+      <RoleBadge role={account.role} />
+      {overrideCount > 0 && account.role !== 'owner' && (
         <AdminBadge className="bg-violet-100 text-violet-800">
           <SlidersHorizontal className="mr-1 h-3 w-3" />
           {overrideCount} {overrideCount === 1 ? 'override' : 'overrides'}
@@ -357,46 +357,46 @@ function RoleSummary({ user }: { user: User }) {
   );
 }
 
-function AccountStatus({ user }: { user: User }) {
+function AccountStatus({ account }: { account: StaffAccount }) {
   return (
     <div className="flex flex-wrap gap-2">
-      <AdminBadge className={user.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'}>
-        {user.isActive ? 'Active' : 'Inactive'}
+      <AdminBadge className={account.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'}>
+        {account.isActive ? 'Active' : 'Inactive'}
       </AdminBadge>
-      {user.mustChangePassword && <AdminBadge className="bg-orange-100 text-orange-800">Password change pending</AdminBadge>}
+      {account.mustChangePassword && <AdminBadge className="bg-orange-100 text-orange-800">Password change pending</AdminBadge>}
     </div>
   );
 }
 
-function UserDrawer({
+function StaffAccountDrawer({
   open,
-  user,
+  account,
   onClose,
   onSaved,
 }: {
   open: boolean;
-  user?: User;
+  account?: StaffAccount;
   onClose: () => void;
-  onSaved: (user: User, isNew: boolean) => void;
+  onSaved: (account: StaffAccount, isNew: boolean) => void;
 }) {
-  const isNew = !user;
-  const [name, setName] = useState(user?.name ?? '');
-  const [jobTitle, setJobTitle] = useState(user?.jobTitle ?? '');
-  const [email, setEmail] = useState(user?.email ?? '');
+  const isNew = !account;
+  const [name, setName] = useState(account?.name ?? '');
+  const [jobTitle, setJobTitle] = useState(account?.jobTitle ?? '');
+  const [email, setEmail] = useState(account?.email ?? '');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [role, setRole] = useState<UserRole>(user?.role ?? 'sales');
-  const [permissionOverrides, setPermissionOverrides] = useState<UserPermissionOverrides>(
-    user?.role === 'owner' ? {} : user?.permissionOverrides ?? {},
+  const [role, setRole] = useState<StaffAccountRole>(account?.role ?? 'sales');
+  const [permissionOverrides, setPermissionOverrides] = useState<StaffPermissionOverrides>(
+    account?.role === 'owner' ? {} : account?.permissionOverrides ?? {},
   );
-  const [isActive, setIsActive] = useState(user?.isActive ?? true);
-  const [errors, setErrors] = useState<UserFormErrors>({});
+  const [isActive, setIsActive] = useState(account?.isActive ?? true);
+  const [errors, setErrors] = useState<StaffAccountFormErrors>({});
   const [requestError, setRequestError] = useState('');
   const [saving, setSaving] = useState(false);
 
   const validate = () => {
-    const nextErrors: UserFormErrors = {};
-    if (!name.trim()) nextErrors.name = 'Enter the team member’s name.';
+    const nextErrors: StaffAccountFormErrors = {};
+    if (!name.trim()) nextErrors.name = 'Enter the staff account name.';
     if (isNew && !email.trim()) nextErrors.email = 'Enter an email address.';
     else if (isNew && !EMAIL_PATTERN.test(email.trim())) nextErrors.email = 'Enter a valid email address.';
     if (isNew && password.length < 8) nextErrors.password = 'Use at least 8 characters.';
@@ -412,7 +412,7 @@ function UserDrawer({
     try {
       const savedOverrides = role === 'owner' ? {} : permissionOverrides;
       const saved = isNew
-        ? await api.createAdminUser({
+        ? await api.createStaffAccount({
           name: name.trim(),
           jobTitle: jobTitle.trim(),
           email: email.trim().toLocaleLowerCase(),
@@ -420,7 +420,7 @@ function UserDrawer({
           role,
           permissionOverrides: savedOverrides,
         })
-        : await api.updateAdminUser(user.id, {
+        : await api.updateStaffAccount(account.id, {
           name: name.trim(),
           jobTitle: jobTitle.trim(),
           role,
@@ -437,19 +437,19 @@ function UserDrawer({
   return (
     <AdminDrawer
       open={open}
-      title={isNew ? 'Add team member' : 'Edit team member'}
-      description={isNew ? 'Create a staff login and choose their role.' : `Update access for ${user.name}.`}
+      title={isNew ? 'Add staff account' : 'Edit staff account'}
+      description={isNew ? 'Create a staff login and choose their role.' : `Update access for ${account.name}.`}
       onClose={onClose}
       footer={(
         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <AdminButton variant="secondary" onClick={onClose}>Cancel</AdminButton>
-          <AdminButton type="submit" form="user-access-form" disabled={saving}>
+          <AdminButton type="submit" form="staff-account-access-form" disabled={saving}>
             {saving ? 'Saving…' : isNew ? 'Create account' : 'Save changes'}
           </AdminButton>
         </div>
       )}
     >
-      <form id="user-access-form" className="space-y-6" onSubmit={(event) => void submit(event)} noValidate>
+      <form id="staff-account-access-form" className="space-y-6" onSubmit={(event) => void submit(event)} noValidate>
         {requestError && <AdminAlert>{requestError}</AdminAlert>}
 
         <div className="space-y-4">
@@ -485,7 +485,7 @@ function UserDrawer({
           </AdminField>
 
           {isNew && (
-            <AdminField label="Temporary password" error={errors.password} hint="The user will be asked to change it after signing in.">
+            <AdminField label="Temporary password" error={errors.password} hint="The staff account will require a password change after signing in.">
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -558,7 +558,7 @@ function UserDrawer({
           <label className="flex items-center justify-between gap-4 rounded-xl border border-admin-border bg-admin-muted/40 p-4">
             <span>
               <span className="block text-sm font-semibold text-admin-text">Account active</span>
-              <span className="mt-1 block text-sm text-admin-subtle">Inactive users should not be able to sign in.</span>
+              <span className="mt-1 block text-sm text-admin-subtle">Inactive staff accounts cannot sign in.</span>
             </span>
             <input
               type="checkbox"
@@ -573,7 +573,7 @@ function UserDrawer({
   );
 }
 
-function AccessPreview({ role, overrides }: { role: UserRole; overrides: UserPermissionOverrides }) {
+function AccessPreview({ role, overrides }: { role: StaffAccountRole; overrides: StaffPermissionOverrides }) {
   const visible = ROLE_ACCESS_AREAS.filter(({ id }) => getEffectiveAccess(role, id, overrides) !== 'none');
   const manageCount = visible.filter(({ id }) => getEffectiveAccess(role, id, overrides) === 'manage').length;
   const viewCount = visible.length - manageCount;
@@ -588,7 +588,7 @@ function AccessPreview({ role, overrides }: { role: UserRole; overrides: UserPer
         {manageCount > 0 && <AccessBadge level="manage" label={`${manageCount} areas`} />}
         {viewCount > 0 && <AccessBadge level="view" label={`${viewCount} areas`} />}
       </div>
-      <p className="mt-3 text-xs leading-5 text-admin-subtle">Effective access combines the selected role with this user’s individual changes.</p>
+      <p className="mt-3 text-xs leading-5 text-admin-subtle">Effective access combines the selected role with this staff account’s individual changes.</p>
     </section>
   );
 }
@@ -600,9 +600,9 @@ function PermissionOverridesPanel({
   overrides,
   onChange,
 }: {
-  role: UserRole;
-  overrides: UserPermissionOverrides;
-  onChange: (overrides: UserPermissionOverrides) => void;
+  role: StaffAccountRole;
+  overrides: StaffPermissionOverrides;
+  onChange: (overrides: StaffPermissionOverrides) => void;
 }) {
   const overrideCount = getOverrideCount(overrides);
   const [expanded, setExpanded] = useState(overrideCount > 0);
@@ -614,7 +614,7 @@ function PermissionOverridesPanel({
     ])),
   );
 
-  const setOverride = (area: UserAccessArea, value: OverrideChoice) => {
+  const setOverride = (area: StaffAccessArea, value: OverrideChoice) => {
     const next = { ...overrides };
     if (value === 'inherit') delete next[area];
     else next[area] = value;
@@ -662,7 +662,7 @@ function PermissionOverridesPanel({
             <span className="font-semibold text-admin-text">Advanced access</span>
             {overrideCount > 0 && <AdminBadge className="bg-violet-100 text-violet-800">{overrideCount} customized</AdminBadge>}
           </span>
-          <span className="mt-1 block text-sm text-admin-subtle">Override this user’s role defaults only when necessary.</span>
+          <span className="mt-1 block text-sm text-admin-subtle">Override this staff account’s role defaults only when necessary.</span>
         </span>
         <ChevronDown className={`h-5 w-5 shrink-0 text-admin-subtle transition ${expanded ? 'rotate-180' : ''}`} />
       </button>
@@ -783,7 +783,7 @@ function PermissionOverridesPanel({
   );
 }
 
-function ResetPasswordDialog({ user, onClose, onSaved }: { user: User | null; onClose: () => void; onSaved: (user: User) => void }) {
+function ResetPasswordDialog({ account, onClose, onSaved }: { account: StaffAccount | null; onClose: () => void; onSaved: (account: StaffAccount) => void }) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -791,7 +791,7 @@ function ResetPasswordDialog({ user, onClose, onSaved }: { user: User | null; on
 
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!user) return;
+    if (!account) return;
     if (password.length < 8) {
       setError('Use at least 8 characters.');
       return;
@@ -799,7 +799,7 @@ function ResetPasswordDialog({ user, onClose, onSaved }: { user: User | null; on
     setSaving(true);
     setError('');
     try {
-      onSaved(await api.resetAdminUserPassword(user.id, password));
+      onSaved(await api.resetStaffAccountPassword(account.id, password));
     } catch (resetError) {
       setError(resetError instanceof Error ? resetError.message : 'Could not reset the password.');
       setSaving(false);
@@ -808,9 +808,9 @@ function ResetPasswordDialog({ user, onClose, onSaved }: { user: User | null; on
 
   return (
     <AdminModal
-      open={user !== null}
+      open={account !== null}
       title="Reset temporary password"
-      description={user ? `Set a temporary password for ${user.name}.` : undefined}
+      description={account ? `Set a temporary password for ${account.name}.` : undefined}
       onClose={onClose}
       footer={(
         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
@@ -820,7 +820,7 @@ function ResetPasswordDialog({ user, onClose, onSaved }: { user: User | null; on
       )}
     >
       <form id="reset-password-form" onSubmit={(event) => void submit(event)}>
-        <AdminField label="Temporary password" error={error} hint="The user will be asked to change it after signing in.">
+        <AdminField label="Temporary password" error={error} hint="The staff account will require a password change after signing in.">
           <div className="relative">
             <input
               autoFocus

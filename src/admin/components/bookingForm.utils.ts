@@ -27,7 +27,7 @@ export const BOOKING_WIZARD_FIELD_LABELS = {
   endTime: 'End time',
   package: 'Package',
   agreedTotal: 'Agreed total (\u20b9)',
-  assignedTeamMember: 'Assigned team member',
+  assignedStaffAccount: 'Assigned staff account',
   paymentDueDate: 'Payment due date',
   advanceAmount: 'Advance received (\u20b9)',
   advanceMethod: 'Advance method',

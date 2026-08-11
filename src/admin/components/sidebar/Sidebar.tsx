@@ -284,7 +284,7 @@ export function Sidebar({
             {profileOpen && (
               <div
                 role="menu"
-                aria-label="User profile"
+                aria-label="Staff account menu"
                 className={`absolute z-[75] min-w-60 rounded-xl border border-admin-border bg-admin-surface p-2 text-admin-text shadow-2xl ${showCollapsedChrome ? 'bottom-0 left-full ml-3' : 'bottom-full inset-x-0 mb-2'}`}
               >
                 <div className="border-b border-admin-border px-3 py-2.5">

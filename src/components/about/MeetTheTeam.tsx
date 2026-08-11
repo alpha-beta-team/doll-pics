@@ -3,10 +3,10 @@ import { useInView } from '../../hooks/useScroll';
 import { TeamCard } from './TeamCard';
 
 export function MeetTheTeam() {
-  const { teamMembers, loading } = useSiteData();
+  const { staffProfiles, loading } = useSiteData();
   const { ref, inView } = useInView<HTMLDivElement>();
 
-  if (!loading && !teamMembers.length) return null;
+  if (!loading && !staffProfiles.length) return null;
 
   return (
     <section id="team" className="relative scroll-mt-24 bg-ink-950 px-6 py-32 lg:px-10">
@@ -36,7 +36,7 @@ export function MeetTheTeam() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
-            {teamMembers.map((member, i) => (
+            {staffProfiles.map((member, i) => (
               <TeamCard key={`${member.name}-${i}`} member={member} index={i} />
             ))}
           </div>

@@ -11,7 +11,7 @@ import { packagesApi } from './packages';
 import { photosApi } from './photos';
 import { siteContentApi } from './siteContent';
 import { workApi } from './work';
-import { usersApi } from './users';
+import { staffAccountsApi } from './staffAccounts';
 import { integrationsApi } from './integrations';
 import { searchApi } from './search';
 import { customerLookupApi } from './customerLookup';
@@ -31,7 +31,7 @@ export const api = {
   ...bookingsApi,
   ...orderedContentApi,
   ...workApi,
-  ...usersApi,
+  ...staffAccountsApi,
   ...integrationsApi,
   ...searchApi,
   ...customerLookupApi,

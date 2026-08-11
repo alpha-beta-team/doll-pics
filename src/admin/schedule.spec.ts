@@ -16,7 +16,7 @@ const booking = (overrides: Partial<ScheduleBookingItem> = {}): ScheduleBookingI
   endTime: '12:00',
   status: 'confirmed',
   location: 'Studio',
-  assignedTeamMemberName: '',
+  assignedStaffAccountName: '',
   whatsappOptIn: true,
   ...overrides,
 });

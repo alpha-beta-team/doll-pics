@@ -5,15 +5,15 @@ import {
   getEffectiveAccess,
   getOverrideCount,
   normalizePermissionOverrides,
-  normalizeUserRole,
+  normalizeStaffAccountRole,
   ROLE_CATALOG,
   ROLE_ORDER,
 } from './roles';
 
 test('normalizes the legacy operations role to sales', () => {
-  assert.equal(normalizeUserRole('operations'), 'sales');
-  assert.equal(normalizeUserRole('content_manager'), 'content_manager');
-  assert.equal(normalizeUserRole(undefined, 'owner'), 'owner');
+  assert.equal(normalizeStaffAccountRole('operations'), 'sales');
+  assert.equal(normalizeStaffAccountRole('content_manager'), 'content_manager');
+  assert.equal(normalizeStaffAccountRole(undefined, 'owner'), 'owner');
 });
 
 test('defines the fixed roles in their display order', () => {
@@ -24,14 +24,22 @@ test('content managers can view enquiries and manage content and photos', () => 
   const access = ROLE_CATALOG.content_manager.access;
   assert.equal(access.dashboard, 'view');
   assert.equal(access.enquiries, 'view');
-  assert.equal(access.content, 'manage');
+  assert.equal(access.staff_profiles, 'manage');
   assert.equal(access.photos, 'manage');
   assert.equal(access.payments, 'none');
 });
 
 test('sales access is limited to dashboard and studio operations', () => {
   const summary = getAccessSummary('sales');
-  assert.deepEqual(summary, ['Dashboard (view only)', 'Enquiries', 'Bookings', 'Schedule']);
+  assert.deepEqual(summary, [
+    'Dashboard (view only)',
+    'Today',
+    'Enquiries',
+    'Bookings',
+    'Schedule',
+    'Occasions',
+    'Quotations',
+  ]);
 });
 
 test('normalizes valid overrides and ignores unknown values', () => {

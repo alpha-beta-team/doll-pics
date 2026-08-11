@@ -16,7 +16,7 @@ function mapItem(value: Record<string, unknown>): ScheduleBookingItem {
     endTime: String(value.endTime ?? ''),
     status: value.status as ScheduleBookingItem['status'],
     location: String(value.location ?? ''),
-    assignedTeamMemberName: String(value.assignedTeamMemberName ?? ''),
+    assignedStaffAccountName: String(value.assignedStaffAccountName ?? ''),
     whatsappOptIn: value.whatsappOptIn === true,
     whatsappOptOutAt: value.whatsappOptOutAt ? String(value.whatsappOptOutAt) : undefined,
   };

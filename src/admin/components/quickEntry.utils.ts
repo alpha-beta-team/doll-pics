@@ -33,7 +33,7 @@ export type QuickConversionValues = {
   location: string;
   packageId: string;
   agreedTotal: string;
-  assignedTeamMemberId: string;
+  assignedStaffAccountId: string;
   advanceAmount: string;
   advanceMethod: PaymentMethod;
   paymentDueDate: string;
@@ -127,7 +127,7 @@ export function buildQuickConversionPayload(
     location: values.location.trim() || undefined,
     packageId: values.packageId || undefined,
     agreedTotal: values.agreedTotal === '' ? undefined : Number(values.agreedTotal),
-    assignedTeamMemberId: values.assignedTeamMemberId || undefined,
+    assignedStaffAccountId: values.assignedStaffAccountId || undefined,
     advanceAmount: Number.isFinite(advance) && advance > 0 ? advance : undefined,
     advanceMethod:
       Number.isFinite(advance) && advance > 0 ? values.advanceMethod : undefined,

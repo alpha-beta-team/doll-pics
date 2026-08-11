@@ -53,7 +53,7 @@ export type ScheduleBookingItem = {
   endTime: string;
   status: BookingStatus;
   location: string;
-  assignedTeamMemberName: string;
+  assignedStaffAccountName: string;
   whatsappOptIn: boolean;
   whatsappOptOutAt?: string;
 };
@@ -347,9 +347,9 @@ export type BehindScene = CmsMeta & {
   description?: string;
 };
 
-export type TeamMember = CmsMeta & {
+export type StaffProfile = CmsMeta & {
   name: string;
-  role: string;
+  jobTitle: string;
   bio: string;
   photo: string;
   photoOriginal: string;
@@ -369,7 +369,7 @@ export type PublicBehindScene = Pick<
   BehindScene,
   'title' | 'image' | 'video' | 'description'
 >;
-export type PublicTeamMember = Pick<TeamMember, 'name' | 'role' | 'bio' | 'photo'>;
+export type PublicStaffProfile = Pick<StaffProfile, 'name' | 'jobTitle' | 'bio' | 'photo'>;
 
 // —— Ops ——————————————————————————————————————————————————————
 
@@ -432,7 +432,7 @@ export type ConvertEnquiryPayload = {
   location?: string;
   packageId?: string | null;
   agreedTotal?: number | null;
-  assignedTeamMemberId?: string | null;
+  assignedStaffAccountId?: string | null;
   paymentDueDate?: string;
   notes?: string;
   advanceAmount?: number;
@@ -514,8 +514,8 @@ export type Booking = {
   packageListedPrice: number | null;
   packagePricingMode: PricingMode | '';
   agreedTotal: number | null;
-  assignedTeamMemberId?: string;
-  assignedTeamMemberName: string;
+  assignedStaffAccountId?: string;
+  assignedStaffAccountName: string;
   payments: BookingPayment[];
   paymentSummary: PaymentSummary;
   driveGalleryUrl: string;
@@ -602,7 +602,7 @@ export type BookingWritePayload = {
   notes?: string;
   packageId?: string | null;
   agreedTotal?: number | null;
-  assignedTeamMemberId?: string | null;
+  assignedStaffAccountId?: string | null;
   advanceAmount?: number;
   advancePaidAt?: string;
   advanceMethod?: PaymentMethod;
@@ -617,9 +617,9 @@ export type BookingWritePayload = {
   acknowledgeUntimedConflict?: boolean;
 };
 
-export type UserRole = 'owner' | 'sales' | 'content_manager';
+export type StaffAccountRole = 'owner' | 'sales' | 'content_manager';
 
-export type UserAccessArea =
+export type StaffAccessArea =
   | 'dashboard'
   | 'today'
   | 'enquiries'
@@ -637,24 +637,30 @@ export type UserAccessArea =
   | 'statistics'
   | 'testimonials'
   | 'behind_scenes'
-  | 'team_members'
+  | 'staff_profiles'
   | 'site_content'
   | 'integrations'
-  | 'users';
+  | 'staff_accounts';
 
-export type UserAccessLevel = 'manage' | 'view' | 'none';
+export type StaffAccessLevel = 'manage' | 'view' | 'none';
 
-export type UserPermissionOverrides = Partial<Record<UserAccessArea, UserAccessLevel>>;
+export type StaffPermissionOverrides = Partial<Record<StaffAccessArea, StaffAccessLevel>>;
 
-export type User = {
+export type StaffAccount = {
   id: string;
   email: string;
   name: string;
   jobTitle?: string;
-  role: UserRole;
-  permissionOverrides?: UserPermissionOverrides;
+  role: StaffAccountRole;
+  permissionOverrides?: StaffPermissionOverrides;
   isActive: boolean;
   mustChangePassword: boolean;
+};
+
+export type StaffAccountOption = {
+  id: string;
+  name: string;
+  jobTitle: string;
 };
 
 export type TodayFollowUp = {
@@ -686,7 +692,7 @@ export type TodaySummaryItem = {
   status?: BookingStatus;
   source?: EnquirySource;
   createdAt?: string;
-  assignedTeamMemberName?: string;
+  assignedStaffAccountName?: string;
   startTime?: string;
   endTime?: string;
   whatsappOptIn?: boolean;
@@ -871,6 +877,6 @@ export type VoiceNoteSummary = {
 
 export type AuthState = {
   isAuthenticated: boolean;
-  user: User | null;
+  user: StaffAccount | null;
   token: string | null;
 };

@@ -12,7 +12,7 @@ import type {
   SiteContent,
   Stat,
   StoryScene,
-  TeamMember,
+  StaffProfile,
   Testimonial,
 } from '../types';
 import { normalizeId } from './http';
@@ -231,8 +231,8 @@ export function mapBooking(doc: Record<string, unknown>): Booking {
     packageListedPrice: doc.packageListedPrice == null ? null : Number(doc.packageListedPrice),
     packagePricingMode: (doc.packagePricingMode as Booking['packagePricingMode']) ?? '',
     agreedTotal: doc.agreedTotal == null ? null : Number(doc.agreedTotal),
-    assignedTeamMemberId: doc.assignedTeamMemberId ? String(doc.assignedTeamMemberId) : undefined,
-    assignedTeamMemberName: (doc.assignedTeamMemberName as string) ?? '',
+    assignedStaffAccountId: doc.assignedStaffAccountId ? String(doc.assignedStaffAccountId) : undefined,
+    assignedStaffAccountName: (doc.assignedStaffAccountName as string) ?? '',
     payments: rawPayments.map(payment => ({
       id: String(payment.id ?? payment._id ?? ''),
       amount: Number(payment.amount) || 0,
@@ -376,11 +376,11 @@ export function mapBehindScene(doc: Record<string, unknown>): BehindScene {
   }));
 }
 
-export function mapTeamMember(doc: Record<string, unknown>): TeamMember {
+export function mapStaffProfile(doc: Record<string, unknown>): StaffProfile {
   return mapOrderedItem(doc, (base) => ({
     ...base,
     name: (doc.name as string) ?? '',
-    role: (doc.role as string) ?? '',
+    jobTitle: (doc.jobTitle as string) ?? '',
     bio: (doc.bio as string) ?? '',
     photo: (doc.photo as string) ?? '',
     photoOriginal: (doc.photoOriginal as string) ?? '',

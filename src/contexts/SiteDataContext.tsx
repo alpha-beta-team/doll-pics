@@ -21,7 +21,7 @@ import type {
   PublicSiteContent,
   PublicStat,
   PublicStoryScene,
-  PublicTeamMember,
+  PublicStaffProfile,
   PublicTestimonial,
 } from '../shared/types';
 import {
@@ -32,7 +32,7 @@ import {
   stats as fallbackStats,
   testimonials as fallbackTestimonials,
   behindScenes as fallbackBehindScenes,
-  teamMembers as fallbackTeamMembers,
+  staffProfiles as fallbackStaffProfiles,
 } from '../data/content';
 import {
   DEFAULT_PACKAGE_NAV_LINKS,
@@ -94,7 +94,7 @@ export interface SiteData {
   stats: PublicStat[];
   testimonials: PublicTestimonial[];
   behindScenes: PublicBehindScene[];
-  teamMembers: PublicTeamMember[];
+  staffProfiles: PublicStaffProfile[];
   loading: boolean;
   fromApi: boolean;
 }
@@ -300,7 +300,7 @@ const fallbackData: Omit<SiteData, 'loading' | 'fromApi'> = {
   stats: fallbackStats,
   testimonials: fallbackTestimonials,
   behindScenes: fallbackBehindScenes,
-  teamMembers: fallbackTeamMembers,
+  staffProfiles: fallbackStaffProfiles,
 };
 
 const SiteDataContext = createContext<SiteData>({
@@ -525,18 +525,18 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
               }
 
               if (bucket === 'about') {
-                const [teamMembers, behindScenes] = await Promise.all([
+                const [staffProfiles, behindScenes] = await Promise.all([
                   publicApi
-                    .getTeamMembers()
-                    .catch(() => [] as PublicTeamMember[]),
+                    .getStaffProfiles()
+                    .catch(() => [] as PublicStaffProfile[]),
                   loadedBuckets.current.has('home')
                     ? Promise.resolve(null)
                     : publicApi.getBehindScenes(),
                 ]);
                 if (cancelledRef.current || effectCancelled) return;
-                patch.teamMembers = teamMembers.length
-                  ? teamMembers
-                  : fallbackTeamMembers;
+                patch.staffProfiles = staffProfiles.length
+                  ? staffProfiles
+                  : fallbackStaffProfiles;
                 if (behindScenes) {
                   patch.behindScenes = behindScenes.length
                     ? behindScenes

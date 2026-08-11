@@ -10,7 +10,7 @@ import {
   X,
 } from 'lucide-react';
 import { api } from '../api/client';
-import type { Booking, BookingStatus, BookingWritePayload, Enquiry, Package, TeamMember } from '../types';
+import type { Booking, BookingStatus, BookingWritePayload, Enquiry, Package, StaffAccountOption } from '../types';
 import { BookingFormModal } from '../components/BookingFormModal';
 import { formatTimeWindow } from '../../shared/bookingTime';
 import { AdminButton, AdminIconButton, AdminLoadingState, AdminPageHeader } from '../components/ui';
@@ -58,7 +58,7 @@ export function BookingsPage() {
   const location = useLocation();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [packages, setPackages] = useState<Package[]>([]);
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [staffAccounts, setStaffAccounts] = useState<StaffAccountOption[]>([]);
   const [creating, setCreating] = useState(false);
   const [convertFromEnquiry, setConvertFromEnquiry] = useState<Enquiry | null>(null);
   const [loading, setLoading] = useState(true);
@@ -75,14 +75,14 @@ export function BookingsPage() {
     else setLoading(true);
     setError('');
     try {
-      const [bookingRows, packageRows, memberRows] = await Promise.all([
+      const [bookingRows, packageRows, accountRows] = await Promise.all([
         api.getBookings(),
         canManage ? api.getPackages() : Promise.resolve<Package[]>([]),
-        canManage ? api.getTeamMembers() : Promise.resolve<TeamMember[]>([]),
+        canManage ? api.getAssignableStaffAccounts() : Promise.resolve<StaffAccountOption[]>([]),
       ]);
       setBookings(bookingRows);
       setPackages(packageRows);
-      setTeamMembers(memberRows);
+      setStaffAccounts(accountRows);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load bookings');
     } finally {
@@ -116,8 +116,8 @@ export function BookingsPage() {
     const now = Date.now();
     return bookings.filter(booking => {
       if (status && booking.status !== status) return false;
-      if (assignee === 'unassigned' && booking.assignedTeamMemberId) return false;
-      if (assignee && assignee !== 'unassigned' && booking.assignedTeamMemberId !== assignee) return false;
+      if (assignee === 'unassigned' && booking.assignedStaffAccountId) return false;
+      if (assignee && assignee !== 'unassigned' && booking.assignedStaffAccountId !== assignee) return false;
       if (payment && booking.paymentSummary.status !== payment) return false;
       if (overdueOnly && (!booking.nextFollowUpAt || new Date(booking.nextFollowUpAt).getTime() > now)) return false;
       return true;
@@ -141,7 +141,7 @@ export function BookingsPage() {
           location: payload.location,
           packageId: payload.packageId,
           agreedTotal: payload.agreedTotal,
-          assignedTeamMemberId: payload.assignedTeamMemberId,
+          assignedStaffAccountId: payload.assignedStaffAccountId,
           advanceAmount: payload.advanceAmount,
           advancePaidAt: payload.advancePaidAt,
           advanceMethod: payload.advanceMethod,
@@ -206,7 +206,7 @@ export function BookingsPage() {
 
       {showFilters && (
         <section className="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-3 lg:grid-cols-4">
-          <select value={assignee} onChange={e => setAssignee(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm"><option value="">All assignees</option><option value="unassigned">Unassigned</option>{teamMembers.map(member => <option key={member.id} value={member.id}>{member.name}</option>)}</select>
+          <select value={assignee} onChange={e => setAssignee(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm"><option value="">All assignees</option><option value="unassigned">Unassigned</option>{staffAccounts.map(account => <option key={account.id} value={account.id}>{account.name}</option>)}</select>
           {canViewPayments && <select value={payment} onChange={e => setPayment(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm"><option value="">All payment states</option>{['unpriced', 'unpaid', 'partial', 'paid', 'overpaid'].map(value => <option key={value} value={value}>{value.charAt(0).toUpperCase() + value.slice(1)}</option>)}</select>}
           <label className="flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" checked={overdueOnly} onChange={e => setOverdueOnly(e.target.checked)} /> Overdue follow-ups only</label>
           <button onClick={() => { setStatus(''); setAssignee(''); setPayment(''); setOverdueOnly(false); }} className="text-sm font-medium text-blue-600">Clear filters</button>
@@ -261,7 +261,7 @@ export function BookingsPage() {
         <BookingFormModal
           enquiry={convertFromEnquiry}
           packages={packages}
-          teamMembers={teamMembers}
+          staffAccounts={staffAccounts}
           onClose={() => { setCreating(false); setConvertFromEnquiry(null); }}
           onSave={saveNew}
         />

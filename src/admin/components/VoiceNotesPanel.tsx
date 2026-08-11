@@ -135,7 +135,7 @@ export function VoiceNotesPanel({ recordType, recordId }: Target) {
   };
 
   const remove = async (note: VoiceNoteSummary) => {
-    const accepted = await confirm({ title: 'Delete voice note?', description: 'This permanently removes the recording for all internal users.', confirmLabel: 'Delete recording', variant: 'danger' });
+    const accepted = await confirm({ title: 'Delete voice note?', description: 'This permanently removes the recording for all staff accounts.', confirmLabel: 'Delete recording', variant: 'danger' });
     if (!accepted) return;
     setError('');
     try {

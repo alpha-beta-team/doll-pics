@@ -1,10 +1,10 @@
 import { useAuth } from '../contexts/AuthContext';
-import type { UserAccessArea } from '../types';
-import { resolveUserAccess } from './roles';
+import type { StaffAccessArea } from '../types';
+import { resolveStaffAccess } from './roles';
 
-export function useFeatureAccess(feature: UserAccessArea) {
+export function useFeatureAccess(feature: StaffAccessArea) {
   const { user } = useAuth();
-  const level = resolveUserAccess(user, feature);
+  const level = resolveStaffAccess(user, feature);
   return {
     level,
     canView: level !== 'none',

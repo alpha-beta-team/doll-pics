@@ -1,9 +1,9 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { canManage, canView, getDefaultAdminRoute } from '../access/roles';
 import { useAuth } from '../contexts/AuthContext';
-import type { UserAccessArea } from '../types';
+import type { StaffAccessArea } from '../types';
 
-export function AccessRoute({ feature, level = 'view' }: { feature: UserAccessArea; level?: 'view' | 'manage' }) {
+export function AccessRoute({ feature, level = 'view' }: { feature: StaffAccessArea; level?: 'view' | 'manage' }) {
   const { user } = useAuth();
   const location = useLocation();
   const allowed = level === 'manage' ? canManage(user, feature) : canView(user, feature);

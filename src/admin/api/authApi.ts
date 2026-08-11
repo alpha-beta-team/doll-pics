@@ -1,17 +1,17 @@
-import type { User } from '../types';
-import { normalizePermissionOverrides, normalizeUserRole } from '../access/roles';
+import type { StaffAccount } from '../types';
+import { normalizePermissionOverrides, normalizeStaffAccountRole } from '../access/roles';
 import { request } from './http';
 import { authStorage } from './authStorage';
 
-function storeUser(user: User) {
-  authStorage.setUser(user);
+function storeStaffAccount(account: StaffAccount) {
+  authStorage.setUser(account);
 }
 
 function clearUser() {
   authStorage.clear();
 }
 
-function mapUser(data: {
+function mapStaffAccount(data: {
   id?: string;
   email: string;
   name?: string;
@@ -20,13 +20,13 @@ function mapUser(data: {
   permissionOverrides?: unknown;
   isActive?: boolean;
   mustChangePassword?: boolean;
-}): User {
+}): StaffAccount {
   return {
     id: data.id || 'admin',
     email: data.email,
     name: data.name || 'Studio Admin',
     jobTitle: data.jobTitle || '',
-    role: normalizeUserRole(data.role, 'owner'),
+    role: normalizeStaffAccountRole(data.role, 'owner'),
     permissionOverrides: normalizePermissionOverrides(data.permissionOverrides),
     isActive: data.isActive !== false,
     mustChangePassword: data.mustChangePassword === true,
@@ -37,7 +37,7 @@ export const authApi = {
   async login(
     email: string,
     password: string,
-  ): Promise<{ user: User; token: string }> {
+  ): Promise<{ user: StaffAccount; token: string }> {
     const data = await request<{
       accessToken: string;
       email: string;
@@ -52,8 +52,8 @@ export const authApi = {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
-    const user = mapUser(data);
-    storeUser(user);
+    const user = mapStaffAccount(data);
+    storeStaffAccount(user);
     return { user, token: data.accessToken };
   },
 
@@ -62,7 +62,7 @@ export const authApi = {
   },
 
   /** Verifies the stored JWT with GET /auth/me; clears saved auth on failure. */
-  async getCurrentUser(): Promise<User | null> {
+  async getCurrentUser(): Promise<StaffAccount | null> {
     const token = authStorage.getToken();
     if (!token) {
       clearUser();
@@ -83,8 +83,8 @@ export const authApi = {
         '/auth/me',
         { auth: true },
       );
-      const user = mapUser(data);
-      storeUser(user);
+      const user = mapStaffAccount(data);
+      storeStaffAccount(user);
       return user;
     } catch {
       authStorage.clear();
@@ -92,14 +92,14 @@ export const authApi = {
     }
   },
 
-  async changePassword(currentPassword: string, newPassword: string): Promise<User> {
-    const data = await request<Parameters<typeof mapUser>[0]>('/auth/change-password', {
+  async changePassword(currentPassword: string, newPassword: string): Promise<StaffAccount> {
+    const data = await request<Parameters<typeof mapStaffAccount>[0]>('/auth/change-password', {
       method: 'POST',
       auth: true,
       body: JSON.stringify({ currentPassword, newPassword }),
     });
-    const user = mapUser(data);
-    storeUser(user);
+    const user = mapStaffAccount(data);
+    storeStaffAccount(user);
     return user;
   },
 };

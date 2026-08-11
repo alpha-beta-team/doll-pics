@@ -1,7 +1,7 @@
-import type { PublicTeamMember } from '../../lib/api';
+import type { PublicStaffProfile } from '../../lib/api';
 import { useInView } from '../../hooks/useScroll';
 
-export function TeamCard({ member, index }: { member: PublicTeamMember; index: number }) {
+export function TeamCard({ member, index }: { member: PublicStaffProfile; index: number }) {
   const { ref, inView } = useInView<HTMLDivElement>();
 
   return (
@@ -22,7 +22,7 @@ export function TeamCard({ member, index }: { member: PublicTeamMember; index: n
         </div>
       </div>
       <h3 className="font-display text-2xl font-light text-ink-50">{member.name}</h3>
-      <div className="mt-2 text-[10px] uppercase tracking-widest text-gold-400">{member.role}</div>
+      <div className="mt-2 text-[10px] uppercase tracking-widest text-gold-400">{member.jobTitle}</div>
       <p className="mx-auto mt-4 max-w-xs text-sm leading-relaxed text-ink-200/60">{member.bio}</p>
     </div>
   );

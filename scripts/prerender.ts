@@ -33,12 +33,61 @@ const pages = buildPageCatalog({
 
 const siteName = seoPages.siteName;
 
+type FallbackLink = { label: string; path: string };
+
+const coreFallbackLinks: FallbackLink[] = [
+  { label: 'Home', path: '/' },
+  { label: 'Photography services', path: '/services' },
+  { label: 'Photography packages', path: '/packages' },
+  { label: 'Featured work', path: '/work' },
+  { label: 'Gallery', path: '/gallery' },
+  { label: 'Client stories', path: '/stories' },
+  { label: 'About', path: '/about' },
+  { label: 'Contact', path: '/contact' },
+  { label: 'Book a session', path: '/booking' },
+  { label: 'Privacy policy', path: '/privacy' },
+  { label: 'Terms of service', path: '/terms' },
+];
+
+const serviceFallbackLinks: FallbackLink[] = Object.values(pages)
+  .filter((page) => page.kind === 'service')
+  .map((page) => ({
+    label: page.label || page.heading,
+    path: page.path,
+  }));
+
+const packageFallbackLinks: FallbackLink[] = Object.values(pages)
+  .filter((page) => page.kind === 'package')
+  .map((page) => ({
+    label: `${page.label || page.heading} packages`,
+    path: page.path,
+  }));
+
 function escapeHtml(value: string) {
   return String(value)
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;');
+}
+
+function buildFallbackLinks(page: CatalogPage): FallbackLink[] {
+  const contextualLinks =
+    page.kind === 'service' || page.path === '/services'
+      ? serviceFallbackLinks
+      : page.kind === 'package' || page.path === '/packages'
+        ? packageFallbackLinks
+        : [];
+  const links = [...page.related, ...contextualLinks, ...coreFallbackLinks];
+  const seen = new Set<string>();
+
+  return links.filter((link) => {
+    if (!link.path || link.path === page.path || seen.has(link.path)) {
+      return false;
+    }
+    seen.add(link.path);
+    return true;
+  });
 }
 
 function injectRouteHtml(template: string, page: CatalogPage) {
@@ -183,6 +232,19 @@ function injectRouteHtml(template: string, page: CatalogPage) {
     ? `    <p>${escapeHtml(page.lead)}</p>`
     : null;
 
+  const fallbackLinks = buildFallbackLinks(page);
+  const navigationNoscript = [
+    '    <nav aria-label="Site navigation">',
+    '      <h2>Explore Doll Pictures</h2>',
+    '      <ul>',
+    ...fallbackLinks.map(
+      (link) =>
+        `        <li><a href="${escapeHtml(link.path)}">${escapeHtml(link.label)}</a></li>`,
+    ),
+    '      </ul>',
+    '    </nav>',
+  ];
+
   const noscript = [
     '<noscript>',
     '  <main style="font-family:Georgia,serif;max-width:42rem;margin:2rem auto;padding:0 1.25rem;line-height:1.6;color:#111">',
@@ -192,7 +254,8 @@ function injectRouteHtml(template: string, page: CatalogPage) {
     ...imageNoscript,
     ...sectionNoscript,
     ...faqNoscript,
-    `    <p><a href="${siteUrl}/">${escapeHtml(siteName)}</a> · Erode, Tamil Nadu</p>`,
+    ...navigationNoscript,
+    `    <p>${escapeHtml(siteName)} · Erode, Tamil Nadu</p>`,
     '  </main>',
     '</noscript>',
   ]

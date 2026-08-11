@@ -13,7 +13,7 @@ import { WorkEnquiriesPage } from "./pages/WorkEnquiriesPage";
 import { EnquiryDetailPage } from "./pages/EnquiryDetailPage";
 import { TodayPage } from "./pages/TodayPage";
 import { PaymentsPage } from "./pages/PaymentsPage";
-import { UsersPage } from "./pages/UsersPage";
+import { StaffAccountsPage } from "./pages/StaffAccountsPage";
 import { ChangePasswordPage } from "./pages/ChangePasswordPage";
 import { HelpPage } from "./pages/HelpPage";
 import { BookingsPage } from "./pages/BookingsPage";
@@ -23,7 +23,7 @@ import { StoryScenesPage } from "./pages/StoryScenesPage";
 import { StatsPage } from "./pages/StatsPage";
 import { TestimonialsPage } from "./pages/TestimonialsPage";
 import { BehindScenesPage } from "./pages/BehindScenesPage";
-import { TeamMembersPage } from "./pages/TeamMembersPage";
+import { StaffProfilesPage } from "./pages/StaffProfilesPage";
 import { IntegrationsPage } from "./pages/IntegrationsPage";
 import { SchedulePage } from "./pages/SchedulePage";
 import { OccasionsPage } from "./pages/OccasionsPage";
@@ -106,8 +106,8 @@ export default function AdminApp() {
               <Route element={<AccessRoute feature="dashboard" />}>
                 <Route path="dashboard" element={<DashboardPage />} />
               </Route>
-              <Route element={<AccessRoute feature="users" />}>
-                <Route path="users" element={<UsersPage />} />
+              <Route element={<AccessRoute feature="staff_accounts" />}>
+                <Route path="staff-accounts" element={<StaffAccountsPage />} />
               </Route>
               <Route element={<AccessRoute feature="integrations" />}>
                 <Route path="integrations" element={<IntegrationsPage />} />
@@ -145,8 +145,8 @@ export default function AdminApp() {
               <Route element={<AccessRoute feature="behind_scenes" />}>
                 <Route path="behind-scenes" element={<BehindScenesPage />} />
               </Route>
-              <Route element={<AccessRoute feature="team_members" />}>
-                <Route path="team-members" element={<TeamMembersPage />} />
+              <Route element={<AccessRoute feature="staff_profiles" />}>
+                <Route path="staff-profiles" element={<StaffProfilesPage />} />
               </Route>
             </Route>
             <Route path="*" element={<DefaultAdminRedirect />} />

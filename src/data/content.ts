@@ -162,9 +162,9 @@ export const behindScenes: Array<{
 }> = [];
 
 /** Empty until current team members approve their profile and portrait. */
-export const teamMembers: Array<{
+export const staffProfiles: Array<{
   name: string;
-  role: string;
+  jobTitle: string;
   bio: string;
   photo: string;
 }> = [];

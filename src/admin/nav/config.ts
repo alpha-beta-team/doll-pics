@@ -24,9 +24,9 @@ import {
   Users,
 } from 'lucide-react';
 import { canManage, canView, FEATURE_CATALOG, type FeatureDetails, type FeatureFlagId } from '../access/roles';
-import type { User, UserAccessArea } from '../types';
+import type { StaffAccount, StaffAccessArea } from '../types';
 
-export type NavigationAccess = { feature: UserAccessArea; level: 'view' | 'manage' };
+export type NavigationAccess = { feature: StaffAccessArea; level: 'view' | 'manage' };
 export type AdminFeatureFlag = FeatureFlagId;
 
 export type NavigationNode = {
@@ -70,7 +70,7 @@ const leaf = (
   route: string,
   icon: LucideIcon,
   displayOrder: number,
-  feature?: UserAccessArea,
+  feature?: StaffAccessArea,
   options: Pick<NavigationNode, 'featureFlag' | 'mobileQuickOrder'> = {},
 ): NavigationNode => {
   const registered = feature ? FEATURE_CATALOG[feature] : undefined;
@@ -154,7 +154,7 @@ export const PRIMARY_NAVIGATION: NavigationNode[] = [
       leaf('story-scenes', 'Story Scenes', '/admin/story-scenes', FileText, 20, 'story_scenes'),
       leaf('statistics', 'Statistics', '/admin/stats', BarChart3, 30, 'statistics'),
       leaf('testimonials', 'Testimonials', '/admin/testimonials', MessageSquareQuote, 40, 'testimonials'),
-      leaf('team-members', 'Team Members', '/admin/team-members', Users, 50, 'team_members'),
+      leaf('staff-profiles', 'Team Members', '/admin/staff-profiles', Users, 50, 'staff_profiles'),
       leaf('site-content', 'General Site Content', '/admin/site-content', FileText, 60, 'site_content'),
     ],
   },
@@ -167,7 +167,7 @@ export const UTILITY_NAVIGATION: NavigationNode[] = [
     icon: Settings,
     displayOrder: 10,
     children: [
-      leaf('staff-accounts', 'Staff Accounts', '/admin/users', UserCog, 10, 'users'),
+      leaf('staff-accounts', 'Staff Accounts', '/admin/staff-accounts', UserCog, 10, 'staff_accounts'),
       leaf('integrations', 'Integrations', '/admin/integrations', Plug, 20, 'integrations', { featureFlag: 'integrations' }),
     ],
   },
@@ -182,7 +182,7 @@ export const ADMIN_FEATURE_FLAGS: AdminFeatureFlags = {
   integrations: true,
 };
 
-function meetsAccess(user: User | null | undefined, access?: NavigationAccess) {
+function meetsAccess(user: StaffAccount | null | undefined, access?: NavigationAccess) {
   if (!access) return Boolean(user);
   return access.level === 'manage'
     ? canManage(user, access.feature)
@@ -191,7 +191,7 @@ function meetsAccess(user: User | null | undefined, access?: NavigationAccess) {
 
 export function resolveNavigation(
   nodes: NavigationNode[],
-  user?: User | null,
+  user?: StaffAccount | null,
   featureFlags: AdminFeatureFlags = ADMIN_FEATURE_FLAGS,
 ): NavigationNode[] {
   return nodes

@@ -7,7 +7,7 @@ import {
 import { api } from '../api/client';
 import type {
   Booking, BookingWritePayload, Package, ScheduleBookingItem, ScheduleConflictResponse,
-  TeamMember,
+  StaffAccountOption,
 } from '../types';
 import { BookingFormModal } from '../components/BookingFormModal';
 import { WhatsAppComposer } from '../components/WhatsAppComposer';
@@ -65,7 +65,7 @@ export function SchedulePage() {
   const [showCancelled, setShowCancelled] = useState(false);
   const [bookings, setBookings] = useState<ScheduleBookingItem[]>([]);
   const [packages, setPackages] = useState<Package[]>([]);
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [staffAccounts, setStaffAccounts] = useState<StaffAccountOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
@@ -119,8 +119,8 @@ export function SchedulePage() {
 
   useEffect(() => {
     if (!canManage) return;
-    void Promise.all([api.getPackages(), api.getTeamMembers()])
-      .then(([packageRows, memberRows]) => { setPackages(packageRows); setTeamMembers(memberRows); })
+    void Promise.all([api.getPackages(), api.getAssignableStaffAccounts()])
+      .then(([packageRows, accountRows]) => { setPackages(packageRows); setStaffAccounts(accountRows); })
       .catch(() => undefined);
   }, [canManage]);
 
@@ -190,7 +190,7 @@ export function SchedulePage() {
       </>}
 
       {canManage && slot && <DurationSheet slot={slot} bookings={bookings} onClose={() => setSlot(null)} onChoose={endTime => { setCreatingAt({ ...slot, endTime }); setSlot(null); }} />}
-      {canManage && creatingAt && <BookingFormModal packages={packages} teamMembers={teamMembers} initialSchedule={creatingAt} onClose={() => setCreatingAt(null)} onSave={saveNew} />}
+      {canManage && creatingAt && <BookingFormModal packages={packages} staffAccounts={staffAccounts} initialSchedule={creatingAt} onClose={() => setCreatingAt(null)} onSave={saveNew} />}
       {canManage && selected && <BookingActionSheet item={selected} onClose={() => setSelected(null)} onOpen={() => navigate(`/admin/bookings/${selected.id}`)} onWhatsApp={() => { setComposer({ context: whatsappContext(selected, canViewPayments), template: 'booking_confirmation' }); setSelected(null); }} onReschedule={() => { setRescheduling(selected); setSelected(null); }} onCancel={() => void cancelBooking(selected)} />}
       {canManage && rescheduling && <RescheduleSheet item={rescheduling} visibleBookings={bookings} onClose={() => setRescheduling(null)} onSaved={async updated => { setRescheduling(null); await loadSchedule(true); setComposer({ context: whatsappContext(updated, canViewPayments), template: 'booking_rescheduled' }); }} />}
       {canManage && composer && <WhatsAppComposer context={composer.context} initialTemplate={composer.template} onClose={() => setComposer(null)} />}
@@ -313,7 +313,7 @@ function DurationSheet({ slot, bookings, onClose, onChoose }: { slot: SlotChoice
 function BookingActionSheet({ item, onClose, onOpen, onWhatsApp, onReschedule, onCancel }: { item: ScheduleBookingItem; onClose: () => void; onOpen: () => void; onWhatsApp: () => void; onReschedule: () => void; onCancel: () => void }) {
   const canChange = item.status === 'draft' || item.status === 'confirmed';
   return <Sheet title={item.customerName} subtitle={`${formatScheduleDay(item.bookingDate)} · ${item.startTime ? `${formatScheduleTime(item.startTime)}–${formatScheduleTime(item.endTime)}` : 'Time not set'}`} onClose={onClose}>
-    <div className="space-y-3 p-4"><div className="rounded-xl bg-slate-50 p-3 text-sm text-slate-600"><p className="font-semibold text-slate-900">{item.service || 'Service not set'}</p>{item.location && <p className="mt-1 flex items-center gap-2"><MapPin className="h-4 w-4" />{item.location}</p>}{item.assignedTeamMemberName && <p className="mt-1 flex items-center gap-2"><UserRound className="h-4 w-4" />{item.assignedTeamMemberName}</p>}</div>
+    <div className="space-y-3 p-4"><div className="rounded-xl bg-slate-50 p-3 text-sm text-slate-600"><p className="font-semibold text-slate-900">{item.service || 'Service not set'}</p>{item.location && <p className="mt-1 flex items-center gap-2"><MapPin className="h-4 w-4" />{item.location}</p>}{item.assignedStaffAccountName && <p className="mt-1 flex items-center gap-2"><UserRound className="h-4 w-4" />{item.assignedStaffAccountName}</p>}</div>
       <div className="grid grid-cols-2 gap-2"><a href={`tel:${item.customerPhone}`} className="flex h-12 items-center justify-center gap-2 rounded-xl border border-slate-300 font-semibold text-slate-700"><Phone className="h-4 w-4" />Call</a><button type="button" onClick={onWhatsApp} className="flex h-12 items-center justify-center gap-2 rounded-xl border border-emerald-300 text-sm font-semibold text-emerald-700"><MessageCircle className="h-4 w-4" />WhatsApp</button><button type="button" onClick={onOpen} className="col-span-2 h-12 rounded-xl bg-blue-600 font-semibold text-white">Open booking</button></div>
       {canChange && <div className="grid grid-cols-2 gap-2 border-t border-slate-200 pt-3"><button type="button" onClick={onReschedule} className="h-12 rounded-xl border border-blue-300 font-semibold text-blue-700">Reschedule</button><button type="button" onClick={onCancel} className="h-12 rounded-xl border border-red-300 font-semibold text-red-700">Cancel booking</button></div>}
     </div>

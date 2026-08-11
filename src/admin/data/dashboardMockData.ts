@@ -347,7 +347,7 @@ export function createDashboardMockData(referenceDate = new Date()): {
       packageListedPrice: null,
       packagePricingMode: '',
       agreedTotal: seed.status === 'cancelled' ? null : 5000,
-      assignedTeamMemberName: '',
+      assignedStaffAccountName: '',
       payments: seed.status === 'cancelled' ? [] : [{
         id: `${seed.id}-payment`, amount: 500, paidAt: createdAt,
         method: 'upi', reference: '', note: '',

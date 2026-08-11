@@ -68,6 +68,51 @@ export function validateLocations(locations, requiredPaths) {
   return failures;
 }
 
+export function validateIndexableHtml(html, expectedUrl) {
+  const failures = [];
+  const source = String(html);
+  const title = source.match(/<title>([\s\S]*?)<\/title>/i)?.[1]?.trim();
+  const description = source.match(
+    /<meta\s+name=["']description["']\s+content=["']([^"']+)["']/i,
+  )?.[1]?.trim();
+  const robots = source.match(
+    /<meta\s+name=["']robots["']\s+content=["']([^"']+)["']/i,
+  )?.[1]?.toLowerCase();
+  const canonical = source.match(
+    /<link\s+rel=["']canonical["']\s+href=["']([^"']+)["']/i,
+  )?.[1];
+  const internalLinks = [
+    ...source.matchAll(/<a\s+[^>]*href=["'](\/[A-Za-z0-9#/_-]*)["']/gi),
+  ].map((match) => match[1]);
+
+  if (!title) failures.push('missing a non-empty <title>');
+  if (!description) failures.push('missing a meta description');
+  if (!/<h1(?:\s|>)/i.test(source)) failures.push('missing a prerendered <h1>');
+  if (!robots) {
+    failures.push('missing a robots meta directive');
+  } else if (robots.includes('noindex')) {
+    failures.push(`contains a noindex directive: ${robots}`);
+  }
+
+  if (!canonical) {
+    failures.push('missing a canonical link');
+  } else {
+    try {
+      if (new URL(canonical).href !== new URL(expectedUrl).href) {
+        failures.push(`canonical mismatch: ${canonical}`);
+      }
+    } catch {
+      failures.push(`invalid canonical URL: ${canonical}`);
+    }
+  }
+
+  if (internalLinks.length < 2) {
+    failures.push('has fewer than two prerendered internal links');
+  }
+
+  return failures;
+}
+
 function parseArguments(argv) {
   const values = {
     publicUrl: process.env.SEO_CHECK_BASE_URL || defaultPublicUrl,
@@ -189,15 +234,21 @@ async function main() {
     publicLocations.map(async (location) => {
       try {
         const path = new URL(location).pathname;
-        await fetchText(`${publicUrl}${path}`);
-        return null;
+        const route = await fetchText(`${publicUrl}${path}`);
+        const htmlFailures = validateIndexableHtml(
+          route.text,
+          `${publicUrl}${path}`,
+        );
+        return htmlFailures.map((failure) => `${location} ${failure}`);
       } catch (error) {
-        return error instanceof Error ? error.message : String(error);
+        return [error instanceof Error ? error.message : String(error)];
       }
     }),
   );
-  for (const routeFailure of routeChecks) {
-    if (routeFailure) failures.push(`Sitemap route failed: ${routeFailure}`);
+  for (const routeFailures of routeChecks) {
+    for (const routeFailure of routeFailures) {
+      failures.push(`Sitemap route failed: ${routeFailure}`);
+    }
   }
 
   const publicSet = [...new Set(publicLocations)].sort();

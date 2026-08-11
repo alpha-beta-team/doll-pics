@@ -4,7 +4,7 @@ import type {
   ImageTransform,
   Stat,
   StoryScene,
-  TeamMember,
+  StaffProfile,
   Testimonial,
 } from '../types';
 import {
@@ -12,13 +12,13 @@ import {
   mapHeroSlide,
   mapStat,
   mapStoryScene,
-  mapTeamMember,
+  mapStaffProfile,
   mapTestimonial,
 } from './mappers';
 import { orderedCrud } from './orderedCrud';
 import { request } from './http';
 
-type TeamMemberImageResult = {
+type StaffProfileImageResult = {
   url: string;
   originalUrl: string;
   storageKey: string;
@@ -37,7 +37,7 @@ const storyScenes = orderedCrud('story-scenes', mapStoryScene);
 const stats = orderedCrud('stats', mapStat);
 const testimonials = orderedCrud('testimonials', mapTestimonial);
 const behindScenes = orderedCrud('behind-scenes', mapBehindScene);
-const teamMembers = orderedCrud('team-members', mapTeamMember);
+const staffProfiles = orderedCrud('staff-accounts/profiles', mapStaffProfile);
 
 export const orderedContentApi = {
   getHeroSlides: () => heroSlides.getAll(),
@@ -100,32 +100,31 @@ export const orderedContentApi = {
   deleteBehindScene: (id: string) => behindScenes.delete(id),
   reorderBehindScenes: (ids: string[]) => behindScenes.reorder(ids),
 
-  getTeamMembers: () => teamMembers.getAll(),
-  createTeamMember: (data: Omit<TeamMember, 'id'>) => teamMembers.create(data),
-  updateTeamMember: (id: string, data: Partial<TeamMember>) =>
-    teamMembers.update(id, data),
-  deleteTeamMember: (id: string) => teamMembers.delete(id),
-  reorderTeamMembers: (ids: string[]) => teamMembers.reorder(ids),
+  getStaffProfiles: () => staffProfiles.getAll(),
+  createStaffProfile: (data: Omit<StaffProfile, 'id'>) => staffProfiles.create(data),
+  updateStaffProfile: (id: string, data: Partial<StaffProfile>) => staffProfiles.update(id, data),
+  deleteStaffProfile: (id: string) => staffProfiles.delete(id),
+  reorderStaffProfiles: (ids: string[]) => staffProfiles.reorder(ids),
 
-  uploadTeamMemberImage: (
+  uploadStaffProfileImage: (
     file: File,
     transform: ImageTransform | null = null,
   ) => {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('imageTransform', JSON.stringify(transform));
-    return request<TeamMemberImageResult>('/admin/media/team-member', {
+    return request<StaffProfileImageResult>('/admin/media/staff-profile', {
       method: 'POST',
       auth: true,
       body: formData,
     });
   },
 
-  updateTeamMemberImage: (
+  updateStaffProfileImage: (
     id: string,
     transform: ImageTransform | null,
   ) =>
-    request<TeamMemberImageResult>(`/admin/team-members/${id}/image`, {
+    request<StaffProfileImageResult>(`/admin/staff-accounts/profiles/${id}/image`, {
       method: 'PATCH',
       auth: true,
       body: JSON.stringify({ imageTransform: transform }),

@@ -9,7 +9,7 @@ import type {
   PublicSiteContent,
   PublicStat,
   PublicStoryScene,
-  PublicTeamMember,
+  PublicStaffProfile,
   PublicTestimonial,
 } from '../shared/types';
 
@@ -24,7 +24,7 @@ export type {
   PublicSiteContent,
   PublicStat,
   PublicStoryScene,
-  PublicTeamMember,
+  PublicStaffProfile,
   PublicTestimonial,
   ServiceNavLinkInput as PublicServiceNavLink,
 } from '../shared/types';
@@ -221,7 +221,7 @@ export const publicApi = {
   getStats: () => publicFetch<PublicStat[]>('/stats'),
   getTestimonials: () => publicFetch<PublicTestimonial[]>('/testimonials'),
   getBehindScenes: () => publicFetch<PublicBehindScene[]>('/behind-scenes'),
-  getTeamMembers: () => publicFetch<PublicTeamMember[]>('/team-members'),
+  getStaffProfiles: () => publicFetch<PublicStaffProfile[]>('/staff-profiles'),
   createEnquiry: (data: CreateEnquiryPayload) =>
     publicFetch('/enquiries', {
       method: 'POST',

@@ -1,25 +1,25 @@
 import { useRef, useState } from 'react';
 import { api } from '../api/client';
-import type { TeamMember } from '../types';
+import type { StaffProfile } from '../types';
 import { SimpleOrderedPage, FieldInput } from '../components/SimpleOrderedPage';
 import { ImageCropUpload } from '../components/ImageCropUpload';
 import { Upload } from 'lucide-react';
 import { useFeatureAccess } from '../access/useFeatureAccess';
 
-export function TeamMembersPage() {
-  const { isReadOnly } = useFeatureAccess('team_members');
+export function StaffProfilesPage() {
+  const { isReadOnly } = useFeatureAccess('staff_profiles');
   return (
-    <SimpleOrderedPage<TeamMember>
+    <SimpleOrderedPage<StaffProfile>
       title="Team Members"
       readOnly={isReadOnly}
       description="Publish only current team profiles with an approved biography and portrait"
-      fetchItems={api.getTeamMembers}
-      createItem={(data) => api.createTeamMember(data as Omit<TeamMember, 'id'>)}
-      updateItem={api.updateTeamMember}
-      deleteItem={api.deleteTeamMember}
+      fetchItems={api.getStaffProfiles}
+      createItem={(data) => api.createStaffProfile(data as Omit<StaffProfile, 'id'>)}
+      updateItem={api.updateStaffProfile}
+      deleteItem={api.deleteStaffProfile}
       getEmptyItem={() => ({
         name: '',
-        role: '',
+        jobTitle: '',
         bio: '',
         photo: '',
         photoOriginal: '',
@@ -37,14 +37,14 @@ export function TeamMembersPage() {
           )}
           <div>
             <p className="font-medium text-gray-900">{item.name || 'Untitled'}</p>
-            <p className="text-sm text-gray-500">{item.role}</p>
+            <p className="text-sm text-gray-500">{item.jobTitle}</p>
           </div>
         </div>
       )}
       renderForm={(item, onChange) => (
         <>
           <FieldInput label="Name" value={(item.name as string) ?? ''} onChange={v => onChange('name', v)} />
-          <FieldInput label="Role" value={(item.role as string) ?? ''} onChange={v => onChange('role', v)} />
+          <FieldInput label="Job title" value={(item.jobTitle as string) ?? ''} onChange={v => onChange('jobTitle', v)} />
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Bio</label>
             <textarea
@@ -54,11 +54,11 @@ export function TeamMembersPage() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
             />
           </div>
-          <TeamMemberPhotoField
+          <StaffProfilePhotoField
             id={(item.id as string) ?? ''}
             value={(item.photo as string) ?? ''}
             originalValue={(item.photoOriginal as string) ?? ''}
-            transform={(item.imageTransform as TeamMember['imageTransform']) ?? null}
+            transform={(item.imageTransform as StaffProfile['imageTransform']) ?? null}
             onChange={(field, value) => onChange(field, value)}
           />
         </>
@@ -67,7 +67,7 @@ export function TeamMembersPage() {
   );
 }
 
-function TeamMemberPhotoField({
+function StaffProfilePhotoField({
   id,
   value,
   originalValue,
@@ -77,7 +77,7 @@ function TeamMemberPhotoField({
   id: string;
   value: string;
   originalValue: string;
-  transform: TeamMember['imageTransform'];
+  transform: StaffProfile['imageTransform'];
   onChange: (field: 'photo' | 'photoOriginal' | 'photoStorageKey' | 'imageTransform', value: unknown) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -90,7 +90,7 @@ function TeamMemberPhotoField({
       <label className="block text-sm font-medium text-gray-700 mb-2">Profile photo</label>
       <div className="flex items-center gap-4">
         {value ? (
-          <img src={value} alt="Team member preview" className="w-20 h-20 rounded-full object-cover border border-gray-200" />
+          <img src={value} alt="Staff profile preview" className="w-20 h-20 rounded-full object-cover border border-gray-200" />
         ) : (
           <div className="w-20 h-20 rounded-full bg-gray-100 border border-gray-200" />
         )}
@@ -144,8 +144,8 @@ function TeamMemberPhotoField({
           onApply={async ({ file, transform: nextTransform }) => {
             try {
               const result = id && !selectedFile
-                ? await api.updateTeamMemberImage(id, nextTransform)
-                : await api.uploadTeamMemberImage(selectedFile ?? file, nextTransform);
+                ? await api.updateStaffProfileImage(id, nextTransform)
+                : await api.uploadStaffProfileImage(selectedFile ?? file, nextTransform);
               onChange('photo', result.url);
               onChange('photoOriginal', result.originalUrl);
               onChange('photoStorageKey', result.storageKey);
@@ -153,7 +153,7 @@ function TeamMemberPhotoField({
               setCropSource(null);
               setSelectedFile(null);
             } catch (err) {
-              setError(err instanceof Error ? err.message : 'Failed to upload team member image');
+              setError(err instanceof Error ? err.message : 'Failed to upload staff profile image');
               throw err;
             }
           }}

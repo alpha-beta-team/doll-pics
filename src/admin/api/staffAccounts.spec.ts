@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { normalizeAdminUser } from './users';
+import { normalizeStaffAccount } from './staffAccounts';
 
-test('normalizes legacy operations users returned by the API', () => {
-  const user = normalizeAdminUser({
+test('normalizes legacy operations staff accounts returned by the API', () => {
+  const account = normalizeStaffAccount({
     id: 'user-1',
     name: 'Maya',
     email: 'maya@example.com',
@@ -13,6 +13,6 @@ test('normalizes legacy operations users returned by the API', () => {
     mustChangePassword: false,
   });
 
-  assert.equal(user.role, 'sales');
-  assert.deepEqual(user.permissionOverrides, { bookings: 'view' });
+  assert.equal(account.role, 'sales');
+  assert.deepEqual(account.permissionOverrides, { bookings: 'view' });
 });
