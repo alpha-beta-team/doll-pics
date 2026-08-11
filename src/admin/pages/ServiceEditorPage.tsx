@@ -4,16 +4,20 @@ import {
   ArrowLeft,
   ArrowDown,
   ArrowUp,
+  AlertCircle,
+  CheckCircle2,
   ExternalLink,
   FileText,
   Globe2,
   Image as ImageIcon,
+  PanelsTopLeft,
   Plus,
   Save,
   Search,
   Settings2,
   Trash2,
   Upload,
+  X,
 } from 'lucide-react';
 import { useFeatureAccess } from '../access/useFeatureAccess';
 import { api } from '../api/client';
@@ -50,14 +54,18 @@ import type { Photo, ServiceContentSection, ServiceNavLink } from '../types';
 const EDITOR_TABS: AdminTab[] = [
   { id: 'details', label: 'Details', icon: Settings2 },
   { id: 'page', label: 'Page content', icon: FileText },
+  { id: 'sections', label: 'Page sections', icon: PanelsTopLeft },
   { id: 'seo', label: 'SEO & publishing', icon: Search },
 ];
 
-type EditorTab = 'details' | 'page' | 'seo';
+type EditorTab = 'details' | 'page' | 'sections' | 'seo';
 type EditorLocationState = { notice?: string } | null;
+type SaveToastState = { tone: 'success' | 'error'; message: string } | null;
 
 function editorTab(value: string | null): EditorTab {
-  return value === 'page' || value === 'seo' ? value : 'details';
+  return value === 'page' || value === 'sections' || value === 'seo'
+    ? value
+    : 'details';
 }
 
 export function ServiceEditorPage() {
@@ -78,9 +86,33 @@ export function ServiceEditorPage() {
   const [loadFailed, setLoadFailed] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(
-    ((location.state as EditorLocationState)?.notice ?? ''),
-  );
+  const [toast, setToast] = useState<SaveToastState>(() => {
+    const notice = (location.state as EditorLocationState)?.notice;
+    return notice ? { tone: 'success', message: notice } : null;
+  });
+  const pendingSectionScrollRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timeout = window.setTimeout(() => setToast(null), 4500);
+    return () => window.clearTimeout(timeout);
+  }, [toast]);
+
+  useEffect(() => {
+    const index = pendingSectionScrollRef.current;
+    if (index === null || activeTab !== 'sections') return;
+    const card = document.getElementById(`service-section-card-${index}`);
+    if (!card) return;
+    pendingSectionScrollRef.current = null;
+    window.requestAnimationFrame(() => {
+      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      window.setTimeout(() => {
+        document.getElementById(`service-section-${index}-heading`)?.focus({
+          preventScroll: true,
+        });
+      }, 450);
+    });
+  }, [activeTab, form?.sections.length]);
 
   useEffect(() => {
     let cancelled = false;
@@ -136,7 +168,6 @@ export function ServiceEditorPage() {
       setErrors((current) => ({ ...current, [field]: undefined }));
     }
     setError('');
-    setSuccess('');
   };
 
   const updateSection = <K extends keyof ServiceContentSection>(
@@ -154,6 +185,7 @@ export function ServiceEditorPage() {
 
   const addSection = () => {
     if (!form || form.sections.length >= MAX_SERVICE_SECTIONS) return;
+    pendingSectionScrollRef.current = form.sections.length;
     update('sections', [...form.sections, createEmptyServiceSection()]);
   };
 
@@ -194,7 +226,14 @@ export function ServiceEditorPage() {
     const nextErrors = validateService(prepared, services);
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) {
-      changeTab(nextErrors.sections ? 'page' : 'details');
+      setToast({
+        tone: 'error',
+        message: nextErrors.sections
+          || nextErrors.label
+          || nextErrors.path
+          || 'Please correct the highlighted fields before saving.',
+      });
+      changeTab(nextErrors.sections ? 'sections' : 'details');
       window.requestAnimationFrame(() => {
         const fieldId = nextErrors.sections
           ? 'service-section-0-heading'
@@ -208,7 +247,7 @@ export function ServiceEditorPage() {
 
     setSaving(true);
     setError('');
-    setSuccess('');
+    setToast(null);
     try {
       const nextServices = isNew
         ? appendService(services, prepared)
@@ -230,7 +269,12 @@ export function ServiceEditorPage() {
       setServices(ordered);
       setForm(saved);
       setBaseline(JSON.stringify(saved));
-      setSuccess(isNew && !saved.isPublished ? 'Service created as a draft.' : 'Service saved.');
+      setToast({
+        tone: 'success',
+        message: isNew && !saved.isPublished
+          ? 'Service created as a draft.'
+          : 'Service changes saved successfully.',
+      });
 
       if (isNew && saved.id) {
         navigate(`/admin/services/${encodeURIComponent(saved.id)}?tab=${activeTab}`, {
@@ -239,7 +283,10 @@ export function ServiceEditorPage() {
         });
       }
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Could not save this service.');
+      setToast({
+        tone: 'error',
+        message: cause instanceof Error ? cause.message : 'Could not save this service.',
+      });
     } finally {
       setSaving(false);
     }
@@ -281,6 +328,7 @@ export function ServiceEditorPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 pb-20">
+      <SaveToast toast={toast} onClose={() => setToast(null)} />
       <AdminPageHeader
         eyebrow="Website · Services"
         title={title}
@@ -308,7 +356,6 @@ export function ServiceEditorPage() {
       />
 
       {error && <AdminAlert>{error}</AdminAlert>}
-      {success && <AdminAlert tone="success">{success}</AdminAlert>}
 
       <AdminTabs
         tabs={EDITOR_TABS}
@@ -384,8 +431,7 @@ export function ServiceEditorPage() {
           )}
 
           {activeTab === 'page' && (
-            <div className="space-y-6">
-              <AdminCard className="space-y-5 p-5 sm:p-6">
+            <AdminCard className="space-y-5 p-5 sm:p-6">
                 <div>
                   <h2 className="font-semibold text-admin-text">Landing-page introduction</h2>
                   <p className="mt-1 text-sm text-admin-subtle">Blank fields keep the existing static or generated fallback content.</p>
@@ -408,9 +454,11 @@ export function ServiceEditorPage() {
                     placeholder="Introduce this photography experience…"
                   />
                 </AdminField>
-              </AdminCard>
+            </AdminCard>
+          )}
 
-              <div className="space-y-4">
+          {activeTab === 'sections' && (
+            <div className="space-y-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                   <div>
                     <h2 className="font-semibold text-admin-text">Page sections</h2>
@@ -429,7 +477,11 @@ export function ServiceEditorPage() {
                 {errors.sections && <AdminAlert>{errors.sections}</AdminAlert>}
 
                 {form.sections.map((section, index) => (
-                  <AdminCard key={section.id || `new-section-${index}`} className="p-5 sm:p-6">
+                  <AdminCard
+                    key={section.id || `new-section-${index}`}
+                    id={`service-section-card-${index}`}
+                    className="scroll-mt-28 p-5 sm:p-6"
+                  >
                     <div className="mb-5 flex items-center justify-between gap-3 border-b border-admin-border pb-4">
                       <div>
                         <p className="text-xs font-bold uppercase tracking-[0.14em] text-admin-subtle">Section {index + 1}</p>
@@ -495,7 +547,6 @@ export function ServiceEditorPage() {
                 ))}
 
                 <p className="text-right text-xs font-medium text-admin-subtle">{form.sections.length} of {MAX_SERVICE_SECTIONS} sections</p>
-              </div>
             </div>
           )}
 
@@ -564,6 +615,41 @@ export function ServiceEditorPage() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function SaveToast({
+  toast,
+  onClose,
+}: {
+  toast: SaveToastState;
+  onClose: () => void;
+}) {
+  if (!toast) return null;
+  const success = toast.tone === 'success';
+  const Icon = success ? CheckCircle2 : AlertCircle;
+
+  return (
+    <div
+      role={success ? 'status' : 'alert'}
+      aria-live={success ? 'polite' : 'assertive'}
+      className={`fixed left-4 right-4 top-4 z-[120] flex items-start gap-3 rounded-2xl border px-4 py-3 shadow-2xl backdrop-blur sm:left-auto sm:max-w-md ${
+        success
+          ? 'border-emerald-200 bg-emerald-50/95 text-emerald-900'
+          : 'border-red-200 bg-red-50/95 text-red-900'
+      }`}
+    >
+      <Icon className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+      <p className="min-w-0 flex-1 text-sm font-semibold leading-6">{toast.message}</p>
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Dismiss notification"
+        className="-mr-1 rounded-lg p-1 opacity-65 transition hover:bg-black/5 hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current"
+      >
+        <X className="h-4 w-4" aria-hidden="true" />
+      </button>
     </div>
   );
 }
