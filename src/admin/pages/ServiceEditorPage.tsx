@@ -86,6 +86,7 @@ export function ServiceEditorPage() {
   const [loadFailed, setLoadFailed] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState('');
+  const [selectedSectionIndex, setSelectedSectionIndex] = useState(0);
   const [toast, setToast] = useState<SaveToastState>(() => {
     const notice = (location.state as EditorLocationState)?.notice;
     return notice ? { tone: 'success', message: notice } : null;
@@ -112,7 +113,15 @@ export function ServiceEditorPage() {
         });
       }, 450);
     });
-  }, [activeTab, form?.sections.length]);
+  }, [activeTab, form?.sections.length, selectedSectionIndex]);
+
+  useEffect(() => {
+    setSelectedSectionIndex((current) => Math.min(current, Math.max(0, (form?.sections.length ?? 1) - 1)));
+  }, [form?.sections.length]);
+
+  useEffect(() => {
+    setSelectedSectionIndex(0);
+  }, [id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -185,13 +194,16 @@ export function ServiceEditorPage() {
 
   const addSection = () => {
     if (!form || form.sections.length >= MAX_SERVICE_SECTIONS) return;
-    pendingSectionScrollRef.current = form.sections.length;
+    const newSectionIndex = form.sections.length;
+    pendingSectionScrollRef.current = newSectionIndex;
+    setSelectedSectionIndex(newSectionIndex);
     update('sections', [...form.sections, createEmptyServiceSection()]);
   };
 
   const removeSection = (index: number) => {
     if (!form || form.sections.length <= 1) return;
     update('sections', form.sections.filter((_, sectionIndex) => sectionIndex !== index));
+    setSelectedSectionIndex(Math.min(index, form.sections.length - 2));
   };
 
   const moveSection = (index: number, direction: -1 | 1) => {
@@ -201,6 +213,7 @@ export function ServiceEditorPage() {
     const sections = [...form.sections];
     [sections[index], sections[target]] = [sections[target], sections[index]];
     update('sections', sections);
+    setSelectedSectionIndex(target);
   };
 
   const changeTab = (tab: string) => {
@@ -234,6 +247,7 @@ export function ServiceEditorPage() {
           || 'Please correct the highlighted fields before saving.',
       });
       changeTab(nextErrors.sections ? 'sections' : 'details');
+      if (nextErrors.sections) setSelectedSectionIndex(0);
       window.requestAnimationFrame(() => {
         const fieldId = nextErrors.sections
           ? 'service-section-0-heading'
@@ -476,10 +490,27 @@ export function ServiceEditorPage() {
 
                 {errors.sections && <AdminAlert>{errors.sections}</AdminAlert>}
 
-                {form.sections.map((section, index) => (
+                <section aria-label="Service page sections" className="overflow-hidden rounded-2xl border border-admin-border bg-admin-surface shadow-sm">
+                  <div className="overflow-x-auto p-2">
+                    <div className="flex min-w-max gap-1" role="tablist" aria-label="Choose a page section">
+                      {form.sections.map((_, index) => (
+                        <SectionTab
+                          key={form.sections[index].id || `new-section-tab-${index}`}
+                          active={selectedSectionIndex === index}
+                          label={`Section ${index + 1}`}
+                          onClick={() => setSelectedSectionIndex(index)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </section>
+
+                {form.sections.map((section, index) => selectedSectionIndex === index && (
                   <AdminCard
                     key={section.id || `new-section-${index}`}
                     id={`service-section-card-${index}`}
+                    role="tabpanel"
+                    aria-label={`Section ${index + 1}`}
                     className="scroll-mt-28 p-5 sm:p-6"
                   >
                     <div className="mb-5 flex items-center justify-between gap-3 border-b border-admin-border pb-4">
@@ -616,6 +647,20 @@ export function ServiceEditorPage() {
         </div>
       )}
     </div>
+  );
+}
+
+function SectionTab({ active, label, onClick }: { active: boolean; label: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      className={`flex min-h-11 items-center rounded-xl px-4 text-sm font-semibold transition ${active ? 'bg-admin-primary text-white shadow-sm' : 'text-admin-secondary hover:bg-admin-muted hover:text-admin-text'}`}
+    >
+      {label}
+    </button>
   );
 }
 
