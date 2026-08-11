@@ -9,6 +9,8 @@ import { CategoriesPage } from "./pages/CategoriesPage";
 import { PackagesPage } from "./pages/PackagesPage";
 import { PackageCategoriesPage } from "./pages/PackageCategoriesPage";
 import { SiteContentPage } from "./pages/SiteContentPage";
+import { ServicesPage } from "./pages/ServicesPage";
+import { ServiceEditorPage } from "./pages/ServiceEditorPage";
 import { WorkEnquiriesPage } from "./pages/WorkEnquiriesPage";
 import { EnquiryDetailPage } from "./pages/EnquiryDetailPage";
 import { TodayPage } from "./pages/TodayPage";
@@ -129,6 +131,9 @@ export default function AdminApp() {
               </Route>
               <Route element={<AccessRoute feature="site_content" />}>
                 <Route path="site-content" element={<SiteContentPage />} />
+                <Route path="services" element={<ServicesPage />} />
+                <Route path="services/new" element={<ServiceEditorPage />} />
+                <Route path="services/:id" element={<ServiceEditorPage />} />
               </Route>
               <Route element={<AccessRoute feature="hero_slides" />}>
                 <Route path="hero-slides" element={<HeroSlidesPage />} />

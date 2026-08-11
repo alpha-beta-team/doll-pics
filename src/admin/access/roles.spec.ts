@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  FEATURE_CATALOG,
   getAccessSummary,
   getEffectiveAccess,
   getOverrideCount,
@@ -27,6 +28,16 @@ test('content managers can view enquiries and manage content and photos', () => 
   assert.equal(access.staff_profiles, 'manage');
   assert.equal(access.photos, 'manage');
   assert.equal(access.payments, 'none');
+});
+
+test('site content access covers settings and service editor routes', () => {
+  assert.deepEqual(FEATURE_CATALOG.site_content.routes, [
+    '/admin/site-content',
+    '/admin/services',
+    '/admin/services/new',
+    '/admin/services/:id',
+  ]);
+  assert.equal(FEATURE_CATALOG.site_content.navigation.label, 'Site Settings');
 });
 
 test('sales access is limited to dashboard and studio operations', () => {
