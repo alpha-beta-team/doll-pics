@@ -7,7 +7,6 @@ import { SectionPageIntro } from '../components/SectionPageIntro';
 import { HomeExperience } from '../components/home/HomeExperience';
 import { Footer } from '../components/sections/Footer';
 import { ContactFabHost } from '../components/packages/ContactFabs';
-import { useSiteData } from '../contexts/SiteDataContext';
 import { PATH_TO_SECTION } from '../lib/navigation';
 import { SECTION_COMPONENTS } from '../lib/sectionComponents';
 import { getPageSeo } from '../lib/seo';
@@ -78,14 +77,9 @@ function HomeView() {
 
 function SiteContent() {
   const { pathname } = useLocation();
-  const { siteContent } = useSiteData();
   const sectionId = PATH_TO_SECTION[pathname];
 
-  usePageSeo({
-    phone: siteContent.phone,
-    email: siteContent.contactEmail,
-    socials: siteContent.socials,
-  });
+  usePageSeo();
 
   if (sectionId) {
     return <SectionOnlyView sectionId={sectionId} pathname={pathname} />;

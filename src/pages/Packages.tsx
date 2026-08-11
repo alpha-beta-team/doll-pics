@@ -9,14 +9,10 @@ import { useInView } from '../hooks/useScroll';
 import { usePageSeo } from '../hooks/usePageSeo';
 
 function PackagesContent() {
-  const { siteContent, packageNavLinks, loading } = useSiteData();
+  const { packageNavLinks, loading } = useSiteData();
   const { ref, inView } = useInView<HTMLDivElement>();
 
-  usePageSeo({
-    phone: siteContent.phone,
-    email: siteContent.contactEmail,
-    socials: siteContent.socials,
-  });
+  usePageSeo();
 
   return (
     <div className="packages-editorial relative bg-ink-950">

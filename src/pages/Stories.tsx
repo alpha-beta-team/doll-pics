@@ -11,14 +11,10 @@ import { usePageSeo } from '../hooks/usePageSeo';
 import { BOOKING_ROUTE } from '../lib/navigation';
 
 function StoriesContent() {
-  const { siteContent, testimonials } = useSiteData();
+  const { testimonials } = useSiteData();
   const hasTestimonials = testimonials.length > 0;
 
-  usePageSeo({
-    phone: siteContent.phone,
-    email: siteContent.contactEmail,
-    socials: siteContent.socials,
-  });
+  usePageSeo();
 
   return (
     <div className="relative bg-ink-950">

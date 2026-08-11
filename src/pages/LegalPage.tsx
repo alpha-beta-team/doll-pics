@@ -18,11 +18,7 @@ function LegalPageContent({ path, children }: LegalPageProps) {
   const { siteContent } = useSiteData();
   const seo = getPageSeo(path);
 
-  usePageSeo({
-    phone: siteContent.phone,
-    email: siteContent.contactEmail,
-    socials: siteContent.socials,
-  });
+  usePageSeo();
 
   return (
     <div className="relative min-h-screen bg-ink-950">

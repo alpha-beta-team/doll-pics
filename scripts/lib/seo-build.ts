@@ -11,8 +11,11 @@ import {
   buildPageCatalog,
   buildServiceOrPackageJsonLd,
   buildWebPageJsonLd,
+  serviceCatalogFromLinks,
+  serviceCatalogFromPages,
   type PackageNavLinkLike,
   type SeoPagesData,
+  type ServiceCatalogItem,
   type ServiceNavLinkLike,
 } from '../../src/lib/seo-core';
 import { withCanonicalBusinessIdentity } from '../../src/lib/businessIdentity';
@@ -67,12 +70,26 @@ export function loadStaticSeoData() {
   return { seoPages, servicePages, packagePages, sitemapRoutes };
 }
 
+export function resolveServiceCatalog(
+  servicePages: Record<
+    string,
+    { label?: string; serviceName?: string; heading?: string }
+  >,
+  servicesByPath: Map<string, ServiceNavLinkLike>,
+  servicesLoaded: boolean,
+): ServiceCatalogItem[] {
+  return servicesLoaded
+    ? serviceCatalogFromLinks([...servicesByPath.values()])
+    : serviceCatalogFromPages(servicePages);
+}
+
 export async function loadCmsOverlays() {
   const apiBase = getApiBase();
   const requireCms =
     String(process.env.SEO_REQUIRE_CMS ?? '').toLowerCase() === 'true';
   const packagesByPath = new Map<string, PackageNavLinkLike>();
   const servicesByPath = new Map<string, ServiceNavLinkLike>();
+  let servicesLoaded = false;
 
   if (!apiBase) {
     if (requireCms) {
@@ -80,7 +97,7 @@ export async function loadCmsOverlays() {
         'SEO_REQUIRE_CMS=true but VITE_API_URL/API_URL is not configured',
       );
     }
-    return { packagesByPath, servicesByPath, apiBase: '' };
+    return { packagesByPath, servicesByPath, servicesLoaded, apiBase: '' };
   }
 
   try {
@@ -116,14 +133,27 @@ export async function loadCmsOverlays() {
     const links = Array.isArray(siteContent?.serviceNavLinks)
       ? siteContent.serviceNavLinks
       : [];
-    for (const link of links) {
+    servicesLoaded = true;
+    const orderedLinks = links
+      .map((link, index) => ({
+        link,
+        index,
+        order:
+          typeof link?.order === 'number' && Number.isFinite(link.order)
+            ? link.order
+            : index,
+      }))
+      .sort((a, b) => a.order - b.order || a.index - b.index);
+
+    for (const { link, order } of orderedLinks) {
       if (link?.isPublished === false) continue;
       const path = normalizePath(link?.path);
-      if (!path || path === '/services') continue;
+      if (!path || path === '/services' || servicesByPath.has(path)) continue;
       servicesByPath.set(path, {
-        label: link.label || 'Service',
+        label: String(link.label ?? '').trim() || 'Service',
         path,
         description: link.description || '',
+        order,
         seoTitle: link.seoTitle || '',
         seoDescription: link.seoDescription || '',
         heading: link.heading || '',
@@ -141,5 +171,5 @@ export async function loadCmsOverlays() {
     console.warn('SEO build: site-content services unavailable:', message);
   }
 
-  return { packagesByPath, servicesByPath, apiBase };
+  return { packagesByPath, servicesByPath, servicesLoaded, apiBase };
 }

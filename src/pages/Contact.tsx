@@ -75,11 +75,7 @@ function ContactContent() {
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<FormField, string>>>({});
   const leadTracked = useRef(false);
 
-  usePageSeo({
-    phone: siteContent.phone,
-    email: siteContent.contactEmail,
-    socials: siteContent.socials,
-  });
+  usePageSeo();
 
   const heroImage = featuredWork[0];
   const waNumber = whatsappDigits(siteContent.whatsapp);
@@ -106,7 +102,7 @@ function ContactContent() {
       await publicApi.createEnquiry({
         name: name.trim(),
         email: email.trim(),
-        phone: phone.trim() || undefined,
+        phone: phone.trim(),
         shootType,
         bookingDate: bookingDate || undefined,
         location: location.trim() || undefined,
@@ -312,13 +308,13 @@ function ContactContent() {
                       <FieldError message={fieldErrors.email} />
                     </div>
                     <div>
-                      <label htmlFor="contact-phone" className="text-xs uppercase tracking-[0.16em] text-ink-200/65">Phone number</label>
-                      <input id="contact-phone" type="tel" autoComplete="tel" value={phone} onChange={(e) => { setPhone(e.target.value); clearError('phone'); }} placeholder="+91 00000 00000" className={fieldClass(Boolean(fieldErrors.phone))} aria-invalid={Boolean(fieldErrors.phone)} />
+                      <label htmlFor="contact-phone" className="text-xs uppercase tracking-[0.16em] text-ink-200/65">Phone number *</label>
+                      <input id="contact-phone" required type="tel" inputMode="tel" minLength={8} maxLength={20} autoComplete="tel" value={phone} onChange={(e) => { setPhone(e.target.value); clearError('phone'); }} placeholder="+91 00000 00000" className={fieldClass(Boolean(fieldErrors.phone))} aria-invalid={Boolean(fieldErrors.phone)} />
                       <FieldError message={fieldErrors.phone} />
                     </div>
                     <div>
                       <label htmlFor="contact-shoot" className="text-xs uppercase tracking-[0.16em] text-ink-200/65">I&apos;m interested in *</label>
-                      <select id="contact-shoot" value={shootType} onChange={(e) => { setShootType(e.target.value as ShootTypeOption); clearError('shootType'); }} className={fieldClass(Boolean(fieldErrors.shootType))} aria-invalid={Boolean(fieldErrors.shootType)}>
+                      <select id="contact-shoot" required value={shootType} onChange={(e) => { setShootType(e.target.value as ShootTypeOption); clearError('shootType'); }} className={fieldClass(Boolean(fieldErrors.shootType))} aria-invalid={Boolean(fieldErrors.shootType)}>
                         {SHOOT_TYPE_OPTIONS.map((option) => <option key={option} value={option}>{option}</option>)}
                       </select>
                       <FieldError message={fieldErrors.shootType} />

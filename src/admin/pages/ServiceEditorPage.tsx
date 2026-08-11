@@ -14,8 +14,10 @@ import { useFeatureAccess } from '../access/useFeatureAccess';
 import { api } from '../api/client';
 import { AdminTabs, type AdminTab } from '../components/AdminTabs';
 import { ReadOnlyNotice } from '../components/ReadOnlyNotice';
+import { ServiceCardImageUpload } from '../components/ServiceCardImageUpload';
 import {
   AdminAlert,
+  AdminBreadcrumbs,
   AdminButton,
   AdminCard,
   AdminEmptyState,
@@ -236,7 +238,18 @@ export function ServiceEditorPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-6 pb-20">
       <AdminPageHeader
-        eyebrow="Website · Services"
+        eyebrow={(
+          <AdminBreadcrumbs
+            backAction={{
+              label: 'Back to services',
+              onClick: () => void leave(),
+            }}
+            items={[
+              { label: 'Website', to: '/admin/site-content' },
+              { label: 'Services', to: '/admin/services' },
+            ]}
+          />
+        )}
         title={title}
         description={isNew
           ? 'Create the service as a draft, complete its content, and publish it when ready.'
@@ -254,9 +267,6 @@ export function ServiceEditorPage() {
                 Open live page <ExternalLink className="h-4 w-4" aria-hidden="true" />
               </a>
             )}
-            <AdminButton variant="secondary" onClick={() => void leave()}>
-              <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back
-            </AdminButton>
           </>
         )}
       />
@@ -316,15 +326,11 @@ export function ServiceEditorPage() {
                       {SERVICE_ICON_OPTIONS.map((icon) => <option key={icon} value={icon}>{icon}</option>)}
                     </select>
                   </AdminField>
-                  <AdminField label="Image URL" hint="Used on the homepage service card.">
-                    <input
-                      type="url"
-                      value={form.imageUrl}
-                      onChange={(event) => update('imageUrl', event.target.value)}
-                      className={adminFieldClass}
-                      placeholder="https://…"
-                    />
-                  </AdminField>
+                  <ServiceCardImageUpload
+                    value={form.imageUrl}
+                    disabled={!canManage}
+                    onChange={(url) => update('imageUrl', url)}
+                  />
                 </div>
               </AdminCard>
 
@@ -444,7 +450,7 @@ function ServiceImagePreview({ src }: { src: string }) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 text-admin-subtle">
         <ImageIcon className="h-8 w-8" aria-hidden="true" />
-        <span className="text-sm">{failed ? 'Image could not be loaded' : 'No image URL'}</span>
+        <span className="text-sm">{failed ? 'Image could not be loaded' : 'No image uploaded'}</span>
       </div>
     );
   }

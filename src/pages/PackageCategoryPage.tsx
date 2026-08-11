@@ -59,22 +59,11 @@ function PackageCategoryPageContent() {
         body: page.body,
       },
       {
-        contact: {
-          phone: siteContent.phone,
-          email: siteContent.contactEmail,
-          socials: siteContent.socials,
-        },
         packagePage: page,
         faqs: page.faqs.length ? page.faqs : undefined,
       },
     );
-  }, [
-    page,
-    path,
-    siteContent.phone,
-    siteContent.contactEmail,
-    siteContent.socials,
-  ]);
+  }, [page, path]);
 
   useEffect(() => {
     if (!page) return;

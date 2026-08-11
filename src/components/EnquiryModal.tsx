@@ -28,7 +28,6 @@ import {
   trackWhatsAppClick,
 } from '../lib/analytics';
 import {
-  DEFAULT_SHOOT_TYPE,
   SHOOT_TYPE_OPTIONS,
   type ShootTypeOption,
 } from '../lib/shootTypes';
@@ -61,8 +60,8 @@ export function EnquiryModal({
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [shootType, setShootType] = useState<ShootTypeOption>(
-    prefill?.shootType ?? DEFAULT_SHOOT_TYPE,
+  const [shootType, setShootType] = useState<ShootTypeOption | ''>(
+    prefill?.shootType ?? '',
   );
   const [preferredEvent, setPreferredEvent] = useState(prefill?.preferredEvent ?? '');
   const [bookingDate, setBookingDate] = useState('');
@@ -137,16 +136,16 @@ export function EnquiryModal({
       : message;
     try {
       await publicApi.createEnquiry({
-        name,
-        email,
-        phone: phone.trim() || undefined,
+        name: name.trim(),
+        email: email.trim() || undefined,
+        phone: phone.trim(),
         shootType,
         preferredEvent: preferredEvent.trim() || undefined,
         bookingDate: bookingDate.trim() || undefined,
         location: location.trim() || undefined,
         whatsappOptIn,
         preferredLanguage: 'en',
-        message: messageWithOptIn,
+        message: messageWithOptIn.trim() || undefined,
       });
       setSubmittedTipsOptIn(tipsOptIn);
       setStatus('success');
@@ -279,8 +278,8 @@ export function EnquiryModal({
                     setName(e.target.value);
                     clearFieldError('name');
                   }}
-                  placeholder="Your name"
-                  aria-label="Your name"
+                  placeholder="Your name *"
+                  aria-label="Your name (required)"
                   aria-invalid={Boolean(fieldErrors.name)}
                   className={fieldClass(Boolean(fieldErrors.name))}
                 />
@@ -288,15 +287,15 @@ export function EnquiryModal({
               </div>
               <div>
                 <input
-                  required
+                  required={tipsOptIn}
                   type="email"
                   value={email}
                   onChange={e => {
                     setEmail(e.target.value);
                     clearFieldError('email');
                   }}
-                  placeholder="Email"
-                  aria-label="Email"
+                  placeholder={tipsOptIn ? 'Email *' : 'Email (optional)'}
+                  aria-label={tipsOptIn ? 'Email (required for tips)' : 'Email (optional)'}
                   aria-invalid={Boolean(fieldErrors.email)}
                   className={fieldClass(Boolean(fieldErrors.email))}
                 />
@@ -304,13 +303,19 @@ export function EnquiryModal({
               </div>
               <div>
                 <input
+                  required
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  minLength={8}
+                  maxLength={20}
                   value={phone}
                   onChange={e => {
                     setPhone(e.target.value);
                     clearFieldError('phone');
                   }}
-                  placeholder="Phone (optional)"
-                  aria-label="Phone (optional)"
+                  placeholder="Phone number *"
+                  aria-label="Phone number (required)"
                   aria-invalid={Boolean(fieldErrors.phone)}
                   className={fieldClass(Boolean(fieldErrors.phone))}
                 />
@@ -318,15 +323,17 @@ export function EnquiryModal({
               </div>
               <div>
                 <select
+                  required
                   value={shootType}
                   onChange={e => {
                     setShootType(e.target.value as ShootTypeOption);
                     clearFieldError('shootType');
                   }}
-                  aria-label="Shoot type"
+                  aria-label="Category (required)"
                   aria-invalid={Boolean(fieldErrors.shootType)}
                   className={fieldClass(Boolean(fieldErrors.shootType))}
                 >
+                  <option value="" disabled>Select category *</option>
                   {SHOOT_TYPE_OPTIONS.map(t => (
                     <option key={t} value={t}>{t}</option>
                   ))}
@@ -378,14 +385,13 @@ export function EnquiryModal({
               </div>
               <div>
                 <textarea
-                  required
                   value={message}
                   onChange={e => {
                     setMessage(e.target.value);
                     clearFieldError('message');
                   }}
-                  placeholder="Tell us about your event..."
-                  aria-label="Tell us about your event"
+                  placeholder="Tell us about your event... (optional)"
+                  aria-label="Tell us about your event (optional)"
                   aria-invalid={Boolean(fieldErrors.message)}
                   rows={3}
                   className={`${fieldClass(Boolean(fieldErrors.message))} resize-none`}

@@ -1,4 +1,3 @@
-import { useSiteData } from '../contexts/SiteDataContext';
 import { CustomCursor } from '../components/CustomCursor';
 import { SmoothScroll } from '../components/SmoothScroll';
 import { Navbar } from '../components/Navbar';
@@ -10,13 +9,7 @@ import { MeetTheTeam } from '../components/about/MeetTheTeam';
 import { usePageSeo } from '../hooks/usePageSeo';
 
 function AboutContent() {
-  const { siteContent } = useSiteData();
-
-  usePageSeo({
-    phone: siteContent.phone,
-    email: siteContent.contactEmail,
-    socials: siteContent.socials,
-  });
+  usePageSeo();
 
   return (
     <div className="relative bg-ink-950">

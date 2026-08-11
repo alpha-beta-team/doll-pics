@@ -12,6 +12,7 @@ import {
   getSiteUrl,
   loadCmsOverlays,
   loadStaticSeoData,
+  resolveServiceCatalog,
 } from './lib/seo-build';
 import type { CatalogPage } from '../src/lib/seo-core';
 
@@ -22,7 +23,13 @@ const siteUrl = getSiteUrl();
 const ogImage = `${siteUrl}/og-share.jpg`;
 
 const { seoPages, servicePages, packagePages } = loadStaticSeoData();
-const { packagesByPath, servicesByPath, apiBase } = await loadCmsOverlays();
+const { packagesByPath, servicesByPath, servicesLoaded, apiBase } =
+  await loadCmsOverlays();
+const serviceCatalog = resolveServiceCatalog(
+  servicePages,
+  servicesByPath,
+  servicesLoaded,
+);
 const pages = buildPageCatalog({
   seoPages,
   servicePages,
@@ -100,7 +107,9 @@ function injectRouteHtml(template: string, page: CatalogPage) {
   const isService = page.kind === 'service';
   const isPackage = page.kind === 'package';
 
-  const businessJson = JSON.stringify(buildBusinessJsonLd(siteUrl, seoPages));
+  const businessJson = JSON.stringify(
+    buildBusinessJsonLd(siteUrl, seoPages, { services: serviceCatalog }),
+  );
   const webpageJson = JSON.stringify(
     buildWebPageJsonLd(siteUrl, { ...page, siteName }, url),
   );
