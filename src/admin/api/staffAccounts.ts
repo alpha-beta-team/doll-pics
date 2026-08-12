@@ -14,6 +14,11 @@ export function normalizeStaffAccount(account: StaffAccountResponse): StaffAccou
     jobTitle: typeof account.jobTitle === 'string' ? account.jobTitle : '',
     role: normalizeStaffAccountRole(account.role),
     permissionOverrides: normalizePermissionOverrides(account.permissionOverrides),
+    employeeCode: typeof account.employeeCode === 'string' ? account.employeeCode : undefined,
+    attendanceEnabled: account.attendanceEnabled === true,
+    joiningDate: typeof account.joiningDate === 'string' ? account.joiningDate : '',
+    employmentEndDate: typeof account.employmentEndDate === 'string' ? account.employmentEndDate : '',
+    punchPinConfigured: account.punchPinConfigured === true,
   };
 }
 
@@ -28,17 +33,21 @@ export const staffAccountsApi = {
   async createStaffAccount(data: {
     name: string;
     jobTitle: string;
-    email: string;
-    temporaryPassword: string;
+    email?: string;
+    temporaryPassword?: string;
     role: StaffAccount['role'];
     permissionOverrides?: StaffAccount['permissionOverrides'];
+    employeeCode?: string;
+    attendanceEnabled?: boolean;
+    joiningDate?: string;
+    employmentEndDate?: string;
   }): Promise<StaffAccount> {
     const account = await request<StaffAccountResponse>('/admin/staff-accounts', {
       method: 'POST', auth: true, body: JSON.stringify(data),
     });
     return normalizeStaffAccount(account);
   },
-  async updateStaffAccount(id: string, data: Partial<Pick<StaffAccount, 'name' | 'jobTitle' | 'role' | 'permissionOverrides' | 'isActive'>>): Promise<StaffAccount> {
+  async updateStaffAccount(id: string, data: Partial<Pick<StaffAccount, 'name' | 'jobTitle' | 'role' | 'permissionOverrides' | 'isActive' | 'employeeCode' | 'attendanceEnabled' | 'joiningDate' | 'employmentEndDate'>>): Promise<StaffAccount> {
     const account = await request<StaffAccountResponse>(`/admin/staff-accounts/${id}`, {
       method: 'PATCH', auth: true, body: JSON.stringify(data),
     });
@@ -49,5 +58,10 @@ export const staffAccountsApi = {
       method: 'POST', auth: true, body: JSON.stringify({ temporaryPassword }),
     });
     return normalizeStaffAccount(account);
+  },
+  resetStaffAccountPunchPin(id: string): Promise<{ punchPinConfigured: boolean }> {
+    return request<{ punchPinConfigured: boolean }>(`/admin/staff-accounts/${id}/reset-punch-pin`, {
+      method: 'POST', auth: true,
+    });
   },
 };

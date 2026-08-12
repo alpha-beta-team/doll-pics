@@ -48,7 +48,7 @@ import { filterStaffAccounts } from './staffAccounts.utils';
 
 type PageTab = 'accounts' | 'roles';
 
-type StaffAccountFormErrors = Partial<Record<'name' | 'email' | 'password', string>>;
+type StaffAccountFormErrors = Partial<Record<'name' | 'email' | 'password' | 'employeeCode' | 'joiningDate', string>>;
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -106,6 +106,22 @@ export function StaffAccountsPage() {
       setSuccess(`${saved.name} is now ${saved.isActive ? 'active' : 'inactive'}.`);
     } catch (updateError) {
       setError(updateError instanceof Error ? updateError.message : 'Could not update the account.');
+    } finally {
+      setUpdatingAccountId(null);
+    }
+  };
+
+  const resetPunchPin = async (account: StaffAccount) => {
+    if (!window.confirm(`Reset the kiosk PIN for ${account.name}? They must create a new PIN in the employee portal.`)) return;
+    setUpdatingAccountId(account.id);
+    setError('');
+    setSuccess('');
+    try {
+      await api.resetStaffAccountPunchPin(account.id);
+      setAccounts((current) => current.map((item) => item.id === account.id ? { ...item, punchPinConfigured: false } : item));
+      setSuccess(`The kiosk PIN for ${account.name} was reset.`);
+    } catch (resetError) {
+      setError(resetError instanceof Error ? resetError.message : 'Could not reset the kiosk PIN.');
     } finally {
       setUpdatingAccountId(null);
     }
@@ -190,6 +206,7 @@ export function StaffAccountsPage() {
                   updatingAccountId={updatingAccountId}
                   onEdit={setDrawerAccount}
                   onReset={setResetAccount}
+                  onResetPin={(account) => void resetPunchPin(account)}
                   onToggle={(account) => void toggleStaffAccount(account)}
                 />
                 <MobileStaffAccountsList
@@ -197,6 +214,7 @@ export function StaffAccountsPage() {
                   updatingAccountId={updatingAccountId}
                   onEdit={setDrawerAccount}
                   onReset={setResetAccount}
+                  onResetPin={(account) => void resetPunchPin(account)}
                   onToggle={(account) => void toggleStaffAccount(account)}
                 />
               </>
@@ -247,10 +265,11 @@ type StaffAccountListProps = {
   updatingAccountId: string | null;
   onEdit: (account: StaffAccount) => void;
   onReset: (account: StaffAccount) => void;
+  onResetPin: (account: StaffAccount) => void;
   onToggle: (account: StaffAccount) => void;
 };
 
-function DesktopStaffAccountsTable({ accounts, updatingAccountId, onEdit, onReset, onToggle }: StaffAccountListProps) {
+function DesktopStaffAccountsTable({ accounts, updatingAccountId, onEdit, onReset, onResetPin, onToggle }: StaffAccountListProps) {
   return (
     <AdminTableSurface className="hidden md:block">
       <table className="w-full min-w-[920px] text-left text-sm">
@@ -276,6 +295,7 @@ function DesktopStaffAccountsTable({ accounts, updatingAccountId, onEdit, onRese
                 <div className="flex justify-end gap-2">
                   <AdminIconButton label={`Edit ${account.name}`} onClick={() => onEdit(account)}><Pencil className="h-4 w-4" /></AdminIconButton>
                   <AdminIconButton label={`Reset password for ${account.name}`} onClick={() => onReset(account)}><KeyRound className="h-4 w-4" /></AdminIconButton>
+                  {account.attendanceEnabled && <AdminIconButton label={`Reset kiosk PIN for ${account.name}`} onClick={() => onResetPin(account)}><LockKeyhole className="h-4 w-4" /></AdminIconButton>}
                   <AdminIconButton
                     label={`${account.isActive ? 'Deactivate' : 'Activate'} ${account.name}`}
                     disabled={updatingAccountId === account.id}
@@ -294,7 +314,7 @@ function DesktopStaffAccountsTable({ accounts, updatingAccountId, onEdit, onRese
   );
 }
 
-function MobileStaffAccountsList({ accounts, updatingAccountId, onEdit, onReset, onToggle }: StaffAccountListProps) {
+function MobileStaffAccountsList({ accounts, updatingAccountId, onEdit, onReset, onResetPin, onToggle }: StaffAccountListProps) {
   return (
     <div className="space-y-3 md:hidden">
       {accounts.map((account) => (
@@ -304,9 +324,10 @@ function MobileStaffAccountsList({ accounts, updatingAccountId, onEdit, onReset,
             <RoleSummary account={account} />
             <AccountStatus account={account} />
           </div>
-          <div className="mt-4 grid grid-cols-3 gap-2 border-t border-admin-border pt-4">
+          <div className="mt-4 grid grid-cols-2 gap-2 border-t border-admin-border pt-4">
             <AdminButton variant="secondary" className="px-2" onClick={() => onEdit(account)}><Pencil className="h-4 w-4" /> Edit</AdminButton>
             <AdminButton variant="secondary" className="px-2" onClick={() => onReset(account)}><KeyRound className="h-4 w-4" /> Password</AdminButton>
+            {account.attendanceEnabled && <AdminButton variant="secondary" className="px-2" onClick={() => onResetPin(account)}><LockKeyhole className="h-4 w-4" /> Kiosk PIN</AdminButton>}
             <AdminButton
               variant="quiet"
               className={account.isActive ? 'px-2 text-red-700' : 'px-2 text-emerald-700'}
@@ -331,7 +352,7 @@ function StaffAccountIdentity({ account, showJobTitle = true }: { account: Staff
       <div className="min-w-0">
         <p className="truncate font-semibold text-admin-text">{account.name}</p>
         {showJobTitle && account.jobTitle && <p className="truncate text-sm font-medium text-admin-secondary">{account.jobTitle}</p>}
-        <p className="truncate text-sm text-admin-subtle">{account.email}</p>
+        <p className="truncate text-sm text-admin-subtle">{account.email || account.employeeCode || 'No login identifier'}</p>
       </div>
     </div>
   );
@@ -364,6 +385,8 @@ function AccountStatus({ account }: { account: StaffAccount }) {
         {account.isActive ? 'Active' : 'Inactive'}
       </AdminBadge>
       {account.mustChangePassword && <AdminBadge className="bg-orange-100 text-orange-800">Password change pending</AdminBadge>}
+      {account.attendanceEnabled && <AdminBadge className="bg-blue-100 text-blue-800">Attendance enabled</AdminBadge>}
+      {account.attendanceEnabled && <AdminBadge className={account.punchPinConfigured ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-orange-800'}>{account.punchPinConfigured ? 'Kiosk PIN ready' : 'PIN setup needed'}</AdminBadge>}
     </div>
   );
 }
@@ -390,6 +413,10 @@ function StaffAccountDrawer({
     account?.role === 'owner' ? {} : account?.permissionOverrides ?? {},
   );
   const [isActive, setIsActive] = useState(account?.isActive ?? true);
+  const [employeeCode, setEmployeeCode] = useState(account?.employeeCode ?? '');
+  const [attendanceEnabled, setAttendanceEnabled] = useState(account?.role === 'employee' ? true : account?.attendanceEnabled ?? false);
+  const [joiningDate, setJoiningDate] = useState(account?.joiningDate ?? '');
+  const [employmentEndDate, setEmploymentEndDate] = useState(account?.employmentEndDate ?? '');
   const [errors, setErrors] = useState<StaffAccountFormErrors>({});
   const [requestError, setRequestError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -397,9 +424,11 @@ function StaffAccountDrawer({
   const validate = () => {
     const nextErrors: StaffAccountFormErrors = {};
     if (!name.trim()) nextErrors.name = 'Enter the staff account name.';
-    if (isNew && !email.trim()) nextErrors.email = 'Enter an email address.';
-    else if (isNew && !EMAIL_PATTERN.test(email.trim())) nextErrors.email = 'Enter a valid email address.';
+    if (isNew && role !== 'employee' && !email.trim()) nextErrors.email = 'Enter an email address for CMS access.';
+    else if (email.trim() && !EMAIL_PATTERN.test(email.trim())) nextErrors.email = 'Enter a valid email address.';
     if (isNew && password.length < 8) nextErrors.password = 'Use at least 8 characters.';
+    if (attendanceEnabled && !/^[A-Z0-9-]{3,20}$/.test(employeeCode.trim().toUpperCase())) nextErrors.employeeCode = 'Use 3–20 uppercase letters, numbers, or hyphens.';
+    if (attendanceEnabled && !joiningDate) nextErrors.joiningDate = 'Choose the attendance joining date.';
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
@@ -415,10 +444,14 @@ function StaffAccountDrawer({
         ? await api.createStaffAccount({
           name: name.trim(),
           jobTitle: jobTitle.trim(),
-          email: email.trim().toLocaleLowerCase(),
+          ...(email.trim() ? { email: email.trim().toLocaleLowerCase() } : {}),
           temporaryPassword: password,
           role,
           permissionOverrides: savedOverrides,
+          ...(employeeCode.trim() ? { employeeCode: employeeCode.trim().toUpperCase() } : {}),
+          attendanceEnabled,
+          ...(joiningDate ? { joiningDate } : {}),
+          ...(employmentEndDate ? { employmentEndDate } : {}),
         })
         : await api.updateStaffAccount(account.id, {
           name: name.trim(),
@@ -426,6 +459,10 @@ function StaffAccountDrawer({
           role,
           permissionOverrides: savedOverrides,
           isActive,
+          ...(employeeCode.trim() ? { employeeCode: employeeCode.trim().toUpperCase() } : {}),
+          attendanceEnabled,
+          ...(joiningDate ? { joiningDate } : {}),
+          employmentEndDate,
         });
       onSaved(saved, isNew);
     } catch (saveError) {
@@ -438,7 +475,7 @@ function StaffAccountDrawer({
     <AdminDrawer
       open={open}
       title={isNew ? 'Add staff account' : 'Edit staff account'}
-      description={isNew ? 'Create a staff login and choose their role.' : `Update access for ${account.name}.`}
+      description={isNew ? 'Create a CMS login, employee attendance login, or both.' : `Update access and attendance setup for ${account.name}.`}
       onClose={onClose}
       footer={(
         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
@@ -473,7 +510,7 @@ function StaffAccountDrawer({
             />
           </AdminField>
 
-          <AdminField label="Email" error={errors.email} hint={!isNew ? 'Email cannot be changed after the account is created.' : undefined}>
+          <AdminField label={role === 'employee' ? 'Email (optional)' : 'CMS email'} error={errors.email} hint={!isNew ? 'Email cannot be changed after the account is created.' : role === 'employee' ? 'Attendance-only employees sign in with their employee code.' : undefined}>
             <input
               type="email"
               className={adminFieldClass}
@@ -522,7 +559,8 @@ function StaffAccountDrawer({
                   aria-checked={selected}
                   onClick={() => {
                     setRole(roleOption);
-                    if (roleOption === 'owner') setPermissionOverrides({});
+                    if (roleOption === 'owner' || roleOption === 'employee') setPermissionOverrides({});
+                    if (roleOption === 'employee') setAttendanceEnabled(true);
                   }}
                   className={`flex w-full items-start gap-3 rounded-xl border p-4 text-left outline-none transition focus-visible:ring-2 focus-visible:ring-admin-focus ${selected ? `${details.selectionClassName} ring-2` : 'border-admin-border bg-admin-surface hover:border-admin-border-strong hover:bg-admin-muted/50'}`}
                 >
@@ -545,6 +583,20 @@ function StaffAccountDrawer({
             This role can view payments, manage staff accounts, and access every studio area.
           </AdminAlert>
         )}
+
+        <fieldset className="space-y-4 rounded-xl border border-admin-border bg-admin-muted/30 p-4">
+          <legend className="px-1 text-sm font-semibold text-admin-secondary">Attendance and leave</legend>
+          <label className="flex items-center justify-between gap-4">
+            <span><span className="block text-sm font-semibold text-admin-text">Enable attendance</span><span className="mt-1 block text-sm text-admin-subtle">Allows employee portal and office kiosk access.</span></span>
+            <input type="checkbox" checked={attendanceEnabled} disabled={role === 'employee'} onChange={(event) => setAttendanceEnabled(event.target.checked)} className="h-5 w-5 rounded border-admin-control text-admin-primary focus:ring-admin-focus" />
+          </label>
+          {attendanceEnabled && <div className="grid gap-4 sm:grid-cols-2">
+            <AdminField label="Employee code" error={errors.employeeCode} hint="Used for employee login and kiosk punching."><input className={adminFieldClass} value={employeeCode} maxLength={20} onChange={(event) => { setEmployeeCode(event.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '')); setErrors((current) => ({ ...current, employeeCode: undefined })); }} placeholder="DP-001" /></AdminField>
+            <AdminField label="Joining date" error={errors.joiningDate}><input type="date" className={adminFieldClass} value={joiningDate} onChange={(event) => { setJoiningDate(event.target.value); setErrors((current) => ({ ...current, joiningDate: undefined })); }} /></AdminField>
+            <AdminField label="Employment end date" hint="Leave empty for current employees."><input type="date" min={joiningDate || undefined} className={adminFieldClass} value={employmentEndDate} onChange={(event) => setEmploymentEndDate(event.target.value)} /></AdminField>
+            <div className="rounded-xl border border-admin-border bg-admin-surface p-3 text-sm"><p className="font-semibold text-admin-text">Kiosk PIN</p><p className="mt-1 text-admin-subtle">{account?.punchPinConfigured ? 'Configured by employee' : 'Employee must set it after signing in'}</p></div>
+          </div>}
+        </fieldset>
 
         <AccessPreview role={role} overrides={permissionOverrides} />
 
@@ -640,6 +692,20 @@ function PermissionOverridesPanel({
           <div>
             <h3 className="text-sm font-semibold text-admin-text">Advanced access</h3>
             <p className="mt-1 text-sm leading-6 text-admin-subtle">Owner accounts always receive full access, so individual overrides are unavailable.</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (role === 'employee') {
+    return (
+      <section className="rounded-xl border border-admin-border bg-emerald-50 p-4">
+        <div className="flex items-start gap-3">
+          <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" />
+          <div>
+            <h3 className="text-sm font-semibold text-admin-text">Employee portal only</h3>
+            <p className="mt-1 text-sm leading-6 text-admin-subtle">Employee accounts cannot sign in to the CMS. They use their employee code for attendance, leave, off-days, and assigned outdoor shoots.</p>
           </div>
         </div>
       </section>

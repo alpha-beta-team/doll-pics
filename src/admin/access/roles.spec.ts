@@ -17,8 +17,10 @@ test('normalizes the legacy operations role to sales', () => {
   assert.equal(normalizeStaffAccountRole(undefined, 'owner'), 'owner');
 });
 
-test('defines the fixed roles in their display order', () => {
-  assert.deepEqual(ROLE_ORDER, ['owner', 'sales', 'content_manager']);
+test('defines CMS and employee roles in their display order', () => {
+  assert.deepEqual(ROLE_ORDER, ['owner', 'sales', 'content_manager', 'employee']);
+  assert.equal(normalizeStaffAccountRole('employee'), 'employee');
+  assert.deepEqual(getAccessSummary('employee'), []);
 });
 
 test('content managers can view enquiries and manage content and photos', () => {

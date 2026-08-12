@@ -104,6 +104,18 @@ npm run dev
 - Admin CMS: `http://localhost:5173/admin/login`
 - API: `http://localhost:3001/api`
 
+### Attendance and leave
+
+The zero-cost attendance and leave MVP uses three isolated browser areas:
+
+- `/admin/attendance` for owner dashboards, approvals, field assignments, reports, devices and policy settings.
+- `/employee` for employee-code login, attendance history, leave, off-days, field punching and PIN setup.
+- `/kiosk` for the registered Android office tablet.
+
+Deploy the frontend and matching backend changes together. Existing CMS sessions must sign in again because backend JWT audience validation is now required. Production must use HTTPS for field-location permission.
+
+For tablet setup, sign in as the owner, open **Attendance & Leave Settings**, generate a one-time device code, and enter it at `/kiosk`. The tablet must remain online; offline punching is intentionally unsupported.
+
 ### Environment
 
 Copy `.env.example` to `.env.local`:

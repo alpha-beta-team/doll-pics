@@ -21,7 +21,7 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>
 );
 
-if ('serviceWorker' in navigator && window.location.pathname.startsWith('/admin')) {
+if ('serviceWorker' in navigator && ['/admin', '/employee', '/kiosk'].some((prefix) => window.location.pathname.startsWith(prefix))) {
   window.addEventListener('load', () => {
     void navigator.serviceWorker.register('/admin-sw.js');
   });

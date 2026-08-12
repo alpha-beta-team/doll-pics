@@ -15,6 +15,8 @@ const robots = [
   'User-agent: *',
   'Allow: /',
   'Disallow: /admin/',
+  'Disallow: /employee/',
+  'Disallow: /kiosk/',
   'Disallow: /api/',
   'Disallow: /preview/',
   'Disallow: /quotation/',

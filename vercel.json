@@ -24,11 +24,43 @@
       "destination": "/index.html"
     },
     {
+      "source": "/employee",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/employee/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/kiosk",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/kiosk/:path*",
+      "destination": "/index.html"
+    },
+    {
       "source": "/quotation/:path*",
       "destination": "/index.html"
     }
   ],
   "headers": [
+    {
+      "source": "/employee/:path*",
+      "headers": [
+        { "key": "Cache-Control", "value": "private, no-store" },
+        { "key": "Referrer-Policy", "value": "no-referrer" },
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/kiosk/:path*",
+      "headers": [
+        { "key": "Cache-Control", "value": "private, no-store" },
+        { "key": "Referrer-Policy", "value": "no-referrer" },
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
     {
       "source": "/quotation/:path*",
       "headers": [
