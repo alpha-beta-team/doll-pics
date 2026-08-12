@@ -2,7 +2,7 @@ import type { ImageTransform, SiteContent } from '../types';
 import { request } from './http';
 import { mapSiteContent } from './mappers';
 
-type ServiceCardImageResult = {
+type ServiceImageResult = {
   url: string;
   originalUrl: string;
   storageKey: string;
@@ -26,7 +26,7 @@ export const siteContentApi = {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('imageTransform', JSON.stringify(transform));
-    return request<ServiceCardImageResult>('/admin/media/service-card', {
+    return request<ServiceImageResult>('/admin/media/service-card', {
       method: 'POST',
       auth: true,
       body: formData,
@@ -39,9 +39,15 @@ export const siteContentApi = {
     // Strip empty ids so Mongo can create new subdocs
     const payload = {
       ...merged,
-      serviceNavLinks: (merged.serviceNavLinks ?? []).map(({ id, ...rest }) =>
-        id ? { _id: id, ...rest } : rest,
-      ),
+      serviceNavLinks: (merged.serviceNavLinks ?? []).map(({ id, sections, ...rest }) => ({
+        ...(id ? { _id: id } : {}),
+        ...rest,
+        sections: sections.map(({ id: sectionId, ...section }) => ({
+          ...(sectionId ? { _id: sectionId } : {}),
+          ...section,
+          imageUrl: section.imageUrl.trim() || null,
+        })),
+      })),
     };
     await request('/admin/site-content', {
       method: 'PUT',
@@ -49,5 +55,15 @@ export const siteContentApi = {
       body: JSON.stringify(payload),
     });
     return getSiteContent();
+  },
+
+  uploadServiceSectionImage(file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    return request<ServiceImageResult>('/admin/media/service-section', {
+      method: 'POST',
+      auth: true,
+      body: formData,
+    });
   },
 };

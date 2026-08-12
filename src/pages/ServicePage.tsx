@@ -236,7 +236,7 @@ function ServicePageContent() {
   const categoryImages = (
     apiServiceMedia.path === path ? apiServiceMedia.images : []
   ).slice(0, SERVICE_GALLERY_LIMIT);
-  const { hero, inline } = selectServiceImages({
+  const { hero } = selectServiceImages({
     imageCategories: page.imageCategories,
     sourceImages: categoryImages,
     // Service pages intentionally render category API media only.
@@ -303,7 +303,7 @@ function ServicePageContent() {
         />
 
         {page.sections.length > 0 ? (
-          <ServiceExperience sections={page.sections} images={inline} />
+          <ServiceExperience sections={page.sections} images={categoryGallery} />
         ) : null}
 
         {categoryGallery.length > 0 ? (
@@ -782,7 +782,14 @@ function ServiceExperience({
 
         <div className="space-y-20 md:space-y-28">
           {sections.map((section, index) => {
-            const image = images[index];
+            const image = section.imageUrl
+              ? {
+                  src: section.imageUrl,
+                  alt: section.imageAlt || section.heading,
+                }
+              : images.length
+                ? images[index % images.length]
+                : undefined;
             const imageFirst = index % 2 === 1;
             return (
               <article

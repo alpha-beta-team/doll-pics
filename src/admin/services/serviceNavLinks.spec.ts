@@ -8,6 +8,8 @@ import {
   removeService,
   reorderServices,
   replaceService,
+  MAX_SERVICE_SECTIONS,
+  serviceCategorySlug,
   validateService,
   validateServiceForPublish,
 } from './serviceNavLinks';
@@ -20,6 +22,7 @@ function service(id: string, path: string, order: number): ServiceNavLink {
     description: '',
     icon: 'Camera',
     imageUrl: '',
+    sections: [{ heading: 'Introduction', body: 'Service details.', imageUrl: '', imageAlt: '' }],
     order,
     isPublished: true,
   };
@@ -30,6 +33,40 @@ test('new services start as drafts at the requested order', () => {
   assert.equal(next.order, 4);
   assert.equal(next.isPublished, false);
   assert.equal(next.icon, 'Camera');
+  assert.equal(next.sections.length, 1);
+});
+
+test('requires one to six complete content sections', () => {
+  const existing: ServiceNavLink[] = [];
+  const blank = createEmptyService(0);
+  const base = { ...blank, label: 'Family', path: '/family' };
+
+  assert.equal(
+    validateService({ ...base, sections: [] }, existing).sections,
+    'Add at least one page section.',
+  );
+  assert.match(validateService(base, existing).sections ?? '', /heading and body/);
+  assert.deepEqual(
+    validateService({
+      ...base,
+      sections: Array.from({ length: MAX_SERVICE_SECTIONS }, (_, index) => ({
+        heading: `Section ${index + 1}`,
+        body: 'Section body',
+        imageUrl: '',
+        imageAlt: '',
+      })),
+    }, existing),
+    {},
+  );
+  assert.match(
+    validateService({
+      ...base,
+      sections: Array.from({ length: MAX_SERVICE_SECTIONS + 1 }, () => ({
+        heading: 'Section', body: 'Body', imageUrl: '', imageAlt: '',
+      })),
+    }, existing).sections ?? '',
+    /no more than 6/,
+  );
 });
 
 test('normalizes service paths without changing their content', () => {
@@ -38,12 +75,18 @@ test('normalizes service paths without changing their content', () => {
   assert.equal(normalizeServicePath(''), '');
 });
 
+test('derives the matching Admin Photos category slug from a service label', () => {
+  assert.equal(serviceCategorySlug(' Baby Milestone '), 'baby-milestone');
+  assert.equal(serviceCategorySlug('Cake Smash & Birthday'), 'cake-smash-birthday');
+});
+
 test('validates required, unsafe, and duplicate service paths', () => {
   const existing = [service('one', '/maternity-photography-erode', 0)];
   const blank = createEmptyService(1);
   assert.deepEqual(validateService(blank, existing), {
     label: 'Enter a service label.',
     path: 'Enter a public path.',
+    sections: 'Enter a heading and body for every page section.',
   });
 
   const unsafe = { ...blank, label: 'Family', path: '/family photos?draft=1' };
@@ -61,6 +104,7 @@ test('requires every editor section to be complete before publishing', () => {
   assert.deepEqual(validateServiceForPublish(draft, []), {
     label: 'Enter a service label.',
     path: 'Enter a public path.',
+    sections: 'Enter a heading and body for every page section.',
     description: 'Enter a card description.',
     imageUrl: 'Upload a card image.',
     heading: 'Enter a page heading.',
@@ -79,6 +123,12 @@ test('requires every editor section to be complete before publishing', () => {
     lead: 'Candid, cinematic coverage for your wedding celebrations.',
     seoTitle: 'Wedding Photographers in Erode | Doll Pictures',
     seoDescription: 'Wedding photography and films in Erode.',
+    sections: [{
+      heading: 'A complete wedding story',
+      body: 'Candid photography and cinematic films for every celebration.',
+      imageUrl: '',
+      imageAlt: '',
+    }],
   };
   assert.deepEqual(validateServiceForPublish(complete, []), {});
 });

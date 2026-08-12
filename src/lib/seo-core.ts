@@ -28,6 +28,12 @@ export type ServiceNavLinkLike = {
   seoDescription?: string;
   heading?: string;
   lead?: string;
+  sections?: Array<{
+    heading: string;
+    body: string;
+    imageUrl?: string | null;
+    imageAlt?: string;
+  }>;
 };
 
 export type ServiceCatalogItem = {
@@ -55,7 +61,12 @@ export type ServicePageContent = {
   serviceName: string;
   label: string;
   lead: string;
-  sections: Array<{ heading: string; paragraphs: string[] }>;
+  sections: Array<{
+    heading: string;
+    paragraphs: string[];
+    imageUrl?: string;
+    imageAlt?: string;
+  }>;
   faqs: FaqItem[];
   related: Array<{ label: string; path: string }>;
   imageCategories: string[];
@@ -219,6 +230,15 @@ export function resolveServicePage(
     body: pick(nav?.seoDescription, base.body),
     serviceName: pick(nav?.heading, base.serviceName),
     label: pick(nav?.label, base.label),
+    sections: (nav?.sections ?? []).map((section) => ({
+          heading: section.heading,
+          paragraphs: section.body
+            .split(/\n\s*\n/)
+            .map((paragraph) => paragraph.trim())
+            .filter(Boolean),
+          imageUrl: section.imageUrl?.trim() || undefined,
+          imageAlt: section.imageAlt?.trim() || undefined,
+        })),
   };
 }
 

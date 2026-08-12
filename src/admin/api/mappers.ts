@@ -31,6 +31,7 @@ export function mapPhoto(doc: Record<string, unknown>): Photo {
   // can be rejected, so prefer the smallest generated variant.
   const webpUrl = [...webpVariants].sort((a, b) => a.width - b.width)[0]?.url ?? '';
   const avifUrl = [...avifVariants].sort((a, b) => a.width - b.width)[0]?.url ?? '';
+  const largeUrl = [...webpVariants].sort((a, b) => b.width - a.width)[0]?.url ?? '';
   const sizes = webpVariants.map((v) => v.width);
   const categoryIds = Array.isArray(doc.categoryIds)
     ? doc.categoryIds
@@ -52,6 +53,7 @@ export function mapPhoto(doc: Record<string, unknown>): Photo {
       webp: webpUrl,
       avif: avifUrl,
       original: variants.original?.url ?? '',
+      large: largeUrl,
       sizes,
     },
     imageTransform: (doc.imageTransform as ImageTransform | null) ?? null,
@@ -406,6 +408,16 @@ export function mapSiteContent(doc: Record<string, unknown>): SiteContent {
     socials: (doc.socials as SiteContent['socials']) ?? {},
     serviceNavLinks: links.map((raw, index) => {
       const link = raw as Record<string, unknown>;
+      const sections = (Array.isArray(link.sections) ? link.sections : []).map((rawSection) => {
+        const section = rawSection as Record<string, unknown>;
+        return {
+          id: String(section._id ?? section.id ?? ''),
+          heading: String(section.heading ?? ''),
+          body: String(section.body ?? ''),
+          imageUrl: String(section.imageUrl ?? ''),
+          imageAlt: String(section.imageAlt ?? ''),
+        };
+      });
       return {
         id: String(link._id ?? link.id ?? ''),
         label: String(link.label ?? ''),
@@ -417,6 +429,12 @@ export function mapSiteContent(doc: Record<string, unknown>): SiteContent {
         seoDescription: String(link.seoDescription ?? ''),
         heading: String(link.heading ?? ''),
         lead: String(link.lead ?? ''),
+        sections: sections.length ? sections : [{
+          heading: String(link.heading ?? link.label ?? ''),
+          body: String(link.lead ?? link.description ?? ''),
+          imageUrl: String(link.imageUrl ?? ''),
+          imageAlt: String(link.label ?? ''),
+        }],
         order: typeof link.order === 'number' ? link.order : index,
         isPublished: link.isPublished !== false,
       };

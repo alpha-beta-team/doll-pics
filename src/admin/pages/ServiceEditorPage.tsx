@@ -1,15 +1,24 @@
-import { useEffect, useState } from 'react';
-import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft,
+  ArrowDown,
+  ArrowUp,
+  AlertCircle,
+  CheckCircle2,
   EyeOff,
   ExternalLink,
   FileText,
   Globe2,
   Image as ImageIcon,
+  PanelsTopLeft,
+  Plus,
   Save,
   Search,
   Settings2,
+  Trash2,
+  Upload,
+  X,
 } from 'lucide-react';
 import { useFeatureAccess } from '../access/useFeatureAccess';
 import { api } from '../api/client';
@@ -24,37 +33,44 @@ import {
   AdminEmptyState,
   AdminField,
   AdminLoadingState,
+  AdminModal,
   AdminPageHeader,
   adminFieldClass,
 } from '../components/ui';
 import { useConfirmDialog } from '../hooks/useConfirmDialog';
 import {
   appendService,
+  createEmptyServiceSection,
   createEmptyService,
+  MAX_SERVICE_SECTIONS,
   normalizeServicePath,
   prepareServiceForSave,
   replaceService,
   SERVICE_ICON_OPTIONS,
+  serviceCategorySlug,
   sortAndRenumberServices,
   type ServiceFormErrors,
   type ServicePublishField,
   validateService,
   validateServiceForPublish,
 } from '../services/serviceNavLinks';
-import type { ServiceNavLink } from '../types';
+import type { Photo, ServiceContentSection, ServiceNavLink } from '../types';
 
 const EDITOR_TABS: AdminTab[] = [
   { id: 'details', label: 'Details', icon: Settings2 },
   { id: 'page', label: 'Page content', icon: FileText },
+  { id: 'sections', label: 'Page sections', icon: PanelsTopLeft },
   { id: 'seo', label: 'SEO & publishing', icon: Search },
 ];
 
-type EditorTab = 'details' | 'page' | 'seo';
+type EditorTab = 'details' | 'page' | 'sections' | 'seo';
 type EditorLocationState = { notice?: string } | null;
+type SaveToastState = { tone: 'success' | 'error'; message: string } | null;
 
 const PUBLISH_FIELDS_BY_TAB: Record<EditorTab, ServicePublishField[]> = {
   details: ['label', 'path', 'description', 'icon', 'imageUrl'],
   page: ['heading', 'lead'],
+  sections: ['sections'],
   seo: ['seoTitle', 'seoDescription'],
 };
 
@@ -74,6 +90,7 @@ const PUBLISH_FIELD_LABELS: Record<ServicePublishField, string> = {
   lead: 'Lead paragraph',
   seoTitle: 'SEO title',
   seoDescription: 'Meta description',
+  sections: 'Page sections',
 };
 
 const PUBLISH_FIELD_IDS: Record<ServicePublishField, string> = {
@@ -86,10 +103,13 @@ const PUBLISH_FIELD_IDS: Record<ServicePublishField, string> = {
   lead: 'service-lead',
   seoTitle: 'service-seo-title',
   seoDescription: 'service-seo-description',
+  sections: 'service-section-0-heading',
 };
 
 function editorTab(value: string | null): EditorTab {
-  return value === 'page' || value === 'seo' ? value : 'details';
+  return value === 'page' || value === 'sections' || value === 'seo'
+    ? value
+    : 'details';
 }
 
 export function ServiceEditorPage() {
@@ -110,9 +130,42 @@ export function ServiceEditorPage() {
   const [loadFailed, setLoadFailed] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(
-    ((location.state as EditorLocationState)?.notice ?? ''),
-  );
+  const [selectedSectionIndex, setSelectedSectionIndex] = useState(0);
+  const [toast, setToast] = useState<SaveToastState>(() => {
+    const notice = (location.state as EditorLocationState)?.notice;
+    return notice ? { tone: 'success', message: notice } : null;
+  });
+  const pendingSectionScrollRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timeout = window.setTimeout(() => setToast(null), 4500);
+    return () => window.clearTimeout(timeout);
+  }, [toast]);
+
+  useEffect(() => {
+    const index = pendingSectionScrollRef.current;
+    if (index === null || activeTab !== 'sections') return;
+    const card = document.getElementById(`service-section-card-${index}`);
+    if (!card) return;
+    pendingSectionScrollRef.current = null;
+    window.requestAnimationFrame(() => {
+      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      window.setTimeout(() => {
+        document.getElementById(`service-section-${index}-heading`)?.focus({
+          preventScroll: true,
+        });
+      }, 450);
+    });
+  }, [activeTab, form?.sections.length, selectedSectionIndex]);
+
+  useEffect(() => {
+    setSelectedSectionIndex((current) => Math.min(current, Math.max(0, (form?.sections.length ?? 1) - 1)));
+  }, [form?.sections.length]);
+
+  useEffect(() => {
+    setSelectedSectionIndex(0);
+  }, [id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -169,7 +222,43 @@ export function ServiceEditorPage() {
       setErrors((current) => ({ ...current, [publishField]: undefined }));
     }
     setError('');
-    setSuccess('');
+  };
+
+  const updateSection = <K extends keyof ServiceContentSection>(
+    index: number,
+    field: K,
+    value: ServiceContentSection[K],
+  ) => {
+    if (!form) return;
+    const sections = form.sections.map((section, sectionIndex) =>
+      sectionIndex === index ? { ...section, [field]: value } : section,
+    );
+    update('sections', sections);
+    setErrors((current) => ({ ...current, sections: undefined }));
+  };
+
+  const addSection = () => {
+    if (!form || form.sections.length >= MAX_SERVICE_SECTIONS) return;
+    const newSectionIndex = form.sections.length;
+    pendingSectionScrollRef.current = newSectionIndex;
+    setSelectedSectionIndex(newSectionIndex);
+    update('sections', [...form.sections, createEmptyServiceSection()]);
+  };
+
+  const removeSection = (index: number) => {
+    if (!form || form.sections.length <= 1) return;
+    update('sections', form.sections.filter((_, sectionIndex) => sectionIndex !== index));
+    setSelectedSectionIndex(Math.min(index, form.sections.length - 2));
+  };
+
+  const moveSection = (index: number, direction: -1 | 1) => {
+    if (!form) return;
+    const target = index + direction;
+    if (target < 0 || target >= form.sections.length) return;
+    const sections = [...form.sections];
+    [sections[index], sections[target]] = [sections[target], sections[index]];
+    update('sections', sections);
+    setSelectedSectionIndex(target);
   };
 
   const changeTab = (tab: string) => {
@@ -194,6 +283,17 @@ export function ServiceEditorPage() {
     const firstField = (Object.keys(PUBLISH_FIELD_IDS) as ServicePublishField[])
       .find((field) => nextErrors[field]);
     if (!firstField) return;
+    setToast({
+      tone: 'error',
+      message: nextErrors[firstField]
+        || 'Please correct the highlighted fields before saving.',
+    });
+    if (firstField === 'sections') {
+      const invalidSection = form?.sections.findIndex(
+        (section) => !section.heading.trim() || !section.body.trim(),
+      ) ?? -1;
+      setSelectedSectionIndex(Math.max(0, invalidSection));
+    }
     changeTab(PUBLISH_FIELD_TAB[firstField]);
     window.requestAnimationFrame(() => {
       document.getElementById(PUBLISH_FIELD_IDS[firstField])?.focus();
@@ -203,7 +303,7 @@ export function ServiceEditorPage() {
   const persist = async (prepared: ServiceNavLink, notice: string) => {
     setSaving(true);
     setError('');
-    setSuccess('');
+    setToast(null);
     try {
       const nextServices = isNew
         ? appendService(services, prepared)
@@ -226,7 +326,7 @@ export function ServiceEditorPage() {
       setForm(saved);
       setBaseline(JSON.stringify(saved));
       setErrors({});
-      setSuccess(notice);
+      setToast({ tone: 'success', message: notice });
 
       if (isNew && saved.id) {
         navigate(`/admin/services/${encodeURIComponent(saved.id)}?tab=${activeTab}`, {
@@ -235,7 +335,10 @@ export function ServiceEditorPage() {
         });
       }
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Could not save this service.');
+      setToast({
+        tone: 'error',
+        message: cause instanceof Error ? cause.message : 'Could not save this service.',
+      });
     } finally {
       setSaving(false);
     }
@@ -331,6 +434,7 @@ export function ServiceEditorPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 pb-20">
+      <SaveToast toast={toast} onClose={() => setToast(null)} />
       <AdminPageHeader
         eyebrow={(
           <AdminBreadcrumbs
@@ -392,7 +496,6 @@ export function ServiceEditorPage() {
       />
 
       {error && <AdminAlert>{error}</AdminAlert>}
-      {success && <AdminAlert tone="success">{success}</AdminAlert>}
 
       {publishIssuesByTab.length > 0 && (
         <AdminAlert tone="warning">
@@ -530,6 +633,116 @@ export function ServiceEditorPage() {
             </AdminCard>
           )}
 
+          {activeTab === 'sections' && (
+            <div className="space-y-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <h2 className="font-semibold text-admin-text">Page sections</h2>
+                    <p className="mt-1 text-sm text-admin-subtle">Add 1–6 ordered sections. Each section can have its own image.</p>
+                  </div>
+                  <AdminButton
+                    type="button"
+                    variant="secondary"
+                    onClick={addSection}
+                    disabled={form.sections.length >= MAX_SERVICE_SECTIONS}
+                  >
+                    <Plus className="h-4 w-4" aria-hidden="true" /> Add section
+                  </AdminButton>
+                </div>
+
+                {errors.sections && <AdminAlert>{errors.sections}</AdminAlert>}
+
+                <section aria-label="Service page sections" className="overflow-hidden rounded-2xl border border-admin-border bg-admin-surface shadow-sm">
+                  <div className="overflow-x-auto p-2">
+                    <div className="flex min-w-max gap-1" role="tablist" aria-label="Choose a page section">
+                      {form.sections.map((_, index) => (
+                        <SectionTab
+                          key={form.sections[index].id || `new-section-tab-${index}`}
+                          active={selectedSectionIndex === index}
+                          label={`Section ${index + 1}`}
+                          onClick={() => setSelectedSectionIndex(index)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </section>
+
+                {form.sections.map((section, index) => selectedSectionIndex === index && (
+                  <AdminCard
+                    key={section.id || `new-section-${index}`}
+                    id={`service-section-card-${index}`}
+                    role="tabpanel"
+                    aria-label={`Section ${index + 1}`}
+                    className="scroll-mt-28 p-5 sm:p-6"
+                  >
+                    <div className="mb-5 flex items-center justify-between gap-3 border-b border-admin-border pb-4">
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-[0.14em] text-admin-subtle">Section {index + 1}</p>
+                        <p className="mt-1 text-sm text-admin-secondary">Displayed in this order on the public service page.</p>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button type="button" onClick={() => moveSection(index, -1)} disabled={index === 0} aria-label={`Move section ${index + 1} up`} className="rounded-lg p-2 text-admin-secondary hover:bg-admin-muted disabled:opacity-30">
+                          <ArrowUp className="h-4 w-4" aria-hidden="true" />
+                        </button>
+                        <button type="button" onClick={() => moveSection(index, 1)} disabled={index === form.sections.length - 1} aria-label={`Move section ${index + 1} down`} className="rounded-lg p-2 text-admin-secondary hover:bg-admin-muted disabled:opacity-30">
+                          <ArrowDown className="h-4 w-4" aria-hidden="true" />
+                        </button>
+                        <button type="button" onClick={() => removeSection(index)} disabled={form.sections.length <= 1} aria-label={`Remove section ${index + 1}`} className="rounded-lg p-2 text-red-600 hover:bg-red-50 disabled:opacity-30">
+                          <Trash2 className="h-4 w-4" aria-hidden="true" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
+                      <div className="space-y-5">
+                        <AdminField label="Section heading">
+                          <input
+                            id={`service-section-${index}-heading`}
+                            type="text"
+                            value={section.heading}
+                            onChange={(event) => updateSection(index, 'heading', event.target.value)}
+                            className={adminFieldClass}
+                            placeholder="A calm, guided experience"
+                          />
+                        </AdminField>
+                        <AdminField label="Section body" hint="Use blank lines to create separate paragraphs.">
+                          <textarea
+                            value={section.body}
+                            onChange={(event) => updateSection(index, 'body', event.target.value)}
+                            rows={7}
+                            className={`${adminFieldClass} min-h-44 resize-y py-3`}
+                            placeholder="Describe this part of the service experience…"
+                          />
+                        </AdminField>
+                        <AdminField label="Image alt text" hint="Describe the image for visitors using screen readers.">
+                          <input
+                            type="text"
+                            value={section.imageAlt}
+                            onChange={(event) => updateSection(index, 'imageAlt', event.target.value)}
+                            className={adminFieldClass}
+                            placeholder="Mother holding her newborn in the studio"
+                          />
+                        </AdminField>
+                      </div>
+                      <SectionImageField
+                        value={section.imageUrl}
+                        serviceLabel={form.label}
+                        onChange={(value) => updateSection(index, 'imageUrl', value)}
+                        onLibrarySelect={(value, altText) => {
+                          updateSection(index, 'imageUrl', value);
+                          if (!section.imageAlt.trim() && altText.trim()) {
+                            updateSection(index, 'imageAlt', altText);
+                          }
+                        }}
+                      />
+                    </div>
+                  </AdminCard>
+                ))}
+
+                <p className="text-right text-xs font-medium text-admin-subtle">{form.sections.length} of {MAX_SERVICE_SECTIONS} sections</p>
+            </div>
+          )}
+
           {activeTab === 'seo' && (
             <div className="space-y-6">
               <AdminCard className="space-y-5 p-5 sm:p-6">
@@ -583,6 +796,55 @@ export function ServiceEditorPage() {
   );
 }
 
+function SectionTab({ active, label, onClick }: { active: boolean; label: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      className={`flex min-h-11 items-center rounded-xl px-4 text-sm font-semibold transition ${active ? 'bg-admin-primary text-white shadow-sm' : 'text-admin-secondary hover:bg-admin-muted hover:text-admin-text'}`}
+    >
+      {label}
+    </button>
+  );
+}
+
+function SaveToast({
+  toast,
+  onClose,
+}: {
+  toast: SaveToastState;
+  onClose: () => void;
+}) {
+  if (!toast) return null;
+  const success = toast.tone === 'success';
+  const Icon = success ? CheckCircle2 : AlertCircle;
+
+  return (
+    <div
+      role={success ? 'status' : 'alert'}
+      aria-live={success ? 'polite' : 'assertive'}
+      className={`fixed left-4 right-4 top-4 z-[120] flex items-start gap-3 rounded-2xl border px-4 py-3 shadow-2xl backdrop-blur sm:left-auto sm:max-w-md ${
+        success
+          ? 'border-emerald-200 bg-emerald-50/95 text-emerald-900'
+          : 'border-red-200 bg-red-50/95 text-red-900'
+      }`}
+    >
+      <Icon className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+      <p className="min-w-0 flex-1 text-sm font-semibold leading-6">{toast.message}</p>
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Dismiss notification"
+        className="-mr-1 rounded-lg p-1 opacity-65 transition hover:bg-black/5 hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current"
+      >
+        <X className="h-4 w-4" aria-hidden="true" />
+      </button>
+    </div>
+  );
+}
+
 function RequiredLabel({ children }: { children: string }) {
   return (
     <>
@@ -615,5 +877,212 @@ function ServiceImagePreview({ src }: { src: string }) {
       className="h-full w-full object-cover"
       onError={() => setFailed(true)}
     />
+  );
+}
+
+const SECTION_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'];
+const SECTION_IMAGE_MAX_BYTES = 25 * 1024 * 1024;
+
+function SectionImageField({
+  value,
+  serviceLabel,
+  onChange,
+  onLibrarySelect,
+}: {
+  value: string;
+  serviceLabel: string;
+  onChange: (value: string) => void;
+  onLibrarySelect: (value: string, altText: string) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState('');
+  const [libraryOpen, setLibraryOpen] = useState(false);
+
+  const upload = async (file: File) => {
+    if (!SECTION_IMAGE_TYPES.includes(file.type)) {
+      setError('Use a JPEG, PNG, WebP, or AVIF image.');
+      return;
+    }
+    if (file.size > SECTION_IMAGE_MAX_BYTES) {
+      setError('Image must be 25 MB or smaller.');
+      return;
+    }
+    setUploading(true);
+    setError('');
+    try {
+      const result = await api.uploadServiceSectionImage(file);
+      onChange(result.url);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Could not upload the image.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <p className="text-sm font-semibold text-admin-secondary">Section image</p>
+      <div className="aspect-[5/6] overflow-hidden rounded-xl border border-admin-border bg-admin-muted">
+        <ServiceImagePreview src={value} />
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <AdminButton type="button" variant="secondary" onClick={() => inputRef.current?.click()} disabled={uploading}>
+          <Upload className="h-4 w-4" aria-hidden="true" />
+          {uploading ? 'Uploading…' : value ? 'Replace image' : 'Upload image'}
+        </AdminButton>
+        <AdminButton type="button" variant="secondary" onClick={() => setLibraryOpen(true)} disabled={uploading || !serviceLabel.trim()}>
+          <ImageIcon className="h-4 w-4" aria-hidden="true" /> Choose from Photos
+        </AdminButton>
+        {value && (
+          <AdminButton type="button" variant="secondary" onClick={() => onChange('')} disabled={uploading}>
+            Remove
+          </AdminButton>
+        )}
+      </div>
+      <input
+        ref={inputRef}
+        type="file"
+        accept={SECTION_IMAGE_TYPES.join(',')}
+        className="hidden"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file) void upload(file);
+          event.target.value = '';
+        }}
+      />
+      <details>
+        <summary className="cursor-pointer text-xs font-medium text-admin-subtle">Use an image URL instead</summary>
+        <input type="url" value={value} onChange={(event) => onChange(event.target.value)} className={`${adminFieldClass} mt-2`} placeholder="https://…" />
+      </details>
+      {error && <p className="text-sm text-red-600">{error}</p>}
+      <PhotoLibraryPicker
+        open={libraryOpen}
+        serviceLabel={serviceLabel}
+        selectedUrl={value}
+        onClose={() => setLibraryOpen(false)}
+        onSelect={(photo) => {
+          const url = photo.variants.large
+            || photo.variants.webp
+            || photo.variants.avif
+            || photo.variants.original;
+          onLibrarySelect(url, photo.altText || photo.title);
+          setLibraryOpen(false);
+        }}
+      />
+    </div>
+  );
+}
+
+function PhotoLibraryPicker({
+  open,
+  serviceLabel,
+  selectedUrl,
+  onClose,
+  onSelect,
+}: {
+  open: boolean;
+  serviceLabel: string;
+  selectedUrl: string;
+  onClose: () => void;
+  onSelect: (photo: Photo) => void;
+}) {
+  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
+  const categorySlug = serviceCategorySlug(serviceLabel);
+
+  useEffect(() => {
+    if (!open || !categorySlug) return;
+    let cancelled = false;
+    setLoading(true);
+    setError('');
+    setSearch('');
+    void api.getPhotos({ category: categorySlug, published: true })
+      .then((items) => {
+        if (!cancelled) setPhotos(items);
+      })
+      .catch((cause) => {
+        if (!cancelled) {
+          setPhotos([]);
+          setError(cause instanceof Error ? cause.message : 'Could not load category photos.');
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [categorySlug, open]);
+
+  const normalizedSearch = search.trim().toLowerCase();
+  const visiblePhotos = normalizedSearch
+    ? photos.filter((photo) => `${photo.title} ${photo.altText}`.toLowerCase().includes(normalizedSearch))
+    : photos;
+
+  return (
+    <AdminModal
+      open={open}
+      title={`Choose a ${serviceLabel || 'service'} photo`}
+      description={`Showing published images from Admin → Photos in the “${serviceLabel || categorySlug}” category.`}
+      onClose={onClose}
+      maxWidth="max-w-4xl"
+    >
+      <div className="space-y-4">
+        <AdminField label="Search category photos">
+          <input
+            type="search"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            className={adminFieldClass}
+            placeholder="Search by title or alt text…"
+          />
+        </AdminField>
+
+        {error ? <AdminAlert>{error}</AdminAlert> : null}
+        {loading ? <AdminLoadingState label="Loading category photos…" /> : null}
+
+        {!loading && !error && visiblePhotos.length === 0 ? (
+          <AdminEmptyState
+            icon={ImageIcon}
+            title={photos.length ? 'No matching photos' : `No published ${serviceLabel} photos`}
+            description={photos.length
+              ? 'Try a different title or alt-text search.'
+              : 'Upload and publish images in Admin → Photos under this service category first.'}
+            action={!photos.length ? (
+              <Link to="/admin/photos" onClick={onClose} className="inline-flex min-h-10 items-center rounded-xl bg-admin-primary px-4 text-sm font-semibold text-white">
+                Open Admin Photos
+              </Link>
+            ) : undefined}
+          />
+        ) : null}
+
+        {!loading && visiblePhotos.length > 0 ? (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {visiblePhotos.map((photo) => {
+              const fullUrl = photo.variants.large
+                || photo.variants.webp
+                || photo.variants.avif
+                || photo.variants.original;
+              const thumbnail = photo.variants.webp || photo.variants.avif || photo.variants.original;
+              const selected = Boolean(selectedUrl && selectedUrl === fullUrl);
+              return (
+                <button
+                  key={photo.id}
+                  type="button"
+                  onClick={() => onSelect(photo)}
+                  className={`overflow-hidden rounded-xl border-2 bg-admin-surface text-left outline-none transition hover:border-admin-primary focus-visible:ring-2 focus-visible:ring-admin-focus ${selected ? 'border-admin-primary ring-2 ring-admin-primary/20' : 'border-admin-border'}`}
+                >
+                  <img src={thumbnail} alt={photo.altText || photo.title} className="aspect-[4/3] w-full bg-admin-muted object-cover" loading="lazy" />
+                  <span className="block truncate px-3 py-2 text-sm font-medium text-admin-text">{photo.title || 'Untitled photo'}</span>
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
+      </div>
+    </AdminModal>
   );
 }
