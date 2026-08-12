@@ -1,23 +1,36 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { AlertCircle, ArrowRight, CalendarClock, MessageCircle, Phone, Plus, RefreshCw, Search, X } from 'lucide-react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { AlertCircle, Inbox, SearchX, X } from 'lucide-react';
 import { api } from '../api/client';
 import { EnquiryFormModal } from '../components/EnquiryFormModal';
-import { EnquiryStageBadge } from '../components/EnquiryStageBadge';
-import { whatsappUrl } from '../contact';
 import type { Enquiry, EnquiryStage } from '../types';
-import { AdminButton, AdminPageHeader } from '../components/ui';
+import { AdminButton, AdminEmptyState } from '../components/ui';
 import { useFeatureAccess } from '../access/useFeatureAccess';
 import { ReadOnlyNotice } from '../components/ReadOnlyNotice';
+import { EnquiryToolbar } from '../components/enquiries/EnquiryToolbar';
+import {
+  EnquirySortControl,
+  EnquiryStatusFilter,
+} from '../components/enquiries/EnquiryStatusFilter';
+import { EnquiryPrioritySummary } from '../components/enquiries/EnquiryPrioritySummary';
+import { EnquiryListHeader } from '../components/enquiries/EnquiryListHeader';
+import { EnquiryCard, EnquiryCardSkeleton } from '../components/enquiries/EnquiryCard';
+import {
+  ENQUIRY_STAGES,
+  enquiryMatchesPriority,
+  enquiryMatchesSearch,
+  enquiryStageLabel,
+  followUpUrgency,
+  sortEnquiries,
+  type EnquiryPriorityFilter,
+  type EnquirySort,
+} from '../components/enquiries/enquiryList';
 
-const STAGES: Array<{ value: EnquiryStage | 'all'; label: string }> = [
-  { value: 'all', label: 'All' },
-  { value: 'new', label: 'New' },
-  { value: 'contacted', label: 'Contacted' },
-  { value: 'follow_up', label: 'Follow-up' },
-  { value: 'booked', label: 'Booked' },
-  { value: 'closed_lost', label: 'Not interested' },
-];
+type OccasionContact = {
+  id: string;
+  customerName: string;
+  phone: string;
+};
 
 export function WorkEnquiriesPage() {
   const { canManage, isReadOnly } = useFeatureAccess('enquiries');
@@ -26,138 +39,238 @@ export function WorkEnquiriesPage() {
   const [params, setParams] = useSearchParams();
   const [items, setItems] = useState<Enquiry[]>([]);
   const [stage, setStage] = useState<EnquiryStage | 'all'>('all');
-  const [search, setSearch] = useState('');
+  const [priority, setPriority] = useState<EnquiryPriorityFilter>('');
+  const [query, setQuery] = useState('');
+  const [sort, setSort] = useState<EnquirySort>('newest');
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [statusMenuOpen, setStatusMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
-  const [occasionContact] = useState(() => (location.state as { occasionContact?: { id: string; customerName: string; phone: string } } | null)?.occasionContact);
+  const [occasionContact] = useState<OccasionContact | undefined>(
+    () => (location.state as { occasionContact?: OccasionContact } | null)?.occasionContact,
+  );
+
   useEffect(() => {
-    if (occasionContact) navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
+    if (occasionContact) {
+      navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
+    }
   }, [location.pathname, location.search, navigate, occasionContact]);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (refresh = false) => {
+    if (refresh) setRefreshing(true);
+    else setLoading(true);
     setError('');
-    try { setItems(await api.getEnquiries()); }
-    catch (err) { setError(err instanceof Error ? err.message : 'Could not load enquiries.'); }
-    finally { setLoading(false); }
+    try {
+      setItems(await api.getEnquiries());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not load enquiries.');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   }, []);
+
   useEffect(() => { void load(); }, [load]);
 
-  const visible = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    return items.filter(item => {
-      if (stage !== 'all' && item.stage !== stage) return false;
-      if (!query) return true;
-      return [item.name, item.phone, item.shootType, item.location].some(value => value.toLowerCase().includes(query));
+  const counts = useMemo(() => Object.fromEntries(
+    ENQUIRY_STAGES.map(option => [
+      option.value,
+      items.filter(item => item.stage === option.value).length,
+    ]),
+  ) as Record<EnquiryStage, number>, [items]);
+
+  const priorityCounts = useMemo(() => {
+    const now = new Date();
+    let dueToday = 0;
+    let overdue = 0;
+    items.forEach(item => {
+      if (!item.nextFollowUpAt) return;
+      const urgency = followUpUrgency(item.nextFollowUpAt, now);
+      if (urgency === 'due_today') dueToday += 1;
+      if (urgency === 'overdue') overdue += 1;
     });
-  }, [items, search, stage]);
+    return { dueToday, overdue };
+  }, [items]);
+
+  const visible = useMemo(() => {
+    const now = new Date();
+    const filtered = items.filter(item => {
+      if (stage !== 'all' && item.stage !== stage) return false;
+      if (!enquiryMatchesPriority(item, priority, now)) return false;
+      return enquiryMatchesSearch(item, query);
+    });
+    return sortEnquiries(filtered, sort);
+  }, [items, priority, query, sort, stage]);
+
+  const activeFilterCount = Number(Boolean(priority));
+  const hasStatusOrPriorityFilter = stage !== 'all' || Boolean(priority);
+  const hasAnyFilter = hasStatusOrPriorityFilter || Boolean(query.trim());
+  const selectedListName = priority === 'overdue'
+    ? 'Overdue follow-ups'
+    : priority === 'due_today'
+      ? 'Follow-ups due today'
+      : stage === 'all'
+        ? 'All enquiries'
+        : `${enquiryStageLabel(stage)} enquiries`;
+
+  const clearFilters = () => {
+    setStage('all');
+    setPriority('');
+    setQuery('');
+  };
+
+  const openForm = () => {
+    const next = new URLSearchParams(params);
+    next.set('new', '1');
+    setParams(next);
+  };
 
   const closeForm = () => {
-    params.delete('new');
-    setParams(params, { replace: true });
+    const next = new URLSearchParams(params);
+    next.delete('new');
+    setParams(next, { replace: true });
   };
 
   return (
-    <div className="mx-auto max-w-5xl space-y-5">
-      <AdminPageHeader eyebrow="Studio Operations" title="Who needs a reply?" description="Every new customer starts here." actions={canManage ? <AdminButton onClick={() => setParams({ new: '1' })} className="hidden sm:inline-flex"><Plus className="h-4 w-4" />Add enquiry</AdminButton> : <ReadOnlyNotice />} />
-
-      {error && <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"><AlertCircle className="h-5 w-5" />{error}<button className="ml-auto font-semibold" onClick={() => void load()}>Try again</button></div>}
-
-      <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
-        <div className="flex items-center gap-2">
-          <div className="flex h-12 min-w-0 flex-1 items-center gap-3 rounded-xl border border-admin-border bg-admin-surface px-3.5 transition focus-within:border-admin-focus focus-within:ring-2 focus-within:ring-admin-focus/20">
-            <Search className="h-5 w-5 shrink-0 text-admin-subtle" aria-hidden="true" />
-            <input
-              type="search"
-              value={search}
-              onChange={event => setSearch(event.target.value)}
-              placeholder="Search by name or phone"
-              aria-label="Search enquiries by name or phone"
-              className="min-w-0 flex-1 appearance-none !border-0 !bg-transparent p-0 text-sm text-admin-text outline-none placeholder:text-admin-subtle focus:ring-0"
-            />
-            {search && (
-              <button
-                type="button"
-                onClick={() => setSearch('')}
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-admin-subtle transition hover:bg-admin-muted hover:text-admin-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-focus"
-                aria-label="Clear search"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={() => void load()}
-            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-admin-border bg-admin-surface text-admin-subtle transition hover:border-admin-control hover:bg-admin-muted hover:text-admin-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-focus"
-            aria-label="Refresh enquiries"
-            title="Refresh enquiries"
-          >
-            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-          </button>
+    <div className="mx-auto max-w-[1320px] space-y-3 pb-2 sm:space-y-4">
+      <header className="flex items-end justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-semibold tracking-tight text-admin-text sm:text-3xl">Enquiries</h1>
+          <p className="mt-1 text-sm text-admin-subtle">Manage new leads and follow-ups.</p>
         </div>
-        <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
-          {STAGES.map(option => <button key={option.value} type="button" onClick={() => setStage(option.value)} className={`h-10 shrink-0 rounded-full px-4 text-sm font-semibold ${stage === option.value ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600'}`}>{option.label}{option.value !== 'all' ? ` ${items.filter(item => item.stage === option.value).length}` : ''}</button>)}
-        </div>
-      </div>
+        {isReadOnly && <ReadOnlyNotice />}
+      </header>
 
-      {loading ? <div className="flex h-48 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" /></div> : (
-        <section className="grid gap-3 sm:grid-cols-2">
-          {visible.map(item => <article key={item.id} className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition duration-200 hover:border-admin-control hover:shadow-lg">
-            <Link to={`/admin/enquiries/${item.id}`} className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-focus">
-              <div className="flex items-start gap-3">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-base font-bold text-blue-600">
-                  {item.name.trim().charAt(0).toUpperCase() || '?'}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-start justify-between gap-2">
-                    <h2 className="truncate pt-0.5 text-base font-semibold text-slate-900">{item.name || 'Unnamed customer'}</h2>
-                    <EnquiryStageBadge stage={item.stage} />
-                  </div>
-                  <p className="mt-1 truncate text-sm text-slate-500">
-                    {item.shootType || 'Service not decided'} <span aria-hidden="true">·</span> via {sourceLabel(item.source)}
-                  </p>
-                </div>
-              </div>
-              {item.nextFollowUpAt && <p className={`mt-3 flex items-center gap-2 rounded-lg px-3 py-2 text-sm ${new Date(item.nextFollowUpAt) < new Date() ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-800'}`}><CalendarClock className="h-4 w-4 shrink-0" />{new Date(item.nextFollowUpAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}</p>}
-            </Link>
-            <div className="mt-4 flex items-center gap-2 border-t border-slate-100 pt-3">
-              {!isReadOnly && <>
-              <a
-                href={`tel:${item.phone}`}
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-focus"
-                aria-label={`Call ${item.name || 'customer'}`}
-                title={`Call ${item.name || 'customer'}`}
-              >
-                <Phone className="h-5 w-5" />
-              </a>
-              <a
-                href={whatsappUrl(item.phone)}
-                target="_blank"
-                rel="noreferrer"
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 transition hover:border-emerald-500 hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-                aria-label={`Message ${item.name || 'customer'} on WhatsApp`}
-                title={`Message ${item.name || 'customer'} on WhatsApp`}
-              >
-                <MessageCircle className="h-5 w-5" />
-              </a>
-              </>}
-              <button
-                type="button"
-                onClick={() => navigate(`/admin/enquiries/${item.id}`)}
-                className="ml-auto flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-focus focus-visible:ring-offset-2"
-              >
-                Open
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-              </button>
-            </div>
-          </article>)}
-          {!visible.length && <div className="col-span-full rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center"><p className="font-semibold text-slate-800">No enquiries here</p><p className="mt-1 text-sm text-slate-500">Add the next caller or choose another stage.</p></div>}
-        </section>
+      <EnquiryToolbar
+        query={query}
+        onQueryChange={setQuery}
+        filtersOpen={filtersOpen}
+        onFiltersOpenChange={setFiltersOpen}
+        activeFilterCount={activeFilterCount}
+        refreshing={refreshing}
+        onRefresh={() => void load(true)}
+        canManage={canManage}
+        onAdd={openForm}
+      />
+
+      {filtersOpen && (
+        <div id="enquiry-priority-filters">
+          <EnquiryPrioritySummary
+            newCount={counts.new}
+            dueTodayCount={priorityCounts.dueToday}
+            overdueCount={priorityCounts.overdue}
+            newSelected={stage === 'new' && !priority}
+            priority={priority}
+            onNew={() => {
+              setPriority('');
+              setStage(current => current === 'new' ? 'all' : 'new');
+            }}
+            onPriorityChange={nextPriority => {
+              setStage('all');
+              setPriority(nextPriority);
+            }}
+          />
+        </div>
       )}
 
-      {canManage && params.get('new') === '1' && <EnquiryFormModal initialContact={occasionContact} draftKey={occasionContact ? `doll_admin_enquiry_draft:occasion:${occasionContact.id}` : undefined} onClose={closeForm} onSaved={item => { closeForm(); navigate(`/admin/enquiries/${item.id}`); }} />}
+      <div className="flex min-w-0 items-center gap-1 border-y border-admin-border py-0.5 sm:gap-2 sm:border-0 sm:py-0">
+          <EnquiryStatusFilter
+            stage={stage}
+            counts={counts}
+            total={items.length}
+            open={statusMenuOpen}
+            onOpenChange={setStatusMenuOpen}
+            onChange={setStage}
+            disabled={loading}
+          />
+        <EnquirySortControl value={sort} onChange={setSort} />
+      </div>
+
+      {error && items.length > 0 && (
+        <div role="alert" className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          <AlertCircle className="h-5 w-5 shrink-0" aria-hidden="true" />
+          <span className="min-w-0 flex-1">{error}</span>
+          <button type="button" onClick={() => void load(true)} className="min-h-10 rounded-lg px-2 font-semibold outline-none hover:bg-red-100 focus-visible:ring-2 focus-visible:ring-red-500">Retry</button>
+          <button type="button" onClick={() => setError('')} aria-label="Dismiss error" className="flex h-10 w-10 items-center justify-center rounded-lg outline-none hover:bg-red-100 focus-visible:ring-2 focus-visible:ring-red-500">
+            <X className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
+      )}
+
+      <EnquiryListHeader title={selectedListName} count={visible.length} />
+
+      <section aria-labelledby="enquiry-list-title" className="space-y-2 lg:space-y-0 lg:overflow-hidden lg:rounded-xl lg:border lg:border-admin-border lg:bg-admin-surface lg:shadow-[0_4px_18px_rgba(62,56,46,0.04)]">
+        <div className="hidden grid-cols-[minmax(0,1.25fr)_minmax(9rem,0.85fr)_minmax(7.5rem,0.65fr)_minmax(11rem,1fr)_auto] gap-x-5 border-b border-admin-border bg-admin-muted/60 px-5 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-admin-subtle lg:grid">
+          <span>Customer</span><span>Enquiry</span><span>Received</span><span>Follow-up</span><span className="pr-2 text-right">Actions</span>
+        </div>
+
+        {loading ? (
+          <div className="space-y-2 lg:space-y-0" aria-label="Loading enquiries" role="status">
+            {Array.from({ length: 5 }, (_, index) => <EnquiryCardSkeleton key={index} />)}
+            <span className="sr-only">Loading enquiries…</span>
+          </div>
+        ) : error && items.length === 0 ? (
+          <AdminEmptyState
+            icon={AlertCircle}
+            title="Enquiries could not be loaded"
+            description={error}
+            action={<AdminButton onClick={() => void load()}>Try again</AdminButton>}
+          />
+        ) : visible.length > 0 ? (
+          <div className="space-y-2 lg:space-y-0">
+            {visible.map(item => (
+              <EnquiryCard
+                key={item.id}
+                enquiry={item}
+                canContact={canManage}
+                onOpen={() => navigate(`/admin/enquiries/${item.id}`)}
+              />
+            ))}
+          </div>
+        ) : items.length === 0 ? (
+          <AdminEmptyState
+            icon={Inbox}
+            title="No enquiries yet"
+            description="New website submissions and enquiries added by the studio will appear here."
+            action={canManage ? <AdminButton onClick={openForm}>Add enquiry</AdminButton> : undefined}
+          />
+        ) : query.trim() ? (
+          <AdminEmptyState
+            icon={SearchX}
+            title="No matching enquiries"
+            description="Try a different customer name, phone number, service, or enquiry source."
+            action={<AdminButton variant="secondary" onClick={clearFilters}>Clear search and filters</AdminButton>}
+          />
+        ) : hasStatusOrPriorityFilter ? (
+          <AdminEmptyState
+            icon={Inbox}
+            title="No enquiries in this view"
+            description="Choose another status or reset the active priority filter."
+            action={<AdminButton variant="secondary" onClick={clearFilters}>Reset filters</AdminButton>}
+          />
+        ) : null}
+      </section>
+
+      {refreshing && <p className="sr-only" role="status">Refreshing enquiries…</p>}
+
+      {hasAnyFilter && visible.length > 0 && (
+        <div className="flex justify-center md:hidden">
+          <button type="button" onClick={clearFilters} className="min-h-10 rounded-xl px-3 text-xs font-semibold text-admin-primary outline-none hover:bg-admin-muted focus-visible:ring-2 focus-visible:ring-admin-focus">Clear all filters</button>
+        </div>
+      )}
+
+      {canManage && params.get('new') === '1' && (
+        <EnquiryFormModal
+          initialContact={occasionContact}
+          draftKey={occasionContact ? `doll_admin_enquiry_draft:occasion:${occasionContact.id}` : undefined}
+          onClose={closeForm}
+          onSaved={item => {
+            closeForm();
+            navigate(`/admin/enquiries/${item.id}`);
+          }}
+        />
+      )}
     </div>
   );
 }
-
-function sourceLabel(value: Enquiry['source']) { return ({ website: 'Website', phone: 'Phone', whatsapp: 'WhatsApp', walk_in: 'Walk-in', referral: 'Referral', diary_import: 'Diary' } as const)[value]; }
