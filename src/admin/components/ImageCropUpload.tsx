@@ -157,7 +157,7 @@ export function ImageCropUpload({
     setPixelCrop(normalized);
   };
 
-  const handleCircleCropComplete = (areaPercentages: Area, areaPixels: Area) => {
+  const handlePannableCropComplete = (areaPercentages: Area, areaPixels: Area) => {
     const normalized: PixelCrop = {
       unit: 'px',
       x: Math.round(areaPixels.x),
@@ -173,6 +173,8 @@ export function ImageCropUpload({
       height: areaPercentages.height,
     });
   };
+
+  const usesPannableCrop = shape === 'circle' || Boolean(aspect && aspect > 0);
 
   const handleApply = async () => {
     if (!sourceFile || !pixelCrop) return;
@@ -202,48 +204,59 @@ export function ImageCropUpload({
 
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/70 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-xl overflow-hidden">
-        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">Crop image</h2>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="image-crop-title"
+        className="flex max-h-[calc(100dvh-2rem)] w-full max-w-xl flex-col overflow-hidden rounded-xl bg-white shadow-xl"
+      >
+        <div className="flex shrink-0 items-center justify-between border-b border-gray-200 p-4">
+          <h2 id="image-crop-title" className="text-lg font-semibold text-gray-900">Crop image</h2>
           <button type="button" onClick={onCancel} disabled={isSaving} className="p-1 hover:bg-gray-100 rounded" aria-label="Close crop editor">
             <X className="w-5 h-5 text-gray-500" aria-hidden="true" />
           </button>
         </div>
-        <div className={`relative min-h-[min(60vh,420px)] bg-slate-950 flex items-center justify-center ${shape === 'circle' ? 'h-[min(60vh,420px)]' : ''}`}>
+        <div className="relative flex h-[min(60dvh,420px)] min-h-0 flex-1 basis-[420px] items-center justify-center overflow-hidden bg-slate-950">
           {isLoading ? <div className="text-white">Loading image...</div> : (
-            shape === 'circle' ? (
+            usesPannableCrop ? (
               <div className="relative w-full h-full">
                 <EasyCrop
                   image={previewUrl}
                   crop={easyCropPosition}
                   zoom={zoom}
-                  aspect={1}
-                  cropShape="round"
+                  aspect={shape === 'circle' ? 1 : aspect ?? 1}
+                  cropShape={shape === 'circle' ? 'round' : 'rect'}
                   showGrid
-                  objectFit="contain"
+                  objectFit="cover"
+                  zoomWithScroll
                   onCropChange={setEasyCropPosition}
                   onZoomChange={setZoom}
-                  onCropComplete={(areaPercentages, areaPixels) => handleCircleCropComplete(areaPercentages, areaPixels)}
+                  onCropComplete={handlePannableCropComplete}
                   initialCroppedAreaPercentages={initialCropPercentages ?? undefined}
                   initialCroppedAreaPixels={initialCropPercentages ? undefined : (initialCrop ?? undefined)}
                 />
               </div>
             ) : (
-              <ReactCrop crop={crop} onChange={setCrop} onComplete={handleCropComplete} aspect={aspect} keepSelection ruleOfThirds>
-                <img src={previewUrl} alt="Crop preview" onLoad={handleImageLoad} className="max-h-[420px] max-w-full object-contain" />
+              <ReactCrop className="max-h-full max-w-full" crop={crop} onChange={setCrop} onComplete={handleCropComplete} aspect={aspect} keepSelection ruleOfThirds>
+                <img src={previewUrl} alt="Crop preview" onLoad={handleImageLoad} className="block max-h-full max-w-full object-contain" />
               </ReactCrop>
             )
           )}
         </div>
-        {shape === 'circle' && !isLoading && (
-          <div className="px-4 pt-4">
-            <label className="block text-sm text-gray-700">Zoom
-              <input type="range" min={1} max={3} step={0.01} value={zoom} onChange={event => setZoom(Number(event.target.value))} className="w-full mt-2 accent-blue-600" />
+        {usesPannableCrop && !isLoading && (
+          <div className="shrink-0 px-4 py-3">
+            <div className="flex items-center justify-between gap-3 text-sm text-gray-700">
+              <span>Drag to reposition</span>
+              <span className="text-xs text-gray-500">Scroll to zoom</span>
+            </div>
+            <label className="mt-2 flex items-center gap-3 text-sm text-gray-700">
+              <span>Zoom</span>
+              <input type="range" min={1} max={3} step={0.01} value={zoom} onChange={event => setZoom(Number(event.target.value))} className="w-full accent-blue-600" />
             </label>
           </div>
         )}
         {showOutputSize && (
-          <div className="grid grid-cols-2 gap-3 p-4">
+          <div className="grid shrink-0 grid-cols-2 gap-3 p-4">
             <label className="text-sm text-gray-700">Output width
               <input type="number" min={1} max={maxOutputWidth} value={outputWidth} onChange={e => setOutputWidth(Math.min(maxOutputWidth ?? Number.MAX_SAFE_INTEGER, Math.max(1, Number(e.target.value))))} className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg" />
             </label>
@@ -252,8 +265,8 @@ export function ImageCropUpload({
             </label>
           </div>
         )}
-        {error && <p className="px-4 text-sm text-red-600">{error}</p>}
-        <div className="p-4 border-t border-gray-200 flex justify-end gap-3">
+        {error && <p className="shrink-0 px-4 text-sm text-red-600">{error}</p>}
+        <div className="flex shrink-0 justify-end gap-3 border-t border-gray-200 p-4">
           <button type="button" onClick={onCancel} disabled={isSaving} className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg">Cancel</button>
           <button type="button" onClick={handleApply} disabled={isLoading || isSaving || !pixelCrop} className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg disabled:opacity-50">{isSaving ? 'Processing...' : 'Apply crop'}</button>
         </div>

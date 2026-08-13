@@ -606,6 +606,67 @@ export type WeeklyOwnerReport = {
   topSource?: { source: string; count: number };
 };
 
+export type FinanceReport = {
+  period: {
+    dateFrom: string;
+    dateTo: string;
+    timezone: string;
+    trendGroup: 'day' | 'week' | 'month';
+  };
+  summary: {
+    paymentsReceived: number;
+    paymentTransactions: number;
+    bookedRevenue: number;
+    confirmedBookings: number;
+    outstandingNow: number;
+    outstandingBookings: number;
+    overdueNow: number;
+    overdueBookings: number;
+    averageBookingValue: number;
+  };
+  paymentTrend: Array<{
+    period: string;
+    amount: number;
+    payments: number;
+  }>;
+  revenueByShootType: Array<{
+    shootType: string;
+    bookedRevenue: number;
+    bookings: number;
+  }>;
+  paymentStatus: {
+    paid: number;
+    partial: number;
+    unpaid: number;
+    overpaid: number;
+  };
+  overduePayments: Array<{
+    bookingId: string;
+    customerName: string;
+    shootType: string;
+    agreedTotal: number;
+    amountPaid: number;
+    balanceDue: number;
+    paymentDueDate: string;
+    daysOverdue: number;
+  }>;
+  recentPayments: Array<{
+    bookingId: string;
+    paymentId: string;
+    customerName: string;
+    shootType: string;
+    bookingStatus: BookingStatus;
+    amount: number;
+    paidAt: string;
+    method: PaymentMethod;
+  }>;
+  dataQuality: {
+    unpricedBookings: number;
+    missingDueDates: number;
+    overpaidBookings: number;
+  };
+};
+
 export type BookingWritePayload = {
   customerName: string;
   customerPhone: string;

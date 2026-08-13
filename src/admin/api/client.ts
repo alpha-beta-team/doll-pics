@@ -20,6 +20,7 @@ import { scheduleApi } from './schedule';
 import { occasionsApi } from './occasions';
 import { reviewsApi } from './reviews';
 import { quotationsApi } from './quotations';
+import { reportsApi } from './reports';
 
 export const api = {
   ...authApi,
@@ -40,4 +41,5 @@ export const api = {
   ...occasionsApi,
   ...reviewsApi,
   ...quotationsApi,
+  ...reportsApi,
 };

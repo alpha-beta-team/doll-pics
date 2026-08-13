@@ -45,6 +45,7 @@ export type {
   TodayPaymentItem,
   GoogleCalendarIntegrationStatus,
   WeeklyOwnerReport,
+  FinanceReport,
   AdminSearchItem,
   AdminSearchResponse,
   CustomerLookupRecord,
