@@ -1,0 +1,13 @@
+{
+  "name": "Doll Pictures Employee",
+  "short_name": "Doll Employee",
+  "description": "Attendance, leave and field schedules for Doll Pictures staff.",
+  "start_url": "/employee/",
+  "scope": "/employee/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#0f172a",
+  "icons": [
+    { "src": "/logo-doll.png?v=20260810", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

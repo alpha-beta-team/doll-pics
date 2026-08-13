@@ -21,6 +21,7 @@ import { occasionsApi } from './occasions';
 import { reviewsApi } from './reviews';
 import { quotationsApi } from './quotations';
 import { reportsApi } from './reports';
+import { attendanceApi } from './attendance';
 
 export const api = {
   ...authApi,
@@ -42,4 +43,5 @@ export const api = {
   ...reviewsApi,
   ...quotationsApi,
   ...reportsApi,
+  ...attendanceApi,
 };

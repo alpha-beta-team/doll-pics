@@ -31,6 +31,8 @@ const LandingResolver = lazy(() =>
   })),
 );
 const AdminApp = lazy(() => import('./admin/AdminApp'));
+const EmployeeApp = lazy(() => import('./employee/EmployeeApp'));
+const KioskApp = lazy(() => import('./kiosk/KioskApp'));
 const QuotationPage = lazy(() =>
   import('./pages/QuotationPage').then((m) => ({ default: m.QuotationPage })),
 );
@@ -77,6 +79,22 @@ function App() {
           element={
             <Suspense fallback={<AdminLoading />}>
               <AdminApp />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/employee/*"
+          element={
+            <Suspense fallback={<AdminLoading />}>
+              <EmployeeApp />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/kiosk/*"
+          element={
+            <Suspense fallback={<AdminLoading />}>
+              <KioskApp />
             </Suspense>
           }
         />

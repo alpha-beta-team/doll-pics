@@ -11,7 +11,9 @@ export function GoogleAnalytics() {
   const location = useLocation();
 
   useEffect(() => {
-    if (location.pathname.startsWith('/quotation/')) return;
+    const privateRoute = ['/admin', '/employee', '/kiosk', '/quotation']
+      .some((prefix) => location.pathname === prefix || location.pathname.startsWith(`${prefix}/`));
+    if (privateRoute) return;
     initializeAnalytics();
     initializeMetaPixel();
     trackPageView(`${location.pathname}${location.search}`);

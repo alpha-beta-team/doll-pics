@@ -35,6 +35,12 @@ import { applyPageSeo } from "../lib/seo";
 import { ConfirmDialogProvider } from "./components/ConfirmDialog";
 import { AccessRoute, DefaultAdminRedirect } from "./components/AccessRoute";
 import { AccessDeniedPage } from "./pages/AccessDeniedPage";
+import { AttendanceAdminPage } from "./pages/AttendanceAdminPage";
+import { AttendanceRequestsPage } from "./pages/AttendanceRequestsPage";
+import { TeamLeaveCalendarPage } from "./pages/TeamLeaveCalendarPage";
+import { FieldAssignmentsPage } from "./pages/FieldAssignmentsPage";
+import { AttendanceReportsPage } from "./pages/AttendanceReportsPage";
+import { AttendanceSettingsPage } from "./pages/AttendanceSettingsPage";
 
 function useAdminNoIndex() {
   useEffect(() => {
@@ -110,6 +116,12 @@ export default function AdminApp() {
               </Route>
               <Route element={<AccessRoute feature="staff_accounts" />}>
                 <Route path="staff-accounts" element={<StaffAccountsPage />} />
+                <Route path="attendance" element={<AttendanceAdminPage />} />
+                <Route path="attendance/requests" element={<AttendanceRequestsPage />} />
+                <Route path="attendance/calendar" element={<TeamLeaveCalendarPage />} />
+                <Route path="attendance/field-assignments" element={<FieldAssignmentsPage />} />
+                <Route path="attendance/reports" element={<AttendanceReportsPage />} />
+                <Route path="attendance/settings" element={<AttendanceSettingsPage />} />
               </Route>
               <Route element={<AccessRoute feature="integrations" />}>
                 <Route path="integrations" element={<IntegrationsPage />} />

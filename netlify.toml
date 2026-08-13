@@ -35,11 +35,45 @@
   to = "/index.html"
   status = 200
 
+[[redirects]]
+  from = "/employee"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/employee/*"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/kiosk"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/kiosk/*"
+  to = "/index.html"
+  status = 200
+
 # Private customer quotations: SPA route with no caching, indexing or referrer leakage.
 [[redirects]]
   from = "/quotation/*"
   to = "/index.html"
   status = 200
+
+[[headers]]
+  for = "/employee/*"
+  [headers.values]
+    Cache-Control = "private, no-store"
+    Referrer-Policy = "no-referrer"
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/kiosk/*"
+  [headers.values]
+    Cache-Control = "private, no-store"
+    Referrer-Policy = "no-referrer"
+    X-Robots-Tag = "noindex, nofollow"
 
 [[headers]]
   for = "/quotation/*"

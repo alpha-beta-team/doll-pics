@@ -1,0 +1,14 @@
+{
+  "name": "Doll Pictures Attendance Kiosk",
+  "short_name": "Doll Kiosk",
+  "description": "Office attendance tablet for Doll Pictures.",
+  "start_url": "/kiosk/",
+  "scope": "/kiosk/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#020617",
+  "theme_color": "#020617",
+  "icons": [
+    { "src": "/logo-doll.png?v=20260810", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

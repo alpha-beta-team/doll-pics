@@ -78,7 +78,7 @@ type RoleDetails = {
   access: Record<StaffAccessArea, StaffAccessLevel>;
 };
 
-export const ROLE_ORDER: StaffAccountRole[] = ['owner', 'sales', 'content_manager'];
+export const ROLE_ORDER: StaffAccountRole[] = ['owner', 'sales', 'content_manager', 'employee'];
 
 export const ROLE_CATALOG: Record<StaffAccountRole, RoleDetails> = {
   owner: {
@@ -123,11 +123,25 @@ export const ROLE_CATALOG: Record<StaffAccountRole, RoleDetails> = {
       site_content: 'manage', integrations: 'none', staff_accounts: 'none',
     },
   },
+  employee: {
+    label: 'Employee',
+    shortLabel: 'Attendance only',
+    description: 'Employee portal access for attendance, leave, off-days, and assigned outdoor shoots.',
+    badgeClassName: 'bg-emerald-100 text-emerald-800',
+    selectionClassName: 'border-emerald-500 bg-emerald-50 ring-emerald-200',
+    access: {
+      dashboard: 'none', today: 'none', enquiries: 'none', bookings: 'none', schedule: 'none',
+      occasions: 'none', quotations: 'none', payments: 'none', photos: 'none', categories: 'none',
+      packages: 'none', package_categories: 'none', hero_slides: 'none', story_scenes: 'none',
+      statistics: 'none', testimonials: 'none', behind_scenes: 'none', staff_profiles: 'none',
+      site_content: 'none', integrations: 'none', staff_accounts: 'none',
+    },
+  },
 };
 
 export function normalizeStaffAccountRole(value: unknown, fallback: StaffAccountRole = 'sales'): StaffAccountRole {
   if (value === 'operations') return 'sales';
-  if (value === 'owner' || value === 'sales' || value === 'content_manager') return value;
+  if (value === 'owner' || value === 'sales' || value === 'content_manager' || value === 'employee') return value;
   return fallback;
 }
 

@@ -699,7 +699,7 @@ export type BookingWritePayload = {
   acknowledgeUntimedConflict?: boolean;
 };
 
-export type StaffAccountRole = 'owner' | 'sales' | 'content_manager';
+export type StaffAccountRole = 'owner' | 'sales' | 'content_manager' | 'employee';
 
 export type StaffAccessArea =
   | 'dashboard'
@@ -730,13 +730,18 @@ export type StaffPermissionOverrides = Partial<Record<StaffAccessArea, StaffAcce
 
 export type StaffAccount = {
   id: string;
-  email: string;
+  email?: string;
   name: string;
   jobTitle?: string;
   role: StaffAccountRole;
   permissionOverrides?: StaffPermissionOverrides;
   isActive: boolean;
   mustChangePassword: boolean;
+  employeeCode?: string;
+  attendanceEnabled?: boolean;
+  joiningDate?: string;
+  employmentEndDate?: string;
+  punchPinConfigured?: boolean;
 };
 
 export type StaffAccountOption = {

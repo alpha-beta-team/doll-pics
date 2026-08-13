@@ -4,6 +4,6 @@ export function filterStaffAccounts(accounts: StaffAccount[], query: string): St
   const normalizedQuery = query.trim().toLocaleLowerCase();
   if (!normalizedQuery) return accounts;
   return accounts.filter((account) =>
-    `${account.name} ${account.jobTitle ?? ''} ${account.email}`.toLocaleLowerCase().includes(normalizedQuery),
+    `${account.name} ${account.jobTitle ?? ''} ${account.email ?? ''} ${account.employeeCode ?? ''}`.toLocaleLowerCase().includes(normalizedQuery),
   );
 }

@@ -1,11 +1,14 @@
 import type { LucideIcon } from 'lucide-react';
 import {
   BarChart3,
+  CalendarCheck2,
   CalendarDays,
   CalendarHeart,
   CalendarRange,
   Camera,
   CircleDollarSign,
+  ClipboardCheck,
+  Clock3,
   FileSignature,
   FileText,
   FolderOpen,
@@ -15,6 +18,7 @@ import {
   Images,
   LayoutList,
   Mail,
+  MapPinned,
   MessageSquareQuote,
   Package,
   PanelsTopLeft,
@@ -23,6 +27,7 @@ import {
   Tags,
   UserCog,
   Users,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { canManage, canView, FEATURE_CATALOG, type FeatureDetails, type FeatureFlagId } from '../access/roles';
 import type { StaffAccount, StaffAccessArea } from '../types';
@@ -122,6 +127,19 @@ export const PRIMARY_NAVIGATION: NavigationNode[] = [
     ],
   },
   {
+    id: 'people-attendance',
+    label: 'Attendance & Leave',
+    icon: Clock3,
+    displayOrder: 25,
+    children: [
+      { id: 'attendance-overview', label: 'Attendance', route: '/admin/attendance', icon: Clock3, displayOrder: 10, access: { feature: 'staff_accounts', level: 'view' } },
+      { id: 'attendance-requests', label: 'Requests', route: '/admin/attendance/requests', icon: ClipboardCheck, displayOrder: 20, access: { feature: 'staff_accounts', level: 'view' } },
+      { id: 'attendance-calendar', label: 'Team Calendar', route: '/admin/attendance/calendar', icon: CalendarCheck2, displayOrder: 30, access: { feature: 'staff_accounts', level: 'view' } },
+      { id: 'field-assignments', label: 'Field Assignments', route: '/admin/attendance/field-assignments', icon: MapPinned, displayOrder: 40, access: { feature: 'staff_accounts', level: 'view' } },
+      { id: 'attendance-reports', label: 'Attendance Reports', route: '/admin/attendance/reports', icon: FileSpreadsheet, displayOrder: 50, access: { feature: 'staff_accounts', level: 'view' } },
+    ],
+  },
+  {
     id: 'portfolio',
     label: 'Portfolio',
     icon: Images,
@@ -178,6 +196,7 @@ export const UTILITY_NAVIGATION: NavigationNode[] = [
     displayOrder: 10,
     children: [
       leaf('staff-accounts', 'Staff Accounts', '/admin/staff-accounts', UserCog, 10, 'staff_accounts'),
+      { id: 'attendance-settings', label: 'Attendance & Leave', route: '/admin/attendance/settings', icon: Clock3, displayOrder: 15, access: { feature: 'staff_accounts', level: 'view' } },
       leaf('integrations', 'Integrations', '/admin/integrations', Plug, 20, 'integrations', { featureFlag: 'integrations' }),
     ],
   },
