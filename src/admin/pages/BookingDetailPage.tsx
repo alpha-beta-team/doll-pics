@@ -1,15 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   AlertCircle,
   ArrowLeft,
   CalendarCheck,
-  Check,
   CheckCircle,
   CircleDollarSign,
-  Clock3,
   ExternalLink,
   MessageCircle,
+  MoreHorizontal,
   Pencil,
   Plus,
   RefreshCw,
@@ -37,8 +36,8 @@ import {
   whatsappDigits,
 } from '../../lib/pricing';
 import { bookingDurationLabel, formatTimeWindow } from '../../shared/bookingTime';
-import { FollowUpShortcuts } from '../components/FollowUpShortcuts';
 import { dateTimeLocalInKolkata, followUpDateError, kolkataLocalToIso } from '../components/followUp.utils';
+import { FollowUpPanel } from '../components/FollowUpPanel';
 import { CustomerLookupPanel } from '../components/CustomerLookupPanel';
 import { WhatsAppComposer } from '../components/WhatsAppComposer';
 import { VoiceNotesPanel } from '../components/VoiceNotesPanel';
@@ -125,6 +124,8 @@ export function BookingDetailPage() {
   const [saving, setSaving] = useState(false);
   const [messageOpen, setMessageOpen] = useState<WhatsAppTemplateId | null>(null);
   const [reviewUrl, setReviewUrl] = useState('');
+  const [actionMenuOpen, setActionMenuOpen] = useState(false);
+  const actionMenuRef = useRef<HTMLDivElement>(null);
 
   const sync = useCallback((value: Booking) => {
     setBooking(value);
@@ -162,6 +163,24 @@ export function BookingDetailPage() {
   }, [canManageBooking, id, sync]);
 
   useEffect(() => { void load(); }, [load]);
+
+  useEffect(() => {
+    if (!actionMenuOpen) return undefined;
+    const closeOnOutsideClick = (event: MouseEvent) => {
+      if (event.target instanceof Node && !actionMenuRef.current?.contains(event.target)) {
+        setActionMenuOpen(false);
+      }
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setActionMenuOpen(false);
+    };
+    document.addEventListener('mousedown', closeOnOutsideClick);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('mousedown', closeOnOutsideClick);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [actionMenuOpen]);
 
   const run = async (operation: () => Promise<Booking>) => {
     setSaving(true);
@@ -237,18 +256,18 @@ export function BookingDetailPage() {
     if (!booking) return [];
     if (booking.status === 'draft') return [
       { label: 'Confirm booking', status: 'confirmed' as const, primary: true },
-      { label: 'Cancel', status: 'cancelled' as const },
+      { label: 'Cancel booking', status: 'cancelled' as const },
     ];
     if (booking.status === 'confirmed') return [
-      { label: 'Mark shoot completed', status: 'shoot_completed' as const, primary: true },
-      { label: 'Correct to draft', status: 'draft' as const },
-      { label: 'Cancel', status: 'cancelled' as const },
+      { label: 'Complete shoot', status: 'shoot_completed' as const, primary: true },
+      { label: 'Revert to draft', status: 'draft' as const },
+      { label: 'Cancel booking', status: 'cancelled' as const },
     ];
     if (booking.status === 'shoot_completed') return [
-      { label: 'Correct to confirmed', status: 'confirmed' as const },
+      { label: 'Revert to confirmed', status: 'confirmed' as const },
     ];
     if (booking.status === 'delivered') return [
-      { label: 'Correct to shoot completed', status: 'shoot_completed' as const },
+      { label: 'Revert to shoot completed', status: 'shoot_completed' as const },
     ];
     return [{ label: `Restore to ${(booking.statusBeforeCancellation || 'draft').replace('_', ' ')}`, status: booking.statusBeforeCancellation || 'draft', primary: true }];
   }, [booking]);
@@ -375,15 +394,94 @@ export function BookingDetailPage() {
     || driveNotes !== booking.driveNotes;
   const followUpOverdue = booking.nextFollowUpAt && new Date(booking.nextFollowUpAt).getTime() < Date.now();
   const calendarStatus = booking.calendarSyncStatus || 'not_applicable';
+  const primaryAction = actions.find(action => 'primary' in action && action.primary);
+  const overflowActions = actions.filter(action => !('primary' in action && action.primary));
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <button onClick={() => navigate('/admin/bookings')} className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900"><ArrowLeft className="h-4 w-4" />Back to bookings</button>
       {error && <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"><AlertCircle className="h-5 w-5" />{error}<button className="ml-auto" onClick={() => setError('')}><X className="h-4 w-4" /></button></div>}
 
-      <header className="flex flex-col justify-between gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm lg:flex-row lg:items-start">
-        <div><div className="flex flex-wrap items-center gap-3"><h1 className="text-2xl font-semibold text-slate-900">{booking.customerName}</h1><span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusStyles[booking.status]}`}>{booking.status.replace('_', ' ')}</span></div><p className="mt-2 text-sm text-slate-500">{booking.packageName || booking.shootType || 'Photography session'} · {formatDay(booking.bookingDate)}{booking.startTime && booking.endTime ? ` · ${formatTimeWindow(booking.startTime, booking.endTime)}` : ''}</p></div>
-        {canManageBooking ? <div className="flex flex-wrap gap-2"><button type="button" onClick={() => setMessageOpen('booking_confirmation')} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700"><MessageCircle className="h-4 w-4" />WhatsApp</button><button onClick={() => setEditing(true)} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700"><Pencil className="h-4 w-4" />Edit</button>{actions.map(action => <button key={action.label} disabled={saving} onClick={() => void transition(action.status)} className={`min-h-11 rounded-lg px-3 py-2 text-sm font-medium ${'primary' in action && action.primary ? 'bg-blue-600 text-white' : 'border border-slate-300 text-slate-700'}`}>{action.label}</button>)}</div> : isReadOnly ? <ReadOnlyNotice /> : null}
+      <header className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">{booking.customerName}</h1>
+              <span className={`rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${statusStyles[booking.status]}`}>{booking.status.replace('_', ' ')}</span>
+            </div>
+            <p className="mt-3 text-sm font-medium text-slate-700">{booking.packageName || booking.shootType || 'Photography session'}</p>
+            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500">
+              <span>{formatDay(booking.bookingDate)}</span>
+              {booking.startTime && booking.endTime && <><span aria-hidden="true">·</span><span>{formatTimeWindow(booking.startTime, booking.endTime)}</span></>}
+            </div>
+          </div>
+
+          {canManageBooking ? (
+            <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto lg:flex-nowrap">
+              <button
+                type="button"
+                aria-label="Message customer on WhatsApp"
+                title="WhatsApp"
+                onClick={() => setMessageOpen('booking_confirmation')}
+                className="order-3 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-700 transition-colors hover:bg-emerald-100 lg:order-none"
+              >
+                <MessageCircle className="h-5 w-5" />
+              </button>
+              <button
+                type="button"
+                aria-label="Edit booking"
+                title="Edit booking"
+                onClick={() => setEditing(true)}
+                className="order-4 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-slate-300 text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900 lg:order-none"
+              >
+                <Pencil className="h-5 w-5" />
+              </button>
+              {primaryAction && (
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={() => void transition(primaryAction.status)}
+                  className="order-1 inline-flex min-h-11 grow basis-[calc(100%-3.25rem)] items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:opacity-50 lg:order-none lg:grow-0 lg:basis-auto"
+                >
+                  <CheckCircle className="h-4 w-4" />{primaryAction.label}
+                </button>
+              )}
+              {overflowActions.length > 0 && (
+                <div ref={actionMenuRef} className="relative order-2 lg:order-none">
+                  <button
+                    type="button"
+                    aria-label="More booking actions"
+                    aria-expanded={actionMenuOpen}
+                    aria-haspopup="menu"
+                    onClick={() => setActionMenuOpen(open => !open)}
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-slate-300 text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
+                  >
+                    <MoreHorizontal className="h-5 w-5" />
+                  </button>
+                  {actionMenuOpen && (
+                    <div role="menu" className="absolute right-0 z-20 mt-2 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg">
+                      {overflowActions.map(action => (
+                        <button
+                          key={action.label}
+                          type="button"
+                          role="menuitem"
+                          disabled={saving}
+                          onClick={() => {
+                            setActionMenuOpen(false);
+                            void transition(action.status);
+                          }}
+                          className={`flex min-h-10 w-full items-center rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors disabled:opacity-50 ${action.status === 'cancelled' ? 'text-red-600 hover:bg-red-50' : 'text-slate-700 hover:bg-slate-50'}`}
+                        >
+                          {action.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ) : isReadOnly ? <ReadOnlyNotice /> : null}
+        </div>
       </header>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -398,10 +496,23 @@ export function BookingDetailPage() {
           <div className="mt-4 divide-y divide-slate-100">{booking.payments.map(payment => <div key={payment.id} className="flex items-center gap-3 py-3"><CircleDollarSign className="h-5 w-5 text-emerald-600" /><div className="min-w-0 flex-1"><p className="font-medium text-slate-800">{money(payment.amount)}</p><p className="text-xs capitalize text-slate-500">{formatDay(payment.paidAt)} · {payment.method.replace('_', ' ')}{payment.note ? ` · ${payment.note}` : ''}</p></div><><button onClick={() => setPaymentModal(payment)} className="p-2 text-slate-500" aria-label="Edit payment"><Pencil className="h-4 w-4" /></button><button onClick={() => void deletePayment(payment)} className="p-2 text-red-500" aria-label="Delete payment"><Trash2 className="h-4 w-4" /></button></></div>)}{!booking.payments.length && <p className="py-5 text-center text-sm text-slate-500">No payments recorded.</p>}</div>
         </Card>}
 
-        {canManageBooking && <Card title="Next follow-up" action={booking.nextFollowUpAt ? <button onClick={() => void run(() => api.completeBookingFollowUp(booking.id))} className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-600"><Check className="h-4 w-4" />Complete</button> : undefined}>
-          {booking.nextFollowUpAt && <div className={`mb-4 rounded-lg p-3 text-sm ${followUpOverdue ? 'bg-red-50 text-red-700' : 'bg-blue-50 text-blue-700'}`}><Clock3 className="mr-2 inline h-4 w-4" />{formatDateTime(booking.nextFollowUpAt)}{followUpOverdue ? ' · Overdue' : ''}</div>}
-          <FollowUpShortcuts value={followUpAt} onChange={setFollowUpAt} disabled={saving} /><input value={followUpNote} onChange={e => setFollowUpNote(e.target.value)} placeholder="What needs to happen?" className="mt-3 h-12 w-full rounded-xl border border-slate-300 px-3 text-sm" /><button onClick={saveFollowUp} disabled={saving || !followUpAt} className="mt-3 min-h-11 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50">{booking.nextFollowUpAt ? 'Reschedule follow-up' : 'Schedule follow-up'}</button>
-        </Card>}
+        {canManageBooking && <FollowUpPanel
+          className="lg:col-span-2"
+          value={followUpAt}
+          note={followUpNote}
+          onChange={setFollowUpAt}
+          onNoteChange={setFollowUpNote}
+          onSubmit={saveFollowUp}
+          disabled={saving}
+          submitLabel={booking.nextFollowUpAt ? 'Reschedule follow-up' : 'Save follow-up'}
+          notePlaceholder="What should we discuss?"
+          current={booking.nextFollowUpAt ? {
+            dateLabel: formatDateTime(booking.nextFollowUpAt),
+            note: booking.followUpNote,
+            overdue: Boolean(followUpOverdue),
+          } : undefined}
+          onComplete={booking.nextFollowUpAt ? () => void run(() => api.completeBookingFollowUp(booking.id)) : undefined}
+        />}
 
         {canManageBooking && <Card title="WhatsApp automation" action={<button onClick={() => void load()} className="text-slate-400" aria-label="Refresh messages"><RefreshCw className="h-4 w-4" /></button>}>
           <div className="grid gap-4 sm:grid-cols-2"><Field label="Consent">{booking.whatsappOptIn ? `Recorded ${formatDateTime(booking.whatsappOptInAt)}` : 'Not recorded'}</Field><Field label="Source">{booking.whatsappOptInSource || '—'}</Field><Field label="Opt-out">{booking.whatsappOptOutAt ? formatDateTime(booking.whatsappOptOutAt) : 'No'}</Field><Field label="Language">English</Field></div>

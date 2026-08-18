@@ -10,11 +10,17 @@ import { ReadOnlyNotice } from '../components/ReadOnlyNotice';
 import { EnquiryToolbar } from '../components/enquiries/EnquiryToolbar';
 import {
   EnquirySortControl,
-  EnquiryStatusFilter,
 } from '../components/enquiries/EnquiryStatusFilter';
 import { EnquiryPrioritySummary } from '../components/enquiries/EnquiryPrioritySummary';
 import { EnquiryListHeader } from '../components/enquiries/EnquiryListHeader';
 import { EnquiryCard, EnquiryCardSkeleton } from '../components/enquiries/EnquiryCard';
+import { SalesWorkspaceHeader } from '../components/sales/SalesWorkspaceHeader';
+import {
+  buildServiceCategoryOptions,
+  normalizeServiceCategory,
+  serviceCategoryMatches,
+  serviceCategoryTabId,
+} from '../components/sales/serviceCategories';
 import {
   ENQUIRY_STAGES,
   enquiryMatchesPriority,
@@ -37,13 +43,14 @@ export function WorkEnquiriesPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [params, setParams] = useSearchParams();
+  const serviceParam = params.get('service') || '';
+  const requestedServiceCategory = serviceParam ? normalizeServiceCategory(serviceParam) : '';
   const [items, setItems] = useState<Enquiry[]>([]);
   const [stage, setStage] = useState<EnquiryStage | 'all'>('all');
   const [priority, setPriority] = useState<EnquiryPriorityFilter>('');
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<EnquirySort>('newest');
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [statusMenuOpen, setStatusMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
@@ -73,51 +80,82 @@ export function WorkEnquiriesPage() {
 
   useEffect(() => { void load(); }, [load]);
 
+  const serviceCategory = requestedServiceCategory
+    && items.some(item => serviceCategoryMatches(item, requestedServiceCategory))
+    ? requestedServiceCategory
+    : '';
+  const itemsForSelectedService = useMemo(
+    () => items.filter(item => serviceCategoryMatches(item, serviceCategory)),
+    [items, serviceCategory],
+  );
+
   const counts = useMemo(() => Object.fromEntries(
     ENQUIRY_STAGES.map(option => [
       option.value,
-      items.filter(item => item.stage === option.value).length,
+      itemsForSelectedService.filter(item => item.stage === option.value).length,
     ]),
-  ) as Record<EnquiryStage, number>, [items]);
+  ) as Record<EnquiryStage, number>, [itemsForSelectedService]);
 
   const priorityCounts = useMemo(() => {
     const now = new Date();
     let dueToday = 0;
     let overdue = 0;
-    items.forEach(item => {
+    itemsForSelectedService.forEach(item => {
       if (!item.nextFollowUpAt) return;
       const urgency = followUpUrgency(item.nextFollowUpAt, now);
       if (urgency === 'due_today') dueToday += 1;
       if (urgency === 'overdue') overdue += 1;
     });
     return { dueToday, overdue };
-  }, [items]);
+  }, [itemsForSelectedService]);
 
-  const visible = useMemo(() => {
+  const matching = useMemo(() => {
     const now = new Date();
-    const filtered = items.filter(item => {
+    return items.filter(item => {
       if (stage !== 'all' && item.stage !== stage) return false;
       if (!enquiryMatchesPriority(item, priority, now)) return false;
       return enquiryMatchesSearch(item, query);
     });
-    return sortEnquiries(filtered, sort);
-  }, [items, priority, query, sort, stage]);
+  }, [items, priority, query, stage]);
 
-  const activeFilterCount = Number(Boolean(priority));
+  const serviceCategories = useMemo(
+    () => buildServiceCategoryOptions(items, matching),
+    [items, matching],
+  );
+  const visible = useMemo(
+    () => sortEnquiries(matching.filter(item => serviceCategoryMatches(item, serviceCategory)), sort),
+    [matching, serviceCategory, sort],
+  );
+
+  const activeFilterCount = Number(stage !== 'all') + Number(Boolean(priority));
   const hasStatusOrPriorityFilter = stage !== 'all' || Boolean(priority);
-  const hasAnyFilter = hasStatusOrPriorityFilter || Boolean(query.trim());
-  const selectedListName = priority === 'overdue'
+  const hasAnyFilter = hasStatusOrPriorityFilter || Boolean(query.trim()) || Boolean(serviceCategory);
+  const selectedServiceLabel = serviceCategories.find(option => option.value === serviceCategory)?.label;
+  const selectedListNameBase = priority === 'overdue'
     ? 'Overdue follow-ups'
     : priority === 'due_today'
       ? 'Follow-ups due today'
       : stage === 'all'
         ? 'All enquiries'
         : `${enquiryStageLabel(stage)} enquiries`;
+  const selectedListName = serviceCategory && selectedServiceLabel
+    ? stage === 'all' && !priority
+      ? `${selectedServiceLabel} enquiries`
+      : `${selectedServiceLabel} · ${selectedListNameBase}`
+    : selectedListNameBase;
+
+  const selectServiceCategory = (value: string) => {
+    const next = new URLSearchParams(params);
+    if (value) next.set('service', value);
+    else next.delete('service');
+    setParams(next, { replace: true });
+  };
 
   const clearFilters = () => {
     setStage('all');
     setPriority('');
     setQuery('');
+    selectServiceCategory('');
   };
 
   const openForm = () => {
@@ -134,28 +172,41 @@ export function WorkEnquiriesPage() {
 
   return (
     <div className="mx-auto max-w-[1320px] space-y-3 pb-2 sm:space-y-4">
-      <header className="flex items-end justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="text-2xl font-semibold tracking-tight text-admin-text sm:text-3xl">Enquiries</h1>
-          <p className="mt-1 text-sm text-admin-subtle">Manage new leads and follow-ups.</p>
-        </div>
-        {isReadOnly && <ReadOnlyNotice />}
-      </header>
-
-      <EnquiryToolbar
-        query={query}
-        onQueryChange={setQuery}
-        filtersOpen={filtersOpen}
-        onFiltersOpenChange={setFiltersOpen}
-        activeFilterCount={activeFilterCount}
-        refreshing={refreshing}
-        onRefresh={() => void load(true)}
-        canManage={canManage}
-        onAdd={openForm}
+      <SalesWorkspaceHeader
+        title="Enquiries"
+        serviceCategories={serviceCategories}
+        serviceCategory={serviceCategory}
+        onServiceCategoryChange={selectServiceCategory}
+        panelId="enquiry-list-panel"
+        readOnlyNotice={isReadOnly ? <ReadOnlyNotice /> : undefined}
+        listControls={<EnquirySortControl value={sort} onChange={setSort} />}
+        actions={(
+          <EnquiryToolbar
+            query={query}
+            onQueryChange={setQuery}
+            filtersOpen={filtersOpen}
+            onFiltersOpenChange={setFiltersOpen}
+            activeFilterCount={activeFilterCount}
+            refreshing={refreshing}
+            onRefresh={() => void load(true)}
+            canManage={canManage}
+            onAdd={openForm}
+          />
+        )}
       />
 
       {filtersOpen && (
-        <div id="enquiry-priority-filters">
+        <section id="enquiry-advanced-filters" aria-label="Enquiry filters" className="space-y-2">
+          <div className="flex flex-col gap-2 rounded-xl border border-admin-border bg-admin-surface p-2 shadow-sm sm:flex-row sm:items-center">
+            <label className="block min-w-0 flex-1 sm:max-w-xs">
+              <span className="sr-only">Enquiry status</span>
+              <select value={stage} onChange={event => setStage(event.target.value as EnquiryStage | 'all')} className="h-11 w-full rounded-xl border border-admin-control bg-admin-surface px-3 text-sm text-admin-secondary outline-none focus-visible:ring-2 focus-visible:ring-admin-focus">
+                <option value="all">All statuses ({itemsForSelectedService.length})</option>
+                {ENQUIRY_STAGES.map(item => <option key={item.value} value={item.value}>{item.label} ({counts[item.value]})</option>)}
+              </select>
+            </label>
+            <button type="button" disabled={stage === 'all' && !priority} onClick={() => { setStage('all'); setPriority(''); }} className="min-h-11 rounded-xl px-3 text-sm font-semibold text-admin-primary outline-none hover:bg-admin-muted focus-visible:ring-2 focus-visible:ring-admin-focus disabled:cursor-not-allowed disabled:text-admin-subtle disabled:opacity-60">Clear status filters</button>
+          </div>
           <EnquiryPrioritySummary
             newCount={counts.new}
             dueTodayCount={priorityCounts.dueToday}
@@ -171,21 +222,8 @@ export function WorkEnquiriesPage() {
               setPriority(nextPriority);
             }}
           />
-        </div>
+        </section>
       )}
-
-      <div className="flex min-w-0 items-center gap-1 border-y border-admin-border py-0.5 sm:gap-2 sm:border-0 sm:py-0">
-          <EnquiryStatusFilter
-            stage={stage}
-            counts={counts}
-            total={items.length}
-            open={statusMenuOpen}
-            onOpenChange={setStatusMenuOpen}
-            onChange={setStage}
-            disabled={loading}
-          />
-        <EnquirySortControl value={sort} onChange={setSort} />
-      </div>
 
       {error && items.length > 0 && (
         <div role="alert" className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
@@ -200,7 +238,7 @@ export function WorkEnquiriesPage() {
 
       <EnquiryListHeader title={selectedListName} count={visible.length} />
 
-      <section aria-labelledby="enquiry-list-title" className="space-y-2 lg:space-y-0 lg:overflow-hidden lg:rounded-xl lg:border lg:border-admin-border lg:bg-admin-surface lg:shadow-[0_4px_18px_rgba(62,56,46,0.04)]">
+      <section id="enquiry-list-panel" role="tabpanel" aria-labelledby={serviceCategoryTabId(serviceCategory)} className="space-y-2 lg:space-y-0 lg:overflow-hidden lg:rounded-xl lg:border lg:border-admin-border lg:bg-admin-surface lg:shadow-[0_4px_18px_rgba(62,56,46,0.04)]">
         <div className="hidden grid-cols-[minmax(0,1.25fr)_minmax(9rem,0.85fr)_minmax(7.5rem,0.65fr)_minmax(11rem,1fr)_auto] gap-x-5 border-b border-admin-border bg-admin-muted/60 px-5 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-admin-subtle lg:grid">
           <span>Customer</span><span>Enquiry</span><span>Received</span><span>Follow-up</span><span className="pr-2 text-right">Actions</span>
         </div>

@@ -58,6 +58,10 @@ export function Sidebar({
   const visibleUtility = resolveNavigation(UTILITY_NAVIGATION, user);
   const allVisible = [...visiblePrimary, ...visibleUtility];
   const activeRoute = activeNavigationRoute(allVisible, location.pathname);
+  const activePrimaryGroupId = visiblePrimary.find((group) =>
+    group.children?.some((child) => child.route === activeRoute),
+  )?.id;
+  const [openPrimaryGroupId, setOpenPrimaryGroupId] = useState<string | null>('overview');
   const workspace = workspaces.find((item) => item.id === activeWorkspaceId) ?? workspaces[0];
   const displayName = user?.name || user?.email || 'Studio user';
   const initials = displayName
@@ -67,6 +71,10 @@ export function Sidebar({
     .join('');
   const showCollapsedChrome = collapsed && !isMobile;
   const width = showCollapsedChrome ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_EXPANDED_WIDTH;
+
+  useEffect(() => {
+    if (activePrimaryGroupId) setOpenPrimaryGroupId(activePrimaryGroupId);
+  }, [activePrimaryGroupId]);
 
   useEffect(() => {
     if (!isMobile || !mobileOpen) return;
@@ -265,6 +273,8 @@ export function Sidebar({
                 group={group}
                 activeRoute={activeRoute}
                 collapsed={showCollapsedChrome}
+                open={openPrimaryGroupId === group.id}
+                onOpenChange={(open) => setOpenPrimaryGroupId(open ? group.id : null)}
                 onNavigate={handleNavigate}
               />
             ))}

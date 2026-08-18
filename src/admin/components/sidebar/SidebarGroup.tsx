@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
+import { Fragment, useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 import { ChevronDown } from 'lucide-react';
 import type { NavigationNode } from '../../nav/config';
 import { SidebarItem } from './SidebarItem';
@@ -8,6 +8,8 @@ type SidebarGroupProps = {
   activeRoute?: string;
   collapsed: boolean;
   utility?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   onNavigate?: () => void;
 };
 
@@ -16,18 +18,29 @@ export function SidebarGroup({
   activeRoute,
   collapsed,
   utility = false,
+  open: controlledOpen,
+  onOpenChange,
   onNavigate,
 }: SidebarGroupProps) {
   const panelId = useId();
   const childActive = group.children?.some((child) => child.route === activeRoute) ?? false;
-  const [open, setOpen] = useState(childActive || group.id === 'overview');
+  const [internalOpen, setInternalOpen] = useState(childActive || group.id === 'overview');
   const [flyoutOpen, setFlyoutOpen] = useState(false);
   const flyoutRef = useRef<HTMLDivElement>(null);
   const Icon = group.icon;
+  const open = controlledOpen ?? internalOpen;
+  const children = group.children?.filter(
+    (child): child is NavigationNode & { route: string } => Boolean(child.route),
+  ) ?? [];
+
+  const setOpen = (nextOpen: boolean) => {
+    if (onOpenChange) onOpenChange(nextOpen);
+    else setInternalOpen(nextOpen);
+  };
 
   useEffect(() => {
-    if (childActive) setOpen(true);
-  }, [childActive]);
+    if (childActive && controlledOpen === undefined) setInternalOpen(true);
+  }, [childActive, controlledOpen]);
 
   useEffect(() => {
     if (!collapsed) setFlyoutOpen(false);
@@ -90,17 +103,23 @@ export function SidebarGroup({
               {group.label}
             </p>
             <ul className="space-y-1">
-              {group.children?.filter((child): child is NavigationNode & { route: string } => Boolean(child.route)).map((child) => (
-                <SidebarItem
-                  key={child.id}
-                  item={child}
-                  activeRoute={activeRoute}
-                  collapsed={false}
-                  onNavigate={() => {
-                    setFlyoutOpen(false);
-                    onNavigate?.();
-                  }}
-                />
+              {children.map((child, index) => (
+                <Fragment key={child.id}>
+                  {child.subgroupLabel && child.subgroupLabel !== children[index - 1]?.subgroupLabel && (
+                    <li role="presentation" className={`${index ? 'pt-2' : ''} px-2.5 pb-1 text-[10px] font-bold uppercase tracking-[0.14em] text-admin-subtle`}>
+                      {child.subgroupLabel}
+                    </li>
+                  )}
+                  <SidebarItem
+                    item={child}
+                    activeRoute={activeRoute}
+                    collapsed={false}
+                    onNavigate={() => {
+                      setFlyoutOpen(false);
+                      onNavigate?.();
+                    }}
+                  />
+                </Fragment>
               ))}
             </ul>
           </div>
@@ -116,7 +135,7 @@ export function SidebarGroup({
         aria-expanded={open}
         aria-controls={panelId}
         data-sidebar-control="true"
-        onClick={() => setOpen((current) => !current)}
+        onClick={() => setOpen(!open)}
         className={[
           'group flex min-h-10 w-full items-center gap-3 rounded-xl px-3 text-sm font-semibold outline-none transition-colors',
           'focus-visible:ring-2 focus-visible:ring-admin-nav-focus focus-visible:ring-offset-1 focus-visible:ring-offset-admin-nav',
@@ -141,15 +160,21 @@ export function SidebarGroup({
       >
         <div className="overflow-hidden">
           <ul className="mt-1 space-y-1 pb-1">
-            {group.children?.filter((child): child is NavigationNode & { route: string } => Boolean(child.route)).map((child) => (
-              <SidebarItem
-                key={child.id}
-                item={child}
-                activeRoute={activeRoute}
-                collapsed={false}
-                nested
-                onNavigate={onNavigate}
-              />
+            {children.map((child, index) => (
+              <Fragment key={child.id}>
+                {child.subgroupLabel && child.subgroupLabel !== children[index - 1]?.subgroupLabel && (
+                  <li role="presentation" className={`${index ? 'pt-2' : ''} pb-1 pl-10 pr-3 text-[10px] font-bold uppercase tracking-[0.14em] text-admin-nav-muted`}>
+                    {child.subgroupLabel}
+                  </li>
+                )}
+                <SidebarItem
+                  item={child}
+                  activeRoute={activeRoute}
+                  collapsed={false}
+                  nested
+                  onNavigate={onNavigate}
+                />
+              </Fragment>
             ))}
           </ul>
         </div>

@@ -39,13 +39,13 @@ export function FollowUpShortcuts({ value, onChange, allowNone, disabled, onVali
     setError(nextError || '');
     onValidation?.(nextError);
   };
-  const buttonClass = (active: boolean) => `flex min-h-11 items-center justify-center gap-1.5 rounded-xl border px-3 text-sm font-semibold ${active ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-slate-300 bg-white text-slate-600'}`;
+  const buttonClass = (active: boolean) => `flex min-h-12 items-center justify-center gap-2 rounded-xl border px-3 text-sm font-semibold outline-none transition ${active ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-sm' : 'border-slate-300 bg-white text-slate-600 hover:border-blue-400 hover:bg-blue-50/40'} focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60`;
   return <div>
     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
       {allowNone && <button type="button" disabled={disabled} onClick={() => choose('none')} className={buttonClass(selected === 'none')}><Check className="h-4 w-4" />No follow-up</button>}
       {options.filter(option => option.id !== 'later' || canUseLaterToday()).map(option => <button key={option.id} type="button" disabled={disabled} onClick={() => choose(option.id)} className={buttonClass(selected === option.id)}>{option.id === 'later' ? <Clock3 className="h-4 w-4" /> : <CalendarClock className="h-4 w-4" />}{option.label}</button>)}
       <button type="button" disabled={disabled} onClick={() => choose('custom')} className={buttonClass(selected === 'custom')}>Choose date/time</button>
     </div>
-    {selected === 'custom' && <label className="mt-3 block text-sm font-medium text-slate-700">Date and time<input type="datetime-local" value={value} onChange={event => customChange(event.target.value)} className="mt-1 h-12 w-full rounded-xl border border-slate-300 bg-white px-3 text-base" aria-invalid={Boolean(error)} />{error && <span className="mt-1 block text-xs font-medium text-red-600">{error}</span>}</label>}
+    {selected === 'custom' && <label className="mt-4 block text-sm font-semibold text-slate-700">Date and time<input type="datetime-local" value={value} disabled={disabled} onChange={event => customChange(event.target.value)} className="mt-1.5 h-12 w-full rounded-xl border border-slate-300 bg-white px-3 text-base font-normal outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:opacity-60" aria-invalid={Boolean(error)} />{error && <span className="mt-1 block text-xs font-medium text-red-600">{error}</span>}</label>}
   </div>;
 }

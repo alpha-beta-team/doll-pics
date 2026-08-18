@@ -23,7 +23,6 @@ import {
   Package,
   PanelsTopLeft,
   Plug,
-  Settings,
   Tags,
   UserCog,
   Users,
@@ -41,6 +40,7 @@ export type NavigationNode = {
   route?: string;
   icon: LucideIcon;
   children?: NavigationNode[];
+  subgroupLabel?: string;
   access?: NavigationAccess;
   featureFlag?: AdminFeatureFlag;
   displayOrder: number;
@@ -77,7 +77,7 @@ const leaf = (
   icon: LucideIcon,
   displayOrder: number,
   feature?: StaffAccessArea,
-  options: Pick<NavigationNode, 'featureFlag' | 'mobileQuickOrder'> = {},
+  options: Pick<NavigationNode, 'featureFlag' | 'mobileQuickOrder' | 'subgroupLabel'> = {},
 ): NavigationNode => {
   const registered = feature ? FEATURE_CATALOG[feature] : undefined;
   const navigation = registered?.navigation as FeatureDetails['navigation'] | undefined;
@@ -90,6 +90,7 @@ const leaf = (
   access: feature ? { feature, level: 'view' } : undefined,
   featureFlag: navigation?.featureFlag ?? options.featureFlag,
   mobileQuickOrder: navigation?.mobileQuickOrder ?? options.mobileQuickOrder,
+  subgroupLabel: options.subgroupLabel,
 };
 };
 
@@ -106,100 +107,66 @@ export const PRIMARY_NAVIGATION: NavigationNode[] = [
     ],
   },
   {
-    id: 'studio-operations',
-    label: 'Studio Operations',
+    id: 'bookings-sales',
+    label: 'Bookings & Sales',
     icon: CalendarDays,
     displayOrder: 20,
     children: [
-      leaf('bookings', 'Bookings', '/admin/bookings', CalendarDays, 10, 'bookings', { mobileQuickOrder: 40 }),
-      leaf('enquiries', 'Enquiries', '/admin/enquiries', Mail, 20, 'enquiries', { mobileQuickOrder: 30 }),
+      leaf('enquiries', 'Enquiries', '/admin/enquiries', Mail, 10, 'enquiries', { mobileQuickOrder: 30 }),
+      leaf('bookings', 'Bookings', '/admin/bookings', CalendarDays, 20, 'bookings', { mobileQuickOrder: 40 }),
       leaf('occasions', 'Occasions', '/admin/occasions', CalendarHeart, 30, 'occasions'),
+      leaf('quotations', 'Quotations', '/admin/quotations', FileSignature, 40, 'quotations'),
+      leaf('payments', 'Revenue & Payments', '/admin/payments', CircleDollarSign, 50, 'payments'),
     ],
   },
   {
-    id: 'sales-finance',
-    label: 'Sales & Finance',
-    icon: CircleDollarSign,
+    id: 'staff-management',
+    label: 'Staff Management',
+    icon: UserCog,
     displayOrder: 30,
     children: [
-      leaf('quotations', 'Quotations', '/admin/quotations', FileSignature, 10, 'quotations'),
-      leaf('payments', 'Payments', '/admin/payments', CircleDollarSign, 20, 'payments'),
-    ],
-  },
-  {
-    id: 'people-attendance',
-    label: 'Attendance & Leave',
-    icon: Clock3,
-    displayOrder: 25,
-    children: [
-      { id: 'attendance-overview', label: 'Attendance', route: '/admin/attendance', icon: Clock3, displayOrder: 10, access: { feature: 'staff_accounts', level: 'view' } },
-      { id: 'attendance-requests', label: 'Requests', route: '/admin/attendance/requests', icon: ClipboardCheck, displayOrder: 20, access: { feature: 'staff_accounts', level: 'view' } },
-      { id: 'attendance-calendar', label: 'Team Calendar', route: '/admin/attendance/calendar', icon: CalendarCheck2, displayOrder: 30, access: { feature: 'staff_accounts', level: 'view' } },
-      { id: 'field-assignments', label: 'Field Assignments', route: '/admin/attendance/field-assignments', icon: MapPinned, displayOrder: 40, access: { feature: 'staff_accounts', level: 'view' } },
-      { id: 'attendance-reports', label: 'Attendance Reports', route: '/admin/attendance/reports', icon: FileSpreadsheet, displayOrder: 50, access: { feature: 'staff_accounts', level: 'view' } },
-    ],
-  },
-  {
-    id: 'portfolio',
-    label: 'Portfolio',
-    icon: Images,
-    featureFlag: 'portfolio',
-    displayOrder: 40,
-    children: [
-      leaf('photos', 'Photos', '/admin/photos', Images, 10, 'photos'),
-      leaf('categories', 'Categories', '/admin/categories', FolderOpen, 20, 'categories'),
-      leaf('behind-scenes', 'Behind the Scenes', '/admin/behind-scenes', Camera, 30, 'behind_scenes'),
-    ],
-  },
-  {
-    id: 'packages',
-    label: 'Packages',
-    icon: Package,
-    featureFlag: 'packages',
-    displayOrder: 50,
-    children: [
-      leaf('all-packages', 'All Packages', '/admin/packages', Package, 10, 'packages'),
-      leaf('package-categories', 'Package Categories', '/admin/package-categories', Tags, 20, 'package_categories'),
+      leaf('staff-accounts', 'Staff Accounts', '/admin/staff-accounts', UserCog, 10, 'staff_accounts', { subgroupLabel: 'Staff' }),
+      { id: 'attendance-overview', label: 'Attendance', route: '/admin/attendance', icon: Clock3, displayOrder: 20, subgroupLabel: 'Attendance & Leave', access: { feature: 'staff_accounts', level: 'view' } },
+      { id: 'attendance-requests', label: 'Leave Requests', route: '/admin/attendance/requests', icon: ClipboardCheck, displayOrder: 30, subgroupLabel: 'Attendance & Leave', access: { feature: 'staff_accounts', level: 'view' } },
+      { id: 'attendance-calendar', label: 'Team Calendar', route: '/admin/attendance/calendar', icon: CalendarCheck2, displayOrder: 40, subgroupLabel: 'Attendance & Leave', access: { feature: 'staff_accounts', level: 'view' } },
+      { id: 'field-assignments', label: 'Field Assignments', route: '/admin/attendance/field-assignments', icon: MapPinned, displayOrder: 50, subgroupLabel: 'Attendance & Leave', access: { feature: 'staff_accounts', level: 'view' } },
+      { id: 'attendance-reports', label: 'Attendance Reports', route: '/admin/attendance/reports', icon: FileSpreadsheet, displayOrder: 60, subgroupLabel: 'Attendance & Leave', access: { feature: 'staff_accounts', level: 'view' } },
+      { id: 'attendance-settings', label: 'Attendance Settings', route: '/admin/attendance/settings', icon: Clock3, displayOrder: 70, subgroupLabel: 'Attendance & Leave', access: { feature: 'staff_accounts', level: 'view' } },
     ],
   },
   {
     id: 'website',
     label: 'Website',
     icon: PanelsTopLeft,
-    featureFlag: 'website',
-    displayOrder: 60,
+    displayOrder: 40,
     children: [
-      leaf('hero-slides', 'Hero Slides', '/admin/hero-slides', Image, 10, 'hero_slides'),
+      leaf('hero-slides', 'Hero Slides', '/admin/hero-slides', Image, 10, 'hero_slides', { subgroupLabel: 'Homepage' }),
+      leaf('story-scenes', 'Story Scenes', '/admin/story-scenes', FileText, 20, 'story_scenes', { subgroupLabel: 'Homepage' }),
+      leaf('statistics', 'Statistics', '/admin/stats', BarChart3, 30, 'statistics', { subgroupLabel: 'Homepage' }),
       {
         id: 'services',
         label: 'Services',
         route: '/admin/services',
         icon: LayoutList,
-        displayOrder: 15,
+        displayOrder: 40,
         access: { feature: 'site_content', level: 'view' },
         featureFlag: 'website',
+        subgroupLabel: 'Services & Packages',
       },
-      leaf('story-scenes', 'Story Scenes', '/admin/story-scenes', FileText, 20, 'story_scenes'),
-      leaf('statistics', 'Statistics', '/admin/stats', BarChart3, 30, 'statistics'),
-      leaf('testimonials', 'Testimonials', '/admin/testimonials', MessageSquareQuote, 40, 'testimonials'),
-      leaf('staff-profiles', 'Team Members', '/admin/staff-profiles', Users, 50, 'staff_profiles'),
-      leaf('site-content', 'Site Settings', '/admin/site-content', FileText, 60, 'site_content'),
+      leaf('all-packages', 'All Packages', '/admin/packages', Package, 50, 'packages', { subgroupLabel: 'Services & Packages' }),
+      leaf('package-categories', 'Package Categories', '/admin/package-categories', Tags, 60, 'package_categories', { subgroupLabel: 'Services & Packages' }),
+      leaf('photos', 'Photos', '/admin/photos', Images, 70, 'photos', { subgroupLabel: 'Portfolio' }),
+      leaf('categories', 'Photo Categories', '/admin/categories', FolderOpen, 80, 'categories', { subgroupLabel: 'Portfolio' }),
+      leaf('behind-scenes', 'Behind the Scenes', '/admin/behind-scenes', Camera, 90, 'behind_scenes', { subgroupLabel: 'Portfolio' }),
+      leaf('testimonials', 'Testimonials', '/admin/testimonials', MessageSquareQuote, 100, 'testimonials', { subgroupLabel: 'People & Trust' }),
+      leaf('staff-profiles', 'Team Members', '/admin/staff-profiles', Users, 110, 'staff_profiles', { subgroupLabel: 'People & Trust' }),
+      leaf('site-content', 'Site Settings', '/admin/site-content', FileText, 120, 'site_content', { subgroupLabel: 'Settings' }),
     ],
   },
 ];
 
 export const UTILITY_NAVIGATION: NavigationNode[] = [
-  {
-    id: 'studio-settings',
-    label: 'Studio Settings',
-    icon: Settings,
-    displayOrder: 10,
-    children: [
-      leaf('staff-accounts', 'Staff Accounts', '/admin/staff-accounts', UserCog, 10, 'staff_accounts'),
-      { id: 'attendance-settings', label: 'Attendance & Leave', route: '/admin/attendance/settings', icon: Clock3, displayOrder: 15, access: { feature: 'staff_accounts', level: 'view' } },
-      leaf('integrations', 'Integrations', '/admin/integrations', Plug, 20, 'integrations', { featureFlag: 'integrations' }),
-    ],
-  },
+  leaf('integrations', 'Integrations', '/admin/integrations', Plug, 10, 'integrations', { featureFlag: 'integrations' }),
   leaf('help', 'Quick Guide / Help', '/admin/help', HelpCircle, 20),
 ];
 

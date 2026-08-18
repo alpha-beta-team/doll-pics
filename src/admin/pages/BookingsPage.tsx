@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { AlertCircle, Inbox, SearchX, X } from 'lucide-react';
 import { api } from '../api/client';
 import type {
@@ -18,8 +18,15 @@ import { ReadOnlyNotice } from '../components/ReadOnlyNotice';
 import { consumeNewBookingSearch } from './bookingsRoute';
 import { BookingCard, BookingCardSkeleton } from '../components/bookings/BookingCard';
 import { BookingListHeader } from '../components/bookings/BookingListHeader';
-import { BookingStatusFilter, BookingSortControl } from '../components/bookings/BookingStatusFilter';
+import { BookingSortControl } from '../components/bookings/BookingStatusFilter';
 import { BookingToolbar } from '../components/bookings/BookingToolbar';
+import { SalesWorkspaceHeader } from '../components/sales/SalesWorkspaceHeader';
+import {
+  buildServiceCategoryOptions,
+  normalizeServiceCategory,
+  serviceCategoryMatches,
+  serviceCategoryTabId,
+} from '../components/sales/serviceCategories';
 import {
   BOOKING_STATUSES,
   bookingMatchesSearch,
@@ -36,6 +43,7 @@ type BookingViewState = {
   overdueOnly: boolean;
   query: string;
   sort: BookingSort;
+  serviceCategory: string;
 };
 
 const SCROLL_POSITION_KEY = 'doll-bookings-scroll-position';
@@ -49,6 +57,7 @@ const defaultViewState: BookingViewState = {
   overdueOnly: false,
   query: '',
   sort: 'recent',
+  serviceCategory: '',
 };
 
 function restoredViewState(): BookingViewState {
@@ -62,10 +71,11 @@ function restoredViewState(): BookingViewState {
 }
 
 export function BookingsPage() {
-  const { canManage } = useFeatureAccess('bookings');
+  const { canManage, isReadOnly } = useFeatureAccess('bookings');
   const { canView: canViewPayments } = useFeatureAccess('payments');
   const navigate = useNavigate();
   const location = useLocation();
+  const [params, setParams] = useSearchParams();
   const restored = useMemo(restoredViewState, []);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [packages, setPackages] = useState<Package[]>([]);
@@ -76,13 +86,18 @@ export function BookingsPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const [statusMenuOpen, setStatusMenuOpen] = useState(false);
   const [status, setStatus] = useState<BookingStatus | ''>(restored.status);
   const [assignee, setAssignee] = useState(restored.assignee);
   const [payment, setPayment] = useState<PaymentState | ''>(restored.payment);
   const [overdueOnly, setOverdueOnly] = useState(restored.overdueOnly);
   const [query, setQuery] = useState(restored.query);
   const [sort, setSort] = useState<BookingSort>(restored.sort);
+  const [requestedServiceCategory, setRequestedServiceCategory] = useState(
+    () => {
+      const value = params.get('service') || restored.serviceCategory;
+      return value ? normalizeServiceCategory(value) : '';
+    },
+  );
 
   const load = useCallback(async (refresh = false) => {
     if (refresh) setRefreshing(true);
@@ -145,9 +160,18 @@ export function BookingsPage() {
     navigate(location.pathname, { replace: true, state: {} });
   }, [canManage, location.pathname, location.state, navigate]);
 
-  const visible = useMemo(() => {
+  const serviceCategory = requestedServiceCategory
+    && bookings.some(booking => serviceCategoryMatches(booking, requestedServiceCategory))
+    ? requestedServiceCategory
+    : '';
+  const bookingsForSelectedService = useMemo(
+    () => bookings.filter(booking => serviceCategoryMatches(booking, serviceCategory)),
+    [bookings, serviceCategory],
+  );
+
+  const matching = useMemo(() => {
     const now = Date.now();
-    const filtered = bookings.filter(booking => {
+    return bookings.filter(booking => {
       if (status && booking.status !== status) return false;
       if (assignee === 'unassigned' && booking.assignedStaffAccountId) return false;
       if (assignee && assignee !== 'unassigned' && booking.assignedStaffAccountId !== assignee) return false;
@@ -155,26 +179,43 @@ export function BookingsPage() {
       if (overdueOnly && (!booking.nextFollowUpAt || new Date(booking.nextFollowUpAt).getTime() > now)) return false;
       return bookingMatchesSearch(booking, query);
     });
-    return sortBookings(filtered, sort);
-  }, [assignee, bookings, overdueOnly, payment, query, sort, status]);
+  }, [assignee, bookings, overdueOnly, payment, query, status]);
+
+  const serviceCategories = useMemo(
+    () => buildServiceCategoryOptions(bookings, matching),
+    [bookings, matching],
+  );
+  const visible = useMemo(
+    () => sortBookings(matching.filter(booking => serviceCategoryMatches(booking, serviceCategory)), sort),
+    [matching, serviceCategory, sort],
+  );
 
   const counts = useMemo(() => Object.fromEntries(
-    BOOKING_STATUSES.map(item => [item.value, bookings.filter(row => row.status === item.value).length]),
-  ) as Record<BookingStatus, number>, [bookings]);
+    BOOKING_STATUSES.map(item => [item.value, bookingsForSelectedService.filter(row => row.status === item.value).length]),
+  ) as Record<BookingStatus, number>, [bookingsForSelectedService]);
 
   const selectedStatusLabel = BOOKING_STATUSES.find(item => item.value === status)?.label;
-  const activeFilterCount = Number(Boolean(assignee)) + Number(Boolean(payment)) + Number(overdueOnly);
-  const hasAnyFilter = Boolean(status || assignee || payment || overdueOnly || query);
+  const activeFilterCount = Number(Boolean(status)) + Number(Boolean(assignee)) + Number(Boolean(payment)) + Number(overdueOnly);
+  const hasAnyFilter = Boolean(status || assignee || payment || overdueOnly || query || serviceCategory);
+
+  const selectServiceCategory = (value: string) => {
+    setRequestedServiceCategory(value);
+    const next = new URLSearchParams(params);
+    if (value) next.set('service', value);
+    else next.delete('service');
+    setParams(next, { replace: true });
+  };
 
   const clearAdvancedFilters = () => {
+    setStatus('');
     setAssignee('');
     setPayment('');
     setOverdueOnly(false);
   };
 
   const clearAllFilters = () => {
-    setStatus('');
     setQuery('');
+    selectServiceCategory('');
     clearAdvancedFilters();
   };
 
@@ -189,6 +230,7 @@ export function BookingsPage() {
         overdueOnly,
         query,
         sort,
+        serviceCategory,
       } satisfies BookingViewState));
     } catch {
       // Navigation still works when storage is unavailable.
@@ -226,12 +268,15 @@ export function BookingsPage() {
 
   return (
     <div className="mx-auto max-w-[1320px] space-y-3 pb-2 sm:space-y-4">
-      <header className="flex flex-col justify-between gap-3 lg:flex-row lg:items-end">
-        <div className="min-w-0">
-          <h1 className="text-2xl font-semibold tracking-tight text-admin-text sm:text-3xl">Bookings</h1>
-          <p className="mt-1 text-sm text-admin-subtle">Manage shoots, payments and follow-ups.</p>
-        </div>
-        <div className="flex min-w-0 items-center gap-2">
+      <SalesWorkspaceHeader
+        title="Bookings"
+        serviceCategories={serviceCategories}
+        serviceCategory={serviceCategory}
+        onServiceCategoryChange={selectServiceCategory}
+        panelId="booking-list-panel"
+        readOnlyNotice={isReadOnly ? <ReadOnlyNotice /> : undefined}
+        listControls={<BookingSortControl value={sort} onChange={setSort} />}
+        actions={(
           <BookingToolbar
             query={query}
             onQueryChange={setQuery}
@@ -243,9 +288,8 @@ export function BookingsPage() {
             canManage={canManage}
             onAdd={() => setCreating(true)}
           />
-          {!canManage && <ReadOnlyNotice />}
-        </div>
-      </header>
+        )}
+      />
 
       {error && bookings.length > 0 && (
         <div role="alert" className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
@@ -257,7 +301,14 @@ export function BookingsPage() {
       )}
 
       {showFilters && (
-        <section id="booking-advanced-filters" aria-label="Additional booking filters" className="grid gap-3 rounded-xl border border-admin-border bg-admin-surface p-3 shadow-sm sm:grid-cols-2 lg:grid-cols-[1fr_1fr_auto_auto] lg:items-center">
+        <section id="booking-advanced-filters" aria-label="Booking filters" className="grid gap-3 rounded-xl border border-admin-border bg-admin-surface p-3 shadow-sm sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto_auto] xl:items-center">
+          <label className="block">
+            <span className="sr-only">Booking status</span>
+            <select value={status} onChange={event => setStatus(event.target.value as BookingStatus | '')} className="h-11 w-full rounded-xl border border-admin-control bg-admin-surface px-3 text-sm text-admin-secondary outline-none focus-visible:ring-2 focus-visible:ring-admin-focus">
+              <option value="">All statuses ({bookingsForSelectedService.length})</option>
+              {BOOKING_STATUSES.map(item => <option key={item.value} value={item.value}>{item.label} ({counts[item.value]})</option>)}
+            </select>
+          </label>
           <label className="block">
             <span className="sr-only">Assigned staff member</span>
             <select value={assignee} onChange={event => setAssignee(event.target.value)} className="h-11 w-full rounded-xl border border-admin-control bg-admin-surface px-3 text-sm text-admin-secondary outline-none focus-visible:ring-2 focus-visible:ring-admin-focus">
@@ -283,23 +334,16 @@ export function BookingsPage() {
         </section>
       )}
 
-      <div className="space-y-1.5">
-        <div className="flex min-w-0 items-center justify-between border-y border-admin-border/80 py-0.5">
-          <BookingStatusFilter
-            status={status}
-            counts={counts}
-            total={bookings.length}
-            open={statusMenuOpen}
-            onOpenChange={setStatusMenuOpen}
-            onChange={setStatus}
-            disabled={loading}
-          />
-          <BookingSortControl value={sort} onChange={setSort} />
-        </div>
-        <BookingListHeader title={selectedStatusLabel || 'All bookings'} count={visible.length} />
-      </div>
+      <BookingListHeader
+        title={serviceCategory
+          ? selectedStatusLabel
+            ? `${serviceCategories.find(option => option.value === serviceCategory)?.label} · ${selectedStatusLabel}`
+            : `${serviceCategories.find(option => option.value === serviceCategory)?.label} bookings`
+          : selectedStatusLabel || 'All bookings'}
+        count={visible.length}
+      />
 
-      <section aria-labelledby="booking-list-title" className="space-y-2.5 lg:space-y-0 lg:overflow-hidden lg:rounded-xl lg:border lg:border-admin-border lg:bg-admin-surface lg:shadow-[0_4px_18px_rgba(62,56,46,0.04)]">
+      <section id="booking-list-panel" role="tabpanel" aria-labelledby={serviceCategoryTabId(serviceCategory)} className="space-y-2.5 lg:space-y-0 lg:overflow-hidden lg:rounded-xl lg:border lg:border-admin-border lg:bg-admin-surface lg:shadow-[0_4px_18px_rgba(62,56,46,0.04)]">
         <div className="hidden grid-cols-[minmax(0,1.45fr)_minmax(9.5rem,0.9fr)_minmax(8rem,0.72fr)_minmax(10.5rem,1fr)_1.25rem] gap-x-5 border-b border-admin-border bg-admin-muted/60 px-5 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-admin-subtle lg:grid">
           <span>Customer</span><span>Shoot</span><span>Amount</span><span>Attention</span><span />
         </div>

@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, CalendarCheck, CalendarClock, Edit3, MessageCircle, Phone } from 'lucide-react';
+import { ArrowLeft, CalendarCheck, Edit3, MessageCircle, Phone } from 'lucide-react';
 import { api } from '../api/client';
 import { EnquiryFormModal } from '../components/EnquiryFormModal';
 import { EnquiryStageBadge } from '../components/EnquiryStageBadge';
 import { useConfirmDialog } from '../hooks/useConfirmDialog';
 import type { Enquiry, EnquiryStage } from '../types';
 import { formatTimeWindow } from '../../shared/bookingTime';
-import { FollowUpShortcuts } from '../components/FollowUpShortcuts';
 import { followUpDateError, kolkataLocalToIso } from '../components/followUp.utils';
+import { FollowUpPanel } from '../components/FollowUpPanel';
 import { CustomerLookupPanel } from '../components/CustomerLookupPanel';
 import { WhatsAppComposer } from '../components/WhatsAppComposer';
 import { VoiceNotesPanel } from '../components/VoiceNotesPanel';
@@ -83,11 +83,20 @@ export function EnquiryDetailPage() {
       {canManage && <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4"><a href={`tel:${item.phone}`} className="flex h-12 items-center justify-center gap-2 rounded-xl border border-slate-200 font-semibold text-slate-700"><Phone className="h-4 w-4" /> Call</a><button type="button" onClick={() => setMessageOpen(true)} className="flex h-12 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 font-semibold text-emerald-700"><MessageCircle className="h-4 w-4" /> WhatsApp</button><button onClick={() => setEditing(true)} className="flex h-12 items-center justify-center gap-2 rounded-xl border border-slate-200 font-semibold text-slate-700"><Edit3 className="h-4 w-4" /> Edit</button><button disabled={closed} onClick={() => navigate('/admin/bookings', { state: { convertFromEnquiry: item } })} className="flex h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 font-semibold text-white disabled:bg-slate-300"><CalendarCheck className="h-4 w-4" /> Convert</button></div>}
     </section>
 
-    {canManage && !closed && <section className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
-      <h2 className="font-semibold text-amber-950">Next follow-up</h2>
-      {item.nextFollowUpAt && <div className="mt-3 rounded-xl bg-white p-4"><p className="font-semibold text-slate-900">{new Date(item.nextFollowUpAt).toLocaleString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' })}</p><p className="mt-1 text-sm text-slate-500">{item.followUpNote || 'No note added'}</p><button disabled={saving} onClick={() => void complete()} className="mt-3 h-11 w-full rounded-xl bg-emerald-600 text-sm font-semibold text-white">Done</button></div>}
-      <div className="mt-4"><FollowUpShortcuts value={followUpAt} onChange={setFollowUpAt} disabled={saving} /></div><label className="mt-3 block text-sm font-medium text-amber-950">Reminder note<input value={followUpNote} onChange={e => setFollowUpNote(e.target.value)} className="mt-1 h-12 w-full rounded-xl border border-amber-300 bg-white px-3" placeholder="What should we discuss?" /></label><button disabled={!followUpAt || saving} onClick={() => void schedule(followUpAt)} className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-amber-600 font-semibold text-white disabled:opacity-50"><CalendarClock className="h-4 w-4" /> Save follow-up</button>
-    </section>}
+    {canManage && !closed && <FollowUpPanel
+      value={followUpAt}
+      note={followUpNote}
+      onChange={setFollowUpAt}
+      onNoteChange={setFollowUpNote}
+      onSubmit={() => void schedule(followUpAt)}
+      disabled={saving}
+      current={item.nextFollowUpAt ? {
+        dateLabel: new Date(item.nextFollowUpAt).toLocaleString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' }),
+        note: item.followUpNote,
+        overdue: new Date(item.nextFollowUpAt).getTime() < Date.now(),
+      } : undefined}
+      onComplete={item.nextFollowUpAt ? () => void complete() : undefined}
+    />}
 
     {canManage && <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><h2 className="font-semibold text-slate-900">Enquiry stage</h2><div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">{(['new', 'contacted', 'follow_up', 'booked', 'closed_lost'] as EnquiryStage[]).map(stage => <button key={stage} disabled={saving || stage === 'booked' || item.stage === 'booked'} onClick={() => void setStage(stage)} className={`min-h-11 rounded-xl px-2 text-sm font-semibold ${item.stage === stage ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 disabled:opacity-50'}`}>{stage === 'closed_lost' ? 'Not interested' : stage === 'follow_up' ? 'Follow-up' : stage[0].toUpperCase() + stage.slice(1)}</button>)}</div></section>}
 
