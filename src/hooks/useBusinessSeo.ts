@@ -4,7 +4,7 @@ import { getPublishedServiceNavLinks } from '../lib/navigation';
 import { serviceCatalogFromLinks } from '../lib/seo-core';
 import { applyBusinessSeo, getStaticServiceCatalog } from '../lib/seo';
 
-/** Keeps the shared PhotographyBusiness entity synchronized with public CMS data. */
+/** Keeps the shared LocalBusiness entity synchronized with public CMS data. */
 export function useBusinessSeo() {
   const { siteContent, loading, fromApi } = useSiteData();
 

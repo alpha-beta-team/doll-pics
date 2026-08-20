@@ -21,7 +21,7 @@ Every indexable page has a concise, unique, intent-aligned title while structure
 
 ## Proposed rules
 
-- Full real-world name belongs in GBP and `PhotographyBusiness.name`.
+- Full real-world name belongs in GBP and `LocalBusiness.name`.
 - A genuine short brand belongs in `alternateName`, `WebSite.name`, and title suffixes.
 - Put the primary page intent before the brand on service/search landing pages.
 - Keep titles unique, natural, and accurate; do not optimize to a rigid character count.

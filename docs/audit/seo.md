@@ -51,7 +51,7 @@ Not a pure empty-shell CSR risk. Build runs `vite build && tsx scripts/prerender
 | | |
 |--|--|
 | **Severity** | Low |
-| **Reference** | PhotographyBusiness + WebPage + BreadcrumbList + Service + FAQPage on service pages (verified live on `/wedding-photography-erode`). |
+| **Reference** | LocalBusiness + WebPage + BreadcrumbList + Service + FAQPage on service pages (verified live on `/wedding-photography-erode`). |
 | **Fix** | Add AggregateRating / Review only after real local testimonials replace placeholders (fake reviews in schema would be worse). |
 
 ### 6. URL structure is clean and semantic

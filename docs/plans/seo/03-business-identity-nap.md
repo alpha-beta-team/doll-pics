@@ -35,7 +35,7 @@ Approved by the owner on 7 Aug 2026:
 
 | Surface | Value strategy |
 |---|---|
-| GBP and `PhotographyBusiness.name` | Full real-world business name |
+| GBP and `LocalBusiness.name` | Full real-world business name |
 | `alternateName` | Recognized short brand, if genuinely used |
 | SEO title suffix | Short brand for concise titles |
 | Navbar/logo/footer | Real customer-facing brand |

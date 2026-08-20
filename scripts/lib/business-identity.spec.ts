@@ -33,6 +33,7 @@ test('business structured data uses the canonical identity without invented prof
     seoData,
   );
 
+  assert.equal(jsonLd['@type'], 'LocalBusiness');
   assert.equal(jsonLd.name, BUSINESS_NAME);
   assert.equal(jsonLd.alternateName, DISPLAY_BRAND_NAME);
   assert.equal(jsonLd.telephone, BUSINESS_PHONE);
@@ -48,6 +49,8 @@ test('static HTML fallback stays synchronized with canonical contact values', ()
   assert.match(html, new RegExp(BUSINESS_NAME));
   assert.match(html, new RegExp(BUSINESS_PHONE.replace('+', '\\+')));
   assert.match(html, new RegExp(BUSINESS_EMAIL));
+  assert.match(html, /"@type": "LocalBusiness"/);
+  assert.doesNotMatch(html, /PhotographyBusiness/);
   assert.match(html, /"openingHoursSpecification"/);
   assert.doesNotMatch(html, /95975/);
 });

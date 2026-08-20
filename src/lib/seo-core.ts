@@ -482,7 +482,7 @@ export function buildLocalBusinessJsonLd(
 
   return {
     '@context': 'https://schema.org',
-    '@type': 'PhotographyBusiness',
+    '@type': 'LocalBusiness',
     '@id': studioId,
     name: seoPages.businessName || seoPages.brandByline,
     alternateName: seoPages.siteName,
