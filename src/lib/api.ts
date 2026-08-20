@@ -32,6 +32,7 @@ export type {
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3001/api';
 const IMAGEKIT_ENDPOINT = 'https://ik.imagekit.io/dollpictures';
 const IMAGEKIT_WIDTHS = [400, 800, 1200, 1600] as const;
+const inflightPublicGets = new Map<string, Promise<unknown>>();
 
 function imageKitPhotoUrl(storageKey: string, width: number, quality = 78): string {
   const path = storageKey.split('/').map(encodeURIComponent).join('/');
@@ -65,7 +66,7 @@ export function parseApiFieldErrors(
   return errors;
 }
 
-export async function publicFetch<T>(path: string, init?: RequestInit): Promise<T> {
+async function executePublicFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, init);
   if (!res.ok) {
     const body = await res.json().catch(() => null) as { message?: string | string[] } | null;
@@ -79,6 +80,32 @@ export async function publicFetch<T>(path: string, init?: RequestInit): Promise<
   }
   if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
+}
+
+export function publicFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  // Site-level data and route components can ask for the same public resource
+  // during the same render. Share only plain GETs: requests with signals or
+  // custom options retain their independent cancellation/auth semantics.
+  if (init !== undefined) return executePublicFetch<T>(path, init);
+
+  const existing = inflightPublicGets.get(path);
+  if (existing) return existing as Promise<T>;
+
+  const request = executePublicFetch<T>(path);
+  inflightPublicGets.set(path, request);
+  request.then(
+    () => {
+      if (inflightPublicGets.get(path) === request) {
+        inflightPublicGets.delete(path);
+      }
+    },
+    () => {
+      if (inflightPublicGets.get(path) === request) {
+        inflightPublicGets.delete(path);
+      }
+    },
+  );
+  return request;
 }
 
 export function resolveMediaUrl(url: string): string {

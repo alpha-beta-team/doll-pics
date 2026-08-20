@@ -6,8 +6,6 @@ const root = join(fileURLToPath(new URL('.', import.meta.url)), '..');
 const canonicalHost = 'dollpictures.in';
 const canonicalOrigin = `https://${canonicalHost}`;
 const defaultPublicUrl = canonicalOrigin;
-const defaultUpstreamUrl =
-  'https://photography-cms-backend.onrender.com/api/sitemap.xml';
 
 export function extractLocations(xml) {
   return [...String(xml).matchAll(/<loc>([\s\S]*?)<\/loc>/g)].map((match) =>
@@ -116,8 +114,7 @@ export function validateIndexableHtml(html, expectedUrl) {
 function parseArguments(argv) {
   const values = {
     publicUrl: process.env.SEO_CHECK_BASE_URL || defaultPublicUrl,
-    upstreamUrl:
-      process.env.SEO_SITEMAP_UPSTREAM_URL || defaultUpstreamUrl,
+    upstreamUrl: process.env.SEO_SITEMAP_UPSTREAM_URL || '',
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -209,7 +206,7 @@ async function main() {
 
   const [publicSitemap, upstreamSitemap, robots, notFound] = await Promise.all([
     fetchText(publicSitemapUrl),
-    fetchText(upstreamUrl),
+    upstreamUrl ? fetchText(upstreamUrl) : Promise.resolve(null),
     fetchText(`${publicUrl}/robots.txt`),
     fetchText(`${publicUrl}/__seo-smoke-not-found-${Date.now()}`, 404),
   ]);
@@ -227,7 +224,6 @@ async function main() {
   }
 
   const publicLocations = extractLocations(publicSitemap.text);
-  const upstreamLocations = extractLocations(upstreamSitemap.text);
   failures.push(...validateLocations(publicLocations, requiredPaths));
 
   const routeChecks = await Promise.all(
@@ -251,10 +247,14 @@ async function main() {
     }
   }
 
-  const publicSet = [...new Set(publicLocations)].sort();
-  const upstreamSet = [...new Set(upstreamLocations)].sort();
-  if (JSON.stringify(publicSet) !== JSON.stringify(upstreamSet)) {
-    failures.push('Public and upstream sitemap URL sets do not match');
+  if (upstreamSitemap) {
+    const publicSet = [...new Set(publicLocations)].sort();
+    const upstreamSet = [
+      ...new Set(extractLocations(upstreamSitemap.text)),
+    ].sort();
+    if (JSON.stringify(publicSet) !== JSON.stringify(upstreamSet)) {
+      failures.push('Public and upstream sitemap URL sets do not match');
+    }
   }
 
   if (!robots.text.includes(`Sitemap: ${canonicalOrigin}/sitemap.xml`)) {
@@ -277,7 +277,7 @@ async function main() {
   }
 
   console.log(
-    `SEO smoke passed: ${publicLocations.length} canonical URLs, XML sitemap, robots reference, and true 404.`,
+    `SEO smoke passed: ${publicLocations.length} canonical URLs, static XML sitemap, robots reference, and true 404.`,
   );
 }
 

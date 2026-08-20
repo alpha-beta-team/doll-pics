@@ -637,5 +637,89 @@
         "alt": "Celebratory family portrait style"
       }
     ]
+  },
+  "/toddler-baby-photography-erode": {
+    "title": "Toddler Baby Photoshoot in Erode | Doll Pictures",
+    "description": "Capture your child’s playful personality with creative toddler baby photoshoots in Erode, featuring fun themes, candid moments and beautiful family portraits.",
+    "heading": "Toddler baby photoshoots in Erode",
+    "body": "Let your toddler laugh, play and explore while we capture genuine expressions in creative, child-friendly setups at our Erode studio.",
+    "serviceName": "Toddler baby photography in Erode",
+    "label": "Toddler Baby Shoots",
+    "lead": "Let your toddler laugh, play and explore while we capture genuine expressions in creative, child-friendly setups at our Erode studio.",
+    "sections": [],
+    "faqs": [],
+    "related": [{ "label": "Packages", "path": "/toddler-baby-shoot-packages-erode" }, { "label": "Book a session", "path": "/booking" }],
+    "imageCategories": ["Toddler", "Baby Milestone", "Kids"],
+    "fallbackImages": []
+  },
+  "/baby-shower-photography-erode": {
+    "title": "Baby Shower Photography in Erode | Doll Pictures",
+    "description": "Baby shower photography in Erode with candid moments, traditional ceremony coverage, family portraits, professional editing and premium albums.",
+    "heading": "Baby Shower Photography in Erode",
+    "body": "Capture rituals, candid family interactions, couple portraits and heartfelt emotions throughout your baby shower celebration.",
+    "serviceName": "Baby shower photography in Erode",
+    "label": "Baby Shower",
+    "lead": "Your baby shower is a once-in-a-lifetime celebration filled with love, laughter and cherished traditions.",
+    "sections": [],
+    "faqs": [],
+    "related": [{ "label": "Packages", "path": "/baby-shower-packages-erode" }, { "label": "Book a session", "path": "/booking" }],
+    "imageCategories": ["Baby Shower", "Maternity", "Family"],
+    "fallbackImages": []
+  },
+  "/birthday-event-photography-erode": {
+    "title": "Birthday Event Photography in Erode | Doll Pictures",
+    "description": "Birthday event photography in Erode covering décor, games, cake cutting, candid moments and family portraits, with professional editing and albums.",
+    "heading": "Birthday Event Photography in Erode",
+    "body": "From decorations and games to cake cutting and candid family moments, we capture birthdays of every age with natural, vibrant photography in Erode.",
+    "serviceName": "Birthday event photography in Erode",
+    "label": "Birthday",
+    "lead": "From decorations and games to cake cutting and candid family moments, we document the energy and emotion of your celebration.",
+    "sections": [],
+    "faqs": [],
+    "related": [{ "label": "Packages", "path": "/packages" }, { "label": "Book a session", "path": "/booking" }],
+    "imageCategories": ["Birthday", "Cake Smash", "Family"],
+    "fallbackImages": []
+  },
+  "/ear-piercing-photography-erode": {
+    "title": "Ear Piercing & Tonsure Photography in Erode | Doll Pictures",
+    "description": "Ear piercing and tonsure ceremony photography in Erode, capturing traditional rituals, family blessings, candid emotions and beautifully edited portraits.",
+    "heading": "Ear Piercing Ceremony Photography in Erode",
+    "body": "Celebrate your baby's ceremony with timeless coverage of traditional rituals, family blessings, candid expressions and group portraits.",
+    "serviceName": "Ear piercing and tonsure photography in Erode",
+    "label": "Ear Piercing & Tonsure",
+    "lead": "We preserve every traditional ritual and emotional family moment with natural photography and polished portraits.",
+    "sections": [],
+    "faqs": [],
+    "related": [{ "label": "Packages", "path": "/packages" }, { "label": "Book a session", "path": "/booking" }],
+    "imageCategories": ["Ear Piercing", "Tonsure", "Family"],
+    "fallbackImages": []
+  },
+  "/kids-photography-erode": {
+    "title": "Kids Photography in Erode | Doll Pictures",
+    "description": "Creative kids photography in Erode for growing children, with age-appropriate themes, candid portraits, relaxed direction and professional editing.",
+    "heading": "Kids Photography in Erode",
+    "body": "Relaxed studio sessions combine age-appropriate themes, candid expressions and confident portraits that reflect your child's personality.",
+    "serviceName": "Kids photography in Erode",
+    "label": "Kids",
+    "lead": "Celebrate your growing child's personality with relaxed direction, creative themes and expressive portraits.",
+    "sections": [],
+    "faqs": [],
+    "related": [{ "label": "Packages", "path": "/packages" }, { "label": "Book a session", "path": "/booking" }],
+    "imageCategories": ["Kids", "Toddler", "Family"],
+    "fallbackImages": []
+  },
+  "/fashion-photography-erode": {
+    "title": "Fashion Photography in Erode | Doll Pictures",
+    "description": "Fashion photography in Erode for models, designers, brands and creators, with creative concepts, guided posing, refined lighting and professional editing.",
+    "heading": "Fashion Photography in Erode",
+    "body": "Create a polished portfolio or campaign with guided posing, creative concepts and refined lighting for models, designers, brands and creators in Erode.",
+    "serviceName": "Fashion photography in Erode",
+    "label": "Fashion",
+    "lead": "Build a polished portfolio or campaign through creative concepts, confident posing and refined studio lighting.",
+    "sections": [],
+    "faqs": [],
+    "related": [{ "label": "Packages", "path": "/packages" }, { "label": "Book a session", "path": "/booking" }],
+    "imageCategories": ["Fashion", "Portrait"],
+    "fallbackImages": []
   }
 }

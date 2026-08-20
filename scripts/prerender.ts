@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { loadEnvFiles, root } from './lib/env.mjs';
 import {
   absoluteUrl,
+  assertCatalogCoverage,
   buildBreadcrumbJsonLd,
   buildBusinessJsonLd,
   buildFaqPageJsonLd,
@@ -15,6 +16,7 @@ import {
   resolveServiceCatalog,
 } from './lib/seo-build';
 import type { CatalogPage } from '../src/lib/seo-core';
+import { buildSitemapXml } from './lib/sitemap.mjs';
 
 loadEnvFiles();
 
@@ -22,7 +24,8 @@ const distDir = join(root, 'dist');
 const siteUrl = getSiteUrl();
 const ogImage = `${siteUrl}/og-share.jpg`;
 
-const { seoPages, servicePages, packagePages } = loadStaticSeoData();
+const { seoPages, servicePages, packagePages, sitemapRoutes } =
+  loadStaticSeoData();
 const { packagesByPath, servicesByPath, servicesLoaded, apiBase } =
   await loadCmsOverlays();
 const serviceCatalog = resolveServiceCatalog(
@@ -37,6 +40,10 @@ const pages = buildPageCatalog({
   packagesByPath,
   servicesByPath,
 });
+
+if (String(process.env.SEO_REQUIRE_CMS ?? '').toLowerCase() === 'true') {
+  assertCatalogCoverage(pages, sitemapRoutes);
+}
 
 const siteName = seoPages.siteName;
 
@@ -352,11 +359,16 @@ const notFoundFile = join(distDir, '404.html');
 writeFileSync(notFoundFile, notFoundHtml);
 written.push(notFoundFile);
 
+const sitemapPaths = Object.values(pages).map((page) => page.path);
+const sitemapFile = join(distDir, 'sitemap.xml');
+writeFileSync(sitemapFile, buildSitemapXml(siteUrl, sitemapPaths));
+
 const apiNote = apiBase
   ? ` (CMS overlays: ${packagesByPath.size} packages, ${servicesByPath.size} services)`
   : ' (static JSON only — set VITE_API_URL for CMS SEO overlays)';
 
 console.log(`Prerendered ${written.length} files for ${siteUrl}${apiNote}`);
+console.log(`Generated dist/sitemap.xml with ${sitemapPaths.length} URLs`);
 for (const file of written) {
   console.log(`  ${file.replace(root + '/', '')}`);
 }

@@ -17,13 +17,6 @@
   status = 301
   force = true
 
-# Live sitemap from CMS API.
-[[redirects]]
-  from = "/sitemap.xml"
-  to = "https://photography-cms-backend.onrender.com/api/sitemap.xml"
-  status = 200
-  force = true
-
 # Admin SPA: client routes need the app shell.
 [[redirects]]
   from = "/admin"

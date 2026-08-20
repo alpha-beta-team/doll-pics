@@ -396,5 +396,35 @@
     "imageCategories": ["Family"],
     "fallbackImages": [
     ]
+  },
+  "/baby-shower-packages-erode": {
+    "title": "Baby Shower Photography Packages in Erode | Doll Pictures",
+    "description": "Explore baby shower photography packages in Erode with candid coverage, edited photos, premium albums and cinematic memories from Doll Pictures.",
+    "heading": "Baby Shower Photography Packages in Erode",
+    "body": "Choose baby shower coverage for candid moments, family portraits, traditional ceremonies, professional editing and elegant albums.",
+    "serviceName": "Baby shower photography packages in Erode",
+    "label": "Baby Shower",
+    "lead": "Celebrate your special day with beautifully captured rituals, candid moments and family memories.",
+    "categorySlug": "baby-shower",
+    "sections": [],
+    "faqs": [],
+    "related": [{ "label": "Baby shower photography", "path": "/baby-shower-photography-erode" }, { "label": "All packages", "path": "/packages" }],
+    "imageCategories": ["Baby Shower", "Maternity", "Family"],
+    "fallbackImages": []
+  },
+  "/toddler-baby-shoot-packages-erode": {
+    "title": "Toddler Baby Photoshoot Packages in Erode | Doll Pictures",
+    "description": "Explore toddler photoshoot packages in Erode with creative themes, costumes, props and professionally edited photos from Doll Pictures.",
+    "heading": "Toddler Baby Photoshoot Packages in Erode",
+    "body": "Compare toddler photoshoot packages with creative themes, premium props, costumes and a safe, child-friendly studio experience.",
+    "serviceName": "Toddler baby photoshoot packages in Erode",
+    "label": "Toddler Baby Shoot",
+    "lead": "Celebrate playful smiles and precious milestones in a professionally planned toddler photoshoot at our Erode studio.",
+    "categorySlug": "toddler-baby-shoot",
+    "sections": [],
+    "faqs": [],
+    "related": [{ "label": "Toddler baby photography", "path": "/toddler-baby-photography-erode" }, { "label": "All packages", "path": "/packages" }],
+    "imageCategories": ["Toddler", "Baby Milestone", "Kids"],
+    "fallbackImages": []
   }
 }

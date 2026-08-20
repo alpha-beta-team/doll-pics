@@ -12,10 +12,6 @@
   ],
   "rewrites": [
     {
-      "source": "/sitemap.xml",
-      "destination": "https://photography-cms-backend.onrender.com/api/sitemap.xml"
-    },
-    {
       "source": "/admin",
       "destination": "/index.html"
     },

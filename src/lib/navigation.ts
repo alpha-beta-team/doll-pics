@@ -96,6 +96,22 @@ export const DEFAULT_PACKAGE_NAV_LINKS: PackageNavLink[] = [
     order: 6,
     isPublished: true,
   },
+  {
+    label: 'Baby Shower',
+    path: '/baby-shower-packages-erode',
+    categorySlug: 'baby-shower',
+    description: 'Candid baby shower ceremony coverage and family portraits.',
+    order: 7,
+    isPublished: true,
+  },
+  {
+    label: 'Toddler Baby Shoot',
+    path: '/toddler-baby-shoot-packages-erode',
+    categorySlug: 'toddler-baby-shoot',
+    description: 'Creative toddler portraits with child-friendly themes and props.',
+    order: 8,
+    isPublished: true,
+  },
 ];
 
 export const PACKAGE_ROUTES = DEFAULT_PACKAGE_NAV_LINKS.map((link) => ({

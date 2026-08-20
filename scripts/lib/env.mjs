@@ -55,10 +55,46 @@ export function uniquePaths(paths) {
   return [...new Set(paths.filter(Boolean))];
 }
 
+const transientStatuses = new Set([429, 502, 503, 504]);
+
+function cmsRetryDelays() {
+  return (process.env.SEO_CMS_RETRY_DELAYS_MS || '2000,4000,8000,15000')
+    .split(',')
+    .map((value) => Number(value.trim()))
+    .filter((value) => Number.isFinite(value) && value >= 0);
+}
+
 export async function fetchJson(url) {
-  const res = await fetch(url, { headers: { Accept: 'application/json' } });
-  if (!res.ok) throw new Error(`${url} → HTTP ${res.status}`);
-  return res.json();
+  const retryDelays = cmsRetryDelays();
+
+  for (let attempt = 0; attempt <= retryDelays.length; attempt += 1) {
+    let response;
+    try {
+      response = await fetch(url, {
+        headers: { Accept: 'application/json' },
+        signal: AbortSignal.timeout(20_000),
+      });
+    } catch (error) {
+      if (attempt >= retryDelays.length) throw error;
+      const delayMs = retryDelays[attempt];
+      console.warn(`SEO build: ${url} request failed; retrying in ${delayMs / 1_000}s`);
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+      continue;
+    }
+
+    if (response.ok) return response.json();
+    if (!transientStatuses.has(response.status) || attempt >= retryDelays.length) {
+      throw new Error(`${url} → HTTP ${response.status}`);
+    }
+
+    const delayMs = retryDelays[attempt];
+    console.warn(
+      `SEO build: ${url} returned HTTP ${response.status}; retrying in ${delayMs / 1_000}s`,
+    );
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+  }
+
+  throw new Error(`${url} failed after all retry attempts`);
 }
 
 export { root };

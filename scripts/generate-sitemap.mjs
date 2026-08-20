@@ -1,15 +1,15 @@
-/**
- * Writes robots.txt. Host routing is versioned in vercel.json and netlify.toml.
- * Live URLs come from the CMS sitemap endpoint — no static sitemap.xml is built.
- */
-import { writeFileSync, unlinkSync, existsSync } from 'node:fs';
+/** Writes the static sitemap baseline and robots.txt before Vite builds. */
+import { writeFileSync, unlinkSync, existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { getApiBase, getSiteUrl, loadEnvFiles, root } from './lib/env.mjs';
+import { getSiteUrl, loadEnvFiles, root } from './lib/env.mjs';
+import { buildSitemapXml } from './lib/sitemap.mjs';
 
 loadEnvFiles();
 
 const siteUrl = getSiteUrl();
-const apiBase = getApiBase();
+const sitemapRoutes = JSON.parse(
+  readFileSync(join(root, 'src/data/sitemap-routes.json'), 'utf8'),
+);
 
 const robots = [
   'User-agent: *',
@@ -28,9 +28,7 @@ const robots = [
 writeFileSync(join(root, 'public/robots.txt'), robots);
 
 const staticSitemap = join(root, 'public/sitemap.xml');
-if (existsSync(staticSitemap)) {
-  unlinkSync(staticSitemap);
-}
+writeFileSync(staticSitemap, buildSitemapXml(siteUrl, sitemapRoutes));
 
 for (const legacyFile of ['_redirects', '_sitemap-proxy.json']) {
   const legacyPath = join(root, 'public', legacyFile);
@@ -40,8 +38,4 @@ for (const legacyFile of ['_redirects', '_sitemap-proxy.json']) {
 }
 
 console.log(`SEO: robots.txt → Sitemap ${siteUrl}/sitemap.xml`);
-console.log(
-  apiBase
-    ? `SEO: CMS sitemap source ${apiBase}/sitemap.xml`
-    : 'SEO: VITE_API_URL not set; host routing still serves the configured production sitemap.',
-);
+console.log(`SEO: static sitemap baseline → ${sitemapRoutes.length} URLs`);

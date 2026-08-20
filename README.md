@@ -130,7 +130,8 @@ VITE_SITE_URL=https://dollpictures.in
 | `VITE_API_URL` | Yes (prod) | CMS/API base URL (includes `/api`). Runtime and prerender builds load published CMS content from it. |
 | `VITE_SITE_URL` | Recommended (prod) | Site origin for robots.txt, prerender, and SEO absolute URLs. No trailing slash. Defaults to `https://dollpictures.in` if unset. |
 | `VITE_ADMIN_DASHBOARD_MOCK_DATA` | No | Set to `true` to force bundled sample records on the admin dashboard. Local development also uses them automatically when both dashboard APIs are empty. |
-| `SEO_REQUIRE_CMS` | Yes (prod) | Set to `true` so a production build fails instead of silently omitting unavailable CMS SEO data. |
+| `SEO_REQUIRE_CMS` | Yes (prod) | Set to `true` so a production build fails if any required sitemap route is missing from the combined static/CMS prerender catalog. A temporary CMS outage uses the complete static fallback. |
+| `SEO_CMS_RETRY_DELAYS_MS` | No | Comma-separated build retry delays for transient CMS errors. Defaults to `2000,4000,8000,15000`. |
 
 Backend: set `CORS_ORIGIN=http://localhost:5173` and change `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
 
@@ -138,10 +139,10 @@ Backend: set `CORS_ORIGIN=http://localhost:5173` and change `ADMIN_EMAIL` / `ADM
 
 | Service | Notes |
 |---------|-------|
-| `photography-cms-backend` | Deploy to Railway/Render/VPS. Serves live `GET /api/sitemap.xml` from CMS data. Set `SITE_URL=https://dollpictures.in`. |
+| `photography-cms-backend` | Deploy to Railway/Render/VPS. Supplies published routes during the frontend build and triggers rebuilds after SEO changes. Set `SITE_URL=https://dollpictures.in`. |
 | `doll-pics` | Deploy to Vercel/Netlify with `VITE_API_URL` and `VITE_SITE_URL` set |
 
-Routing is configured in `vercel.json` / `netlify.toml`. `/sitemap.xml` is proxied to the CMS API, while `/admin` retains an SPA fallback. Public pages are served from prerendered files and unknown public paths use the generated `404.html` with a genuine HTTP 404. Published service/package SEO changes trigger a frontend deploy hook from the backend so new paths become prerendered automatically.
+Routing is configured in `vercel.json` / `netlify.toml`. `/sitemap.xml` is generated as a static frontend artifact from the same route catalog used for prerendering, so crawler access does not depend on backend uptime. `/admin` retains an SPA fallback. Public pages are served from prerendered files and unknown public paths use the generated `404.html` with a genuine HTTP 404. Published service/package SEO changes trigger a frontend deploy hook from the backend so new paths and the sitemap are regenerated together.
 
 #### Host environment variables (Step 4)
 
@@ -159,15 +160,15 @@ Apply to **Production** (and Preview if you want preview builds to use the same 
 
 Create a production-branch deploy hook in Vercel under Project → Settings → Git → Deploy Hooks. Store that secret URL in the backend's `FRONTEND_DEPLOY_HOOK_URLS`; never commit or paste it into frontend variables. Add a Netlify build-hook URL to the same comma-separated backend variable only when Netlify is actively deployed.
 
-Redeploy after saving so prerendering reads the current published CMS routes. `vercel.json` and `netlify.toml` are the sitemap-routing sources of truth.
+Redeploy after saving so prerendering reads the current published CMS routes. The generated static sitemap and prerender catalog are the routing sources of truth.
 
 #### Google Search Console (Step 5)
 
 After deploy:
 
 1. Open `https://dollpictures.in/robots.txt` and confirm it includes `Sitemap: https://dollpictures.in/sitemap.xml`
-2. Run `npm run seo:smoke` to compare the public and backend sitemap URL sets and verify the production 404.
-3. Open `https://dollpictures.in/sitemap.xml` and confirm it is XML from the API.
+2. Run `npm run seo:smoke` to verify the public sitemap URLs, their prerendered HTML, and the production 404.
+3. Open `https://dollpictures.in/sitemap.xml` and confirm it is XML served by the frontend host.
 4. In [Google Search Console](https://search.google.com/search-console) → **Sitemaps** → submit `https://dollpictures.in/sitemap.xml` (or use **Refresh** if already submitted).
 
 ## Getting Started
