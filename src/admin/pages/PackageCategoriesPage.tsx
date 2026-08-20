@@ -15,6 +15,7 @@ import {
 import { useConfirmDialog } from '../hooks/useConfirmDialog';
 import { useFeatureAccess } from '../access/useFeatureAccess';
 import { ReadOnlyNotice } from '../components/ReadOnlyNotice';
+import { META_DESCRIPTION_MAX_LENGTH } from '../../lib/seo-core';
 
 function slugify(value: string): string {
   return value
@@ -285,6 +286,7 @@ function CategoryEditModal({
   const [lead, setLead] = useState(category?.lead || '');
   const [isPublished, setIsPublished] = useState(category?.isPublished ?? true);
   const [isSaving, setIsSaving] = useState(false);
+  const seoDescriptionLength = seoDescription.trim().length;
 
   const pathFromSlug = (value: string) =>
     value ? `/${slugify(value)}-packages-erode` : '';
@@ -412,10 +414,14 @@ function CategoryEditModal({
               <textarea
                 value={seoDescription}
                 onChange={(e) => setSeoDescription(e.target.value)}
+                maxLength={META_DESCRIPTION_MAX_LENGTH}
                 rows={2}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                 placeholder="Compare wedding photography packages in Erode…"
               />
+              <p className={`mt-1 text-right text-xs ${seoDescriptionLength > META_DESCRIPTION_MAX_LENGTH ? 'text-red-600' : 'text-gray-500'}`}>
+                {seoDescriptionLength}/{META_DESCRIPTION_MAX_LENGTH} characters
+              </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -464,7 +470,7 @@ function CategoryEditModal({
           <button
             type="button"
             onClick={handleSave}
-            disabled={isSaving || !name.trim()}
+            disabled={isSaving || !name.trim() || seoDescriptionLength > META_DESCRIPTION_MAX_LENGTH}
             className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-50"
           >
             {isSaving ? 'Saving...' : category ? 'Save changes' : 'Create'}

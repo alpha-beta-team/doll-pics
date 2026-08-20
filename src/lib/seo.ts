@@ -18,6 +18,7 @@ import {
   buildPackageCategoryJsonLd as buildPackageCategoryJsonLdCore,
   buildServiceJsonLd as buildServiceJsonLdCore,
   normalizePathname,
+  resolveMetaDescription,
   resolvePackagePage as resolvePackagePageCore,
   resolveServicePage as resolveServicePageCore,
   serviceCatalogFromPages,
@@ -117,13 +118,16 @@ export const SITE_FAQS: FaqItem[] = (seoPages.faqs ?? []).map((faq) => ({
 
 export function getPageSeo(pathname: string): PageSeo {
   const normalized = normalizePathname(pathname);
-  return (
+  const seo =
     PAGE_SEO[normalized] ?? {
       path: normalized || '/',
       title: `${SITE_NAME} — ${SITE_TAGLINE}`,
       description: seoPages.defaultDescription,
-    }
-  );
+    };
+  return {
+    ...seo,
+    description: resolveMetaDescription(normalized, seo.description),
+  };
 }
 
 export function getServicePage(pathname: string) {

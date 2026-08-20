@@ -1,4 +1,5 @@
 import type { ServiceContentSection, ServiceNavLink } from '../types';
+import { META_DESCRIPTION_MAX_LENGTH } from '../../lib/seo-core';
 
 export const MIN_SERVICE_SECTIONS = 1;
 export const MAX_SERVICE_SECTIONS = 6;
@@ -116,7 +117,11 @@ export function validateServiceForPublish(
   if (!service.heading?.trim()) errors.heading = 'Enter a page heading.';
   if (!service.lead?.trim()) errors.lead = 'Enter a lead paragraph.';
   if (!service.seoTitle?.trim()) errors.seoTitle = 'Enter an SEO title.';
-  if (!service.seoDescription?.trim()) errors.seoDescription = 'Enter a meta description.';
+  if (!service.seoDescription?.trim()) {
+    errors.seoDescription = 'Enter a meta description.';
+  } else if (service.seoDescription.trim().length > META_DESCRIPTION_MAX_LENGTH) {
+    errors.seoDescription = `Use no more than ${META_DESCRIPTION_MAX_LENGTH} characters.`;
+  }
 
   return errors;
 }

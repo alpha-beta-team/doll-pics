@@ -131,6 +131,13 @@ test('requires every editor section to be complete before publishing', () => {
     }],
   };
   assert.deepEqual(validateServiceForPublish(complete, []), {});
+  assert.match(
+    validateServiceForPublish({
+      ...complete,
+      seoDescription: 'A'.repeat(161),
+    }, []).seoDescription ?? '',
+    /no more than 160 characters/,
+  );
 });
 
 test('reorders dragged services and renumbers every row', () => {

@@ -55,6 +55,7 @@ import {
   validateServiceForPublish,
 } from '../services/serviceNavLinks';
 import type { Photo, ServiceContentSection, ServiceNavLink } from '../types';
+import { META_DESCRIPTION_MAX_LENGTH } from '../../lib/seo-core';
 
 const EDITOR_TABS: AdminTab[] = [
   { id: 'details', label: 'Details', icon: Settings2 },
@@ -761,10 +762,11 @@ export function ServiceEditorPage() {
                     placeholder="Maternity Photoshoot in Erode | Doll Pictures"
                   />
                 </AdminField>
-                <AdminField label={<RequiredLabel>Meta description</RequiredLabel>} error={errors.seoDescription} hint={`${(form.seoDescription ?? '').length}/160 characters · Aim for roughly 140–160 characters.`}>
+                <AdminField label={<RequiredLabel>Meta description</RequiredLabel>} error={errors.seoDescription} hint={`${(form.seoDescription ?? '').length}/${META_DESCRIPTION_MAX_LENGTH} characters · Aim for roughly 140–${META_DESCRIPTION_MAX_LENGTH} characters.`}>
                   <textarea
                     id="service-seo-description"
                     required
+                    maxLength={META_DESCRIPTION_MAX_LENGTH}
                     value={form.seoDescription ?? ''}
                     onChange={(event) => update('seoDescription', event.target.value)}
                     rows={4}

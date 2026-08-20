@@ -141,6 +141,36 @@ export function normalizePathname(pathname: string): string {
   return pathname;
 }
 
+export const META_DESCRIPTION_MAX_LENGTH = 160;
+
+const META_DESCRIPTION_OVERRIDES: Record<string, string> = {
+  '/baby-shower-photography-erode':
+    'Baby shower photography in Erode with candid moments, traditional ceremony coverage, family portraits, professional editing and premium albums.',
+  '/baby-shower-packages-erode':
+    'Explore baby shower photography packages in Erode with candid coverage, edited photos, premium albums and cinematic memories from Doll Pictures.',
+  '/toddler-baby-shoot-packages-erode':
+    'Explore toddler photoshoot packages in Erode with creative themes, costumes, props and professionally edited photos from Doll Pictures.',
+};
+
+/** Keep CMS-authored descriptions crawler-safe while preserving complete words. */
+export function resolveMetaDescription(
+  pathname: string,
+  description: string,
+): string {
+  const authored = description.trim();
+  const candidate =
+    authored.length > META_DESCRIPTION_MAX_LENGTH
+      ? META_DESCRIPTION_OVERRIDES[normalizePathname(pathname)] ?? authored
+      : authored;
+  if (candidate.length <= META_DESCRIPTION_MAX_LENGTH) return candidate;
+
+  const clipped = candidate.slice(0, META_DESCRIPTION_MAX_LENGTH - 1);
+  const lastSpace = clipped.lastIndexOf(' ');
+  const stem = (lastSpace >= 120 ? clipped.slice(0, lastSpace) : clipped)
+    .replace(/[\s,;:–—-]+$/, '');
+  return `${stem}…`;
+}
+
 export function pick(value: unknown, fallback: string): string {
   const trimmed = typeof value === 'string' ? value.trim() : '';
   return trimmed || fallback;
@@ -174,7 +204,7 @@ type PackageJson = Partial<PackagePageContent> & {
 
 /** JSON landing when present; CMS SEO fields overlay when set. */
 export function resolveServicePage(
-  _pathname: string,
+  pathname: string,
   json: ServiceJson | null | undefined,
   nav?: ServiceNavLinkLike | null,
 ): ServicePageContent | null {
@@ -224,7 +254,10 @@ export function resolveServicePage(
   return {
     ...base,
     title: pick(nav?.seoTitle, base.title),
-    description: pick(nav?.seoDescription, base.description),
+    description: resolveMetaDescription(
+      pathname,
+      pick(nav?.seoDescription, base.description),
+    ),
     heading: pick(nav?.heading, base.heading),
     lead: pick(nav?.lead, base.lead),
     body: pick(nav?.seoDescription, base.body),
@@ -244,7 +277,7 @@ export function resolveServicePage(
 
 /** JSON landing when present; CMS SEO fields overlay when set. */
 export function resolvePackagePage(
-  _pathname: string,
+  pathname: string,
   json: PackageJson | null | undefined,
   nav?: PackageNavLinkLike | null,
 ): PackagePageContent | null {
@@ -296,7 +329,10 @@ export function resolvePackagePage(
   return {
     ...base,
     title: pick(nav?.seoTitle, base.title),
-    description: pick(nav?.seoDescription, base.description),
+    description: resolveMetaDescription(
+      pathname,
+      pick(nav?.seoDescription, base.description),
+    ),
     heading: pick(nav?.heading, base.heading),
     lead: pick(nav?.lead, base.lead),
     body: pick(nav?.seoDescription, base.body),
@@ -327,7 +363,7 @@ export function buildPageCatalog(input: {
       kind: 'core',
       path,
       title: page.title,
-      description: page.description,
+      description: resolveMetaDescription(path, page.description),
       heading: page.heading,
       body: page.body,
       sections: [],
