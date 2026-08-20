@@ -1,4 +1,4 @@
-import { CalendarDays, CalendarPlus, Clock3, Home, LogOut, UserRound } from 'lucide-react';
+import { CalendarDays, CalendarPlus, Clock3, Home, LogOut, UserRound, WalletCards } from 'lucide-react';
 import { NavLink, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useEmployeeAuth } from '../EmployeeAuthContext';
 import { EmployeeLoading } from './EmployeeUi';
@@ -8,6 +8,7 @@ const navigation = [
   { to: '/employee/attendance', label: 'Attendance', icon: Clock3 },
   { to: '/employee/leave', label: 'Leave', icon: CalendarPlus },
   { to: '/employee/schedule', label: 'Schedule', icon: CalendarDays },
+  { to: '/employee/salary', label: 'Salary', icon: WalletCards },
   { to: '/employee/profile', label: 'Profile', icon: UserRound },
 ];
 

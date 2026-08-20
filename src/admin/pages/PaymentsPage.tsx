@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight,
+  ArrowDownRight,
   Banknote,
   CalendarClock,
   CheckCircle2,
@@ -9,6 +10,7 @@ import {
   CreditCard,
   RefreshCw,
   TrendingUp,
+  WalletCards,
 } from 'lucide-react';
 import { api } from '../api/client';
 import type { FinanceReport, PaymentMethod } from '../types';
@@ -209,6 +211,7 @@ export function PaymentsPage() {
           )}
 
           <section className="grid gap-5 xl:grid-cols-2">
+            <SalaryImpact report={report} />
             <RevenueByShootType report={report} />
             <PaymentStatus report={report} />
           </section>
@@ -321,9 +324,9 @@ function PeriodFilter({
 function KpiGrid({ report, selectedPeriod }: { report: FinanceReport; selectedPeriod: string }) {
   const cards = [
     {
-      label: 'Payments received',
+      label: 'Customer cash collected',
       value: money(report.summary.paymentsReceived),
-      detail: `${report.summary.paymentTransactions} transaction${report.summary.paymentTransactions === 1 ? '' : 's'} · ${selectedPeriod}`,
+      detail: `${report.summary.paymentTransactions} payment${report.summary.paymentTransactions === 1 ? '' : 's'} · ${selectedPeriod}`,
       icon: Banknote,
       iconClass: 'bg-emerald-50 text-emerald-700',
     },
@@ -348,6 +351,27 @@ function KpiGrid({ report, selectedPeriod }: { report: FinanceReport; selectedPe
       icon: CalendarClock,
       iconClass: 'bg-rose-50 text-rose-700',
     },
+    {
+      label: 'Salary spend',
+      value: money(report.summary.salarySpend),
+      detail: 'Recorded payroll and shoot payments in this period',
+      icon: WalletCards,
+      iconClass: 'bg-orange-50 text-orange-700',
+    },
+    {
+      label: 'Net cash after salary',
+      value: money(report.summary.netCashAfterSalary),
+      detail: `Collected cash minus salary spend · Avg payment ${money(report.summary.averagePaymentReceived)}`,
+      icon: ArrowDownRight,
+      iconClass: report.summary.netCashAfterSalary < 0 ? 'bg-rose-50 text-rose-700' : 'bg-blue-50 text-blue-700',
+    },
+    {
+      label: 'Collection rate',
+      value: `${report.summary.collectionRate.toFixed(1)}%`,
+      detail: 'Customer cash collected ÷ booked revenue',
+      icon: TrendingUp,
+      iconClass: 'bg-cyan-50 text-cyan-700',
+    },
   ];
 
   return (
@@ -367,6 +391,27 @@ function KpiGrid({ report, selectedPeriod }: { report: FinanceReport; selectedPe
         </AdminCard>
       ))}
     </section>
+  );
+}
+
+function SalaryImpact({ report }: { report: FinanceReport }) {
+  const trend = report.salaryTrend || [];
+  const max = Math.max(...trend.map((item) => item.amount), 1);
+  return (
+    <AdminCard className="overflow-hidden">
+      <div className="border-b border-admin-border p-5 sm:p-6">
+        <div className="flex items-start justify-between gap-3">
+          <div><h2 className="font-semibold text-admin-text">Salary impact on cash</h2><p className="mt-1 text-sm text-admin-subtle">Payroll spend compared with customer cash collected for this period.</p></div>
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-orange-700"><WalletCards className="h-5 w-5" /></span>
+        </div>
+      </div>
+      <div className="grid gap-4 p-5 sm:grid-cols-3 sm:p-6">
+        <div><p className="text-xs font-semibold uppercase tracking-wide text-admin-subtle">Collected</p><p className="mt-1 text-xl font-bold text-emerald-700">{money(report.summary.paymentsReceived)}</p></div>
+        <div><p className="text-xs font-semibold uppercase tracking-wide text-admin-subtle">Salary spend</p><p className="mt-1 text-xl font-bold text-orange-700">{money(report.summary.salarySpend)}</p></div>
+        <div><p className="text-xs font-semibold uppercase tracking-wide text-admin-subtle">Net after salary</p><p className={`mt-1 text-xl font-bold ${report.summary.netCashAfterSalary < 0 ? 'text-rose-700' : 'text-admin-text'}`}>{money(report.summary.netCashAfterSalary)}</p></div>
+      </div>
+      {trend.length ? <div className="space-y-3 border-t border-admin-border p-5 sm:p-6">{trend.slice(-8).map((item) => <div key={item.period}><div className="mb-1 flex justify-between gap-3 text-xs"><span className="text-admin-secondary">{item.period}</span><span className="font-semibold text-admin-text">{money(item.amount)}</span></div><div className="h-2 overflow-hidden rounded-full bg-admin-muted"><div className="h-full rounded-full bg-orange-400" style={{ width: `${(item.amount / max) * 100}%` }} /></div></div>)}</div> : <p className="border-t border-admin-border p-5 text-sm text-admin-subtle">No salary transactions recorded in this period.</p>}
+    </AdminCard>
   );
 }
 

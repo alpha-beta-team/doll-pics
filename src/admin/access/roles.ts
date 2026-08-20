@@ -60,6 +60,7 @@ export const FEATURE_CATALOG = {
   site_content: { label: 'Site settings and services', group: 'content', routes: ['/admin/site-content', '/admin/services', '/admin/services/new', '/admin/services/:id'], supportedLevels: editableLevels, navigation: { id: 'site-content', label: 'Site Settings', section: 'website', displayOrder: 120, featureFlag: 'website' } },
   integrations: { label: 'Integrations', group: 'settings', routes: ['/admin/integrations'], ownerLocked: true, supportedLevels: ownerOnlyLevels, navigation: { id: 'integrations', label: 'Integrations', section: 'settings', displayOrder: 20, featureFlag: 'integrations' } },
   staff_accounts: { label: 'Staff accounts & access', group: 'settings', routes: ['/admin/staff-accounts'], ownerLocked: true, supportedLevels: ownerOnlyLevels, navigation: { id: 'staff-accounts', label: 'Staff Accounts', section: 'staff_management', displayOrder: 10 } },
+  salary_management: { label: 'Salary management', group: 'settings', routes: ['/admin/staff-accounts/salary'], supportedLevels: editableLevels, navigation: { id: 'salary-management', label: 'Salary Management', section: 'staff_management', displayOrder: 20 } },
 } as const satisfies Record<StaffAccessArea, FeatureDetails>;
 
 export const FEATURE_ORDER = Object.keys(FEATURE_CATALOG) as StaffAccessArea[];
@@ -92,7 +93,7 @@ export const ROLE_CATALOG: Record<StaffAccountRole, RoleDetails> = {
       occasions: 'manage', quotations: 'manage', payments: 'manage', photos: 'manage', categories: 'manage',
       packages: 'manage', package_categories: 'manage', hero_slides: 'manage', story_scenes: 'manage',
       statistics: 'manage', testimonials: 'manage', behind_scenes: 'manage', staff_profiles: 'manage',
-      site_content: 'manage', integrations: 'manage', staff_accounts: 'manage',
+      site_content: 'manage', integrations: 'manage', staff_accounts: 'manage', salary_management: 'manage',
     },
   },
   sales: {
@@ -106,7 +107,7 @@ export const ROLE_CATALOG: Record<StaffAccountRole, RoleDetails> = {
       occasions: 'manage', quotations: 'manage', payments: 'none', photos: 'none', categories: 'none',
       packages: 'none', package_categories: 'none', hero_slides: 'none', story_scenes: 'none',
       statistics: 'none', testimonials: 'none', behind_scenes: 'none', staff_profiles: 'none',
-      site_content: 'none', integrations: 'none', staff_accounts: 'none',
+      site_content: 'none', integrations: 'none', staff_accounts: 'none', salary_management: 'none',
     },
   },
   content_manager: {
@@ -120,7 +121,7 @@ export const ROLE_CATALOG: Record<StaffAccountRole, RoleDetails> = {
       occasions: 'none', quotations: 'none', payments: 'none', photos: 'manage', categories: 'manage',
       packages: 'manage', package_categories: 'manage', hero_slides: 'manage', story_scenes: 'manage',
       statistics: 'manage', testimonials: 'manage', behind_scenes: 'manage', staff_profiles: 'manage',
-      site_content: 'manage', integrations: 'none', staff_accounts: 'none',
+      site_content: 'manage', integrations: 'none', staff_accounts: 'none', salary_management: 'none',
     },
   },
   employee: {
@@ -134,7 +135,7 @@ export const ROLE_CATALOG: Record<StaffAccountRole, RoleDetails> = {
       occasions: 'none', quotations: 'none', payments: 'none', photos: 'none', categories: 'none',
       packages: 'none', package_categories: 'none', hero_slides: 'none', story_scenes: 'none',
       statistics: 'none', testimonials: 'none', behind_scenes: 'none', staff_profiles: 'none',
-      site_content: 'none', integrations: 'none', staff_accounts: 'none',
+      site_content: 'none', integrations: 'none', staff_accounts: 'none', salary_management: 'none',
     },
   },
 };

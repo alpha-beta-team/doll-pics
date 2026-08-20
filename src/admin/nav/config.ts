@@ -27,6 +27,7 @@ import {
   UserCog,
   Users,
   FileSpreadsheet,
+  WalletCards,
 } from 'lucide-react';
 import { canManage, canView, FEATURE_CATALOG, type FeatureDetails, type FeatureFlagId } from '../access/roles';
 import type { StaffAccount, StaffAccessArea } from '../types';
@@ -126,6 +127,7 @@ export const PRIMARY_NAVIGATION: NavigationNode[] = [
     displayOrder: 30,
     children: [
       leaf('staff-accounts', 'Staff Accounts', '/admin/staff-accounts', UserCog, 10, 'staff_accounts', { subgroupLabel: 'Staff' }),
+      leaf('salary-management', 'Salary Management', '/admin/staff-accounts/salary', WalletCards, 20, 'salary_management', { subgroupLabel: 'Staff' }),
       { id: 'attendance-overview', label: 'Attendance', route: '/admin/attendance', icon: Clock3, displayOrder: 20, subgroupLabel: 'Attendance & Leave', access: { feature: 'staff_accounts', level: 'view' } },
       { id: 'attendance-requests', label: 'Leave Requests', route: '/admin/attendance/requests', icon: ClipboardCheck, displayOrder: 30, subgroupLabel: 'Attendance & Leave', access: { feature: 'staff_accounts', level: 'view' } },
       { id: 'attendance-calendar', label: 'Team Calendar', route: '/admin/attendance/calendar', icon: CalendarCheck2, displayOrder: 40, subgroupLabel: 'Attendance & Leave', access: { feature: 'staff_accounts', level: 'view' } },

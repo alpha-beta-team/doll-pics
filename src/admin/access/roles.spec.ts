@@ -72,3 +72,11 @@ test('an override takes precedence over the role default', () => {
   assert.equal(getEffectiveAccess('content_manager', 'bookings', { bookings: 'view' }), 'view');
   assert.equal(getEffectiveAccess('content_manager', 'photos', { photos: 'none' }), 'none');
 });
+
+test('salary management is manageable by owners and overrideable for other CMS roles', () => {
+  assert.equal(FEATURE_CATALOG.salary_management.navigation.label, 'Salary Management');
+  assert.equal(getEffectiveAccess('owner', 'salary_management'), 'manage');
+  assert.equal(getEffectiveAccess('sales', 'salary_management'), 'none');
+  assert.equal(getEffectiveAccess('sales', 'salary_management', { salary_management: 'view' }), 'view');
+  assert.equal(getEffectiveAccess('sales', 'salary_management', { salary_management: 'manage' }), 'manage');
+});
