@@ -623,11 +623,20 @@ export type FinanceReport = {
     overdueNow: number;
     overdueBookings: number;
     averageBookingValue: number;
+    salarySpend: number;
+    netCashAfterSalary: number;
+    collectionRate: number;
+    averagePaymentReceived: number;
   };
   paymentTrend: Array<{
     period: string;
     amount: number;
     payments: number;
+  }>;
+  salaryTrend: Array<{
+    period: string;
+    amount: number;
+    transactions: number;
   }>;
   revenueByShootType: Array<{
     shootType: string;
@@ -775,7 +784,8 @@ export type StaffAccessArea =
   | 'staff_profiles'
   | 'site_content'
   | 'integrations'
-  | 'staff_accounts';
+  | 'staff_accounts'
+  | 'salary_management';
 
 export type StaffAccessLevel = 'manage' | 'view' | 'none';
 

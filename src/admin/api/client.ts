@@ -22,6 +22,7 @@ import { reviewsApi } from './reviews';
 import { quotationsApi } from './quotations';
 import { reportsApi } from './reports';
 import { attendanceApi } from './attendance';
+import { salaryApi } from './salary';
 
 export const api = {
   ...authApi,
@@ -44,4 +45,5 @@ export const api = {
   ...quotationsApi,
   ...reportsApi,
   ...attendanceApi,
+  ...salaryApi,
 };

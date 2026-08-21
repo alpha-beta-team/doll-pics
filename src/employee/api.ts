@@ -15,6 +15,8 @@ import type {
 import { scopedRequest } from '../attendance/scopedHttp';
 
 const EMPLOYEE_TOKEN_KEY = 'doll_employee_token';
+export type EmployeeSalaryTransaction = { id: string; amount: number; transactionDate: string; periodMonth: string; type: string; note: string; createdAt?: string };
+export type EmployeeSalarySummary = { from: string; to: string; total: number; transactionCount: number };
 
 export const employeeTokenStorage = {
   get: () => localStorage.getItem(EMPLOYEE_TOKEN_KEY),
@@ -79,5 +81,6 @@ export const employeeApi = {
   cancelDayOff: (id: string) => withToken<DayOffRequest>(`/employee/day-offs/${id}/cancel`, { method: 'POST' }),
   calendar: (from: string, to: string) =>
     withToken<EmployeeCalendar>(`/employee/calendar?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`),
+  salaryTransactions: (from: string, to: string) => withToken<{ from: string; to: string; transactions: EmployeeSalaryTransaction[] }>(`/employee/salary?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`),
+  salarySummary: (from: string, to: string) => withToken<EmployeeSalarySummary>(`/employee/salary/summary?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`),
 };
-
