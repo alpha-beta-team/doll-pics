@@ -39,6 +39,7 @@ const editableLevels = ['none', 'view', 'manage'] as const;
 const ownerOnlyLevels = ['none', 'manage'] as const;
 
 export const FEATURE_CATALOG = {
+  owner_overview: { label: 'Owner Home', group: 'overview', routes: ['/admin/owner'], ownerLocked: true, supportedLevels: ownerOnlyLevels, navigation: { id: 'owner-overview', label: 'Owner Home', section: 'overview', displayOrder: 5, mobileQuickOrder: 5 } },
   dashboard: { label: 'Dashboard', group: 'overview', routes: ['/admin/dashboard'], supportedLevels: editableLevels, navigation: { id: 'reports-summary', label: 'Dashboard', section: 'overview', displayOrder: 30, featureFlag: 'reports' } },
   today: { label: 'Today', group: 'overview', routes: ['/admin/today'], supportedLevels: editableLevels, navigation: { id: 'today', label: 'Today', section: 'overview', displayOrder: 10, mobileQuickOrder: 10 } },
   enquiries: { label: 'Enquiries', group: 'sales', routes: ['/admin/enquiries', '/admin/enquiries/:id'], supportedLevels: editableLevels, navigation: { id: 'enquiries', label: 'Enquiries', section: 'bookings_sales', displayOrder: 10, mobileQuickOrder: 30 } },
@@ -88,6 +89,7 @@ export const ROLE_CATALOG: Record<StaffAccountRole, RoleDetails> = {
     badgeClassName: 'bg-amber-100 text-amber-900',
     selectionClassName: 'border-amber-400 bg-amber-50 ring-amber-200',
     access: {
+      owner_overview: 'manage',
       dashboard: 'view', today: 'manage', enquiries: 'manage', bookings: 'manage', schedule: 'manage',
       occasions: 'manage', quotations: 'manage', payments: 'manage', photos: 'manage', categories: 'manage',
       packages: 'manage', package_categories: 'manage', hero_slides: 'manage', story_scenes: 'manage',
@@ -102,6 +104,7 @@ export const ROLE_CATALOG: Record<StaffAccountRole, RoleDetails> = {
     badgeClassName: 'bg-blue-100 text-blue-800',
     selectionClassName: 'border-blue-500 bg-blue-50 ring-blue-200',
     access: {
+      owner_overview: 'none',
       dashboard: 'view', today: 'manage', enquiries: 'manage', bookings: 'manage', schedule: 'manage',
       occasions: 'manage', quotations: 'manage', payments: 'none', photos: 'none', categories: 'none',
       packages: 'none', package_categories: 'none', hero_slides: 'none', story_scenes: 'none',
@@ -116,6 +119,7 @@ export const ROLE_CATALOG: Record<StaffAccountRole, RoleDetails> = {
     badgeClassName: 'bg-violet-100 text-violet-800',
     selectionClassName: 'border-violet-500 bg-violet-50 ring-violet-200',
     access: {
+      owner_overview: 'none',
       dashboard: 'view', today: 'none', enquiries: 'view', bookings: 'none', schedule: 'none',
       occasions: 'none', quotations: 'none', payments: 'none', photos: 'manage', categories: 'manage',
       packages: 'manage', package_categories: 'manage', hero_slides: 'manage', story_scenes: 'manage',
@@ -130,6 +134,7 @@ export const ROLE_CATALOG: Record<StaffAccountRole, RoleDetails> = {
     badgeClassName: 'bg-emerald-100 text-emerald-800',
     selectionClassName: 'border-emerald-500 bg-emerald-50 ring-emerald-200',
     access: {
+      owner_overview: 'none',
       dashboard: 'none', today: 'none', enquiries: 'none', bookings: 'none', schedule: 'none',
       occasions: 'none', quotations: 'none', payments: 'none', photos: 'none', categories: 'none',
       packages: 'none', package_categories: 'none', hero_slides: 'none', story_scenes: 'none',
@@ -184,10 +189,24 @@ export function canManage(user: StaffAccount | null | undefined, area: StaffAcce
 }
 
 export function getDefaultAdminRoute(user: StaffAccount | null | undefined): string {
+  if (canView(user, 'owner_overview')) return '/admin/owner';
   if (canView(user, 'today')) return '/admin/today';
   if (canView(user, 'dashboard')) return '/admin/dashboard';
   const first = FEATURE_ORDER.find((feature) => canView(user, feature));
   return first ? FEATURE_CATALOG[first].routes[0] : '/admin/help';
+}
+
+export function getPostLoginRoute(
+  user: StaffAccount | null | undefined,
+  requestedPath?: string,
+): string {
+  const fallback = getDefaultAdminRoute(user);
+  if (!requestedPath || !requestedPath.startsWith('/admin/')) return fallback;
+  const pathname = requestedPath.split(/[?#]/, 1)[0].replace(/\/$/, '');
+  if (!pathname || pathname === '/admin' || pathname === '/admin/login' || pathname === '/admin/change-password') {
+    return fallback;
+  }
+  return requestedPath;
 }
 
 export function getAccessSummary(role: StaffAccountRole): string[] {

@@ -75,22 +75,24 @@ export function AdminPageHeader({
   titleAction,
   description,
   actions,
+  compact = false,
 }: {
   eyebrow?: ReactNode;
   title: ReactNode;
   titleAction?: ReactNode;
   description?: ReactNode;
   actions?: ReactNode;
+  compact?: boolean;
 }) {
   return (
-    <header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+    <header className={`flex flex-col justify-between sm:flex-row sm:items-end ${compact ? 'gap-2' : 'gap-4'}`}>
       <div className="min-w-0">
-        {eyebrow && <div className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-admin-gold">{eyebrow}</div>}
+        {eyebrow && <div className={`${compact ? 'mb-1 text-[10px]' : 'mb-2 text-xs'} font-bold uppercase tracking-[0.16em] text-admin-gold`}>{eyebrow}</div>}
         <div className="flex items-center gap-2.5">
-          <h1 className="min-w-0 text-2xl font-semibold tracking-tight text-admin-text sm:text-3xl">{title}</h1>
+          <h1 className={`min-w-0 font-semibold tracking-tight text-admin-text ${compact ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-3xl'}`}>{title}</h1>
           {titleAction && <div className="shrink-0">{titleAction}</div>}
         </div>
-        {description && <p className="mt-1.5 max-w-3xl text-sm leading-6 text-admin-subtle">{description}</p>}
+        {description && <p className={`max-w-3xl text-admin-subtle ${compact ? 'mt-0.5 text-xs leading-5' : 'mt-1.5 text-sm leading-6'}`}>{description}</p>}
       </div>
       {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
     </header>

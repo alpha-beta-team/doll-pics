@@ -14,6 +14,7 @@ import {
   FolderOpen,
   HelpCircle,
   Home,
+  Gauge,
   Image,
   Images,
   LayoutList,
@@ -101,6 +102,7 @@ export const PRIMARY_NAVIGATION: NavigationNode[] = [
     icon: Home,
     displayOrder: 10,
     children: [
+      leaf('owner-overview', 'Owner Home', '/admin/owner', Gauge, 5, 'owner_overview', { mobileQuickOrder: 5 }),
       leaf('today', 'Today', '/admin/today', Home, 10, 'today', { mobileQuickOrder: 10 }),
       leaf('schedule', 'Schedule', '/admin/schedule', CalendarRange, 20, 'schedule', { mobileQuickOrder: 20 }),
       leaf('reports-summary', 'Dashboard', '/admin/dashboard', BarChart3, 30, 'dashboard', { featureFlag: 'reports' }),
