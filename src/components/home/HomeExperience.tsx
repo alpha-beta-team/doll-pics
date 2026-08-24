@@ -71,23 +71,38 @@ export function HomeExperience() {
 function EditorialHero() {
   const { heroSlides, siteContent } = useSiteData();
   const [active, setActive] = useState(0);
+  const [carouselReady, setCarouselReady] = useState(false);
   const slides = heroSlides.slice(0, 5);
 
   useEffect(() => {
-    if (slides.length < 2) return;
+    if (slides.length < 2 || carouselReady) return;
+    const enableCarousel = () => setCarouselReady(true);
+    window.addEventListener('pointerdown', enableCarousel, { once: true });
+    window.addEventListener('keydown', enableCarousel, { once: true });
+    window.addEventListener('scroll', enableCarousel, {
+      once: true,
+      passive: true,
+    });
+    return () => {
+      window.removeEventListener('pointerdown', enableCarousel);
+      window.removeEventListener('keydown', enableCarousel);
+      window.removeEventListener('scroll', enableCarousel);
+    };
+  }, [carouselReady, slides.length]);
+
+  useEffect(() => {
+    if (!carouselReady || slides.length < 2) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const interval = window.setInterval(
       () => setActive((current) => (current + 1) % slides.length),
       HERO_INTERVAL_MS,
     );
     return () => window.clearInterval(interval);
-  }, [slides.length]);
+  }, [carouselReady, slides.length]);
 
   useEffect(() => {
     if (active >= slides.length) setActive(0);
   }, [active, slides.length]);
-
-  if (!slides.length) return null;
 
   const heading =
     siteContent.heroHeading ||
@@ -99,7 +114,7 @@ function EditorialHero() {
   return (
     <section className="home-hero relative min-h-[760px] overflow-hidden bg-[#090908] text-white">
       <div className="absolute inset-0">
-        {slides.map((slide, index) => (
+        {(carouselReady ? slides : slides.slice(0, 1)).map((slide, index) => (
           <div
             key={`${slide.image}-${index}`}
             aria-hidden={index !== active}
@@ -193,11 +208,14 @@ function EditorialHero() {
               <button
                 type="button"
                 aria-label="Previous hero image"
-                onClick={() =>
+                disabled={!slides.length}
+                onClick={() => {
+                  if (!slides.length) return;
+                  setCarouselReady(true);
                   setActive((current) =>
                     (current - 1 + slides.length) % slides.length,
-                  )
-                }
+                  );
+                }}
                 className="grid h-10 w-10 place-items-center border border-white/20 text-white transition-colors hover:border-gold-300 hover:text-gold-300"
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -205,9 +223,12 @@ function EditorialHero() {
               <button
                 type="button"
                 aria-label="Next hero image"
-                onClick={() =>
-                  setActive((current) => (current + 1) % slides.length)
-                }
+                disabled={!slides.length}
+                onClick={() => {
+                  if (!slides.length) return;
+                  setCarouselReady(true);
+                  setActive((current) => (current + 1) % slides.length);
+                }}
                 className="grid h-10 w-10 place-items-center border border-white/20 text-white transition-colors hover:border-gold-300 hover:text-gold-300"
               >
                 <ChevronRight className="h-4 w-4" />
@@ -241,14 +262,12 @@ function TrustStrip() {
   const { stats } = useSiteData();
   const trust = stats.slice(0, 4);
 
-  if (!trust.length) return null;
-
   return (
     <section
       aria-label="Studio highlights"
       className="border-b border-hairline/10 bg-ink-950 px-5 sm:px-8 lg:px-12"
     >
-      <div className="mx-auto grid max-w-[1480px] grid-cols-2 divide-x divide-hairline/10 lg:grid-cols-4">
+      <div className="mx-auto grid min-h-[217px] max-w-[1480px] grid-cols-2 divide-x divide-hairline/10 lg:min-h-[129px] lg:grid-cols-4">
         {trust.map((stat, index) => (
           <div
             key={`${stat.label}-${index}`}

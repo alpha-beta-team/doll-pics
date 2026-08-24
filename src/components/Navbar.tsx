@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ChevronDown, Menu, Moon, Sun, X } from 'lucide-react';
-import { EnquiryModal } from './EnquiryModal';
 import { useSiteData } from '../contexts/SiteDataContext';
 import { useTheme } from '../contexts/ThemeContext';
 import {
@@ -9,6 +8,12 @@ import {
   getPublishedServiceNavLinks,
 } from '../lib/navigation';
 import { DISPLAY_BRAND_NAME } from '../lib/businessIdentity';
+
+const EnquiryModal = lazy(() =>
+  import('./EnquiryModal').then((module) => ({
+    default: module.EnquiryModal,
+  })),
+);
 
 export function Navbar() {
   const { siteContent, packageNavLinks } = useSiteData();
@@ -174,13 +179,16 @@ export function Navbar() {
               className="flex items-center gap-2.5 group"
               data-cursor="hover"
             >
-              <img
-                src="/logo-doll.png"
-                alt="Doll Pictures logo"
-                width={44}
-                height={44}
-                className="h-11 w-11 rounded-full object-cover ring-1 ring-hairline/15 transition-transform duration-700 group-hover:scale-105"
-              />
+              <picture>
+                <source srcSet="/logo-doll-nav.webp" type="image/webp" />
+                <img
+                  src="/logo-doll.png"
+                  alt="Doll Pictures logo"
+                  width={44}
+                  height={44}
+                  className="h-11 w-11 rounded-full object-cover ring-1 ring-hairline/15 transition-transform duration-700 group-hover:scale-105"
+                />
+              </picture>
               <span className="font-display text-xl font-semibold tracking-[0.3em] text-ink-50">
                 {brand}
               </span>
@@ -399,7 +407,9 @@ export function Navbar() {
       )}
 
       {showBookingModal ? (
-        <EnquiryModal onClose={() => setShowBookingModal(false)} />
+        <Suspense fallback={null}>
+          <EnquiryModal onClose={() => setShowBookingModal(false)} />
+        </Suspense>
       ) : null}
     </>
   );

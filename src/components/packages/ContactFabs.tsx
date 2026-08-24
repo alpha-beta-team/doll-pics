@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Mail, MessageCircle, Phone, Plus } from 'lucide-react';
 import { useSiteData } from '../../contexts/SiteDataContext';
-import { trackPhoneClick, trackWhatsAppClick } from '../../lib/analytics';
 import { whatsappDigits } from '../../lib/pricing';
 
 interface ContactFabsProps {
@@ -130,9 +129,17 @@ export function ContactFabs({
                 tabIndex={open ? 0 : -1}
                 onClick={() => {
                   if (action.id === 'whatsapp') {
-                    trackWhatsAppClick({ cta_location: 'floating_button' });
+                    void import('../../lib/analytics').then(
+                      ({ trackWhatsAppClick }) =>
+                        trackWhatsAppClick({
+                          cta_location: 'floating_button',
+                        }),
+                    );
                   } else if (action.id === 'call') {
-                    trackPhoneClick({ cta_location: 'floating_button' });
+                    void import('../../lib/analytics').then(
+                      ({ trackPhoneClick }) =>
+                        trackPhoneClick({ cta_location: 'floating_button' }),
+                    );
                   }
                   setOpen(false);
                 }}

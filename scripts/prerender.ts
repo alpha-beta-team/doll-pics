@@ -1,6 +1,8 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { loadEnvFiles, root } from './lib/env.mjs';
+import { createHash } from 'node:crypto';
+import postcss, { type Container } from 'postcss';
+import { fetchJson, loadEnvFiles, root } from './lib/env.mjs';
 import {
   absoluteUrl,
   assertCatalogCoverage,
@@ -16,6 +18,13 @@ import {
   resolveServiceCatalog,
 } from './lib/seo-build';
 import type { CatalogPage } from '../src/lib/seo-core';
+import {
+  HERO_DEFAULT_WIDTH,
+  HERO_SIZES,
+  HERO_WIDTHS,
+  mediaSrcSet,
+  mediaUrl,
+} from '../src/lib/images';
 import { buildSitemapXml } from './lib/sitemap.mjs';
 
 loadEnvFiles();
@@ -28,6 +37,29 @@ const { seoPages, servicePages, packagePages, sitemapRoutes } =
   loadStaticSeoData();
 const { packagesByPath, servicesByPath, servicesLoaded, apiBase } =
   await loadCmsOverlays();
+
+async function loadFirstHeroImage() {
+  if (!apiBase) return '';
+  try {
+    const slides = await fetchJson(`${apiBase}/hero-slides`);
+    if (!Array.isArray(slides)) return '';
+    const first = slides.find(
+      (slide) =>
+        typeof slide?.image === 'string' &&
+        slide.image.length > 0 &&
+        !['/photos/265722/', '/photos/1024993/', '/photos/1779415/'].some(
+          (legacyPath) => slide.image.includes(legacyPath),
+        ),
+    );
+    return typeof first?.image === 'string' ? first.image : '';
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.warn('SEO build: hero preload unavailable:', message);
+    return '';
+  }
+}
+
+const firstHeroImage = await loadFirstHeroImage();
 const serviceCatalog = resolveServiceCatalog(
   servicePages,
   servicesByPath,
@@ -83,6 +115,78 @@ function escapeHtml(value: string) {
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;');
+}
+
+function isAdminOnlySelector(selector: string): boolean {
+  return (
+    selector.includes('.admin-theme') ||
+    selector.includes('[data-admin-theme') ||
+    selector.includes('admin-') ||
+    selector.includes('.ReactCrop') ||
+    selector.includes('.reactEasyCrop_')
+  );
+}
+
+function extractAdminCss(source: string) {
+  const publicRoot = postcss.parse(source);
+  const adminRoot = postcss.root();
+
+  const extract = (sourceContainer: Container, targetContainer: Container) => {
+    for (const node of [...sourceContainer.nodes]) {
+      const adminCropVariables =
+        node.type === 'rule' &&
+        node.selector === ':root' &&
+        node.nodes.some(
+          (child) => child.type === 'decl' && child.prop.startsWith('--rc-'),
+        );
+      if (
+        node.type === 'rule' &&
+        (isAdminOnlySelector(node.selector) || adminCropVariables)
+      ) {
+        targetContainer.append(node.clone());
+        node.remove();
+        continue;
+      }
+      if (node.type !== 'atrule' || !node.nodes) continue;
+
+      const targetAtRule = node.clone({ nodes: [] });
+      extract(node, targetAtRule);
+      if (targetAtRule.nodes.length > 0) targetContainer.append(targetAtRule);
+      if (node.nodes.length === 0) node.remove();
+    }
+  };
+
+  extract(publicRoot, adminRoot);
+  return {
+    publicCss: publicRoot.toString(),
+    adminCss: adminRoot.toString(),
+  };
+}
+
+function splitAdminStyles(template: string) {
+  const styleMatch = template.match(/<style>([\s\S]*?)<\/style>/);
+  if (!styleMatch) return template;
+
+  const { publicCss, adminCss } = extractAdminCss(styleMatch[1]);
+  if (!adminCss) return template;
+
+  const hash = createHash('sha256').update(adminCss).digest('hex').slice(0, 8);
+  const fileName = `admin-theme-${hash}.css`;
+  mkdirSync(join(distDir, 'assets'), { recursive: true });
+  writeFileSync(join(distDir, 'assets', fileName), adminCss);
+
+  const loader = [
+    '<script>',
+    "if(location.pathname==='/admin'||location.pathname.startsWith('/admin/')){",
+    "var adminCss=document.createElement('link');",
+    "adminCss.rel='stylesheet';",
+    `adminCss.href='/assets/${fileName}';`,
+    'document.head.appendChild(adminCss)',
+    '}',
+    '</script>',
+  ].join('');
+
+  return template.replace(styleMatch[0], `${loader}<style>${publicCss}</style>`);
 }
 
 function buildFallbackLinks(page: CatalogPage): FallbackLink[] {
@@ -182,10 +286,20 @@ function injectRouteHtml(template: string, page: CatalogPage) {
     }
   }
 
-  if (path !== '/') {
+  if (path === '/' && firstHeroImage) {
+    const href = escapeHtml(
+      mediaUrl(firstHeroImage, HERO_DEFAULT_WIDTH, 'webp'),
+    );
+    const source = escapeHtml(firstHeroImage);
+    const srcSet = escapeHtml(
+      mediaSrcSet(firstHeroImage, [...HERO_WIDTHS], 'webp') || '',
+    );
+    const responsiveAttributes = srcSet
+      ? ` imagesrcset="${srcSet}" imagesizes="${HERO_SIZES}"`
+      : '';
     html = html.replace(
-      /\s*<link\s+rel="preload"\s+as="image"\s+href="[^"]*"\s+fetchpriority="high"\s*\/?>/i,
-      '',
+      '</head>',
+      `    <link rel="preload" as="image" href="${href}"${responsiveAttributes} fetchpriority="high" data-home-hero-source="${source}" />\n  </head>`,
     );
   }
 
@@ -345,7 +459,9 @@ function inject404Html(template: string) {
   return html;
 }
 
-const template = readFileSync(join(distDir, 'index.html'), 'utf8');
+const template = splitAdminStyles(
+  readFileSync(join(distDir, 'index.html'), 'utf8'),
+);
 const written: string[] = [];
 
 for (const page of Object.values(pages)) {
@@ -364,7 +480,7 @@ const sitemapFile = join(distDir, 'sitemap.xml');
 writeFileSync(sitemapFile, buildSitemapXml(siteUrl, sitemapPaths));
 
 const apiNote = apiBase
-  ? ` (CMS overlays: ${packagesByPath.size} packages, ${servicesByPath.size} services)`
+  ? ` (CMS overlays: ${packagesByPath.size} packages, ${servicesByPath.size} services${firstHeroImage ? ', hero preloaded' : ''})`
   : ' (static JSON only — set VITE_API_URL for CMS SEO overlays)';
 
 console.log(`Prerendered ${written.length} files for ${siteUrl}${apiNote}`);

@@ -309,13 +309,29 @@ const SiteDataContext = createContext<SiteData>({
   fromApi: false,
 });
 
+function readBuildTimeHero(): PublicHeroSlide[] {
+  if (typeof document === 'undefined') return fallbackHeroSlides;
+  const source = document
+    .querySelector<HTMLLinkElement>('link[data-home-hero-source]')
+    ?.getAttribute('data-home-hero-source')
+    ?.trim();
+  return source
+    ? [{ image: source, label: 'Featured' }]
+    : fallbackHeroSlides;
+}
+
 export function SiteDataProvider({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
-  const [data, setData] = useState<SiteData>({
+  const buildTimeHero = useRef<PublicHeroSlide[] | null>(null);
+  if (buildTimeHero.current === null) {
+    buildTimeHero.current = readBuildTimeHero();
+  }
+  const [data, setData] = useState<SiteData>(() => ({
     ...fallbackData,
+    heroSlides: buildTimeHero.current || fallbackHeroSlides,
     loading: true,
     fromApi: false,
-  });
+  }));
 
   const loadedBuckets = useRef(new Set<DataBucket>());
   const inflightBuckets = useRef(new Set<DataBucket>());
@@ -354,7 +370,7 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
         const nextHero =
           productionHeroSlides.length > 0
             ? productionHeroSlides
-            : fallbackHeroSlides;
+            : buildTimeHero.current || fallbackHeroSlides;
 
         const serviceNavLinks = normalizeServiceNavLinks(
           siteContent.serviceNavLinks,
@@ -412,7 +428,12 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
         }));
       } catch {
         if (!cancelled && !cancelledRef.current) {
-          setData({ ...fallbackData, loading: false, fromApi: false });
+          setData({
+            ...fallbackData,
+            heroSlides: buildTimeHero.current || fallbackHeroSlides,
+            loading: false,
+            fromApi: false,
+          });
         }
       }
     }
