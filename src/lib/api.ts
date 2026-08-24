@@ -31,7 +31,9 @@ export type {
 
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3001/api';
 const IMAGEKIT_ENDPOINT = 'https://ik.imagekit.io/dollpictures';
-const IMAGEKIT_WIDTHS = [400, 800, 1200, 1600] as const;
+// Include candidates near the actual mobile card widths. Without these, a
+// 260-650 px rendered image is rounded up to an 800 px download.
+const IMAGEKIT_WIDTHS = [320, 480, 640, 720, 960, 1200, 1600] as const;
 const inflightPublicGets = new Map<string, Promise<unknown>>();
 
 function imageKitPhotoUrl(storageKey: string, width: number, quality = 78): string {

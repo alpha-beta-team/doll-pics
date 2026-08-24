@@ -41,7 +41,7 @@ export function ResponsiveImage({
   const responsiveMedia =
     !avifSrcSet && !webpSrcSet && isTransformableMediaUrl(src);
   const resolvedWebpSrcSet = responsiveMedia
-    ? mediaSrcSet(src, [480, 800, 1200, 1600], 'webp')
+    ? mediaSrcSet(src, [320, 480, 640, 720, 960, 1200, 1600], 'webp')
     : webpSrcSet;
   const resolvedSrc = responsiveMedia
     ? mediaUrl(src, Math.min(Math.max(width ?? 1200, 480), 1600))

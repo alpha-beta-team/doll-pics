@@ -20,6 +20,7 @@ import {
 import type { CatalogPage } from '../src/lib/seo-core';
 import {
   HERO_DEFAULT_WIDTH,
+  HERO_QUALITY,
   HERO_SIZES,
   HERO_WIDTHS,
   mediaSrcSet,
@@ -288,19 +289,49 @@ function injectRouteHtml(template: string, page: CatalogPage) {
 
   if (path === '/' && firstHeroImage) {
     const href = escapeHtml(
-      mediaUrl(firstHeroImage, HERO_DEFAULT_WIDTH, 'webp'),
+      mediaUrl(firstHeroImage, HERO_DEFAULT_WIDTH, 'webp', HERO_QUALITY),
     );
     const source = escapeHtml(firstHeroImage);
     const srcSet = escapeHtml(
-      mediaSrcSet(firstHeroImage, [...HERO_WIDTHS], 'webp') || '',
+      mediaSrcSet(
+        firstHeroImage,
+        [...HERO_WIDTHS],
+        'webp',
+        HERO_QUALITY,
+      ) || '',
     );
     const responsiveAttributes = srcSet
       ? ` imagesrcset="${srcSet}" imagesizes="${HERO_SIZES}"`
       : '';
     html = html.replace(
       '</head>',
-      `    <link rel="preload" as="image" href="${href}"${responsiveAttributes} fetchpriority="high" data-home-hero-source="${source}" />\n  </head>`,
+      [
+        `    <link rel="preload" as="image" href="${href}"${responsiveAttributes} fetchpriority="high" data-home-hero-source="${source}" />`,
+        '    <style id="home-hero-poster-style">',
+        '      #home-hero-poster{position:absolute;z-index:1;inset:0 0 auto;width:100%;height:max(760px,100svh);overflow:hidden;pointer-events:none;background:#090908}',
+        '      #home-hero-poster picture,#home-hero-poster img{display:block;width:100%;height:100%}',
+        '      #home-hero-poster img{object-fit:cover;object-position:center}',
+        '      #home-hero-poster:before,#home-hero-poster:after{content:"";position:absolute;inset:0}',
+        '      #home-hero-poster:before{background:linear-gradient(90deg,rgba(6,6,5,.92) 0%,rgba(6,6,5,.66) 42%,rgba(6,6,5,.18) 72%,rgba(6,6,5,.34) 100%)}',
+        '      #home-hero-poster:after{background:linear-gradient(180deg,rgba(0,0,0,.5) 0%,transparent 34%,rgba(0,0,0,.15) 62%,rgba(0,0,0,.82) 100%)}',
+        '    </style>',
+        '  </head>',
+      ].join('\n'),
     );
+
+    const poster = [
+      '    <div id="home-hero-poster" aria-hidden="true">',
+      '      <picture>',
+      srcSet
+        ? `        <source type="image/webp" srcset="${srcSet}" sizes="${HERO_SIZES}" />`
+        : '',
+      `        <img src="${href}" alt="" width="1920" height="1080" sizes="${HERO_SIZES}" fetchpriority="high" decoding="async" data-home-hero-poster-image />`,
+      '      </picture>',
+      '    </div>',
+    ]
+      .filter(Boolean)
+      .join('\n');
+    html = html.replace('<body>', `<body>\n${poster}`);
   }
 
   if (/<link rel="canonical" href="[^"]*"\s*\/?>/.test(html)) {

@@ -16,10 +16,18 @@ import {
 } from '../../contexts/SiteDataContext';
 import { useInView } from '../../hooks/useScroll';
 import { BOOKING_ROUTE } from '../../lib/navigation';
-import { mediaSrcSet, mediaUrl } from '../../lib/images';
+import {
+  HERO_QUALITY,
+  mediaSrcSet,
+  mediaUrl,
+} from '../../lib/images';
 import { ResponsiveImage } from '../ResponsiveImage';
 
 const HERO_INTERVAL_MS = 6500;
+
+function dismissBuildTimeHero() {
+  document.getElementById('home-hero-poster')?.remove();
+}
 
 function Reveal({
   children,
@@ -76,7 +84,13 @@ function EditorialHero() {
 
   useEffect(() => {
     if (slides.length < 2 || carouselReady) return;
-    const enableCarousel = () => setCarouselReady(true);
+    const enableCarousel = () => {
+      // The poster is rendered directly in the initial HTML so the hero can
+      // paint before React. Keep it until interaction finalizes LCP, then hand
+      // off to the already-loaded React carousel.
+      dismissBuildTimeHero();
+      setCarouselReady(true);
+    };
     window.addEventListener('pointerdown', enableCarousel, { once: true });
     window.addEventListener('keydown', enableCarousel, { once: true });
     window.addEventListener('scroll', enableCarousel, {
@@ -125,12 +139,13 @@ function EditorialHero() {
             }`}
           >
             <ResponsiveImage
-              src={mediaUrl(slide.image, 1100)}
+              src={mediaUrl(slide.image, 750, 'webp', HERO_QUALITY)}
               alt={index === active ? slide.label : ''}
               webpSrcSet={mediaSrcSet(
                 slide.image,
                 [480, 750, 1100, 1600],
                 'webp',
+                HERO_QUALITY,
               )}
               sizes="100vw"
               width={1920}
@@ -211,6 +226,7 @@ function EditorialHero() {
                 disabled={!slides.length}
                 onClick={() => {
                   if (!slides.length) return;
+                  dismissBuildTimeHero();
                   setCarouselReady(true);
                   setActive((current) =>
                     (current - 1 + slides.length) % slides.length,
@@ -226,6 +242,7 @@ function EditorialHero() {
                 disabled={!slides.length}
                 onClick={() => {
                   if (!slides.length) return;
+                  dismissBuildTimeHero();
                   setCarouselReady(true);
                   setActive((current) => (current + 1) % slides.length);
                 }}
@@ -309,7 +326,7 @@ function StudioManifesto() {
                 alt={primary.alt}
                 avifSrcSet={primary.avifSrcSet}
                 webpSrcSet={primary.webpSrcSet}
-                sizes="(max-width: 1024px) 90vw, 42vw"
+                sizes="(max-width: 640px) calc(100vw - 80px), (max-width: 1024px) calc(100vw - 120px), 42vw"
                 width={900}
                 height={1125}
                 className="h-full w-full object-cover transition-transform duration-[1400ms] hover:scale-[1.025]"

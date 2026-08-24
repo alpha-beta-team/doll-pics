@@ -28,13 +28,14 @@ function imageKitUrl(
   url: string,
   width: number,
   format?: 'webp' | 'jpeg',
+  quality = 78,
 ): string {
   const parsed = new URL(url);
   const path = parsed.pathname.slice(IMAGEKIT_ACCOUNT_PATH.length);
   const sourcePath = path.replace(/^tr:[^/]+\//, '');
   const imageKitFormat = format === 'jpeg' ? 'jpg' : format || 'auto';
   parsed.searchParams.delete('tr');
-  parsed.pathname = `${IMAGEKIT_ACCOUNT_PATH}tr:w-${width},q-78,f-${imageKitFormat}/${sourcePath}`;
+  parsed.pathname = `${IMAGEKIT_ACCOUNT_PATH}tr:w-${width},q-${quality},f-${imageKitFormat}/${sourcePath}`;
   return parsed.toString();
 }
 
@@ -43,10 +44,11 @@ export function mediaUrl(
   url: string,
   width: number,
   format?: 'webp' | 'jpeg',
+  quality = 78,
 ): string {
   if (!url || !isTransformableMediaUrl(url)) return url;
   try {
-    if (isImageKitUrl(url)) return imageKitUrl(url, width, format);
+    if (isImageKitUrl(url)) return imageKitUrl(url, width, format, quality);
     const u = new URL(url);
     u.searchParams.set('auto', 'compress');
     u.searchParams.set('cs', 'tinysrgb');
@@ -63,15 +65,20 @@ export function mediaSrcSet(
   url: string,
   widths: number[],
   format?: 'webp' | 'jpeg',
+  quality = 78,
 ): string | undefined {
   if (!url || !isTransformableMediaUrl(url)) return undefined;
-  return widths.map((w) => `${mediaUrl(url, w, format)} ${w}w`).join(', ');
+  return widths
+    .map((w) => `${mediaUrl(url, w, format, quality)} ${w}w`)
+    .join(', ');
 }
 
 /** Hero / full-bleed: mobile-first widths (PSI mobile ≈ 2×375 → ~750). */
 export const HERO_WIDTHS = [480, 750, 1100, 1600] as const;
 export const HERO_DEFAULT_WIDTH = 750;
 export const HERO_SIZES = '100vw';
+/** Full-bleed photography remains crisp at this quality while saving ~20 KiB on mobile. */
+export const HERO_QUALITY = 68;
 
 /** Below-fold full-bleed sections. */
 export const SECTION_WIDTHS = [480, 800] as const;
