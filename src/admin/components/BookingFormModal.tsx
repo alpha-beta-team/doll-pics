@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertCircle,
   AlertTriangle,
@@ -11,8 +11,7 @@ import {
   UserRound,
   X,
 } from 'lucide-react';
-import { SHOOT_TYPE_OPTIONS } from '../../lib/shootTypes';
-import type { Booking, BookingWritePayload, Enquiry, Package, PaymentMethod, ScheduleConflictResponse, StaffAccountOption } from '../types';
+import type { Booking, BookingWritePayload, Enquiry, Package, PaymentMethod, ScheduleConflictResponse, ServiceNavLink, StaffAccountOption } from '../types';
 import {
   BOOKING_WIZARD_FIELD_LABELS,
   BOOKING_WIZARD_STEPS,
@@ -41,11 +40,30 @@ type Props = {
   booking?: Booking | null;
   enquiry?: Enquiry | null;
   packages: Package[];
+  services: ServiceNavLink[];
   staffAccounts: StaffAccountOption[];
   onClose: () => void;
   onSave: (payload: BookingWritePayload) => Promise<void>;
   initialSchedule?: { bookingDate: string; startTime: string; endTime: string };
 };
+
+function bookingServiceOptions(
+  services: ServiceNavLink[],
+  currentShootType = '',
+) {
+  const options = [
+    ...[...services].sort((left, right) => left.order - right.order).map(service => service.label),
+    currentShootType,
+  ];
+  const seen = new Set<string>();
+  return options.filter(option => {
+    const name = option.trim();
+    const key = name.toLocaleLowerCase('en-IN');
+    if (!name || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
 
 type BookingDraft = {
   customerName: string;
@@ -147,6 +165,7 @@ function BookingWizard({
   booking,
   enquiry,
   packages,
+  services,
   staffAccounts,
   onClose,
   onSave,
@@ -163,7 +182,9 @@ function BookingWizard({
   const [customerName, setCustomerName] = useState(stored?.customerName ?? booking?.customerName ?? enquiry?.name ?? '');
   const [customerPhone, setCustomerPhone] = useState(stored?.customerPhone ?? booking?.customerPhone ?? enquiry?.phone ?? '');
   const [customerEmail, setCustomerEmail] = useState(stored?.customerEmail ?? booking?.customerEmail ?? enquiry?.email ?? '');
-  const [shootType, setShootType] = useState(stored?.shootType || booking?.shootType || enquiry?.shootType || 'Wedding');
+  const [shootType, setShootType] = useState(
+    stored?.shootType || booking?.shootType || enquiry?.shootType || bookingServiceOptions(services)[0] || '',
+  );
   const [preferredEvent, setPreferredEvent] = useState(stored?.preferredEvent ?? booking?.preferredEvent ?? enquiry?.preferredEvent ?? '');
   const [bookingDate, setBookingDate] = useState(stored?.bookingDate ?? booking?.bookingDate ?? enquiry?.bookingDate ?? initialSchedule?.bookingDate ?? '');
   const [startTime, setStartTime] = useState(stored?.startTime ?? booking?.startTime ?? enquiry?.startTime ?? initialSchedule?.startTime ?? '');
@@ -426,6 +447,13 @@ function BookingWizard({
 
   const input = 'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100';
   const matchingPackages = packagesForShootType(packages, shootType);
+  const serviceOptions = useMemo(
+    () => bookingServiceOptions(services, shootType),
+    [services, shootType],
+  );
+  useEffect(() => {
+    if (!shootType && serviceOptions[0]) setShootType(serviceOptions[0]);
+  }, [serviceOptions, shootType]);
   const selectedPackageOutsideFilter = packages.find(
     item => item.id === packageId && !packageMatchesShootType(item, shootType),
   );
@@ -491,7 +519,7 @@ function BookingWizard({
           {step === 1 && <section className="space-y-3">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Shoot details</h3>
             <div className="grid gap-3 sm:grid-cols-2">
-              <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.shootType} <span className="font-semibold text-red-600" aria-hidden="true">*</span><span className="sr-only"> required</span><select data-wizard-autofocus required className={`${input} mt-1`} value={shootType} onChange={e => handleShootType(e.target.value)}>{SHOOT_TYPE_OPTIONS.map(type => <option key={type}>{type}</option>)}</select></label>
+              <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.shootType} <span className="font-semibold text-red-600" aria-hidden="true">*</span><span className="sr-only"> required</span><select data-wizard-autofocus required className={`${input} mt-1`} value={shootType} onChange={e => handleShootType(e.target.value)}>{serviceOptions.map(type => <option key={type}>{type}</option>)}</select></label>
               <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.preferredEvent}<input className={`${input} mt-1`} value={preferredEvent} onChange={e => setPreferredEvent(e.target.value)} /></label>
               <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.bookingDate}<input id="booking-date" type="date" className={`${input} mt-1 ${fieldErrors.time && !bookingDate ? 'border-red-400 focus:border-red-500 focus:ring-red-100' : ''}`} value={bookingDate} aria-invalid={Boolean(fieldErrors.time && !bookingDate)} aria-describedby={fieldErrors.time ? 'booking-time-error booking-time-hint' : 'booking-time-hint'} onChange={e => { setBookingDate(e.target.value); setError(''); setFieldErrors(current => ({ ...current, time: undefined })); invalidateStep(1); }} /></label>
               <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.location}<input className={`${input} mt-1`} value={location} onChange={e => setLocation(e.target.value)} /></label>
@@ -698,6 +726,7 @@ type QuickFieldErrors = Partial<Record<'bookingDate' | 'time' | 'agreedTotal' | 
 function QuickConversionForm({
   enquiry,
   packages,
+  services,
   staffAccounts,
   onClose,
   onSave,
@@ -714,6 +743,7 @@ function QuickConversionForm({
   const [startTime, setStartTime] = useState(stored?.startTime ?? enquiry.startTime ?? '');
   const [endTime, setEndTime] = useState(stored?.endTime ?? enquiry.endTime ?? '');
   const [shootType, setShootType] = useState(stored?.shootType ?? enquiry.shootType ?? '');
+  const serviceOptions = bookingServiceOptions(services, shootType);
   const [preferredEvent, setPreferredEvent] = useState(stored?.preferredEvent ?? enquiry.preferredEvent ?? '');
   const [location, setLocation] = useState(stored?.location ?? enquiry.location ?? '');
   const [packageId, setPackageId] = useState(stored?.packageId ?? '');
@@ -875,7 +905,7 @@ function QuickConversionForm({
 
           <button type="button" onClick={() => setShowMore(value => !value)} className="flex h-12 w-full items-center justify-between rounded-xl bg-slate-50 px-4 text-sm font-semibold text-slate-700" aria-expanded={showMore}>More booking details <ChevronDown className={`h-4 w-4 transition ${showMore ? 'rotate-180' : ''}`} /></button>
           {showMore && <section className="grid gap-4 rounded-2xl border border-slate-200 p-4 sm:grid-cols-2">
-            <label className="text-sm font-medium text-slate-700">Photography service<select className={input} value={shootType} onChange={event => setShootType(event.target.value)}><option value="">Not decided</option>{SHOOT_TYPE_OPTIONS.map(type => <option key={type}>{type}</option>)}</select></label>
+            <label className="text-sm font-medium text-slate-700">Photography service<select className={input} value={shootType} onChange={event => setShootType(event.target.value)}><option value="">Not decided</option>{serviceOptions.map(type => <option key={type}>{type}</option>)}</select></label>
             <label className="text-sm font-medium text-slate-700">Preferred event<input className={input} value={preferredEvent} onChange={event => setPreferredEvent(event.target.value)} /></label>
             <label className="text-sm font-medium text-slate-700 sm:col-span-2">Location<div className="relative"><MapPin className="pointer-events-none absolute left-3 top-1/2 mt-0.5 h-4 w-4 -translate-y-1/2 text-slate-400" /><input className={`${input} pl-9`} value={location} onChange={event => setLocation(event.target.value)} /></div></label>
             <label className="text-sm font-medium text-slate-700">Assigned staff account<select className={input} value={assignedStaffAccountId} onChange={event => setAssignedStaffAccountId(event.target.value)}><option value="">Unassigned</option>{staffAccounts.map(account => <option key={account.id} value={account.id}>{account.name}{account.jobTitle ? ` · ${account.jobTitle}` : ''}</option>)}</select></label>

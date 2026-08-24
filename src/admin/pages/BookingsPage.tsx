@@ -9,6 +9,7 @@ import type {
   Enquiry,
   Package,
   PaymentState,
+  ServiceNavLink,
   StaffAccountOption,
 } from '../types';
 import { BookingFormModal } from '../components/BookingFormModal';
@@ -79,6 +80,7 @@ export function BookingsPage() {
   const restored = useMemo(restoredViewState, []);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [packages, setPackages] = useState<Package[]>([]);
+  const [bookingServices, setBookingServices] = useState<ServiceNavLink[]>([]);
   const [staffAccounts, setStaffAccounts] = useState<StaffAccountOption[]>([]);
   const [creating, setCreating] = useState(false);
   const [convertFromEnquiry, setConvertFromEnquiry] = useState<Enquiry | null>(null);
@@ -104,13 +106,15 @@ export function BookingsPage() {
     else setLoading(true);
     setError('');
     try {
-      const [bookingRows, packageRows, accountRows] = await Promise.all([
+      const [bookingRows, packageRows, siteContent, accountRows] = await Promise.all([
         api.getBookings(),
         canManage ? api.getPackages() : Promise.resolve<Package[]>([]),
+        canManage ? api.getSiteContent().catch(() => null) : Promise.resolve(null),
         canManage ? api.getAssignableStaffAccounts() : Promise.resolve<StaffAccountOption[]>([]),
       ]);
       setBookings(bookingRows);
       setPackages(packageRows);
+      setBookingServices(siteContent?.serviceNavLinks ?? []);
       setStaffAccounts(accountRows);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load bookings');
@@ -392,6 +396,7 @@ export function BookingsPage() {
         <BookingFormModal
           enquiry={convertFromEnquiry}
           packages={packages}
+          services={bookingServices}
           staffAccounts={staffAccounts}
           onClose={() => { setCreating(false); setConvertFromEnquiry(null); }}
           onSave={saveNew}

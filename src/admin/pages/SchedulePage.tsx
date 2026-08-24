@@ -7,7 +7,7 @@ import {
 import { api } from '../api/client';
 import type {
   Booking, BookingWritePayload, Package, ScheduleBookingItem, ScheduleConflictResponse,
-  StaffAccountOption,
+  ServiceNavLink, StaffAccountOption,
 } from '../types';
 import { BookingFormModal } from '../components/BookingFormModal';
 import { WhatsAppComposer } from '../components/WhatsAppComposer';
@@ -65,6 +65,7 @@ export function SchedulePage() {
   const [showCancelled, setShowCancelled] = useState(false);
   const [bookings, setBookings] = useState<ScheduleBookingItem[]>([]);
   const [packages, setPackages] = useState<Package[]>([]);
+  const [bookingServices, setBookingServices] = useState<ServiceNavLink[]>([]);
   const [staffAccounts, setStaffAccounts] = useState<StaffAccountOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -119,8 +120,8 @@ export function SchedulePage() {
 
   useEffect(() => {
     if (!canManage) return;
-    void Promise.all([api.getPackages(), api.getAssignableStaffAccounts()])
-      .then(([packageRows, accountRows]) => { setPackages(packageRows); setStaffAccounts(accountRows); })
+    void Promise.all([api.getPackages(), api.getSiteContent().catch(() => null), api.getAssignableStaffAccounts()])
+      .then(([packageRows, siteContent, accountRows]) => { setPackages(packageRows); setBookingServices(siteContent?.serviceNavLinks ?? []); setStaffAccounts(accountRows); })
       .catch(() => undefined);
   }, [canManage]);
 
@@ -190,7 +191,7 @@ export function SchedulePage() {
       </>}
 
       {canManage && slot && <DurationSheet slot={slot} bookings={bookings} onClose={() => setSlot(null)} onChoose={endTime => { setCreatingAt({ ...slot, endTime }); setSlot(null); }} />}
-      {canManage && creatingAt && <BookingFormModal packages={packages} staffAccounts={staffAccounts} initialSchedule={creatingAt} onClose={() => setCreatingAt(null)} onSave={saveNew} />}
+      {canManage && creatingAt && <BookingFormModal packages={packages} services={bookingServices} staffAccounts={staffAccounts} initialSchedule={creatingAt} onClose={() => setCreatingAt(null)} onSave={saveNew} />}
       {canManage && selected && <BookingActionSheet item={selected} onClose={() => setSelected(null)} onOpen={() => navigate(`/admin/bookings/${selected.id}`)} onWhatsApp={() => { setComposer({ context: whatsappContext(selected, canViewPayments), template: 'booking_confirmation' }); setSelected(null); }} onReschedule={() => { setRescheduling(selected); setSelected(null); }} onCancel={() => void cancelBooking(selected)} />}
       {canManage && rescheduling && <RescheduleSheet item={rescheduling} visibleBookings={bookings} onClose={() => setRescheduling(null)} onSaved={async updated => { setRescheduling(null); await loadSchedule(true); setComposer({ context: whatsappContext(updated, canViewPayments), template: 'booking_rescheduled' }); }} />}
       {canManage && composer && <WhatsAppComposer context={composer.context} initialTemplate={composer.template} onClose={() => setComposer(null)} />}
