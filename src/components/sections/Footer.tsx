@@ -137,10 +137,10 @@ export function Footer() {
         </div>
 
         <div className="flex flex-col items-center justify-between gap-4 border-t border-hairline/5 pt-8 pr-20 md:flex-row md:pr-24">
-          <p className="text-xs tracking-wide text-ink-300/40">
+          <p className="text-xs tracking-wide text-ink-300">
             © 2026 {companyName}. All rights reserved. Crafted with devotion.
           </p>
-          <div className="relative z-10 flex gap-6 text-xs text-ink-300/40">
+          <div className="relative z-10 flex gap-6 text-xs text-ink-300">
             <Link
               to="/privacy"
               data-cursor="hover"

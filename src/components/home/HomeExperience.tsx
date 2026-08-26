@@ -314,7 +314,10 @@ function StudioManifesto() {
       id="studio-intro"
       className="relative overflow-hidden bg-ink-950 px-5 py-24 sm:px-8 md:py-32 lg:px-12 lg:py-40"
     >
-      <div className="pointer-events-none absolute right-0 top-10 font-display text-[24vw] leading-none text-hairline/[0.025]">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute right-0 top-10 font-display text-[24vw] leading-none text-hairline/[0.025]"
+      >
         01
       </div>
       <div className="relative mx-auto grid max-w-[1480px] gap-16 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-24">
