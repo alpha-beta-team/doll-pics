@@ -23,6 +23,7 @@ import {
   packageMatchesShootType,
   packagePrefill,
   packagesForShootType,
+  photographyServiceOptions,
   validateBookingWizardStep,
   type BookingWizardFieldErrors,
 } from './bookingForm.utils';
@@ -46,24 +47,6 @@ type Props = {
   onSave: (payload: BookingWritePayload) => Promise<void>;
   initialSchedule?: { bookingDate: string; startTime: string; endTime: string };
 };
-
-function bookingServiceOptions(
-  services: ServiceNavLink[],
-  currentShootType = '',
-) {
-  const options = [
-    ...[...services].sort((left, right) => left.order - right.order).map(service => service.label),
-    currentShootType,
-  ];
-  const seen = new Set<string>();
-  return options.filter(option => {
-    const name = option.trim();
-    const key = name.toLocaleLowerCase('en-IN');
-    if (!name || seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
 
 type BookingDraft = {
   customerName: string;
@@ -183,7 +166,7 @@ function BookingWizard({
   const [customerPhone, setCustomerPhone] = useState(stored?.customerPhone ?? booking?.customerPhone ?? enquiry?.phone ?? '');
   const [customerEmail, setCustomerEmail] = useState(stored?.customerEmail ?? booking?.customerEmail ?? enquiry?.email ?? '');
   const [shootType, setShootType] = useState(
-    stored?.shootType || booking?.shootType || enquiry?.shootType || bookingServiceOptions(services)[0] || '',
+    stored?.shootType || booking?.shootType || enquiry?.shootType || photographyServiceOptions(services)[0] || '',
   );
   const [preferredEvent, setPreferredEvent] = useState(stored?.preferredEvent ?? booking?.preferredEvent ?? enquiry?.preferredEvent ?? '');
   const [bookingDate, setBookingDate] = useState(stored?.bookingDate ?? booking?.bookingDate ?? enquiry?.bookingDate ?? initialSchedule?.bookingDate ?? '');
@@ -448,7 +431,7 @@ function BookingWizard({
   const input = 'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100';
   const matchingPackages = packagesForShootType(packages, shootType);
   const serviceOptions = useMemo(
-    () => bookingServiceOptions(services, shootType),
+    () => photographyServiceOptions(services, shootType),
     [services, shootType],
   );
   useEffect(() => {
@@ -743,7 +726,7 @@ function QuickConversionForm({
   const [startTime, setStartTime] = useState(stored?.startTime ?? enquiry.startTime ?? '');
   const [endTime, setEndTime] = useState(stored?.endTime ?? enquiry.endTime ?? '');
   const [shootType, setShootType] = useState(stored?.shootType ?? enquiry.shootType ?? '');
-  const serviceOptions = bookingServiceOptions(services, shootType);
+  const serviceOptions = photographyServiceOptions(services, shootType);
   const [preferredEvent, setPreferredEvent] = useState(stored?.preferredEvent ?? enquiry.preferredEvent ?? '');
   const [location, setLocation] = useState(stored?.location ?? enquiry.location ?? '');
   const [packageId, setPackageId] = useState(stored?.packageId ?? '');

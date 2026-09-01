@@ -782,6 +782,7 @@ export type StaffAccessArea =
   | 'testimonials'
   | 'behind_scenes'
   | 'staff_profiles'
+  | 'services'
   | 'site_content'
   | 'integrations'
   | 'staff_accounts'

@@ -54,7 +54,7 @@ function sortableServiceId(service: ServiceNavLink, index: number): string {
 }
 
 export function ServicesPage() {
-  const { canManage, isReadOnly } = useFeatureAccess('site_content');
+  const { canManage, isReadOnly } = useFeatureAccess('services');
   const confirm = useConfirmDialog();
   const navigate = useNavigate();
   const location = useLocation();

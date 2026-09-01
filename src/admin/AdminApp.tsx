@@ -147,6 +147,8 @@ export default function AdminApp() {
               </Route>
               <Route element={<AccessRoute feature="site_content" />}>
                 <Route path="site-content" element={<SiteContentPage />} />
+              </Route>
+              <Route element={<AccessRoute feature="services" />}>
                 <Route path="services" element={<ServicesPage />} />
                 <Route path="services/new" element={<ServiceEditorPage />} />
                 <Route path="services/:id" element={<ServiceEditorPage />} />

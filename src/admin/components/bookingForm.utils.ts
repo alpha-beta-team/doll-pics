@@ -1,4 +1,4 @@
-import type { Package } from '../types';
+import type { Package, ServiceNavLink } from '../types';
 import { bookingTimeWindowError } from '../../shared/bookingTime';
 import { phoneNumberError } from './quickEntry.utils';
 
@@ -14,6 +14,26 @@ export const NEW_BOOKING_DEFAULTS = {
   whatsappOptIn: true,
   whatsappNotificationsEnabled: true,
 } as const;
+
+export function photographyServiceOptions(
+  services: ServiceNavLink[],
+  currentShootType = '',
+) {
+  const options = [
+    ...[...services]
+      .sort((left, right) => left.order - right.order)
+      .map(service => service.label),
+    currentShootType,
+  ];
+  const seen = new Set<string>();
+  return options.filter(option => {
+    const name = option.trim();
+    const key = name.toLocaleLowerCase('en-IN');
+    if (!name || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
 
 export const BOOKING_WIZARD_FIELD_LABELS = {
   customerName: 'Name',

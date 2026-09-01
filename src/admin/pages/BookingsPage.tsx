@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { AlertCircle, Inbox, SearchX, X } from 'lucide-react';
 import { api } from '../api/client';
@@ -82,6 +82,9 @@ export function BookingsPage() {
   const [packages, setPackages] = useState<Package[]>([]);
   const [bookingServices, setBookingServices] = useState<ServiceNavLink[]>([]);
   const [staffAccounts, setStaffAccounts] = useState<StaffAccountOption[]>([]);
+  const [staffLoadFailed, setStaffLoadFailed] = useState(false);
+  const [formDataLoaded, setFormDataLoaded] = useState(false);
+  const formDataPromise = useRef<Promise<boolean> | null>(null);
   const [creating, setCreating] = useState(false);
   const [convertFromEnquiry, setConvertFromEnquiry] = useState<Enquiry | null>(null);
   const [loading, setLoading] = useState(true);
@@ -106,25 +109,56 @@ export function BookingsPage() {
     else setLoading(true);
     setError('');
     try {
-      const [bookingRows, packageRows, siteContent, accountRows] = await Promise.all([
-        api.getBookings(),
-        canManage ? api.getPackages() : Promise.resolve<Package[]>([]),
-        canManage ? api.getSiteContent().catch(() => null) : Promise.resolve(null),
-        canManage ? api.getAssignableStaffAccounts() : Promise.resolve<StaffAccountOption[]>([]),
-      ]);
-      setBookings(bookingRows);
-      setPackages(packageRows);
-      setBookingServices(siteContent?.serviceNavLinks ?? []);
-      setStaffAccounts(accountRows);
+      setBookings(await api.getBookingListRows());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load bookings');
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [canManage]);
+  }, []);
 
   useEffect(() => { void load(); }, [load]);
+
+  useEffect(() => {
+    if (!canManage) return;
+    let active = true;
+    setStaffLoadFailed(false);
+    void api.getAssignableStaffAccounts()
+      .then(rows => { if (active) setStaffAccounts(rows); })
+      .catch(() => { if (active) setStaffLoadFailed(true); });
+    return () => { active = false; };
+  }, [canManage]);
+
+  const ensureBookingFormData = useCallback(async () => {
+    if (!canManage) return false;
+    if (formDataLoaded) return true;
+    if (formDataPromise.current) return formDataPromise.current;
+    formDataPromise.current = (async () => {
+      try {
+        const [packageRows, siteContent] = await Promise.all([
+          api.getPackages(),
+          api.getSiteContent().catch(() => null),
+        ]);
+        setPackages(packageRows);
+        setBookingServices(siteContent?.serviceNavLinks ?? []);
+        setFormDataLoaded(true);
+        return true;
+      } catch (loadError) {
+        setError(loadError instanceof Error ? loadError.message : 'Could not load booking form data');
+        return false;
+      } finally {
+        formDataPromise.current = null;
+      }
+    })();
+    return formDataPromise.current;
+  }, [canManage, formDataLoaded]);
+
+  const openCreateBooking = useCallback(async (enquiry?: Enquiry) => {
+    if (!await ensureBookingFormData()) return;
+    setConvertFromEnquiry(enquiry ?? null);
+    setCreating(true);
+  }, [ensureBookingFormData]);
 
   useEffect(() => {
     if (loading) return;
@@ -147,22 +181,20 @@ export function BookingsPage() {
     if (!canManage) return;
     const next = consumeNewBookingSearch(location.search);
     if (!next.shouldOpen) return;
-    setConvertFromEnquiry(null);
-    setCreating(true);
+    void openCreateBooking();
     navigate(
       { pathname: location.pathname, search: next.search },
       { replace: true, state: location.state },
     );
-  }, [canManage, location.pathname, location.search, location.state, navigate]);
+  }, [canManage, location.pathname, location.search, location.state, navigate, openCreateBooking]);
 
   useEffect(() => {
     if (!canManage) return;
     const state = location.state as ConvertEnquiryState | null;
     if (!state?.convertFromEnquiry) return;
-    setConvertFromEnquiry(state.convertFromEnquiry);
-    setCreating(true);
+    void openCreateBooking(state.convertFromEnquiry);
     navigate(location.pathname, { replace: true, state: {} });
-  }, [canManage, location.pathname, location.state, navigate]);
+  }, [canManage, location.pathname, location.state, navigate, openCreateBooking]);
 
   const serviceCategory = requestedServiceCategory
     && bookings.some(booking => serviceCategoryMatches(booking, requestedServiceCategory))
@@ -290,7 +322,7 @@ export function BookingsPage() {
             refreshing={refreshing}
             onRefresh={() => void load(true)}
             canManage={canManage}
-            onAdd={() => setCreating(true)}
+            onAdd={() => void openCreateBooking()}
           />
         )}
       />
@@ -318,6 +350,7 @@ export function BookingsPage() {
             <select value={assignee} onChange={event => setAssignee(event.target.value)} className="h-11 w-full rounded-xl border border-admin-control bg-admin-surface px-3 text-sm text-admin-secondary outline-none focus-visible:ring-2 focus-visible:ring-admin-focus">
               <option value="">All assignees</option>
               <option value="unassigned">Unassigned</option>
+              {staffLoadFailed && <option value="" disabled>Staff options unavailable</option>}
               {staffAccounts.map(account => <option key={account.id} value={account.id}>{account.name}</option>)}
             </select>
           </label>
@@ -380,7 +413,7 @@ export function BookingsPage() {
             icon={Inbox}
             title="No bookings yet"
             description="New shoots will appear here as soon as they are booked."
-            action={canManage ? <AdminButton onClick={() => setCreating(true)}>Add booking</AdminButton> : undefined}
+            action={canManage ? <AdminButton onClick={() => void openCreateBooking()}>Add booking</AdminButton> : undefined}
           />
         ) : (
           <AdminEmptyState

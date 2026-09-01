@@ -116,7 +116,7 @@ function editorTab(value: string | null): EditorTab {
 export function ServiceEditorPage() {
   const { id } = useParams<{ id: string }>();
   const isNew = !id;
-  const { canManage, isReadOnly } = useFeatureAccess('site_content');
+  const { canManage, isReadOnly } = useFeatureAccess('services');
   const navigate = useNavigate();
   const location = useLocation();
   const confirm = useConfirmDialog();

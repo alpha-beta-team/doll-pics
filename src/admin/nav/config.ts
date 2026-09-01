@@ -153,7 +153,7 @@ export const PRIMARY_NAVIGATION: NavigationNode[] = [
         route: '/admin/services',
         icon: LayoutList,
         displayOrder: 40,
-        access: { feature: 'site_content', level: 'view' },
+        access: { feature: 'services', level: 'view' },
         featureFlag: 'website',
         subgroupLabel: 'Services & Packages',
       },
