@@ -14,6 +14,7 @@ import {
 type EnquiryCardProps = {
   enquiry: Enquiry;
   canContact: boolean;
+  canViewPhone: boolean;
   onOpen: () => void;
 };
 
@@ -42,11 +43,12 @@ function EnquiryActions({
   enquiry,
   customer,
   canContact,
+  canViewPhone,
   onOpen,
 }: EnquiryCardProps & { customer: string }) {
   return (
     <div className="ml-auto flex shrink-0 items-center gap-0.5">
-      {canContact && enquiry.phone && (
+      {canContact && enquiry.phone && canViewPhone && (
         <>
           <a
             href={`tel:${enquiry.phone}`}
@@ -135,7 +137,7 @@ export function EnquiryCard({ enquiry, canContact, onOpen }: EnquiryCardProps) {
               <p className="mt-0.5 min-w-0"><FollowUpLabel enquiry={enquiry} /></p>
             )}
           </div>
-          <EnquiryActions enquiry={enquiry} customer={customer} canContact={canContact} onOpen={onOpen} />
+          <EnquiryActions enquiry={enquiry} customer={customer} canContact={canContact} canViewPhone={canContact} onOpen={onOpen} />
         </div>
       </div>
 
@@ -153,7 +155,7 @@ export function EnquiryCard({ enquiry, canContact, onOpen }: EnquiryCardProps) {
         </div>
         <p className="truncate text-sm text-admin-secondary">{formatReceivedAt(enquiry.createdAt)}</p>
         <div className="min-w-0 text-xs"><FollowUpLabel enquiry={enquiry} /></div>
-        <EnquiryActions enquiry={enquiry} customer={customer} canContact={canContact} onOpen={onOpen} />
+        <EnquiryActions enquiry={enquiry} customer={customer} canContact={canContact} canViewPhone={canContact} onOpen={onOpen} />
       </div>
     </article>
   );

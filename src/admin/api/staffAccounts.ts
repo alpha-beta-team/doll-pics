@@ -1,4 +1,4 @@
-import type { StaffAccount, StaffAccountOption } from '../types';
+import type { StaffAccount, StaffAccountOption, StaffPermission } from '../types';
 import { normalizePermissionOverrides, normalizeStaffAccountRole } from '../access/roles';
 import { request } from './http';
 
@@ -6,6 +6,7 @@ type StaffAccountResponse = Omit<StaffAccount, 'jobTitle' | 'role' | 'permission
   jobTitle?: unknown;
   role?: unknown;
   permissionOverrides?: unknown;
+  permissions?: unknown;
 };
 
 export function normalizeStaffAccount(account: StaffAccountResponse): StaffAccount {
@@ -14,6 +15,7 @@ export function normalizeStaffAccount(account: StaffAccountResponse): StaffAccou
     jobTitle: typeof account.jobTitle === 'string' ? account.jobTitle : '',
     role: normalizeStaffAccountRole(account.role),
     permissionOverrides: normalizePermissionOverrides(account.permissionOverrides),
+    permissions: Array.isArray(account.permissions) ? account.permissions.filter((item): item is string => typeof item === 'string') : [],
     employeeCode: typeof account.employeeCode === 'string' ? account.employeeCode : undefined,
     attendanceEnabled: account.attendanceEnabled === true,
     joiningDate: typeof account.joiningDate === 'string' ? account.joiningDate : '',
@@ -26,9 +28,16 @@ export const staffAccountsApi = {
   getAssignableStaffAccounts(): Promise<StaffAccountOption[]> {
     return request<StaffAccountOption[]>('/admin/staff-accounts/assignable', { auth: true });
   },
+  async getStaffAccount(id: string): Promise<StaffAccount> {
+    const account = await request<StaffAccountResponse>(`/admin/staff-accounts/${id}`, { auth: true });
+    return normalizeStaffAccount(account);
+  },
   async getStaffAccounts(): Promise<StaffAccount[]> {
     const accounts = await request<StaffAccountResponse[]>('/admin/staff-accounts', { auth: true });
     return accounts.map(normalizeStaffAccount);
+  },
+  getStaffPermissions(): Promise<StaffPermission[]> {
+    return request<StaffPermission[]>('/admin/staff-accounts/permissions', { auth: true });
   },
   async createStaffAccount(data: {
     name: string;
@@ -37,6 +46,7 @@ export const staffAccountsApi = {
     temporaryPassword?: string;
     role: StaffAccount['role'];
     permissionOverrides?: StaffAccount['permissionOverrides'];
+    permissions?: StaffAccount['permissions'];
     employeeCode?: string;
     attendanceEnabled?: boolean;
     joiningDate?: string;
@@ -47,7 +57,7 @@ export const staffAccountsApi = {
     });
     return normalizeStaffAccount(account);
   },
-  async updateStaffAccount(id: string, data: Partial<Pick<StaffAccount, 'name' | 'jobTitle' | 'role' | 'permissionOverrides' | 'isActive' | 'employeeCode' | 'attendanceEnabled' | 'joiningDate' | 'employmentEndDate'>>): Promise<StaffAccount> {
+  async updateStaffAccount(id: string, data: Partial<Pick<StaffAccount, 'name' | 'jobTitle' | 'role' | 'permissionOverrides' | 'permissions' | 'isActive' | 'employeeCode' | 'attendanceEnabled' | 'joiningDate' | 'employmentEndDate'>>): Promise<StaffAccount> {
     const account = await request<StaffAccountResponse>(`/admin/staff-accounts/${id}`, {
       method: 'PATCH', auth: true, body: JSON.stringify(data),
     });

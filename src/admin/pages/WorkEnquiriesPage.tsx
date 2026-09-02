@@ -6,7 +6,9 @@ import { EnquiryFormModal } from '../components/EnquiryFormModal';
 import type { Enquiry, EnquiryStage } from '../types';
 import { AdminButton, AdminEmptyState } from '../components/ui';
 import { useFeatureAccess } from '../access/useFeatureAccess';
+import { useAuth } from '../contexts/AuthContext';
 import { ReadOnlyNotice } from '../components/ReadOnlyNotice';
+import { hasStaffPermission } from '../access/roles';
 import { EnquiryToolbar } from '../components/enquiries/EnquiryToolbar';
 import {
   EnquirySortControl,
@@ -40,6 +42,8 @@ type OccasionContact = {
 
 export function WorkEnquiriesPage() {
   const { canManage, isReadOnly } = useFeatureAccess('enquiries');
+  const { user } = useAuth();
+  const canViewPhone = hasStaffPermission(user, 'view_client_phone_number');
   const navigate = useNavigate();
   const location = useLocation();
   const [params, setParams] = useSearchParams();
@@ -258,10 +262,11 @@ export function WorkEnquiriesPage() {
         ) : visible.length > 0 ? (
           <div className="space-y-2 lg:space-y-0">
             {visible.map(item => (
-              <EnquiryCard
+          <EnquiryCard
                 key={item.id}
                 enquiry={item}
-                canContact={canManage}
+                canContact={canManage && canViewPhone}
+                canViewPhone={canViewPhone}
                 onOpen={() => navigate(`/admin/enquiries/${item.id}`)}
               />
             ))}

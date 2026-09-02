@@ -38,6 +38,7 @@ export type {
   StaffAccessArea,
   StaffAccessLevel,
   StaffPermissionOverrides,
+  StaffPermission,
   StaffAccountRole,
   TodayWork,
   TodayFollowUp,

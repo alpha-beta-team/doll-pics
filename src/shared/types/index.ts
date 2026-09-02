@@ -738,6 +738,15 @@ export type StaffAccessLevel = 'manage' | 'view' | 'none';
 
 export type StaffPermissionOverrides = Partial<Record<StaffAccessArea, StaffAccessLevel>>;
 
+export type StaffPermission = {
+  id: string;
+  key: string;
+  label: string;
+  description: string;
+  category: string;
+  enabled: boolean;
+};
+
 export type StaffAccount = {
   id: string;
   email?: string;
@@ -745,6 +754,7 @@ export type StaffAccount = {
   jobTitle?: string;
   role: StaffAccountRole;
   permissionOverrides?: StaffPermissionOverrides;
+  permissions?: string[];
   isActive: boolean;
   mustChangePassword: boolean;
   employeeCode?: string;

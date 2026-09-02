@@ -16,6 +16,7 @@ import { EnquiryDetailPage } from "./pages/EnquiryDetailPage";
 import { TodayPage } from "./pages/TodayPage";
 import { PaymentsPage } from "./pages/PaymentsPage";
 import { StaffAccountsPage } from "./pages/StaffAccountsPage";
+import { StaffAccountDetailPage } from "./pages/StaffAccountDetailPage";
 import { SalaryManagementPage } from './pages/SalaryManagementPage';
 import { ChangePasswordPage } from "./pages/ChangePasswordPage";
 import { HelpPage } from "./pages/HelpPage";
@@ -117,6 +118,7 @@ export default function AdminApp() {
               </Route>
               <Route element={<AccessRoute feature="staff_accounts" />}>
                 <Route path="staff-accounts" element={<StaffAccountsPage />} />
+                <Route path="staff-accounts/:id" element={<StaffAccountDetailPage />} />
                 <Route path="staff-accounts/salary" element={<SalaryManagementPage />} />
                 <Route path="attendance" element={<AttendanceAdminPage />} />
                 <Route path="attendance/requests" element={<AttendanceRequestsPage />} />

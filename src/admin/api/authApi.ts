@@ -18,6 +18,7 @@ function mapStaffAccount(data: {
   jobTitle?: string;
   role?: unknown;
   permissionOverrides?: unknown;
+  permissions?: unknown;
   isActive?: boolean;
   mustChangePassword?: boolean;
 }): StaffAccount {
@@ -28,6 +29,7 @@ function mapStaffAccount(data: {
     jobTitle: data.jobTitle || '',
     role: normalizeStaffAccountRole(data.role, 'owner'),
     permissionOverrides: normalizePermissionOverrides(data.permissionOverrides),
+    permissions: Array.isArray(data.permissions) ? data.permissions.filter((item): item is string => typeof item === 'string') : [],
     isActive: data.isActive !== false,
     mustChangePassword: data.mustChangePassword === true,
   };
@@ -46,6 +48,7 @@ export const authApi = {
       jobTitle?: string;
       role?: unknown;
       permissionOverrides?: unknown;
+      permissions?: unknown;
       isActive?: boolean;
       mustChangePassword?: boolean;
     }>('/auth/login', {
@@ -77,6 +80,7 @@ export const authApi = {
         jobTitle?: string;
         role?: unknown;
         permissionOverrides?: unknown;
+        permissions?: unknown;
         isActive?: boolean;
         mustChangePassword?: boolean;
       }>(

@@ -29,7 +29,9 @@ import type {
 import { BookingFormModal } from '../components/BookingFormModal';
 import { useConfirmDialog } from '../hooks/useConfirmDialog';
 import { useFeatureAccess } from '../access/useFeatureAccess';
+import { useAuth } from '../contexts/AuthContext';
 import { ReadOnlyNotice } from '../components/ReadOnlyNotice';
+import { hasStaffPermission } from '../access/roles';
 import {
   deliveryWhatsAppMessage,
   deliveryWhatsAppUrl,
@@ -104,6 +106,8 @@ export function BookingDetailPage() {
   const { canManage: canManageBooking, isReadOnly } = useFeatureAccess('bookings');
   const { canView: canViewPayments } = useFeatureAccess('payments');
   const { canManage: canManageIntegrations } = useFeatureAccess('integrations');
+  const { user } = useAuth();
+  const canViewPhone = hasStaffPermission(user, 'view_client_phone_number');
   const confirmDialog = useConfirmDialog();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -486,7 +490,7 @@ export function BookingDetailPage() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card title="Customer and booking">
-          <div className="grid gap-5 sm:grid-cols-2"><Field label="Phone"><a className="text-blue-600" href={`tel:${booking.customerPhone}`}>{booking.customerPhone}</a></Field><Field label="Email">{booking.customerEmail ? <a className="text-blue-600" href={`mailto:${booking.customerEmail}`}>{booking.customerEmail}</a> : '—'}</Field><Field label="Photography service">{booking.shootType || '—'}</Field><Field label="Preferred event">{booking.preferredEvent || '—'}</Field><Field label="Booking date">{formatDay(booking.bookingDate)}</Field><Field label="Time window">{formatTimeWindow(booking.startTime, booking.endTime)}{bookingDurationLabel(booking.startTime, booking.endTime) ? ` · ${bookingDurationLabel(booking.startTime, booking.endTime)}` : ''}</Field><Field label="Location">{booking.location || '—'}</Field><Field label="Package">{booking.packageName || 'No package'}</Field><Field label="Assigned to">{booking.assignedStaffAccountName || 'Unassigned'}</Field></div>
+          <div className="grid gap-5 sm:grid-cols-2"><Field label="Phone">{canViewPhone ? <a className="text-blue-600" href={`tel:${booking.customerPhone}`}>{booking.customerPhone}</a> : booking.customerPhone}</Field><Field label="Email">{booking.customerEmail ? <a className="text-blue-600" href={`mailto:${booking.customerEmail}`}>{booking.customerEmail}</a> : '—'}</Field><Field label="Photography service">{booking.shootType || '—'}</Field><Field label="Preferred event">{booking.preferredEvent || '—'}</Field><Field label="Booking date">{formatDay(booking.bookingDate)}</Field><Field label="Time window">{formatTimeWindow(booking.startTime, booking.endTime)}{bookingDurationLabel(booking.startTime, booking.endTime) ? ` · ${bookingDurationLabel(booking.startTime, booking.endTime)}` : ''}</Field><Field label="Location">{booking.location || '—'}</Field><Field label="Package">{booking.packageName || 'No package'}</Field><Field label="Assigned to">{booking.assignedStaffAccountName || 'Unassigned'}</Field></div>
           {booking.notes && <div className="mt-5 rounded-lg bg-slate-50 p-4 text-sm whitespace-pre-wrap text-slate-700">{booking.notes}</div>}
         </Card>
 
@@ -577,8 +581,8 @@ export function BookingDetailPage() {
         </Card>}
       </div>
 
-      <CustomerLookupPanel phone={booking.customerPhone} current={{ type: 'booking', id: booking.id }} />
-      {canManageBooking && <ImportantDatesPanel phone={booking.customerPhone} customerName={booking.customerName} email={booking.customerEmail} source={{ type: 'booking', id: booking.id }} />}
+      {canManageBooking && canViewPhone && <CustomerLookupPanel phone={booking.customerPhone} current={{ type: 'booking', id: booking.id }} />}
+      {canManageBooking && canViewPhone && <ImportantDatesPanel phone={booking.customerPhone} customerName={booking.customerName} email={booking.customerEmail} source={{ type: 'booking', id: booking.id }} />}
       {canManageBooking && <VoiceNotesPanel recordType="booking" recordId={booking.id} />}
 
       <Card title="Schedule history">
@@ -597,7 +601,7 @@ export function BookingDetailPage() {
       </Card>}
 
       {canManageBooking && editing && <BookingFormModal booking={booking} packages={packages} staffAccounts={staffAccounts} onClose={() => setEditing(false)} onSave={saveEdit} />}
-      {canManageBooking && messageOpen && <WhatsAppComposer initialTemplate={messageOpen} context={{ customerName: booking.customerName, phone: booking.customerPhone, service: booking.shootType || booking.packageName, bookingDate: booking.bookingDate, startTime: booking.startTime, endTime: booking.endTime, location: booking.location, balanceDue: canViewPayments ? booking.paymentSummary.balanceDue : undefined, paymentDueDate: canViewPayments ? booking.paymentDueDate : undefined, reviewUrl, consentRecorded: booking.whatsappOptIn, optedOut: Boolean(booking.whatsappOptOutAt) }} onOpened={messageOpen === 'review_request' ? () => updateReview('requested') : undefined} onClose={() => setMessageOpen(null)} />}
+      {canManageBooking && messageOpen && canViewPhone && <WhatsAppComposer initialTemplate={messageOpen} context={{ customerName: booking.customerName, phone: booking.customerPhone, service: booking.shootType || booking.packageName, bookingDate: booking.bookingDate, startTime: booking.startTime, endTime: booking.endTime, location: booking.location, balanceDue: canViewPayments ? booking.paymentSummary.balanceDue : undefined, paymentDueDate: canViewPayments ? booking.paymentDueDate : undefined, reviewUrl, consentRecorded: booking.whatsappOptIn, optedOut: Boolean(booking.whatsappOptOutAt) }} onOpened={messageOpen === 'review_request' ? () => updateReview('requested') : undefined} onClose={() => setMessageOpen(null)} />}
       {canViewPayments && paymentModal && <PaymentModal payment={paymentModal === 'new' ? null : paymentModal} onClose={() => setPaymentModal(null)} onSave={async data => { const updated = paymentModal === 'new' ? await api.addBookingPayment(booking.id, data) : await api.updateBookingPayment(booking.id, paymentModal.id, data); sync(updated); setPaymentModal(null); }} />}
     </div>
   );
