@@ -22,7 +22,7 @@ import { hasStaffPermission } from '../access/roles';
 export function EnquiryDetailPage() {
   const { canManage, isReadOnly } = useFeatureAccess('enquiries');
   const { user } = useAuth();
-  const canViewPhone = hasStaffPermission(user, 'view_client_phone_number');
+  const canViewPhone = hasStaffPermission(user, 'mask_phone_number');
   const { id = '' } = useParams();
   const navigate = useNavigate();
   const confirm = useConfirmDialog();

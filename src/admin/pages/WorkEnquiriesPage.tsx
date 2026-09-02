@@ -43,7 +43,7 @@ type OccasionContact = {
 export function WorkEnquiriesPage() {
   const { canManage, isReadOnly } = useFeatureAccess('enquiries');
   const { user } = useAuth();
-  const canViewPhone = hasStaffPermission(user, 'view_client_phone_number');
+  const canViewPhone = hasStaffPermission(user, 'mask_phone_number');
   const navigate = useNavigate();
   const location = useLocation();
   const [params, setParams] = useSearchParams();

@@ -77,7 +77,7 @@ export function BookingsPage() {
   const { canManage, isReadOnly } = useFeatureAccess('bookings');
   const { canView: canViewPayments } = useFeatureAccess('payments');
   const { user } = useAuth();
-  const canViewPhone = hasStaffPermission(user, 'view_client_phone_number');
+  const canViewPhone = hasStaffPermission(user, 'mask_phone_number');
   const navigate = useNavigate();
   const location = useLocation();
   const [params, setParams] = useSearchParams();

@@ -8,7 +8,7 @@ import { hasStaffPermission } from '../access/roles';
 
 type Tab = 'profile' | 'permissions';
 
-const VIEW_CLIENT_PHONE_PERMISSION = 'view_client_phone_number';
+const MASK_CLIENT_PHONE_PERMISSION = 'mask_phone_number';
 
 export function StaffAccountDetailPage() {
   const { id = '' } = useParams();
@@ -91,7 +91,7 @@ export function StaffAccountDetailPage() {
           <DetailRow label="Status" value={account.isActive ? 'Active' : 'Inactive'} />
           <DetailRow label="CMS login" value={account.email || 'Not set'} />
           <DetailRow label="Attendance login" value={account.attendanceEnabled ? 'Enabled' : 'Disabled'} />
-          <DetailRow label="Phone visibility" value={hasStaffPermission(account, VIEW_CLIENT_PHONE_PERMISSION) ? 'Can view client phone numbers' : 'Phone numbers are masked'} />
+          <DetailRow label="Phone policy" value={hasStaffPermission(account, MASK_CLIENT_PHONE_PERMISSION) ? 'Masked' : 'Visible'} />
         </AdminCard>
       ) : (
         <AdminCard className="p-5">
@@ -106,14 +106,18 @@ export function StaffAccountDetailPage() {
               <label key={permission.id} className="flex items-center justify-between gap-4 rounded-xl border border-admin-border bg-admin-surface p-4">
                 <span className="min-w-0">
                   <span className="block font-semibold text-admin-text">{permission.label}</span>
-                  <span className="mt-1 block text-sm text-admin-subtle">{permission.description}</span>
+                  <span className="mt-1 block text-sm text-admin-subtle">
+                    {permission.key === MASK_CLIENT_PHONE_PERMISSION
+                      ? 'Controls client phone privacy in bookings and enquiries.'
+                      : permission.description}
+                  </span>
                 </span>
                 <span className="flex items-center gap-3">
                   <span className="text-xs font-semibold uppercase tracking-wide text-admin-subtle">{permission.category}</span>
                   <input
                     type="checkbox"
                     disabled={saving || account.role === 'owner'}
-                    checked={permission.key === VIEW_CLIENT_PHONE_PERMISSION ? hasStaffPermission(account, VIEW_CLIENT_PHONE_PERMISSION) : (account.permissions ?? []).includes(permission.key)}
+                    checked={permission.key === MASK_CLIENT_PHONE_PERMISSION ? hasStaffPermission(account, MASK_CLIENT_PHONE_PERMISSION) : (account.permissions ?? []).includes(permission.key)}
                     onChange={(event) => void savePermission(permission.key, event.target.checked)}
                     className="h-5 w-5 rounded border-admin-control text-admin-primary focus:ring-admin-focus disabled:opacity-40"
                   />
@@ -121,7 +125,7 @@ export function StaffAccountDetailPage() {
               </label>
             ))}
           </div>
-          {account.role === 'owner' && <div className="mt-4"><AdminAlert tone="warning">Owner accounts always retain phone visibility.</AdminAlert></div>}
+          {account.role === 'owner' && <div className="mt-4"><AdminAlert tone="warning">Owner accounts always see unmasked phone numbers.</AdminAlert></div>}
         </AdminCard>
       )}
     </div>

@@ -108,7 +108,7 @@ export function BookingDetailPage() {
   const { canView: canViewPayments } = useFeatureAccess('payments');
   const { canManage: canManageIntegrations } = useFeatureAccess('integrations');
   const { user } = useAuth();
-  const canViewPhone = hasStaffPermission(user, 'view_client_phone_number');
+  const canViewPhone = hasStaffPermission(user, 'mask_phone_number');
   const confirmDialog = useConfirmDialog();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
