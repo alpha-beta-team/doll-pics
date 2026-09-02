@@ -26,7 +26,7 @@ export function StaffAccountDetailPage() {
     try {
       const [accountRow, perms] = await Promise.all([api.getStaffAccount(id), api.getStaffPermissions()]);
       setAccount(accountRow);
-      setPermissions(perms);
+      setPermissions(perms.filter((permission) => permission.key !== 'view_client_phone_number'));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not load this staff account.');
     } finally {
