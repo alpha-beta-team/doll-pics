@@ -43,6 +43,11 @@ async function bookingRequest(path: string, options?: RequestInit & { auth?: boo
 }
 
 export const bookingsApi = {
+  async getBookingListRows(): Promise<Booking[]> {
+    const docs = await request<Record<string, unknown>[]>('/admin/lists/bookings', { auth: true });
+    return docs.map(mapBooking);
+  },
+
   async getBookings(filters?: {
     status?: BookingStatus;
     dateFrom?: string;

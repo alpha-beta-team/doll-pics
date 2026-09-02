@@ -43,6 +43,7 @@ import { TeamLeaveCalendarPage } from "./pages/TeamLeaveCalendarPage";
 import { FieldAssignmentsPage } from "./pages/FieldAssignmentsPage";
 import { AttendanceReportsPage } from "./pages/AttendanceReportsPage";
 import { AttendanceSettingsPage } from "./pages/AttendanceSettingsPage";
+import { OwnerOverviewPage } from "./pages/OwnerOverviewPage";
 
 function useAdminNoIndex() {
   useEffect(() => {
@@ -97,6 +98,7 @@ export default function AdminApp() {
               <Route index element={<DefaultAdminRedirect />} />
               <Route path="access-denied" element={<AccessDeniedPage />} />
               <Route path="help" element={<HelpPage />} />
+              <Route element={<AccessRoute feature="owner_overview" />}><Route path="owner" element={<OwnerOverviewPage />} /></Route>
               <Route element={<AccessRoute feature="today" />}><Route path="today" element={<TodayPage />} /></Route>
               <Route element={<AccessRoute feature="enquiries" />}>
                 <Route path="enquiries" element={<WorkEnquiriesPage />} />
@@ -147,6 +149,8 @@ export default function AdminApp() {
               </Route>
               <Route element={<AccessRoute feature="site_content" />}>
                 <Route path="site-content" element={<SiteContentPage />} />
+              </Route>
+              <Route element={<AccessRoute feature="services" />}>
                 <Route path="services" element={<ServicesPage />} />
                 <Route path="services/new" element={<ServiceEditorPage />} />
                 <Route path="services/:id" element={<ServiceEditorPage />} />

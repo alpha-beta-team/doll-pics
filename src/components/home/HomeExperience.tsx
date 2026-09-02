@@ -16,10 +16,18 @@ import {
 } from '../../contexts/SiteDataContext';
 import { useInView } from '../../hooks/useScroll';
 import { BOOKING_ROUTE } from '../../lib/navigation';
-import { mediaSrcSet, mediaUrl } from '../../lib/images';
+import {
+  HERO_QUALITY,
+  mediaSrcSet,
+  mediaUrl,
+} from '../../lib/images';
 import { ResponsiveImage } from '../ResponsiveImage';
 
 const HERO_INTERVAL_MS = 6500;
+
+function dismissBuildTimeHero() {
+  document.getElementById('home-hero-poster')?.remove();
+}
 
 function Reveal({
   children,
@@ -71,23 +79,44 @@ export function HomeExperience() {
 function EditorialHero() {
   const { heroSlides, siteContent } = useSiteData();
   const [active, setActive] = useState(0);
+  const [carouselReady, setCarouselReady] = useState(false);
   const slides = heroSlides.slice(0, 5);
 
   useEffect(() => {
-    if (slides.length < 2) return;
+    if (slides.length < 2 || carouselReady) return;
+    const enableCarousel = () => {
+      // The poster is rendered directly in the initial HTML so the hero can
+      // paint before React. Keep it until interaction finalizes LCP, then hand
+      // off to the already-loaded React carousel.
+      dismissBuildTimeHero();
+      setCarouselReady(true);
+    };
+    window.addEventListener('pointerdown', enableCarousel, { once: true });
+    window.addEventListener('keydown', enableCarousel, { once: true });
+    window.addEventListener('scroll', enableCarousel, {
+      once: true,
+      passive: true,
+    });
+    return () => {
+      window.removeEventListener('pointerdown', enableCarousel);
+      window.removeEventListener('keydown', enableCarousel);
+      window.removeEventListener('scroll', enableCarousel);
+    };
+  }, [carouselReady, slides.length]);
+
+  useEffect(() => {
+    if (!carouselReady || slides.length < 2) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const interval = window.setInterval(
       () => setActive((current) => (current + 1) % slides.length),
       HERO_INTERVAL_MS,
     );
     return () => window.clearInterval(interval);
-  }, [slides.length]);
+  }, [carouselReady, slides.length]);
 
   useEffect(() => {
     if (active >= slides.length) setActive(0);
   }, [active, slides.length]);
-
-  if (!slides.length) return null;
 
   const heading =
     siteContent.heroHeading ||
@@ -99,7 +128,7 @@ function EditorialHero() {
   return (
     <section className="home-hero relative min-h-[760px] overflow-hidden bg-[#090908] text-white">
       <div className="absolute inset-0">
-        {slides.map((slide, index) => (
+        {(carouselReady ? slides : slides.slice(0, 1)).map((slide, index) => (
           <div
             key={`${slide.image}-${index}`}
             aria-hidden={index !== active}
@@ -110,12 +139,13 @@ function EditorialHero() {
             }`}
           >
             <ResponsiveImage
-              src={mediaUrl(slide.image, 1100)}
+              src={mediaUrl(slide.image, 750, 'webp', HERO_QUALITY)}
               alt={index === active ? slide.label : ''}
               webpSrcSet={mediaSrcSet(
                 slide.image,
                 [480, 750, 1100, 1600],
                 'webp',
+                HERO_QUALITY,
               )}
               sizes="100vw"
               width={1920}
@@ -193,11 +223,15 @@ function EditorialHero() {
               <button
                 type="button"
                 aria-label="Previous hero image"
-                onClick={() =>
+                disabled={!slides.length}
+                onClick={() => {
+                  if (!slides.length) return;
+                  dismissBuildTimeHero();
+                  setCarouselReady(true);
                   setActive((current) =>
                     (current - 1 + slides.length) % slides.length,
-                  )
-                }
+                  );
+                }}
                 className="grid h-10 w-10 place-items-center border border-white/20 text-white transition-colors hover:border-gold-300 hover:text-gold-300"
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -205,9 +239,13 @@ function EditorialHero() {
               <button
                 type="button"
                 aria-label="Next hero image"
-                onClick={() =>
-                  setActive((current) => (current + 1) % slides.length)
-                }
+                disabled={!slides.length}
+                onClick={() => {
+                  if (!slides.length) return;
+                  dismissBuildTimeHero();
+                  setCarouselReady(true);
+                  setActive((current) => (current + 1) % slides.length);
+                }}
                 className="grid h-10 w-10 place-items-center border border-white/20 text-white transition-colors hover:border-gold-300 hover:text-gold-300"
               >
                 <ChevronRight className="h-4 w-4" />
@@ -241,14 +279,12 @@ function TrustStrip() {
   const { stats } = useSiteData();
   const trust = stats.slice(0, 4);
 
-  if (!trust.length) return null;
-
   return (
     <section
       aria-label="Studio highlights"
       className="border-b border-hairline/10 bg-ink-950 px-5 sm:px-8 lg:px-12"
     >
-      <div className="mx-auto grid max-w-[1480px] grid-cols-2 divide-x divide-hairline/10 lg:grid-cols-4">
+      <div className="mx-auto grid min-h-[217px] max-w-[1480px] grid-cols-2 divide-x divide-hairline/10 lg:min-h-[129px] lg:grid-cols-4">
         {trust.map((stat, index) => (
           <div
             key={`${stat.label}-${index}`}
@@ -278,7 +314,10 @@ function StudioManifesto() {
       id="studio-intro"
       className="relative overflow-hidden bg-ink-950 px-5 py-24 sm:px-8 md:py-32 lg:px-12 lg:py-40"
     >
-      <div className="pointer-events-none absolute right-0 top-10 font-display text-[24vw] leading-none text-hairline/[0.025]">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute right-0 top-10 font-display text-[24vw] leading-none text-hairline/[0.025]"
+      >
         01
       </div>
       <div className="relative mx-auto grid max-w-[1480px] gap-16 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-24">
@@ -290,7 +329,7 @@ function StudioManifesto() {
                 alt={primary.alt}
                 avifSrcSet={primary.avifSrcSet}
                 webpSrcSet={primary.webpSrcSet}
-                sizes="(max-width: 1024px) 90vw, 42vw"
+                sizes="(max-width: 640px) calc(100vw - 80px), (max-width: 1024px) calc(100vw - 120px), 42vw"
                 width={900}
                 height={1125}
                 className="h-full w-full object-cover transition-transform duration-[1400ms] hover:scale-[1.025]"

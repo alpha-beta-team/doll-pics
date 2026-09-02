@@ -73,7 +73,7 @@ export function WorkEnquiriesPage() {
     else setLoading(true);
     setError('');
     try {
-      setItems(await api.getEnquiries());
+      setItems(await api.getEnquiryListRows({ inbox: true }));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not load enquiries.');
     } finally {
@@ -265,9 +265,13 @@ export function WorkEnquiriesPage() {
           <EnquiryCard
                 key={item.id}
                 enquiry={item}
-                canContact={canManage && canViewPhone}
-                canViewPhone={canViewPhone}
-                onOpen={() => navigate(`/admin/enquiries/${item.id}`)}
+                canContact={canManage}
+                 canViewPhone={canViewPhone}
+                onOpen={() => navigate(
+                  item.stage === 'booked' && item.convertedBookingId
+                    ? `/admin/bookings/${item.convertedBookingId}`
+                    : `/admin/enquiries/${item.id}`,
+                )}
               />
             ))}
           </div>

@@ -47,6 +47,7 @@ export type {
   GoogleCalendarIntegrationStatus,
   WeeklyOwnerReport,
   FinanceReport,
+  OwnerOverviewReport,
   AdminSearchItem,
   AdminSearchResponse,
   CustomerLookupRecord,

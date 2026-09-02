@@ -676,6 +676,58 @@ export type FinanceReport = {
   };
 };
 
+export type OwnerOverviewReport = {
+  period: {
+    dateFrom: string;
+    dateTo: string;
+    previousDateFrom: string;
+    previousDateTo: string;
+    timezone: string;
+    generatedAt: string;
+  };
+  finance: FinanceReport;
+  comparisons: {
+    paymentsReceived: number | null;
+    bookedRevenue: number | null;
+    newEnquiries: number | null;
+    confirmedBookings: number | null;
+  };
+  enquiries: {
+    newEnquiries: number;
+    engaged: number;
+    converted: number;
+    closedLost: number;
+    conversionRate: number;
+    sourceBreakdown: Array<{ source: EnquirySource; count: number }>;
+  };
+  bookings: {
+    confirmedBookings: number;
+    cancelledBookings: number;
+    upcoming7Days: number;
+    upcoming30Days: number;
+    statusBreakdown: Record<BookingStatus, number>;
+    upcoming: Array<{
+      bookingId: string;
+      customerName: string;
+      shootType: string;
+      bookingDate: string;
+      startTime: string;
+      endTime: string;
+      location: string;
+      assignedStaffAccountName: string;
+    }>;
+  };
+  attention: {
+    newEnquiries: number;
+    untouchedNewEnquiries: number;
+    overdueFollowUps: number;
+    draftsMissingDetails: number;
+    outstandingBookings: number;
+    overdueBookings: number;
+    financeRecords: number;
+  };
+};
+
 export type BookingWritePayload = {
   customerName: string;
   customerPhone: string;
@@ -711,6 +763,7 @@ export type BookingWritePayload = {
 export type StaffAccountRole = 'owner' | 'sales' | 'content_manager' | 'employee';
 
 export type StaffAccessArea =
+  | 'owner_overview'
   | 'dashboard'
   | 'today'
   | 'enquiries'
@@ -729,6 +782,7 @@ export type StaffAccessArea =
   | 'testimonials'
   | 'behind_scenes'
   | 'staff_profiles'
+  | 'services'
   | 'site_content'
   | 'integrations'
   | 'staff_accounts'

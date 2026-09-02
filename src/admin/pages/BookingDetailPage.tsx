@@ -23,6 +23,7 @@ import type {
   BookingWritePayload,
   Package,
   PaymentMethod,
+  ServiceNavLink,
   StaffAccountOption,
   WhatsAppMessageSummary,
 } from '../types';
@@ -113,6 +114,7 @@ export function BookingDetailPage() {
   const navigate = useNavigate();
   const [booking, setBooking] = useState<Booking | null>(null);
   const [packages, setPackages] = useState<Package[]>([]);
+  const [bookingServices, setBookingServices] = useState<ServiceNavLink[]>([]);
   const [staffAccounts, setStaffAccounts] = useState<StaffAccountOption[]>([]);
   const [messages, setMessages] = useState<WhatsAppMessageSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -146,9 +148,10 @@ export function BookingDetailPage() {
     setLoading(true);
     setError('');
     try {
-      const [row, packageRows, accountRows, messageRows, reviewConfig] = await Promise.all([
+      const [row, packageRows, siteContent, accountRows, messageRows, reviewConfig] = await Promise.all([
         api.getBooking(id),
         canManageBooking ? api.getPackages() : Promise.resolve<Package[]>([]),
+        canManageBooking ? api.getSiteContent().catch(() => null) : Promise.resolve(null),
         canManageBooking ? api.getAssignableStaffAccounts() : Promise.resolve<StaffAccountOption[]>([]),
         canManageBooking ? api.getBookingWhatsAppMessages(id).catch(() => []) : Promise.resolve<WhatsAppMessageSummary[]>([]),
         canManageBooking ? api.getReviewConfig().catch(() => ({ googleReviewUrl: '' })) : Promise.resolve({ googleReviewUrl: '' }),
@@ -156,6 +159,7 @@ export function BookingDetailPage() {
       if (!row) throw new Error('Booking not found');
       sync(row);
       setPackages(packageRows);
+      setBookingServices(siteContent?.serviceNavLinks ?? []);
       setStaffAccounts(accountRows);
       setMessages(messageRows);
       setReviewUrl(reviewConfig.googleReviewUrl);
@@ -600,8 +604,8 @@ export function BookingDetailPage() {
         <div className="mt-4 flex flex-wrap gap-2"><button onClick={openDelivery} disabled={!hasDeliveryLink || deliveryDirty || !whatsappDigits(booking.customerPhone)} className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-40"><MessageCircle className="h-4 w-4" />Review and open WhatsApp</button>{booking.status === 'shoot_completed' && <button onClick={() => void markDelivered()} disabled={!hasDeliveryLink || deliveryDirty || saving} className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-40"><CalendarCheck className="h-4 w-4" />Mark delivered</button>}{booking.deliverySentAt && <span className="inline-flex items-center gap-1.5 text-sm text-violet-700"><CheckCircle className="h-4 w-4" />Delivered {formatDateTime(booking.deliverySentAt)}</span>}</div>
       </Card>}
 
-      {canManageBooking && editing && <BookingFormModal booking={booking} packages={packages} staffAccounts={staffAccounts} onClose={() => setEditing(false)} onSave={saveEdit} />}
-      {canManageBooking && messageOpen && canViewPhone && <WhatsAppComposer initialTemplate={messageOpen} context={{ customerName: booking.customerName, phone: booking.customerPhone, service: booking.shootType || booking.packageName, bookingDate: booking.bookingDate, startTime: booking.startTime, endTime: booking.endTime, location: booking.location, balanceDue: canViewPayments ? booking.paymentSummary.balanceDue : undefined, paymentDueDate: canViewPayments ? booking.paymentDueDate : undefined, reviewUrl, consentRecorded: booking.whatsappOptIn, optedOut: Boolean(booking.whatsappOptOutAt) }} onOpened={messageOpen === 'review_request' ? () => updateReview('requested') : undefined} onClose={() => setMessageOpen(null)} />}
+      {canManageBooking && editing && <BookingFormModal booking={booking} packages={packages} services={bookingServices} staffAccounts={staffAccounts} onClose={() => setEditing(false)} onSave={saveEdit} />}
+      {canManageBooking && messageOpen && <WhatsAppComposer initialTemplate={messageOpen} context={{ customerName: booking.customerName, phone: booking.customerPhone, service: booking.shootType || booking.packageName, bookingDate: booking.bookingDate, startTime: booking.startTime, endTime: booking.endTime, location: booking.location, balanceDue: canViewPayments ? booking.paymentSummary.balanceDue : undefined, paymentDueDate: canViewPayments ? booking.paymentDueDate : undefined, reviewUrl, consentRecorded: booking.whatsappOptIn, optedOut: Boolean(booking.whatsappOptOutAt) }} onOpened={messageOpen === 'review_request' ? () => updateReview('requested') : undefined} onClose={() => setMessageOpen(null)} />}
       {canViewPayments && paymentModal && <PaymentModal payment={paymentModal === 'new' ? null : paymentModal} onClose={() => setPaymentModal(null)} onSave={async data => { const updated = paymentModal === 'new' ? await api.addBookingPayment(booking.id, data) : await api.updateBookingPayment(booking.id, paymentModal.id, data); sync(updated); setPaymentModal(null); }} />}
     </div>
   );

@@ -1,5 +1,9 @@
 import type { ImgHTMLAttributes } from 'react';
-import { isPexelsUrl, mediaSrcSet, mediaUrl } from '../lib/images';
+import {
+  isTransformableMediaUrl,
+  mediaSrcSet,
+  mediaUrl,
+} from '../lib/images';
 
 export type ResponsiveImageProps = {
   src: string;
@@ -34,11 +38,12 @@ export function ResponsiveImage({
   onLoad,
   onError,
 }: ResponsiveImageProps) {
-  const responsivePexels = !avifSrcSet && !webpSrcSet && isPexelsUrl(src);
-  const resolvedWebpSrcSet = responsivePexels
-    ? mediaSrcSet(src, [480, 800, 1200, 1600], 'webp')
+  const responsiveMedia =
+    !avifSrcSet && !webpSrcSet && isTransformableMediaUrl(src);
+  const resolvedWebpSrcSet = responsiveMedia
+    ? mediaSrcSet(src, [320, 480, 640, 720, 960, 1200, 1600], 'webp')
     : webpSrcSet;
-  const resolvedSrc = responsivePexels
+  const resolvedSrc = responsiveMedia
     ? mediaUrl(src, Math.min(Math.max(width ?? 1200, 480), 1600))
     : src;
   const img = (

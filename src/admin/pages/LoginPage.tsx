@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
 import { AdminAlert, AdminButton, AdminField, adminFieldClass } from '../components/ui';
+import { getPostLoginRoute } from '../access/roles';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
@@ -21,13 +22,14 @@ export function LoginPage() {
     try {
       const user = await login(email, password);
       const requested = (location.state as { from?: string } | null)?.from;
+      const destination = getPostLoginRoute(user, requested);
       if (user.mustChangePassword) {
         navigate('/admin/change-password', {
           replace: true,
-          state: { from: requested || '/admin/today' },
+          state: { from: destination },
         });
       } else {
-        navigate(requested || '/admin/today', { replace: true });
+        navigate(destination, { replace: true });
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');

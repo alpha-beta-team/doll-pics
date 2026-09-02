@@ -24,47 +24,13 @@ import {
   AdminTableSurface,
   adminFieldClass,
 } from '../components/ui';
-
-type PeriodPreset = 'this_month' | 'last_month' | '7_days' | '30_days' | '90_days' | 'all' | 'custom';
-type DateRange = { dateFrom: string; dateTo: string };
-
-const PRESETS: Array<{ value: Exclude<PeriodPreset, 'custom'>; label: string }> = [
-  { value: 'this_month', label: 'This month' },
-  { value: 'last_month', label: 'Last month' },
-  { value: '7_days', label: '7 days' },
-  { value: '30_days', label: '30 days' },
-  { value: '90_days', label: '90 days' },
-  { value: 'all', label: 'All time' },
-];
-
-function kolkataToday() {
-  const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Kolkata',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).formatToParts(new Date());
-  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
-  return `${values.year}-${values.month}-${values.day}`;
-}
-
-function addDays(value: string, days: number) {
-  const [year, month, day] = value.split('-').map(Number);
-  return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10);
-}
-
-function rangeForPreset(preset: Exclude<PeriodPreset, 'custom'>, today = kolkataToday()): DateRange {
-  const [year, month] = today.split('-').map(Number);
-  if (preset === 'this_month') return { dateFrom: `${today.slice(0, 7)}-01`, dateTo: today };
-  if (preset === 'last_month') {
-    const start = new Date(Date.UTC(year, month - 2, 1)).toISOString().slice(0, 10);
-    const end = new Date(Date.UTC(year, month - 1, 0)).toISOString().slice(0, 10);
-    return { dateFrom: start, dateTo: end };
-  }
-  if (preset === 'all') return { dateFrom: '2000-01-01', dateTo: today };
-  const days = preset === '7_days' ? 7 : preset === '30_days' ? 30 : 90;
-  return { dateFrom: addDays(today, -(days - 1)), dateTo: today };
-}
+import {
+  REPORTING_PERIOD_PRESETS as PRESETS,
+  kolkataToday,
+  rangeForReportingPreset as rangeForPreset,
+  type ReportingDateRange as DateRange,
+  type ReportingPeriodPreset as PeriodPreset,
+} from '../reports/reportingPeriod';
 
 function money(value: number) {
   return new Intl.NumberFormat('en-IN', {

@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { useSiteData } from '../../contexts/SiteDataContext';
-import { trackPhoneClick } from '../../lib/analytics';
 import { getPublishedServiceNavLinks } from '../../lib/navigation';
 import { BUSINESS_NAME } from '../../lib/seo';
 import { DISPLAY_BRAND_NAME } from '../../lib/businessIdentity';
@@ -115,7 +114,12 @@ export function Footer() {
             <a
               href={`tel:${siteContent.phone.replace(/\s/g, '')}`}
               data-cursor="hover"
-              onClick={() => trackPhoneClick({ cta_location: 'footer' })}
+              onClick={() => {
+                void import('../../lib/analytics').then(
+                  ({ trackPhoneClick }) =>
+                    trackPhoneClick({ cta_location: 'footer' }),
+                );
+              }}
               className="flex items-center gap-3 text-ink-200/60 hover:text-gold-400 transition-colors"
             >
               <Phone className="w-5 h-5" /> {siteContent.phone}
@@ -133,10 +137,10 @@ export function Footer() {
         </div>
 
         <div className="flex flex-col items-center justify-between gap-4 border-t border-hairline/5 pt-8 pr-20 md:flex-row md:pr-24">
-          <p className="text-xs tracking-wide text-ink-300/40">
+          <p className="text-xs tracking-wide text-ink-300">
             © 2026 {companyName}. All rights reserved. Crafted with devotion.
           </p>
-          <div className="relative z-10 flex gap-6 text-xs text-ink-300/40">
+          <div className="relative z-10 flex gap-6 text-xs text-ink-300">
             <Link
               to="/privacy"
               data-cursor="hover"

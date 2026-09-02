@@ -39,6 +39,7 @@ const editableLevels = ['none', 'view', 'manage'] as const;
 const ownerOnlyLevels = ['none', 'manage'] as const;
 
 export const FEATURE_CATALOG = {
+  owner_overview: { label: 'Owner Home', group: 'overview', routes: ['/admin/owner'], ownerLocked: true, supportedLevels: ownerOnlyLevels, navigation: { id: 'owner-overview', label: 'Owner Home', section: 'overview', displayOrder: 5, mobileQuickOrder: 5 } },
   dashboard: { label: 'Dashboard', group: 'overview', routes: ['/admin/dashboard'], supportedLevels: editableLevels, navigation: { id: 'reports-summary', label: 'Dashboard', section: 'overview', displayOrder: 30, featureFlag: 'reports' } },
   today: { label: 'Today', group: 'overview', routes: ['/admin/today'], supportedLevels: editableLevels, navigation: { id: 'today', label: 'Today', section: 'overview', displayOrder: 10, mobileQuickOrder: 10 } },
   enquiries: { label: 'Enquiries', group: 'sales', routes: ['/admin/enquiries', '/admin/enquiries/:id'], supportedLevels: editableLevels, navigation: { id: 'enquiries', label: 'Enquiries', section: 'bookings_sales', displayOrder: 10, mobileQuickOrder: 30 } },
@@ -57,7 +58,8 @@ export const FEATURE_CATALOG = {
   testimonials: { label: 'Testimonials', group: 'content', routes: ['/admin/testimonials'], supportedLevels: editableLevels, navigation: { id: 'testimonials', label: 'Testimonials', section: 'website', displayOrder: 100, featureFlag: 'website' } },
   behind_scenes: { label: 'Behind the scenes', group: 'content', routes: ['/admin/behind-scenes'], supportedLevels: editableLevels, navigation: { id: 'behind-scenes', label: 'Behind the Scenes', section: 'website', displayOrder: 90, featureFlag: 'portfolio' } },
   staff_profiles: { label: 'Staff profiles', group: 'content', routes: ['/admin/staff-profiles'], supportedLevels: editableLevels, navigation: { id: 'staff-profiles', label: 'Team Members', section: 'website', displayOrder: 110, featureFlag: 'website' } },
-  site_content: { label: 'Site settings and services', group: 'content', routes: ['/admin/site-content', '/admin/services', '/admin/services/new', '/admin/services/:id'], supportedLevels: editableLevels, navigation: { id: 'site-content', label: 'Site Settings', section: 'website', displayOrder: 120, featureFlag: 'website' } },
+  services: { label: 'Services', group: 'content', routes: ['/admin/services', '/admin/services/new', '/admin/services/:id'], supportedLevels: editableLevels, navigation: { id: 'services', label: 'Services', section: 'website', displayOrder: 40, featureFlag: 'website' } },
+  site_content: { label: 'Site settings', group: 'content', routes: ['/admin/site-content'], supportedLevels: editableLevels, navigation: { id: 'site-content', label: 'Site Settings', section: 'website', displayOrder: 120, featureFlag: 'website' } },
   integrations: { label: 'Integrations', group: 'settings', routes: ['/admin/integrations'], ownerLocked: true, supportedLevels: ownerOnlyLevels, navigation: { id: 'integrations', label: 'Integrations', section: 'settings', displayOrder: 20, featureFlag: 'integrations' } },
   staff_accounts: { label: 'Staff accounts & access', group: 'settings', routes: ['/admin/staff-accounts'], ownerLocked: true, supportedLevels: ownerOnlyLevels, navigation: { id: 'staff-accounts', label: 'Staff Accounts', section: 'staff_management', displayOrder: 10 } },
   salary_management: { label: 'Salary management', group: 'settings', routes: ['/admin/staff-accounts/salary'], supportedLevels: editableLevels, navigation: { id: 'salary-management', label: 'Salary Management', section: 'staff_management', displayOrder: 20 } },
@@ -89,11 +91,12 @@ export const ROLE_CATALOG: Record<StaffAccountRole, RoleDetails> = {
     badgeClassName: 'bg-amber-100 text-amber-900',
     selectionClassName: 'border-amber-400 bg-amber-50 ring-amber-200',
     access: {
+      owner_overview: 'manage',
       dashboard: 'view', today: 'manage', enquiries: 'manage', bookings: 'manage', schedule: 'manage',
       occasions: 'manage', quotations: 'manage', payments: 'manage', photos: 'manage', categories: 'manage',
       packages: 'manage', package_categories: 'manage', hero_slides: 'manage', story_scenes: 'manage',
       statistics: 'manage', testimonials: 'manage', behind_scenes: 'manage', staff_profiles: 'manage',
-      site_content: 'manage', integrations: 'manage', staff_accounts: 'manage', salary_management: 'manage',
+      services: 'manage', site_content: 'manage', integrations: 'manage', staff_accounts: 'manage', salary_management: 'manage',
     },
   },
   sales: {
@@ -103,25 +106,27 @@ export const ROLE_CATALOG: Record<StaffAccountRole, RoleDetails> = {
     badgeClassName: 'bg-blue-100 text-blue-800',
     selectionClassName: 'border-blue-500 bg-blue-50 ring-blue-200',
     access: {
+      owner_overview: 'none',
       dashboard: 'view', today: 'manage', enquiries: 'manage', bookings: 'manage', schedule: 'manage',
       occasions: 'manage', quotations: 'manage', payments: 'none', photos: 'none', categories: 'none',
       packages: 'none', package_categories: 'none', hero_slides: 'none', story_scenes: 'none',
       statistics: 'none', testimonials: 'none', behind_scenes: 'none', staff_profiles: 'none',
-      site_content: 'none', integrations: 'none', staff_accounts: 'none', salary_management: 'none',
+      services: 'none', site_content: 'none', integrations: 'none', staff_accounts: 'none', salary_management: 'none',
     },
   },
   content_manager: {
     label: 'Content Manager',
-    shortLabel: 'Website and photos',
-    description: 'Manage portfolio, packages, and website content, with read-only enquiry visibility.',
+    shortLabel: 'Bookings access',
+    description: 'Manage bookings with read-only enquiry visibility.',
     badgeClassName: 'bg-violet-100 text-violet-800',
     selectionClassName: 'border-violet-500 bg-violet-50 ring-violet-200',
     access: {
-      dashboard: 'view', today: 'none', enquiries: 'view', bookings: 'none', schedule: 'none',
-      occasions: 'none', quotations: 'none', payments: 'none', photos: 'manage', categories: 'manage',
-      packages: 'manage', package_categories: 'manage', hero_slides: 'manage', story_scenes: 'manage',
-      statistics: 'manage', testimonials: 'manage', behind_scenes: 'manage', staff_profiles: 'manage',
-      site_content: 'manage', integrations: 'none', staff_accounts: 'none', salary_management: 'none',
+      owner_overview: 'none',
+      dashboard: 'none', today: 'none', enquiries: 'view', bookings: 'manage', schedule: 'none',
+      occasions: 'none', quotations: 'none', payments: 'none', photos: 'none', categories: 'none',
+      packages: 'none', package_categories: 'none', hero_slides: 'none', story_scenes: 'none',
+      statistics: 'none', testimonials: 'none', behind_scenes: 'none', staff_profiles: 'none',
+      services: 'none', site_content: 'none', integrations: 'none', staff_accounts: 'none', salary_management: 'none',
     },
   },
   employee: {
@@ -131,11 +136,12 @@ export const ROLE_CATALOG: Record<StaffAccountRole, RoleDetails> = {
     badgeClassName: 'bg-emerald-100 text-emerald-800',
     selectionClassName: 'border-emerald-500 bg-emerald-50 ring-emerald-200',
     access: {
+      owner_overview: 'none',
       dashboard: 'none', today: 'none', enquiries: 'none', bookings: 'none', schedule: 'none',
       occasions: 'none', quotations: 'none', payments: 'none', photos: 'none', categories: 'none',
       packages: 'none', package_categories: 'none', hero_slides: 'none', story_scenes: 'none',
       statistics: 'none', testimonials: 'none', behind_scenes: 'none', staff_profiles: 'none',
-      site_content: 'none', integrations: 'none', staff_accounts: 'none', salary_management: 'none',
+      services: 'none', site_content: 'none', integrations: 'none', staff_accounts: 'none', salary_management: 'none',
     },
   },
 };
@@ -191,10 +197,24 @@ export function canManage(user: StaffAccount | null | undefined, area: StaffAcce
 }
 
 export function getDefaultAdminRoute(user: StaffAccount | null | undefined): string {
+  if (canView(user, 'owner_overview')) return '/admin/owner';
   if (canView(user, 'today')) return '/admin/today';
   if (canView(user, 'dashboard')) return '/admin/dashboard';
   const first = FEATURE_ORDER.find((feature) => canView(user, feature));
   return first ? FEATURE_CATALOG[first].routes[0] : '/admin/help';
+}
+
+export function getPostLoginRoute(
+  user: StaffAccount | null | undefined,
+  requestedPath?: string,
+): string {
+  const fallback = getDefaultAdminRoute(user);
+  if (!requestedPath || !requestedPath.startsWith('/admin/')) return fallback;
+  const pathname = requestedPath.split(/[?#]/, 1)[0].replace(/\/$/, '');
+  if (!pathname || pathname === '/admin' || pathname === '/admin/login' || pathname === '/admin/change-password') {
+    return fallback;
+  }
+  return requestedPath;
 }
 
 export function getAccessSummary(role: StaffAccountRole): string[] {

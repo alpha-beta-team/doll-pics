@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AlertCircle, ChevronDown, RotateCcw, X } from 'lucide-react';
-import { SHOOT_TYPE_OPTIONS } from '../../lib/shootTypes';
 import { bookingDurationLabel, bookingTimeWindowError } from '../../shared/bookingTime';
 import { api } from '../api/client';
-import type { AdminEnquiryWritePayload, Enquiry, EnquirySource } from '../types';
+import type { AdminEnquiryWritePayload, Enquiry, EnquirySource, ServiceNavLink } from '../types';
 import type { CustomerLookupResponse } from '../types';
 import { CustomerLookupPanel } from './CustomerLookupPanel';
 import { FollowUpShortcuts } from './FollowUpShortcuts';
@@ -13,6 +12,7 @@ import {
   phoneNumberError,
 } from './quickEntry.utils';
 import { dateTimeLocalInKolkata, followUpDateError } from './followUp.utils';
+import { photographyServiceOptions } from './bookingForm.utils';
 
 const DRAFT_KEY = 'doll_admin_enquiry_draft';
 
@@ -61,6 +61,21 @@ export function EnquiryFormModal({
   const [customerLookup, setCustomerLookup] = useState<CustomerLookupResponse | null>(null);
   const [newShootConfirmed, setNewShootConfirmed] = useState(false);
   const [customerLookupChecking, setCustomerLookupChecking] = useState(false);
+  const [services, setServices] = useState<ServiceNavLink[]>([]);
+  const serviceOptions = useMemo(
+    () => photographyServiceOptions(services, shootType),
+    [services, shootType],
+  );
+
+  useEffect(() => {
+    let active = true;
+    void api.getSiteContent()
+      .then(content => {
+        if (active) setServices(content.serviceNavLinks ?? []);
+      })
+      .catch(() => undefined);
+    return () => { active = false; };
+  }, []);
 
   const currentDraft = useMemo<Draft>(() => buildEnquiryPayload({
     name,
@@ -168,7 +183,7 @@ export function EnquiryFormModal({
             <label className="text-sm font-medium text-slate-700">Customer name *<input id="enquiry-name" autoFocus className={input} value={name} onChange={event => { setName(event.target.value); clearFieldError('name'); }} placeholder="Example: Priya" aria-invalid={Boolean(fieldErrors.name)} />{fieldErrors.name && <span className="mt-1 block text-xs font-medium text-red-600">{fieldErrors.name}</span>}</label>
             <label className="text-sm font-medium text-slate-700">Phone number *<input id="enquiry-phone" type="tel" inputMode="tel" autoComplete="tel" maxLength={20} className={input} value={phone} onChange={event => { setPhone(event.target.value); setNewShootConfirmed(false); setCustomerLookup(null); clearFieldError('phone'); }} placeholder="98765 43210" aria-invalid={Boolean(fieldErrors.phone)} />{fieldErrors.phone && <span className="mt-1 block text-xs font-medium text-red-600">{fieldErrors.phone}</span>}</label>
             <label className="text-sm font-medium text-slate-700">Came from<select className={input} value={source} disabled={enquiry?.source === 'website'} onChange={event => setSource(event.target.value as EnquirySource)}>{enquiry?.source === 'website' && <option value="website">Website</option>}<option value="phone">Phone call</option><option value="whatsapp">WhatsApp</option><option value="walk_in">Walk-in</option><option value="referral">Referral</option><option value="diary_import">Diary import</option></select></label>
-            <label className="text-sm font-medium text-slate-700">Photography service<select className={input} value={shootType} onChange={event => setShootType(event.target.value)}><option value="">Not decided</option>{SHOOT_TYPE_OPTIONS.map(value => <option key={value}>{value}</option>)}</select></label>
+            <label className="text-sm font-medium text-slate-700">Photography service<select className={input} value={shootType} onChange={event => setShootType(event.target.value)}><option value="">Not decided</option>{serviceOptions.map(value => <option key={value}>{value}</option>)}</select></label>
           </div>
 
           {!enquiry && <CustomerLookupPanel phone={phone} allowNewShoot newShootConfirmed={newShootConfirmed} onConfirmNewShoot={() => { setNewShootConfirmed(true); clearFieldError('phone'); }} onUseContact={contact => { setName(contact.customerName); setEmail(contact.email); }} onResult={setCustomerLookup} onChecking={setCustomerLookupChecking} />}
