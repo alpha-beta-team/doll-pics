@@ -3,6 +3,7 @@ import { serviceCategoryTabId, type ServiceCategoryOption } from './serviceCateg
 
 type SalesWorkspaceHeaderProps = {
   title: string;
+  titleControls?: ReactNode;
   actions: ReactNode;
   listControls: ReactNode;
   serviceCategories: ServiceCategoryOption[];
@@ -14,6 +15,7 @@ type SalesWorkspaceHeaderProps = {
 
 export function SalesWorkspaceHeader({
   title,
+  titleControls,
   actions,
   listControls,
   serviceCategories,
@@ -43,9 +45,10 @@ export function SalesWorkspaceHeader({
 
   return (
     <header className="rounded-2xl border border-admin-border bg-admin-surface shadow-[0_4px_18px_rgba(62,56,46,0.04)]">
-      <div className="flex flex-col justify-between gap-3 px-3 py-3 sm:px-4 xl:flex-row xl:items-center">
-        <div className="flex min-w-0 items-center gap-2.5">
+      <div className={`flex flex-col justify-between gap-3 px-3 py-3 sm:px-4 ${titleControls ? '2xl:flex-row 2xl:items-center' : 'xl:flex-row xl:items-center'}`}>
+        <div className="flex min-w-0 flex-wrap items-center gap-2.5">
           <h1 className="min-w-0 truncate text-2xl font-semibold tracking-tight text-admin-text">{title}</h1>
+          {titleControls}
           {readOnlyNotice}
         </div>
         <div className="min-w-0 xl:shrink-0">{actions}</div>

@@ -20,7 +20,7 @@ import { ReadOnlyNotice } from '../components/ReadOnlyNotice';
 import { canViewBookingPricing, hasStaffPermission } from '../access/roles';
 import { consumeNewBookingSearch } from './bookingsRoute';
 import { BookingCard, BookingCardSkeleton } from '../components/bookings/BookingCard';
-import { BookingListHeader } from '../components/bookings/BookingListHeader';
+import { BookingListHeader, BookingViewSwitch } from '../components/bookings/BookingListHeader';
 import { BookingSortControl } from '../components/bookings/BookingStatusFilter';
 import { BookingToolbar } from '../components/bookings/BookingToolbar';
 import { SalesWorkspaceHeader } from '../components/sales/SalesWorkspaceHeader';
@@ -246,12 +246,16 @@ export function BookingsPage() {
     BOOKING_STATUSES.map(item => [item.value, bookingsForSelectedService.filter(row => row.status === item.value).length]),
   ) as Record<BookingStatus, number>, [bookingsForSelectedService]);
 
-  const pendingCount = useMemo(
-    () => bookingsForSelectedService.filter(booking => bookingMatchesScope(booking, 'pending')).length,
-    [bookingsForSelectedService],
+  const pendingBookingCount = useMemo(
+    () => bookings.filter(booking => bookingMatchesScope(booking, 'pending')).length,
+    [bookings],
   );
 
   const selectedStatusLabel = BOOKING_STATUSES.find(item => item.value === status)?.label;
+  const selectedServiceLabel = serviceCategories.find(option => option.value === serviceCategory)?.label;
+  const listTitle = selectedServiceLabel
+    ? `${selectedServiceLabel} · ${selectedStatusLabel || (scope === 'pending' ? 'Pending shoots' : 'All bookings')}`
+    : selectedStatusLabel;
   const activeFilterCount = Number(Boolean(status)) + Number(Boolean(assignee)) + Number(Boolean(paymentFilter)) + Number(overdueOnly);
   const hasAnyFilter = Boolean(status || assignee || paymentFilter || overdueOnly || query || serviceCategory);
 
@@ -328,6 +332,17 @@ export function BookingsPage() {
     <div className="mx-auto max-w-[1320px] space-y-3 pb-2 sm:space-y-4">
       <SalesWorkspaceHeader
         title="Bookings"
+        titleControls={(
+          <BookingViewSwitch
+            scope={scope}
+            pendingCount={pendingBookingCount}
+            totalCount={bookings.length}
+            onScopeChange={nextScope => {
+              setScope(nextScope);
+              if (nextScope === 'pending' && status && status !== 'draft' && status !== 'confirmed') setStatus('');
+            }}
+          />
+        )}
         serviceCategories={serviceCategories}
         serviceCategory={serviceCategory}
         onServiceCategoryChange={selectServiceCategory}
@@ -402,19 +417,8 @@ export function BookingsPage() {
       )}
 
       <BookingListHeader
-        title={serviceCategory
-          ? selectedStatusLabel
-            ? `${serviceCategories.find(option => option.value === serviceCategory)?.label} · ${selectedStatusLabel}`
-            : `${serviceCategories.find(option => option.value === serviceCategory)?.label} · ${scope === 'pending' ? 'Pending shoots' : 'All bookings'}`
-          : selectedStatusLabel || (scope === 'pending' ? 'Pending shoots' : 'All bookings')}
+        title={listTitle}
         count={visible.length}
-        scope={scope}
-        pendingCount={pendingCount}
-        totalCount={bookingsForSelectedService.length}
-        onScopeChange={nextScope => {
-          setScope(nextScope);
-          if (nextScope === 'pending' && status && status !== 'draft' && status !== 'confirmed') setStatus('');
-        }}
       />
 
       <section id="booking-list-panel" role="tabpanel" aria-labelledby={serviceCategoryTabId(serviceCategory)} className="space-y-2.5 lg:space-y-0 lg:overflow-hidden lg:rounded-xl lg:border lg:border-admin-border lg:bg-admin-surface lg:shadow-[0_4px_18px_rgba(62,56,46,0.04)]">
