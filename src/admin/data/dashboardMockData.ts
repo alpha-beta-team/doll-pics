@@ -329,6 +329,7 @@ export function createDashboardMockData(referenceDate = new Date()): {
       customerName: seed.customerName,
       customerPhone: seed.customerPhone,
       customerEmail: seed.customerEmail,
+      source: 'website',
       shootType: seed.shootType,
       preferredEvent: seed.preferredEvent,
       bookingDate:

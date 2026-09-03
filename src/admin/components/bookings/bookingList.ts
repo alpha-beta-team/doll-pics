@@ -1,4 +1,5 @@
 import type { Booking, BookingStatus } from '../../types';
+import { leadSourceLabel } from '../leadSource';
 
 export type BookingSort = 'shoot_date' | 'recent' | 'customer' | 'follow_up';
 
@@ -106,6 +107,8 @@ export function bookingMatchesSearch(booking: Booking, query: string) {
     booking.shootType,
     booking.preferredEvent,
     booking.packageName,
+    leadSourceLabel(booking.source),
+    booking.source,
   ].some(value => value.toLocaleLowerCase('en-IN').includes(normalized));
   if (matchesText) return true;
 

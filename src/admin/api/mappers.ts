@@ -215,6 +215,7 @@ export function mapBooking(doc: Record<string, unknown>): Booking {
     customerName: (doc.customerName as string) ?? '',
     customerPhone: (doc.customerPhone as string) ?? '',
     customerEmail: (doc.customerEmail as string) ?? '',
+    source: (doc.source as Booking['source']) ?? '',
     shootType: (doc.shootType as string) ?? '',
     preferredEvent: (doc.preferredEvent as string) ?? '',
     bookingDate: (doc.bookingDate as string) || String(doc.shootDate ?? '').slice(0, 10),

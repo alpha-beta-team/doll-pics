@@ -91,7 +91,7 @@ export function buildEnquiryPayload(
   return {
     name: values.name.trim(),
     phone: values.phone.trim(),
-    source: !editing && values.source !== 'website' ? values.source : undefined,
+    source: values.source,
     shootType: values.shootType || undefined,
     nextFollowUpAt: values.nextFollowUpAt
       ? kolkataLocalToIso(values.nextFollowUpAt)

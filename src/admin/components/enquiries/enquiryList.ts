@@ -1,4 +1,5 @@
 import type { Enquiry, EnquirySource, EnquiryStage } from '../../types';
+import { leadSourceLabel } from '../leadSource';
 
 export type EnquirySort = 'newest' | 'oldest' | 'follow_up' | 'updated' | 'customer';
 export type EnquiryPriorityFilter = '' | 'due_today' | 'overdue';
@@ -36,22 +37,13 @@ export const enquiryStageDotClass: Record<EnquiryStage, string> = {
   closed_lost: 'bg-stone-500',
 };
 
-const SOURCE_LABELS: Record<EnquirySource, string> = {
-  website: 'Website',
-  phone: 'Phone',
-  whatsapp: 'WhatsApp',
-  walk_in: 'Walk-in',
-  referral: 'Referral',
-  diary_import: 'Diary',
-};
-
 export function enquiryStageLabel(stage: EnquiryStage) {
   return ENQUIRY_STAGES.find(item => item.value === stage)?.label
     ?? stage.replace(/_/g, ' ');
 }
 
 export function enquirySourceLabel(source: EnquirySource) {
-  return SOURCE_LABELS[source] ?? source.replace(/_/g, ' ');
+  return leadSourceLabel(source);
 }
 
 export function enquiryMatchesSearch(enquiry: Enquiry, query: string) {

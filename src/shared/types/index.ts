@@ -8,7 +8,17 @@ export type PricingMode = 'price' | 'startingFrom' | 'enquire';
 
 export type EnquiryStatus = 'new' | 'read' | 'responded';
 export type EnquiryStage = 'new' | 'contacted' | 'follow_up' | 'booked' | 'closed_lost';
-export type EnquirySource = 'website' | 'phone' | 'whatsapp' | 'walk_in' | 'referral' | 'diary_import';
+export type EnquirySource =
+  | 'website'
+  | 'facebook'
+  | 'instagram'
+  | 'google_business'
+  | 'ads'
+  | 'phone'
+  | 'whatsapp'
+  | 'walk_in'
+  | 'referral'
+  | 'diary_import';
 
 export type BookingStatus =
   | 'draft'
@@ -436,7 +446,7 @@ export type AdminEnquiryWritePayload = {
   location?: string;
   notes?: string;
   message?: string;
-  source?: Exclude<EnquirySource, 'website'>;
+  source?: EnquirySource;
   nextFollowUpAt?: string;
   followUpNote?: string;
   whatsappOptIn?: boolean;
@@ -517,6 +527,7 @@ export type Booking = {
   customerName: string;
   customerPhone: string;
   customerEmail: string;
+  source: EnquirySource | '';
   shootType: string;
   preferredEvent: string;
   bookingDate: string;
@@ -732,6 +743,7 @@ export type BookingWritePayload = {
   customerName: string;
   customerPhone: string;
   customerEmail?: string;
+  source?: EnquirySource;
   shootType?: string;
   preferredEvent?: string;
   bookingDate?: string;

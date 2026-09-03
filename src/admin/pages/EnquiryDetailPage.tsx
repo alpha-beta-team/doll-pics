@@ -18,6 +18,7 @@ import { useFeatureAccess } from '../access/useFeatureAccess';
 import { useAuth } from '../contexts/AuthContext';
 import { ReadOnlyNotice } from '../components/ReadOnlyNotice';
 import { hasStaffPermission } from '../access/roles';
+import { leadSourceLabel } from '../components/leadSource';
 
 export function EnquiryDetailPage() {
   const { canManage, isReadOnly } = useFeatureAccess('enquiries');
@@ -104,7 +105,7 @@ export function EnquiryDetailPage() {
 
     {canManage && <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><h2 className="font-semibold text-slate-900">Enquiry stage</h2><div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">{(['new', 'contacted', 'follow_up', 'booked', 'closed_lost'] as EnquiryStage[]).map(stage => <button key={stage} disabled={saving || stage === 'booked' || item.stage === 'booked'} onClick={() => void setStage(stage)} className={`min-h-11 rounded-xl px-2 text-sm font-semibold ${item.stage === stage ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 disabled:opacity-50'}`}>{stage === 'closed_lost' ? 'Not interested' : stage === 'follow_up' ? 'Follow-up' : stage[0].toUpperCase() + stage.slice(1)}</button>)}</div></section>}
 
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><h2 className="font-semibold text-slate-900">Details</h2><dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2"><Detail label="Email" value={item.email} /><Detail label="Preferred date" value={item.bookingDate} /><Detail label="Preferred time" value={item.startTime && item.endTime ? formatTimeWindow(item.startTime, item.endTime) : ''} /><Detail label="Location" value={item.location} /><Detail label="Source" value={item.source.replace('_', ' ')} /><Detail label="Customer message" value={item.message} /><Detail label="Internal notes" value={item.notes} /></dl></section>
+    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><h2 className="font-semibold text-slate-900">Details</h2><dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2"><Detail label="Email" value={item.email} /><Detail label="Preferred date" value={item.bookingDate} /><Detail label="Preferred time" value={item.startTime && item.endTime ? formatTimeWindow(item.startTime, item.endTime) : ''} /><Detail label="Location" value={item.location} /><Detail label="Source" value={leadSourceLabel(item.source)} /><Detail label="Customer message" value={item.message} /><Detail label="Internal notes" value={item.notes} /></dl></section>
     {canManage && canViewPhone && <CustomerLookupPanel phone={item.phone} current={{ type: 'enquiry', id: item.id }} />}
     {canManage && canViewPhone && <ImportantDatesPanel phone={item.phone} customerName={item.name} email={item.email} source={{ type: 'enquiry', id: item.id }} />}
     {canManage && <QuotationEnquiryPanel enquiryId={item.id} />}

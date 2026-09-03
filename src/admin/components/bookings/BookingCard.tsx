@@ -15,6 +15,7 @@ import {
   bookingStatusLabel,
   formatBookingDay,
 } from './bookingList';
+import { leadSourceLabel } from '../leadSource';
 
 type BookingCardProps = {
   booking: Booking;
@@ -77,7 +78,7 @@ export function BookingCard({ booking, canViewPayments, showPricing, canViewPhon
           </span>
         </div>
         <div className="mt-1 flex min-w-0 items-center gap-1.5 text-xs leading-4 text-admin-subtle">
-          <span className="min-w-0 flex-1 truncate" title={service}>{service}</span>
+          <span className="min-w-0 flex-1 truncate" title={`${service} · ${leadSourceLabel(booking.source)}`}>{service} · {leadSourceLabel(booking.source)}</span>
           {booking.customerPhone && (
             <>
               <span aria-hidden="true" className="text-admin-border-strong">·</span>

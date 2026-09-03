@@ -13,6 +13,7 @@ import {
 } from './quickEntry.utils';
 import { dateTimeLocalInKolkata, followUpDateError } from './followUp.utils';
 import { photographyServiceOptions } from './bookingForm.utils';
+import { LEAD_SOURCE_OPTIONS } from './leadSource';
 
 const DRAFT_KEY = 'doll_admin_enquiry_draft';
 
@@ -182,7 +183,7 @@ export function EnquiryFormModal({
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="text-sm font-medium text-slate-700">Customer name *<input id="enquiry-name" autoFocus className={input} value={name} onChange={event => { setName(event.target.value); clearFieldError('name'); }} placeholder="Example: Priya" aria-invalid={Boolean(fieldErrors.name)} />{fieldErrors.name && <span className="mt-1 block text-xs font-medium text-red-600">{fieldErrors.name}</span>}</label>
             <label className="text-sm font-medium text-slate-700">Phone number *<input id="enquiry-phone" type="tel" inputMode="tel" autoComplete="tel" maxLength={20} className={input} value={phone} onChange={event => { setPhone(event.target.value); setNewShootConfirmed(false); setCustomerLookup(null); clearFieldError('phone'); }} placeholder="98765 43210" aria-invalid={Boolean(fieldErrors.phone)} />{fieldErrors.phone && <span className="mt-1 block text-xs font-medium text-red-600">{fieldErrors.phone}</span>}</label>
-            <label className="text-sm font-medium text-slate-700">Came from<select className={input} value={source} disabled={enquiry?.source === 'website'} onChange={event => setSource(event.target.value as EnquirySource)}>{enquiry?.source === 'website' && <option value="website">Website</option>}<option value="phone">Phone call</option><option value="whatsapp">WhatsApp</option><option value="walk_in">Walk-in</option><option value="referral">Referral</option><option value="diary_import">Diary import</option></select></label>
+            <label className="text-sm font-medium text-slate-700">Came from<select className={input} value={source} onChange={event => setSource(event.target.value as EnquirySource)}>{LEAD_SOURCE_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
             <label className="text-sm font-medium text-slate-700">Photography service<select className={input} value={shootType} onChange={event => setShootType(event.target.value)}><option value="">Not decided</option>{serviceOptions.map(value => <option key={value}>{value}</option>)}</select></label>
           </div>
 

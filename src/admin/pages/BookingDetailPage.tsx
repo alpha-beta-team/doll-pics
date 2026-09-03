@@ -47,6 +47,7 @@ import { VoiceNotesPanel } from '../components/VoiceNotesPanel';
 import { ApiError } from '../api/http';
 import type { WhatsAppTemplateId } from '../components/whatsappTemplates';
 import { ImportantDatesPanel } from '../components/ImportantDatesPanel';
+import { leadSourceLabel } from '../components/leadSource';
 
 const statusStyles: Record<BookingStatus, string> = {
   draft: 'bg-slate-100 text-slate-700',
@@ -494,7 +495,7 @@ export function BookingDetailPage() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card title="Customer and booking">
-          <div className="grid gap-5 sm:grid-cols-2"><Field label="Phone">{canViewPhone ? <a className="text-blue-600" href={`tel:${booking.customerPhone}`}>{booking.customerPhone}</a> : booking.customerPhone}</Field><Field label="Email">{booking.customerEmail ? <a className="text-blue-600" href={`mailto:${booking.customerEmail}`}>{booking.customerEmail}</a> : '—'}</Field><Field label="Photography service">{booking.shootType || '—'}</Field><Field label="Preferred event">{booking.preferredEvent || '—'}</Field><Field label="Booking date">{formatDay(booking.bookingDate)}</Field><Field label="Time window">{formatTimeWindow(booking.startTime, booking.endTime)}{bookingDurationLabel(booking.startTime, booking.endTime) ? ` · ${bookingDurationLabel(booking.startTime, booking.endTime)}` : ''}</Field><Field label="Location">{booking.location || '—'}</Field><Field label="Package">{booking.packageName || 'No package'}</Field><Field label="Assigned to">{booking.assignedStaffAccountName || 'Unassigned'}</Field></div>
+          <div className="grid gap-5 sm:grid-cols-2"><Field label="Phone">{canViewPhone ? <a className="text-blue-600" href={`tel:${booking.customerPhone}`}>{booking.customerPhone}</a> : booking.customerPhone}</Field><Field label="Email">{booking.customerEmail ? <a className="text-blue-600" href={`mailto:${booking.customerEmail}`}>{booking.customerEmail}</a> : '—'}</Field><Field label="Source">{leadSourceLabel(booking.source)}</Field><Field label="Photography service">{booking.shootType || '—'}</Field><Field label="Preferred event">{booking.preferredEvent || '—'}</Field><Field label="Booking date">{formatDay(booking.bookingDate)}</Field><Field label="Time window">{formatTimeWindow(booking.startTime, booking.endTime)}{bookingDurationLabel(booking.startTime, booking.endTime) ? ` · ${bookingDurationLabel(booking.startTime, booking.endTime)}` : ''}</Field><Field label="Location">{booking.location || '—'}</Field><Field label="Package">{booking.packageName || 'No package'}</Field><Field label="Assigned to">{booking.assignedStaffAccountName || 'Unassigned'}</Field></div>
           {booking.notes && <div className="mt-5 rounded-lg bg-slate-50 p-4 text-sm whitespace-pre-wrap text-slate-700">{booking.notes}</div>}
         </Card>
 

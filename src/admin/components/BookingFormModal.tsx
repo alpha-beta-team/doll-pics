@@ -11,7 +11,7 @@ import {
   UserRound,
   X,
 } from 'lucide-react';
-import type { Booking, BookingWritePayload, Enquiry, Package, PaymentMethod, ScheduleConflictResponse, ServiceNavLink, StaffAccountOption } from '../types';
+import type { Booking, BookingWritePayload, Enquiry, EnquirySource, Package, PaymentMethod, ScheduleConflictResponse, ServiceNavLink, StaffAccountOption } from '../types';
 import {
   BOOKING_WIZARD_FIELD_LABELS,
   BOOKING_WIZARD_STEPS,
@@ -38,6 +38,7 @@ import { useConfirmDialog } from '../hooks/useConfirmDialog';
 import { endTimeFor, formatScheduleTime, minutesToTime, timeToMinutes } from '../pages/schedule.utils';
 import { useAuth } from '../contexts/AuthContext';
 import { canViewBookingPricing } from '../access/roles';
+import { LEAD_SOURCE_OPTIONS } from './leadSource';
 
 type Props = {
   booking?: Booking | null;
@@ -54,6 +55,7 @@ type BookingDraft = {
   customerName: string;
   customerPhone: string;
   customerEmail: string;
+  source: EnquirySource | '';
   shootType: string;
   preferredEvent: string;
   bookingDate: string;
@@ -169,6 +171,7 @@ function BookingWizard({
   const [customerName, setCustomerName] = useState(stored?.customerName ?? booking?.customerName ?? enquiry?.name ?? '');
   const [customerPhone, setCustomerPhone] = useState(stored?.customerPhone ?? booking?.customerPhone ?? enquiry?.phone ?? '');
   const [customerEmail, setCustomerEmail] = useState(stored?.customerEmail ?? booking?.customerEmail ?? enquiry?.email ?? '');
+  const [source, setSource] = useState<EnquirySource | ''>(stored?.source ?? booking?.source ?? enquiry?.source ?? 'website');
   const [shootType, setShootType] = useState(
     stored?.shootType || booking?.shootType || enquiry?.shootType || photographyServiceOptions(services)[0] || '',
   );
@@ -274,13 +277,13 @@ function BookingWizard({
 
   useEffect(() => {
     const draft: BookingDraft = {
-      customerName, customerPhone, customerEmail, shootType, preferredEvent,
+      customerName, customerPhone, customerEmail, source, shootType, preferredEvent,
       bookingDate, startTime, endTime, location, packageId, agreedTotal, assignedStaffAccountId,
       advanceAmount, advanceMethod, paymentDueDate, nextFollowUpAt, followUpNote, notes, whatsappOptIn,
       whatsappNotificationsEnabled, step,
     };
     localStorage.setItem(draftKey, JSON.stringify(draft));
-  }, [advanceAmount, advanceMethod, agreedTotal, assignedStaffAccountId, bookingDate, customerEmail, customerName, customerPhone, draftKey, endTime, followUpNote, location, nextFollowUpAt, notes, packageId, paymentDueDate, preferredEvent, shootType, startTime, step, whatsappNotificationsEnabled, whatsappOptIn]);
+  }, [advanceAmount, advanceMethod, agreedTotal, assignedStaffAccountId, bookingDate, customerEmail, customerName, customerPhone, draftKey, endTime, followUpNote, location, nextFollowUpAt, notes, packageId, paymentDueDate, preferredEvent, shootType, source, startTime, step, whatsappNotificationsEnabled, whatsappOptIn]);
 
   const handlePackage = (id: string) => {
     setPackageId(id);
@@ -366,6 +369,7 @@ function BookingWizard({
       customerName: customerName.trim(),
       customerPhone: customerPhone.trim(),
       customerEmail: customerEmail.trim() || undefined,
+      source: source || undefined,
       shootType: shootType || undefined,
       preferredEvent: preferredEvent.trim(),
       bookingDate,
@@ -506,7 +510,8 @@ function BookingWizard({
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.customerName} <span className="font-semibold text-red-600" aria-hidden="true">*</span><span className="sr-only"> required</span><input id="booking-customer-name" data-wizard-autofocus required className={`${input} mt-1 ${fieldErrors.customerName ? 'border-red-400 focus:border-red-500 focus:ring-red-100' : ''}`} value={customerName} aria-invalid={Boolean(fieldErrors.customerName)} aria-describedby={fieldErrors.customerName ? 'booking-customer-name-error' : undefined} onChange={e => { setCustomerName(e.target.value); setFieldErrors(current => ({ ...current, customerName: undefined })); invalidateStep(0); }} />{fieldErrors.customerName && <span id="booking-customer-name-error" className="mt-1 block text-xs font-medium text-red-600">{fieldErrors.customerName}</span>}</label>
               <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.customerPhone} <span className="font-semibold text-red-600" aria-hidden="true">*</span><span className="sr-only"> required</span><input id="booking-customer-phone" required type="tel" inputMode="tel" maxLength={20} className={`${input} mt-1 ${fieldErrors.customerPhone ? 'border-red-400 focus:border-red-500 focus:ring-red-100' : ''}`} value={customerPhone} aria-invalid={Boolean(fieldErrors.customerPhone)} aria-describedby={fieldErrors.customerPhone ? 'booking-customer-phone-error' : undefined} onChange={e => { setCustomerPhone(e.target.value); setCustomerLookup(null); setNewShootConfirmed(false); setFieldErrors(current => ({ ...current, customerPhone: undefined })); invalidateStep(0); }} />{fieldErrors.customerPhone && <span id="booking-customer-phone-error" className="mt-1 block text-xs font-medium text-red-600">{fieldErrors.customerPhone}</span>}</label>
-              <label className="text-sm text-slate-700 sm:col-span-2">{BOOKING_WIZARD_FIELD_LABELS.customerEmail}<input type="email" className={`${input} mt-1`} value={customerEmail} onChange={e => setCustomerEmail(e.target.value)} /></label>
+              <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.customerEmail}<input type="email" className={`${input} mt-1`} value={customerEmail} onChange={e => setCustomerEmail(e.target.value)} /></label>
+              <label className="text-sm text-slate-700">Came from<select className={`${input} mt-1`} value={source} onChange={event => setSource(event.target.value as EnquirySource | '')}>{source === '' && <option value="">Not recorded</option>}{LEAD_SOURCE_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
             </div>
             {!booking && !enquiry && <CustomerLookupPanel phone={customerPhone} allowNewShoot newShootConfirmed={newShootConfirmed} onConfirmNewShoot={() => { setNewShootConfirmed(true); setError(''); }} onUseContact={contact => { setCustomerName(contact.customerName); setCustomerEmail(contact.email); setFieldErrors(current => ({ ...current, customerName: undefined })); invalidateStep(0); }} onResult={setCustomerLookup} onChecking={setCustomerLookupChecking} />}
           </section>}
@@ -761,6 +766,7 @@ function QuickConversionForm({
       customerName: enquiry.name,
       customerPhone: enquiry.phone,
       customerEmail: enquiry.email,
+      source: enquiry.source,
       shootType,
       preferredEvent,
       bookingDate,
