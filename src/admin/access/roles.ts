@@ -190,6 +190,10 @@ export function canManage(user: StaffAccount | null | undefined, area: StaffAcce
   return resolveStaffAccess(user, area) === 'manage';
 }
 
+export function canViewBookingPricing(role: StaffAccountRole | null | undefined): boolean {
+  return role === 'owner' || role === 'sales';
+}
+
 export function getDefaultAdminRoute(user: StaffAccount | null | undefined): string {
   if (canView(user, 'owner_overview')) return '/admin/owner';
   if (canView(user, 'today')) return '/admin/today';

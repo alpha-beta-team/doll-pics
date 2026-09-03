@@ -19,6 +19,7 @@ import {
 type BookingCardProps = {
   booking: Booking;
   canViewPayments: boolean;
+  showPricing: boolean;
   onOpen: () => void;
 };
 
@@ -37,7 +38,7 @@ function stopCardNavigation(event: MouseEvent<HTMLAnchorElement>) {
   event.stopPropagation();
 }
 
-export function BookingCard({ booking, canViewPayments, onOpen }: BookingCardProps) {
+export function BookingCard({ booking, canViewPayments, showPricing, onOpen }: BookingCardProps) {
   const followUpOverdue = Boolean(
     booking.nextFollowUpAt && new Date(booking.nextFollowUpAt).getTime() < Date.now(),
   );
@@ -63,7 +64,7 @@ export function BookingCard({ booking, canViewPayments, onOpen }: BookingCardPro
       aria-label={`Open booking for ${booking.customerName || 'unnamed customer'}`}
       onClick={onOpen}
       onKeyDown={openFromKeyboard}
-      className="group grid min-h-[116px] cursor-pointer grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-2 rounded-xl border border-admin-border bg-admin-surface px-4 py-3.5 text-left shadow-[0_3px_12px_rgba(62,56,46,0.035)] outline-none transition-[border-color,background-color,box-shadow,transform] hover:border-admin-primary/35 hover:bg-white hover:shadow-[0_5px_16px_rgba(62,56,46,0.07)] focus-visible:ring-2 focus-visible:ring-admin-focus focus-visible:ring-offset-2 focus-visible:ring-offset-admin-canvas active:scale-[0.995] lg:min-h-0 lg:grid-cols-[minmax(0,1.45fr)_minmax(9.5rem,0.9fr)_minmax(8rem,0.72fr)_minmax(10.5rem,1fr)_1.25rem] lg:items-center lg:gap-x-5 lg:gap-y-0 lg:rounded-none lg:border-0 lg:border-b lg:px-5 lg:py-3 lg:shadow-none lg:last:border-b-0 lg:hover:bg-admin-muted/55 lg:hover:shadow-none lg:active:scale-100"
+      className={`group grid min-h-[116px] cursor-pointer grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-2 rounded-xl border border-admin-border bg-admin-surface px-4 py-3.5 text-left shadow-[0_3px_12px_rgba(62,56,46,0.035)] outline-none transition-[border-color,background-color,box-shadow,transform] hover:border-admin-primary/35 hover:bg-white hover:shadow-[0_5px_16px_rgba(62,56,46,0.07)] focus-visible:ring-2 focus-visible:ring-admin-focus focus-visible:ring-offset-2 focus-visible:ring-offset-admin-canvas active:scale-[0.995] lg:min-h-0 lg:items-center lg:gap-x-5 lg:gap-y-0 lg:rounded-none lg:border-0 lg:border-b lg:px-5 lg:py-3 lg:shadow-none lg:last:border-b-0 lg:hover:bg-admin-muted/55 lg:hover:shadow-none lg:active:scale-100 ${showPricing ? 'lg:grid-cols-[minmax(0,1.45fr)_minmax(9.5rem,0.9fr)_minmax(8rem,0.72fr)_minmax(10.5rem,1fr)_1.25rem]' : 'lg:grid-cols-[minmax(0,1.45fr)_minmax(9.5rem,0.9fr)_minmax(10.5rem,1fr)_1.25rem]'}`}
     >
       <div className="col-span-2 min-w-0 lg:col-span-1">
         <div className="flex min-w-0 items-start justify-between gap-2 lg:items-center">
@@ -100,10 +101,10 @@ export function BookingCard({ booking, canViewPayments, onOpen }: BookingCardPro
         </span>
       </div>
 
-      <div className={`flex items-center justify-end gap-1 text-right text-sm font-semibold tabular-nums ${booking.agreedTotal == null && booking.packageListedPrice == null ? 'text-amber-800' : 'text-admin-text'} md:justify-start md:text-left`}>
+      {showPricing && <div className={`flex items-center justify-end gap-1 text-right text-sm font-semibold tabular-nums ${booking.agreedTotal == null && booking.packageListedPrice == null ? 'text-amber-800' : 'text-admin-text'} md:justify-start md:text-left`}>
         <IndianRupee className="hidden h-4 w-4 shrink-0 text-admin-gold lg:block" aria-hidden="true" />
         <span className="whitespace-nowrap">{bookingPriceLabel(booking, canViewPayments)}</span>
-      </div>
+      </div>}
 
       {booking.nextFollowUpAt ? (
         <div className={`col-span-2 flex min-w-0 items-center gap-1.5 border-t border-admin-border/70 pt-2 text-xs lg:col-span-1 lg:border-0 lg:pt-0 ${followUpOverdue ? 'font-semibold text-red-700' : 'text-admin-secondary'}`}>
@@ -132,12 +133,12 @@ export function BookingCard({ booking, canViewPayments, onOpen }: BookingCardPro
   );
 }
 
-export function BookingCardSkeleton() {
+export function BookingCardSkeleton({ showPricing }: { showPricing: boolean }) {
   return (
-    <div className="grid min-h-[126px] animate-pulse grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-2 rounded-xl border border-admin-border bg-admin-surface px-4 py-3.5 lg:min-h-0 lg:grid-cols-[minmax(0,1.45fr)_minmax(9.5rem,0.9fr)_minmax(8rem,0.72fr)_minmax(10.5rem,1fr)_1.25rem] lg:items-center lg:gap-x-5 lg:rounded-none lg:border-0 lg:border-b lg:px-5 lg:py-4">
+    <div className={`grid min-h-[126px] animate-pulse grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-2 rounded-xl border border-admin-border bg-admin-surface px-4 py-3.5 lg:min-h-0 lg:items-center lg:gap-x-5 lg:rounded-none lg:border-0 lg:border-b lg:px-5 lg:py-4 ${showPricing ? 'lg:grid-cols-[minmax(0,1.45fr)_minmax(9.5rem,0.9fr)_minmax(8rem,0.72fr)_minmax(10.5rem,1fr)_1.25rem]' : 'lg:grid-cols-[minmax(0,1.45fr)_minmax(9.5rem,0.9fr)_minmax(10.5rem,1fr)_1.25rem]'}`}>
       <div className="col-span-2 lg:col-span-1"><div className="h-4 w-3/5 rounded bg-admin-muted" /><div className="mt-2 h-3 w-4/5 rounded bg-admin-muted" /></div>
       <div className="h-4 w-28 rounded bg-admin-muted" />
-      <div className="h-4 w-20 rounded bg-admin-muted" />
+      {showPricing && <div className="h-4 w-20 rounded bg-admin-muted" />}
       <div className="col-span-2 h-4 w-40 rounded bg-admin-muted lg:col-span-1" />
       <div className="hidden lg:block" />
     </div>

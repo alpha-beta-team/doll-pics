@@ -36,6 +36,8 @@ import { api } from '../api/client';
 import { useFeatureAccess } from '../access/useFeatureAccess';
 import { useConfirmDialog } from '../hooks/useConfirmDialog';
 import { endTimeFor, formatScheduleTime, minutesToTime, timeToMinutes } from '../pages/schedule.utils';
+import { useAuth } from '../contexts/AuthContext';
+import { canViewBookingPricing } from '../access/roles';
 
 type Props = {
   booking?: Booking | null;
@@ -156,6 +158,8 @@ function BookingWizard({
 }: Props) {
   const confirm = useConfirmDialog();
   const { canView: canViewPayments } = useFeatureAccess('payments');
+  const { user } = useAuth();
+  const canEditBookingPricing = canViewBookingPricing(user?.role);
   const scheduleDraftSuffix = initialSchedule
     ? `${initialSchedule.bookingDate}:${initialSchedule.startTime}`
     : 'new';
@@ -177,7 +181,9 @@ function BookingWizard({
   );
   const [packageId, setPackageId] = useState(stored?.packageId ?? booking?.packageId ?? '');
   const [agreedTotal, setAgreedTotal] = useState(
-    stored?.agreedTotal ?? (booking?.agreedTotal == null ? '' : String(booking.agreedTotal)),
+    canEditBookingPricing
+      ? stored?.agreedTotal ?? (booking?.agreedTotal == null ? '' : String(booking.agreedTotal))
+      : '',
   );
   const [assignedStaffAccountId, setAssignedStaffAccountId] = useState(
     stored?.assignedStaffAccountId ?? booking?.assignedStaffAccountId ?? '',
@@ -279,7 +285,7 @@ function BookingWizard({
   const handlePackage = (id: string) => {
     setPackageId(id);
     const prefill = packagePrefill(packages, id, shootType);
-    if (prefill.agreedTotal !== undefined) setAgreedTotal(prefill.agreedTotal);
+    if (canEditBookingPricing && prefill.agreedTotal !== undefined) setAgreedTotal(prefill.agreedTotal);
     setShootType(prefill.shootType);
   };
 
@@ -367,7 +373,7 @@ function BookingWizard({
       endTime,
       location: location.trim(),
       packageId: packageId || null,
-      agreedTotal: agreedTotal === '' ? null : Number(agreedTotal),
+      agreedTotal: canEditBookingPricing ? (agreedTotal === '' ? null : Number(agreedTotal)) : undefined,
       assignedStaffAccountId: assignedStaffAccountId || null,
       advanceAmount: canViewPayments && enquiry && Number(advanceAmount) > 0 ? Number(advanceAmount) : undefined,
       advanceMethod: canViewPayments && enquiry && Number(advanceAmount) > 0 ? advanceMethod : undefined,
@@ -440,20 +446,26 @@ function BookingWizard({
   const selectedPackageOutsideFilter = packages.find(
     item => item.id === packageId && !packageMatchesShootType(item, shootType),
   );
+  const wizardSteps = canEditBookingPricing
+    ? BOOKING_WIZARD_STEPS
+    : BOOKING_WIZARD_STEPS.map((wizardStep, index) => index === 2 ? {
+        label: 'Package & team',
+        description: 'Choose a package and assign the booking now, or update them later.',
+      } : wizardStep);
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 sm:items-center sm:p-4">
       <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="booking-wizard-title" className="flex max-h-[96dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-2xl bg-white shadow-xl sm:max-h-[92dvh] sm:rounded-2xl">
         <div className="border-b border-slate-200 px-4 py-4 sm:px-5">
           <div className="flex items-center justify-between">
-            <div><h2 id="booking-wizard-title" className="text-lg font-semibold text-slate-900">{booking ? 'Edit booking' : enquiry ? 'Convert enquiry to booking' : 'Create booking'}</h2><p className="mt-0.5 text-xs font-medium text-slate-500">Step {step + 1} of {BOOKING_WIZARD_STEPS.length}</p></div>
+            <div><h2 id="booking-wizard-title" className="text-lg font-semibold text-slate-900">{booking ? 'Edit booking' : enquiry ? 'Convert enquiry to booking' : 'Create booking'}</h2><p className="mt-0.5 text-xs font-medium text-slate-500">Step {step + 1} of {wizardSteps.length}</p></div>
             <button type="button" onClick={closeAndDiscardDraft} className="rounded-lg p-2 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" aria-label="Close">
             <X className="h-5 w-5" />
             </button>
           </div>
           <nav className="mt-4" aria-label="Booking progress">
             <ol className="grid grid-cols-4 gap-1.5 sm:gap-3">
-              {BOOKING_WIZARD_STEPS.map((wizardStep, index) => {
+              {wizardSteps.map((wizardStep, index) => {
                 const current = index === step;
                 const completed = !current && index <= highestCompletedStep;
                 const accessible = canOpenBookingWizardStep(index, step, highestCompletedStep);
@@ -480,7 +492,7 @@ function BookingWizard({
         </div>
         <div className="space-y-5 overflow-y-auto p-4 sm:p-5">
           <div className="rounded-xl bg-slate-50 p-3">
-            <p className="text-sm font-medium text-slate-700">{BOOKING_WIZARD_STEPS[step].description}</p>
+            <p className="text-sm font-medium text-slate-700">{wizardSteps[step].description}</p>
             <p className="mt-1 text-xs text-slate-500">Fields marked * are required. Other details can be added later.</p>
           </div>
           {error && (
@@ -525,7 +537,7 @@ function BookingWizard({
             <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Package and ownership</h3>
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.package}<select data-wizard-autofocus className={`${input} mt-1`} value={packageId} onChange={e => handlePackage(e.target.value)}><option value="">No package</option>{selectedPackageOutsideFilter && <option value={selectedPackageOutsideFilter.id}>{selectedPackageOutsideFilter.name} (current · other service)</option>}{matchingPackages.map(item => <option key={item.id} value={item.id}>{item.name}{item.isPublished ? '' : ' (unpublished)'}</option>)}</select><span className="mt-1 block text-xs text-slate-500">Showing {shootType} packages only.</span></label>
-              <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.agreedTotal}<input type="number" min="0" className={`${input} mt-1`} value={agreedTotal} onChange={e => setAgreedTotal(e.target.value)} placeholder="Not decided" /></label>
+              {canEditBookingPricing && <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.agreedTotal}<input type="number" min="0" className={`${input} mt-1`} value={agreedTotal} onChange={e => setAgreedTotal(e.target.value)} placeholder="Not decided" /></label>}
               <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.assignedStaffAccount}<select className={`${input} mt-1`} value={assignedStaffAccountId} onChange={e => setAssignedStaffAccountId(e.target.value)}><option value="">Unassigned</option>{booking?.assignedStaffAccountId && !staffAccounts.some(account => account.id === booking.assignedStaffAccountId) && <option value={booking.assignedStaffAccountId}>{booking.assignedStaffAccountName || 'Previous assignee'} (current)</option>}{staffAccounts.map(account => <option key={account.id} value={account.id}>{account.name}{account.jobTitle ? ` · ${account.jobTitle}` : ''}</option>)}</select></label>
               {canViewPayments && <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.paymentDueDate}<input type="date" className={`${input} mt-1`} value={paymentDueDate} onChange={e => setPaymentDueDate(e.target.value)} /></label>}
               {canViewPayments && enquiry && <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.advanceAmount}<input type="number" min="0" className={`${input} mt-1`} value={advanceAmount} onChange={e => setAdvanceAmount(e.target.value)} /></label>}
@@ -716,6 +728,8 @@ function QuickConversionForm({
 }: Props & { enquiry: Enquiry }) {
   const confirm = useConfirmDialog();
   const { canView: canViewPayments } = useFeatureAccess('payments');
+  const { user } = useAuth();
+  const canEditBookingPricing = canViewBookingPricing(user?.role);
   const draftKey = `doll_admin_booking_draft:${enquiry.id}`;
   const closeAndDiscardDraft = () => {
     discardBookingFormDraft(localStorage, draftKey);
@@ -730,7 +744,7 @@ function QuickConversionForm({
   const [preferredEvent, setPreferredEvent] = useState(stored?.preferredEvent ?? enquiry.preferredEvent ?? '');
   const [location, setLocation] = useState(stored?.location ?? enquiry.location ?? '');
   const [packageId, setPackageId] = useState(stored?.packageId ?? '');
-  const [agreedTotal, setAgreedTotal] = useState(stored?.agreedTotal ?? '');
+  const [agreedTotal, setAgreedTotal] = useState(canEditBookingPricing ? stored?.agreedTotal ?? '' : '');
   const [assignedStaffAccountId, setAssignedStaffAccountId] = useState(stored?.assignedStaffAccountId ?? '');
   const [advanceAmount, setAdvanceAmount] = useState(stored?.advanceAmount ?? '');
   const [advanceMethod, setAdvanceMethod] = useState<PaymentMethod>(stored?.advanceMethod ?? 'upi');
@@ -772,7 +786,7 @@ function QuickConversionForm({
   const handlePackage = (id: string) => {
     setPackageId(id);
     const prefill = packagePrefill(packages, id, shootType);
-    if (prefill.agreedTotal !== undefined) setAgreedTotal(prefill.agreedTotal);
+    if (canEditBookingPricing && prefill.agreedTotal !== undefined) setAgreedTotal(prefill.agreedTotal);
     setShootType(prefill.shootType);
   };
 
@@ -786,7 +800,7 @@ function QuickConversionForm({
     if (!bookingDate) nextErrors.bookingDate = 'Choose the confirmed booking date.';
     const timeError = bookingTimeWindowError(bookingDate, startTime, endTime);
     if (timeError && !nextErrors.bookingDate) nextErrors.time = timeError;
-    if (agreedTotal !== '' && (!Number.isFinite(Number(agreedTotal)) || Number(agreedTotal) < 0)) {
+    if (canEditBookingPricing && agreedTotal !== '' && (!Number.isFinite(Number(agreedTotal)) || Number(agreedTotal) < 0)) {
       nextErrors.agreedTotal = 'Enter a valid amount or leave it blank.';
     }
     if (canViewPayments && advanceAmount !== '' && (!Number.isFinite(Number(advanceAmount)) || Number(advanceAmount) < 0)) {
@@ -813,7 +827,7 @@ function QuickConversionForm({
         preferredEvent,
         location,
         packageId,
-        agreedTotal,
+        agreedTotal: canEditBookingPricing ? agreedTotal : '',
         assignedStaffAccountId,
         advanceAmount: canViewPayments ? advanceAmount : '',
         advanceMethod,
@@ -877,10 +891,10 @@ function QuickConversionForm({
           </section>
 
           <section className="rounded-2xl border border-slate-200 p-4">
-            <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800"><IndianRupee className="h-4 w-4 text-emerald-600" /> Package and pricing</h3>
+            <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800">{canEditBookingPricing && <IndianRupee className="h-4 w-4 text-emerald-600" />}{canEditBookingPricing ? 'Package and pricing' : 'Package'}</h3>
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               <label className="text-sm font-medium text-slate-700">Package<select className={input} value={packageId} onChange={event => handlePackage(event.target.value)}><option value="">No package</option>{packages.map(item => <option key={item.id} value={item.id}>{item.name}{item.isPublished ? '' : ' (unpublished)'}</option>)}</select></label>
-              <label className="text-sm font-medium text-slate-700">Agreed total (₹)<input id="quick-booking-agreedTotal" type="number" min="0" inputMode="decimal" className={input} value={agreedTotal} onChange={event => { setAgreedTotal(event.target.value); clearFieldError('agreedTotal'); }} placeholder="Not decided" aria-invalid={Boolean(fieldErrors.agreedTotal)} />{fieldErrors.agreedTotal && <span className="mt-1 block text-xs font-medium text-red-600">{fieldErrors.agreedTotal}</span>}</label>
+              {canEditBookingPricing && <label className="text-sm font-medium text-slate-700">Agreed total (₹)<input id="quick-booking-agreedTotal" type="number" min="0" inputMode="decimal" className={input} value={agreedTotal} onChange={event => { setAgreedTotal(event.target.value); clearFieldError('agreedTotal'); }} placeholder="Not decided" aria-invalid={Boolean(fieldErrors.agreedTotal)} />{fieldErrors.agreedTotal && <span className="mt-1 block text-xs font-medium text-red-600">{fieldErrors.agreedTotal}</span>}</label>}
               {canViewPayments && <label className="text-sm font-medium text-slate-700">Advance received (₹)<input id="quick-booking-advanceAmount" type="number" min="0" inputMode="decimal" className={input} value={advanceAmount} onChange={event => { setAdvanceAmount(event.target.value); clearFieldError('advanceAmount'); }} placeholder="Optional" aria-invalid={Boolean(fieldErrors.advanceAmount)} />{fieldErrors.advanceAmount && <span className="mt-1 block text-xs font-medium text-red-600">{fieldErrors.advanceAmount}</span>}</label>}
               {canViewPayments && Number(advanceAmount) > 0 && <label className="text-sm font-medium text-slate-700">Advance method<select className={input} value={advanceMethod} onChange={event => setAdvanceMethod(event.target.value as PaymentMethod)}><option value="upi">UPI</option><option value="cash">Cash</option><option value="bank_transfer">Bank transfer</option><option value="card">Card</option><option value="other">Other</option></select></label>}
             </div>

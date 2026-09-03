@@ -16,6 +16,8 @@ import { BookingFormModal } from '../components/BookingFormModal';
 import { AdminButton, AdminEmptyState } from '../components/ui';
 import { useFeatureAccess } from '../access/useFeatureAccess';
 import { ReadOnlyNotice } from '../components/ReadOnlyNotice';
+import { useAuth } from '../contexts/AuthContext';
+import { canViewBookingPricing } from '../access/roles';
 import { consumeNewBookingSearch } from './bookingsRoute';
 import { BookingCard, BookingCardSkeleton } from '../components/bookings/BookingCard';
 import { BookingListHeader } from '../components/bookings/BookingListHeader';
@@ -74,6 +76,8 @@ function restoredViewState(): BookingViewState {
 export function BookingsPage() {
   const { canManage, isReadOnly } = useFeatureAccess('bookings');
   const { canView: canViewPayments } = useFeatureAccess('payments');
+  const { user } = useAuth();
+  const showBookingPricing = canViewBookingPricing(user?.role);
   const navigate = useNavigate();
   const location = useLocation();
   const [params, setParams] = useSearchParams();
@@ -204,6 +208,7 @@ export function BookingsPage() {
     () => bookings.filter(booking => serviceCategoryMatches(booking, serviceCategory)),
     [bookings, serviceCategory],
   );
+  const paymentFilter = canViewPayments ? payment : '';
 
   const matching = useMemo(() => {
     const now = Date.now();
@@ -211,11 +216,11 @@ export function BookingsPage() {
       if (status && booking.status !== status) return false;
       if (assignee === 'unassigned' && booking.assignedStaffAccountId) return false;
       if (assignee && assignee !== 'unassigned' && booking.assignedStaffAccountId !== assignee) return false;
-      if (payment && booking.paymentSummary.status !== payment) return false;
+      if (paymentFilter && booking.paymentSummary.status !== paymentFilter) return false;
       if (overdueOnly && (!booking.nextFollowUpAt || new Date(booking.nextFollowUpAt).getTime() > now)) return false;
       return bookingMatchesSearch(booking, query);
     });
-  }, [assignee, bookings, overdueOnly, payment, query, status]);
+  }, [assignee, bookings, overdueOnly, paymentFilter, query, status]);
 
   const serviceCategories = useMemo(
     () => buildServiceCategoryOptions(bookings, matching),
@@ -231,8 +236,8 @@ export function BookingsPage() {
   ) as Record<BookingStatus, number>, [bookingsForSelectedService]);
 
   const selectedStatusLabel = BOOKING_STATUSES.find(item => item.value === status)?.label;
-  const activeFilterCount = Number(Boolean(status)) + Number(Boolean(assignee)) + Number(Boolean(payment)) + Number(overdueOnly);
-  const hasAnyFilter = Boolean(status || assignee || payment || overdueOnly || query || serviceCategory);
+  const activeFilterCount = Number(Boolean(status)) + Number(Boolean(assignee)) + Number(Boolean(paymentFilter)) + Number(overdueOnly);
+  const hasAnyFilter = Boolean(status || assignee || paymentFilter || overdueOnly || query || serviceCategory);
 
   const selectServiceCategory = (value: string) => {
     setRequestedServiceCategory(value);
@@ -262,7 +267,7 @@ export function BookingsPage() {
       sessionStorage.setItem(VIEW_STATE_KEY, JSON.stringify({
         status,
         assignee,
-        payment,
+        payment: paymentFilter,
         overdueOnly,
         query,
         sort,
@@ -381,13 +386,13 @@ export function BookingsPage() {
       />
 
       <section id="booking-list-panel" role="tabpanel" aria-labelledby={serviceCategoryTabId(serviceCategory)} className="space-y-2.5 lg:space-y-0 lg:overflow-hidden lg:rounded-xl lg:border lg:border-admin-border lg:bg-admin-surface lg:shadow-[0_4px_18px_rgba(62,56,46,0.04)]">
-        <div className="hidden grid-cols-[minmax(0,1.45fr)_minmax(9.5rem,0.9fr)_minmax(8rem,0.72fr)_minmax(10.5rem,1fr)_1.25rem] gap-x-5 border-b border-admin-border bg-admin-muted/60 px-5 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-admin-subtle lg:grid">
-          <span>Customer</span><span>Shoot</span><span>Amount</span><span>Attention</span><span />
+        <div className={`hidden gap-x-5 border-b border-admin-border bg-admin-muted/60 px-5 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-admin-subtle lg:grid ${showBookingPricing ? 'grid-cols-[minmax(0,1.45fr)_minmax(9.5rem,0.9fr)_minmax(8rem,0.72fr)_minmax(10.5rem,1fr)_1.25rem]' : 'grid-cols-[minmax(0,1.45fr)_minmax(9.5rem,0.9fr)_minmax(10.5rem,1fr)_1.25rem]'}`}>
+          <span>Customer</span><span>Shoot</span>{showBookingPricing && <span>Amount</span>}<span>Attention</span><span />
         </div>
 
         {loading ? (
           <div className="space-y-2.5 md:grid md:grid-cols-2 md:gap-3 md:space-y-0 lg:block lg:space-y-0" aria-label="Loading bookings" role="status">
-            {Array.from({ length: 4 }, (_, index) => <BookingCardSkeleton key={index} />)}
+            {Array.from({ length: 4 }, (_, index) => <BookingCardSkeleton key={index} showPricing={showBookingPricing} />)}
             <span className="sr-only">Loading bookings…</span>
           </div>
         ) : error && bookings.length === 0 ? (
@@ -404,6 +409,7 @@ export function BookingsPage() {
                 key={booking.id}
                 booking={booking}
                 canViewPayments={canViewPayments}
+                showPricing={showBookingPricing}
                 onOpen={() => openBooking(booking.id)}
               />
             ))}

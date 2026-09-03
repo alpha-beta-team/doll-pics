@@ -148,7 +148,7 @@ export function BookingDetailPage() {
         api.getBooking(id),
         canManageBooking ? api.getPackages() : Promise.resolve<Package[]>([]),
         canManageBooking ? api.getSiteContent().catch(() => null) : Promise.resolve(null),
-        canManageBooking ? api.getAssignableStaffAccounts() : Promise.resolve<StaffAccountOption[]>([]),
+        canManageBooking ? api.getAssignableStaffAccounts().catch(() => []) : Promise.resolve<StaffAccountOption[]>([]),
         canManageBooking ? api.getBookingWhatsAppMessages(id).catch(() => []) : Promise.resolve<WhatsAppMessageSummary[]>([]),
         canManageBooking ? api.getReviewConfig().catch(() => ({ googleReviewUrl: '' })) : Promise.resolve({ googleReviewUrl: '' }),
       ]);
