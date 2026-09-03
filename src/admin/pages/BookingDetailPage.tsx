@@ -30,7 +30,9 @@ import type {
 import { BookingFormModal } from '../components/BookingFormModal';
 import { useConfirmDialog } from '../hooks/useConfirmDialog';
 import { useFeatureAccess } from '../access/useFeatureAccess';
+import { useAuth } from '../contexts/AuthContext';
 import { ReadOnlyNotice } from '../components/ReadOnlyNotice';
+import { hasStaffPermission } from '../access/roles';
 import {
   deliveryWhatsAppMessage,
   deliveryWhatsAppUrl,
@@ -105,6 +107,8 @@ export function BookingDetailPage() {
   const { canManage: canManageBooking, isReadOnly } = useFeatureAccess('bookings');
   const { canView: canViewPayments } = useFeatureAccess('payments');
   const { canManage: canManageIntegrations } = useFeatureAccess('integrations');
+  const { user } = useAuth();
+  const canViewPhone = hasStaffPermission(user, 'mask_phone_number');
   const confirmDialog = useConfirmDialog();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -490,7 +494,7 @@ export function BookingDetailPage() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card title="Customer and booking">
-          <div className="grid gap-5 sm:grid-cols-2"><Field label="Phone"><a className="text-blue-600" href={`tel:${booking.customerPhone}`}>{booking.customerPhone}</a></Field><Field label="Email">{booking.customerEmail ? <a className="text-blue-600" href={`mailto:${booking.customerEmail}`}>{booking.customerEmail}</a> : '—'}</Field><Field label="Photography service">{booking.shootType || '—'}</Field><Field label="Preferred event">{booking.preferredEvent || '—'}</Field><Field label="Booking date">{formatDay(booking.bookingDate)}</Field><Field label="Time window">{formatTimeWindow(booking.startTime, booking.endTime)}{bookingDurationLabel(booking.startTime, booking.endTime) ? ` · ${bookingDurationLabel(booking.startTime, booking.endTime)}` : ''}</Field><Field label="Location">{booking.location || '—'}</Field><Field label="Package">{booking.packageName || 'No package'}</Field><Field label="Assigned to">{booking.assignedStaffAccountName || 'Unassigned'}</Field></div>
+          <div className="grid gap-5 sm:grid-cols-2"><Field label="Phone">{canViewPhone ? <a className="text-blue-600" href={`tel:${booking.customerPhone}`}>{booking.customerPhone}</a> : booking.customerPhone}</Field><Field label="Email">{booking.customerEmail ? <a className="text-blue-600" href={`mailto:${booking.customerEmail}`}>{booking.customerEmail}</a> : '—'}</Field><Field label="Photography service">{booking.shootType || '—'}</Field><Field label="Preferred event">{booking.preferredEvent || '—'}</Field><Field label="Booking date">{formatDay(booking.bookingDate)}</Field><Field label="Time window">{formatTimeWindow(booking.startTime, booking.endTime)}{bookingDurationLabel(booking.startTime, booking.endTime) ? ` · ${bookingDurationLabel(booking.startTime, booking.endTime)}` : ''}</Field><Field label="Location">{booking.location || '—'}</Field><Field label="Package">{booking.packageName || 'No package'}</Field><Field label="Assigned to">{booking.assignedStaffAccountName || 'Unassigned'}</Field></div>
           {booking.notes && <div className="mt-5 rounded-lg bg-slate-50 p-4 text-sm whitespace-pre-wrap text-slate-700">{booking.notes}</div>}
         </Card>
 
@@ -581,8 +585,8 @@ export function BookingDetailPage() {
         </Card>}
       </div>
 
-      <CustomerLookupPanel phone={booking.customerPhone} current={{ type: 'booking', id: booking.id }} />
-      {canManageBooking && <ImportantDatesPanel phone={booking.customerPhone} customerName={booking.customerName} email={booking.customerEmail} source={{ type: 'booking', id: booking.id }} />}
+      {canManageBooking && canViewPhone && <CustomerLookupPanel phone={booking.customerPhone} current={{ type: 'booking', id: booking.id }} />}
+      {canManageBooking && canViewPhone && <ImportantDatesPanel phone={booking.customerPhone} customerName={booking.customerName} email={booking.customerEmail} source={{ type: 'booking', id: booking.id }} />}
       {canManageBooking && <VoiceNotesPanel recordType="booking" recordId={booking.id} />}
 
       <Card title="Schedule history">

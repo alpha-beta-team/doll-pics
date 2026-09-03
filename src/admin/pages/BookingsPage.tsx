@@ -15,9 +15,9 @@ import type {
 import { BookingFormModal } from '../components/BookingFormModal';
 import { AdminButton, AdminEmptyState } from '../components/ui';
 import { useFeatureAccess } from '../access/useFeatureAccess';
-import { ReadOnlyNotice } from '../components/ReadOnlyNotice';
 import { useAuth } from '../contexts/AuthContext';
-import { canViewBookingPricing } from '../access/roles';
+import { ReadOnlyNotice } from '../components/ReadOnlyNotice';
+import { canViewBookingPricing, hasStaffPermission } from '../access/roles';
 import { consumeNewBookingSearch } from './bookingsRoute';
 import { BookingCard, BookingCardSkeleton } from '../components/bookings/BookingCard';
 import { BookingListHeader } from '../components/bookings/BookingListHeader';
@@ -78,6 +78,7 @@ export function BookingsPage() {
   const { canView: canViewPayments } = useFeatureAccess('payments');
   const { user } = useAuth();
   const showBookingPricing = canViewBookingPricing(user?.role);
+  const canViewPhone = hasStaffPermission(user, 'mask_phone_number');
   const navigate = useNavigate();
   const location = useLocation();
   const [params, setParams] = useSearchParams();
@@ -410,6 +411,7 @@ export function BookingsPage() {
                 booking={booking}
                 canViewPayments={canViewPayments}
                 showPricing={showBookingPricing}
+                canViewPhone={canViewPhone}
                 onOpen={() => openBooking(booking.id)}
               />
             ))}

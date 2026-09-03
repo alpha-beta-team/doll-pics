@@ -182,6 +182,12 @@ export function resolveStaffAccess(user: StaffAccount | null | undefined, area: 
   return getEffectiveAccess(user.role, area, user.permissionOverrides);
 }
 
+export function hasStaffPermission(user: StaffAccount | null | undefined, permission: string): boolean {
+  if (!user || user.isActive === false) return false;
+  if (user.role === 'owner') return true;
+  return user.permissions?.includes(permission) ?? false;
+}
+
 export function canView(user: StaffAccount | null | undefined, area: StaffAccessArea): boolean {
   return resolveStaffAccess(user, area) !== 'none';
 }

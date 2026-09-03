@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Check,
   ChevronDown,
@@ -68,6 +69,7 @@ export function StaffAccountsPage() {
   const [drawerAccount, setDrawerAccount] = useState<StaffAccount | 'new' | null>(null);
   const [resetAccount, setResetAccount] = useState<StaffAccount | null>(null);
   const [updatingAccountId, setUpdatingAccountId] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const loadStaffAccounts = useCallback(async () => {
     setLoading(true);
@@ -204,6 +206,7 @@ export function StaffAccountsPage() {
                 <DesktopStaffAccountsTable
                   accounts={visibleAccounts}
                   updatingAccountId={updatingAccountId}
+                  onOpen={(account) => navigate(`/admin/staff-accounts/${account.id}`)}
                   onEdit={setDrawerAccount}
                   onReset={setResetAccount}
                   onResetPin={(account) => void resetPunchPin(account)}
@@ -212,6 +215,7 @@ export function StaffAccountsPage() {
                 <MobileStaffAccountsList
                   accounts={visibleAccounts}
                   updatingAccountId={updatingAccountId}
+                  onOpen={(account) => navigate(`/admin/staff-accounts/${account.id}`)}
                   onEdit={setDrawerAccount}
                   onReset={setResetAccount}
                   onResetPin={(account) => void resetPunchPin(account)}
@@ -263,13 +267,14 @@ function TabButton({ active, onClick, children }: { active: boolean; onClick: ()
 type StaffAccountListProps = {
   accounts: StaffAccount[];
   updatingAccountId: string | null;
+  onOpen: (account: StaffAccount) => void;
   onEdit: (account: StaffAccount) => void;
   onReset: (account: StaffAccount) => void;
   onResetPin: (account: StaffAccount) => void;
   onToggle: (account: StaffAccount) => void;
 };
 
-function DesktopStaffAccountsTable({ accounts, updatingAccountId, onEdit, onReset, onResetPin, onToggle }: StaffAccountListProps) {
+function DesktopStaffAccountsTable({ accounts, updatingAccountId, onOpen, onEdit, onReset, onResetPin, onToggle }: StaffAccountListProps) {
   return (
     <AdminTableSurface className="hidden md:block">
       <table className="w-full min-w-[920px] text-left text-sm">
@@ -294,6 +299,7 @@ function DesktopStaffAccountsTable({ accounts, updatingAccountId, onEdit, onRese
               <td className="px-5 py-4">
                 <div className="flex justify-end gap-2">
                   <AdminIconButton label={`Edit ${account.name}`} onClick={() => onEdit(account)}><Pencil className="h-4 w-4" /></AdminIconButton>
+                  <AdminIconButton label={`Open ${account.name}`} onClick={() => onOpen(account)}><UserCog className="h-4 w-4" /></AdminIconButton>
                   <AdminIconButton label={`Reset password for ${account.name}`} onClick={() => onReset(account)}><KeyRound className="h-4 w-4" /></AdminIconButton>
                   {account.attendanceEnabled && <AdminIconButton label={`Reset kiosk PIN for ${account.name}`} onClick={() => onResetPin(account)}><LockKeyhole className="h-4 w-4" /></AdminIconButton>}
                   <AdminIconButton
@@ -314,7 +320,7 @@ function DesktopStaffAccountsTable({ accounts, updatingAccountId, onEdit, onRese
   );
 }
 
-function MobileStaffAccountsList({ accounts, updatingAccountId, onEdit, onReset, onResetPin, onToggle }: StaffAccountListProps) {
+function MobileStaffAccountsList({ accounts, updatingAccountId, onOpen, onEdit, onReset, onResetPin, onToggle }: StaffAccountListProps) {
   return (
     <div className="space-y-3 md:hidden">
       {accounts.map((account) => (
@@ -325,6 +331,7 @@ function MobileStaffAccountsList({ accounts, updatingAccountId, onEdit, onReset,
             <AccountStatus account={account} />
           </div>
           <div className="mt-4 grid grid-cols-2 gap-2 border-t border-admin-border pt-4">
+            <AdminButton variant="secondary" className="px-2" onClick={() => onOpen(account)}><UserCog className="h-4 w-4" /> Open</AdminButton>
             <AdminButton variant="secondary" className="px-2" onClick={() => onEdit(account)}><Pencil className="h-4 w-4" /> Edit</AdminButton>
             <AdminButton variant="secondary" className="px-2" onClick={() => onReset(account)}><KeyRound className="h-4 w-4" /> Password</AdminButton>
             {account.attendanceEnabled && <AdminButton variant="secondary" className="px-2" onClick={() => onResetPin(account)}><LockKeyhole className="h-4 w-4" /> Kiosk PIN</AdminButton>}

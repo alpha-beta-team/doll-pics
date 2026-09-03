@@ -20,6 +20,7 @@ type BookingCardProps = {
   booking: Booking;
   canViewPayments: boolean;
   showPricing: boolean;
+  canViewPhone: boolean;
   onOpen: () => void;
 };
 
@@ -38,7 +39,7 @@ function stopCardNavigation(event: MouseEvent<HTMLAnchorElement>) {
   event.stopPropagation();
 }
 
-export function BookingCard({ booking, canViewPayments, showPricing, onOpen }: BookingCardProps) {
+export function BookingCard({ booking, canViewPayments, showPricing, canViewPhone, onOpen }: BookingCardProps) {
   const followUpOverdue = Boolean(
     booking.nextFollowUpAt && new Date(booking.nextFollowUpAt).getTime() < Date.now(),
   );
@@ -80,14 +81,16 @@ export function BookingCard({ booking, canViewPayments, showPricing, onOpen }: B
           {booking.customerPhone && (
             <>
               <span aria-hidden="true" className="text-admin-border-strong">·</span>
-              <a
-                href={`tel:${booking.customerPhone}`}
-                onClick={stopCardNavigation}
-                className="max-w-[48%] shrink-0 truncate rounded-sm font-medium text-admin-secondary outline-none hover:text-admin-primary hover:underline focus-visible:ring-2 focus-visible:ring-admin-focus"
-                aria-label={`Call ${booking.customerName || 'customer'} at ${booking.customerPhone}`}
-              >
-                {booking.customerPhone}
-              </a>
+              {canViewPhone ? (
+                <a
+                  href={`tel:${booking.customerPhone}`}
+                  onClick={stopCardNavigation}
+                  className="max-w-[48%] shrink-0 truncate rounded-sm font-medium text-admin-secondary outline-none hover:text-admin-primary hover:underline focus-visible:ring-2 focus-visible:ring-admin-focus"
+                  aria-label={`Call ${booking.customerName || 'customer'} at ${booking.customerPhone}`}
+                >
+                  {booking.customerPhone}
+                </a>
+              ) : <span className="max-w-[48%] shrink-0 truncate font-medium text-admin-secondary">{booking.customerPhone}</span>}
             </>
           )}
         </div>
