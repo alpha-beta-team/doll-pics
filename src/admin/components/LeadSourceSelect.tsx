@@ -1,7 +1,9 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Check, ChevronDown } from 'lucide-react';
 import type { EnquirySource } from '../types';
 import { LEAD_SOURCE_OPTIONS, leadSourceLabel } from './leadSource';
+import { leadSourceMenuPosition, type LeadSourceMenuPosition } from './leadSourceMenu.utils';
 
 type LeadSourceValue = EnquirySource | '';
 
@@ -20,11 +22,43 @@ export function LeadSourceSelect({
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const optionRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const [menuPosition, setMenuPosition] = useState<LeadSourceMenuPosition | null>(null);
   const options = allowUnrecorded
     ? [{ value: '' as const, label: 'Not recorded' }, ...LEAD_SOURCE_OPTIONS]
     : LEAD_SOURCE_OPTIONS;
   const selectedIndex = Math.max(0, options.findIndex(option => option.value === value));
+
+  const positionMenu = useCallback(() => {
+    const trigger = triggerRef.current;
+    if (!trigger) return;
+
+    let clippingParent = trigger.parentElement;
+    while (clippingParent && clippingParent !== document.body) {
+      const { overflowY } = window.getComputedStyle(clippingParent);
+      if (/(auto|scroll|hidden|clip)/.test(overflowY)) break;
+      clippingParent = clippingParent.parentElement;
+    }
+
+    const triggerRect = trigger.getBoundingClientRect();
+    const boundaryRect = clippingParent && clippingParent !== document.body
+      ? clippingParent.getBoundingClientRect()
+      : { top: 0, bottom: window.innerHeight };
+    setMenuPosition(leadSourceMenuPosition(
+      triggerRect,
+      boundaryRect,
+      { width: window.innerWidth, height: window.innerHeight },
+    ));
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!open) {
+      setMenuPosition(null);
+      return;
+    }
+    positionMenu();
+  }, [open, positionMenu]);
 
   useEffect(() => {
     if (!open) return;
@@ -32,7 +66,8 @@ export function LeadSourceSelect({
     window.setTimeout(() => optionRefs.current[selectedIndex]?.focus(), 0);
 
     const closeOnOutsidePress = (event: PointerEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+      const target = event.target as Node;
+      if (!rootRef.current?.contains(target) && !menuRef.current?.contains(target)) setOpen(false);
     };
     const handleKeyboard = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -58,13 +93,17 @@ export function LeadSourceSelect({
       }
     };
 
+    window.addEventListener('resize', positionMenu);
+    window.addEventListener('scroll', positionMenu, true);
     document.addEventListener('pointerdown', closeOnOutsidePress);
     document.addEventListener('keydown', handleKeyboard);
     return () => {
+      window.removeEventListener('resize', positionMenu);
+      window.removeEventListener('scroll', positionMenu, true);
       document.removeEventListener('pointerdown', closeOnOutsidePress);
       document.removeEventListener('keydown', handleKeyboard);
     };
-  }, [open, options.length, selectedIndex]);
+  }, [open, options.length, positionMenu, selectedIndex]);
 
   const select = (nextValue: LeadSourceValue) => {
     onChange(nextValue);
@@ -96,12 +135,20 @@ export function LeadSourceSelect({
         <ChevronDown className={`h-5 w-5 shrink-0 text-slate-500 transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
       </button>
 
-      {open && (
+      {open && menuPosition && createPortal(
         <div
+          ref={menuRef}
           id={`${id}-options`}
           role="listbox"
           aria-labelledby={`${id}-label`}
-          className="absolute inset-x-0 top-full z-30 mt-2 max-h-72 overflow-y-auto overscroll-contain rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl"
+          data-placement={menuPosition.placement}
+          style={{
+            left: menuPosition.left,
+            top: menuPosition.top,
+            width: menuPosition.width,
+            maxHeight: menuPosition.maxHeight,
+          }}
+          className="fixed z-[80] overflow-y-auto overscroll-contain rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl"
         >
           {options.map((option, index) => {
             const selected = option.value === value;
@@ -121,7 +168,8 @@ export function LeadSourceSelect({
               </button>
             );
           })}
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );
