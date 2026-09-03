@@ -32,14 +32,17 @@ import {
 } from '../components/sales/serviceCategories';
 import {
   BOOKING_STATUSES,
+  bookingMatchesScope,
   bookingMatchesSearch,
   sortBookings,
+  type BookingListScope,
   type BookingSort,
 } from '../components/bookings/bookingList';
 
 export type ConvertEnquiryState = { convertFromEnquiry?: Enquiry };
 
 type BookingViewState = {
+  scope: BookingListScope;
   status: BookingStatus | '';
   assignee: string;
   payment: PaymentState | '';
@@ -54,12 +57,13 @@ const RESTORE_SCROLL_KEY = 'doll-bookings-restore-scroll';
 const VIEW_STATE_KEY = 'doll-bookings-view-state';
 
 const defaultViewState: BookingViewState = {
+  scope: 'pending',
   status: '',
   assignee: '',
   payment: '',
   overdueOnly: false,
   query: '',
-  sort: 'recent',
+  sort: 'shoot_date',
   serviceCategory: '',
 };
 
@@ -67,7 +71,11 @@ function restoredViewState(): BookingViewState {
   try {
     if (sessionStorage.getItem(RESTORE_SCROLL_KEY) !== 'true') return defaultViewState;
     const stored = JSON.parse(sessionStorage.getItem(VIEW_STATE_KEY) || '{}') as Partial<BookingViewState>;
-    return { ...defaultViewState, ...stored };
+    const restored = { ...defaultViewState, ...stored };
+    if (restored.status === 'shoot_completed' || restored.status === 'delivered' || restored.status === 'cancelled') {
+      restored.scope = 'all';
+    }
+    return restored;
   } catch {
     return defaultViewState;
   }
@@ -96,6 +104,7 @@ export function BookingsPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [scope, setScope] = useState<BookingListScope>(restored.scope);
   const [status, setStatus] = useState<BookingStatus | ''>(restored.status);
   const [assignee, setAssignee] = useState(restored.assignee);
   const [payment, setPayment] = useState<PaymentState | ''>(restored.payment);
@@ -214,6 +223,7 @@ export function BookingsPage() {
   const matching = useMemo(() => {
     const now = Date.now();
     return bookings.filter(booking => {
+      if (!bookingMatchesScope(booking, scope)) return false;
       if (status && booking.status !== status) return false;
       if (assignee === 'unassigned' && booking.assignedStaffAccountId) return false;
       if (assignee && assignee !== 'unassigned' && booking.assignedStaffAccountId !== assignee) return false;
@@ -221,7 +231,7 @@ export function BookingsPage() {
       if (overdueOnly && (!booking.nextFollowUpAt || new Date(booking.nextFollowUpAt).getTime() > now)) return false;
       return bookingMatchesSearch(booking, query);
     });
-  }, [assignee, bookings, overdueOnly, paymentFilter, query, status]);
+  }, [assignee, bookings, overdueOnly, paymentFilter, query, scope, status]);
 
   const serviceCategories = useMemo(
     () => buildServiceCategoryOptions(bookings, matching),
@@ -235,6 +245,11 @@ export function BookingsPage() {
   const counts = useMemo(() => Object.fromEntries(
     BOOKING_STATUSES.map(item => [item.value, bookingsForSelectedService.filter(row => row.status === item.value).length]),
   ) as Record<BookingStatus, number>, [bookingsForSelectedService]);
+
+  const pendingCount = useMemo(
+    () => bookingsForSelectedService.filter(booking => bookingMatchesScope(booking, 'pending')).length,
+    [bookingsForSelectedService],
+  );
 
   const selectedStatusLabel = BOOKING_STATUSES.find(item => item.value === status)?.label;
   const activeFilterCount = Number(Boolean(status)) + Number(Boolean(assignee)) + Number(Boolean(paymentFilter)) + Number(overdueOnly);
@@ -267,6 +282,7 @@ export function BookingsPage() {
       sessionStorage.setItem(RESTORE_SCROLL_KEY, 'true');
       sessionStorage.setItem(VIEW_STATE_KEY, JSON.stringify({
         status,
+        scope,
         assignee,
         payment: paymentFilter,
         overdueOnly,
@@ -346,7 +362,15 @@ export function BookingsPage() {
         <section id="booking-advanced-filters" aria-label="Booking filters" className="grid gap-3 rounded-xl border border-admin-border bg-admin-surface p-3 shadow-sm sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto_auto] xl:items-center">
           <label className="block">
             <span className="sr-only">Booking status</span>
-            <select value={status} onChange={event => setStatus(event.target.value as BookingStatus | '')} className="h-11 w-full rounded-xl border border-admin-control bg-admin-surface px-3 text-sm text-admin-secondary outline-none focus-visible:ring-2 focus-visible:ring-admin-focus">
+            <select
+              value={status}
+              onChange={event => {
+                const nextStatus = event.target.value as BookingStatus | '';
+                setStatus(nextStatus);
+                if (nextStatus === 'shoot_completed' || nextStatus === 'delivered' || nextStatus === 'cancelled') setScope('all');
+              }}
+              className="h-11 w-full rounded-xl border border-admin-control bg-admin-surface px-3 text-sm text-admin-secondary outline-none focus-visible:ring-2 focus-visible:ring-admin-focus"
+            >
               <option value="">All statuses ({bookingsForSelectedService.length})</option>
               {BOOKING_STATUSES.map(item => <option key={item.value} value={item.value}>{item.label} ({counts[item.value]})</option>)}
             </select>
@@ -381,9 +405,16 @@ export function BookingsPage() {
         title={serviceCategory
           ? selectedStatusLabel
             ? `${serviceCategories.find(option => option.value === serviceCategory)?.label} · ${selectedStatusLabel}`
-            : `${serviceCategories.find(option => option.value === serviceCategory)?.label} bookings`
-          : selectedStatusLabel || 'All bookings'}
+            : `${serviceCategories.find(option => option.value === serviceCategory)?.label} · ${scope === 'pending' ? 'Pending shoots' : 'All bookings'}`
+          : selectedStatusLabel || (scope === 'pending' ? 'Pending shoots' : 'All bookings')}
         count={visible.length}
+        scope={scope}
+        pendingCount={pendingCount}
+        totalCount={bookingsForSelectedService.length}
+        onScopeChange={nextScope => {
+          setScope(nextScope);
+          if (nextScope === 'pending' && status && status !== 'draft' && status !== 'confirmed') setStatus('');
+        }}
       />
 
       <section id="booking-list-panel" role="tabpanel" aria-labelledby={serviceCategoryTabId(serviceCategory)} className="space-y-2.5 lg:space-y-0 lg:overflow-hidden lg:rounded-xl lg:border lg:border-admin-border lg:bg-admin-surface lg:shadow-[0_4px_18px_rgba(62,56,46,0.04)]">

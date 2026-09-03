@@ -614,7 +614,7 @@ export function DashboardPage() {
               <h2 className="font-semibold text-slate-900">Upcoming shoots</h2>
               <p className="mt-1 text-sm text-slate-500">Confirmed work scheduled in the next 30 days.</p>
             </div>
-            <Link to="/admin/bookings" className="flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700">All bookings <ArrowRight className="h-4 w-4" /></Link>
+            <Link to="/admin/bookings" className="flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700">View bookings <ArrowRight className="h-4 w-4" /></Link>
           </div>
           {dashboard.upcoming.length ? (
             <div className="divide-y divide-slate-100 px-5 sm:px-6">

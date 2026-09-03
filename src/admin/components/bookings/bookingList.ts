@@ -2,6 +2,7 @@ import type { Booking, BookingStatus } from '../../types';
 import { leadSourceLabel } from '../leadSource';
 
 export type BookingSort = 'shoot_date' | 'recent' | 'customer' | 'follow_up';
+export type BookingListScope = 'pending' | 'all';
 
 export const BOOKING_STATUSES: ReadonlyArray<{ value: BookingStatus; label: string }> = [
   { value: 'draft', label: 'Draft' },
@@ -17,6 +18,10 @@ export const BOOKING_SORT_OPTIONS: ReadonlyArray<{ value: BookingSort; label: st
   { value: 'customer', label: 'Customer name' },
   { value: 'follow_up', label: 'Follow-up date' },
 ];
+
+export function bookingMatchesScope(booking: Booking, scope: BookingListScope) {
+  return scope === 'all' || booking.status === 'draft' || booking.status === 'confirmed';
+}
 
 export const bookingStatusClass: Record<BookingStatus, string> = {
   draft: 'bg-stone-100 text-stone-700 ring-stone-200',
