@@ -4,6 +4,7 @@ import { leadSourceLabel } from '../leadSource';
 export type EnquirySort = 'newest' | 'oldest' | 'follow_up' | 'updated' | 'customer';
 export type EnquiryPriorityFilter = '' | 'due_today' | 'overdue';
 export type FollowUpUrgency = 'overdue' | 'due_today' | 'upcoming';
+export type EnquiryListScope = 'active' | 'all';
 
 export const ENQUIRY_STAGES: ReadonlyArray<{ value: EnquiryStage; label: string }> = [
   { value: 'new', label: 'New' },
@@ -40,6 +41,10 @@ export const enquiryStageDotClass: Record<EnquiryStage, string> = {
 export function enquiryStageLabel(stage: EnquiryStage) {
   return ENQUIRY_STAGES.find(item => item.value === stage)?.label
     ?? stage.replace(/_/g, ' ');
+}
+
+export function enquiryMatchesScope(enquiry: Enquiry, scope: EnquiryListScope) {
+  return scope === 'all' || enquiry.stage !== 'closed_lost';
 }
 
 export function enquirySourceLabel(source: EnquirySource) {

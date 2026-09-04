@@ -13,31 +13,31 @@
   "rewrites": [
     {
       "source": "/admin",
-      "destination": "/index.html"
+      "destination": "/"
     },
     {
       "source": "/admin/:path*",
-      "destination": "/index.html"
+      "destination": "/"
     },
     {
       "source": "/employee",
-      "destination": "/index.html"
+      "destination": "/"
     },
     {
       "source": "/employee/:path*",
-      "destination": "/index.html"
+      "destination": "/"
     },
     {
       "source": "/kiosk",
-      "destination": "/index.html"
+      "destination": "/"
     },
     {
       "source": "/kiosk/:path*",
-      "destination": "/index.html"
+      "destination": "/"
     },
     {
       "source": "/quotation/:path*",
-      "destination": "/index.html"
+      "destination": "/"
     }
   ],
   "headers": [

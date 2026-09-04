@@ -253,9 +253,9 @@ export function BookingsPage() {
 
   const selectedStatusLabel = BOOKING_STATUSES.find(item => item.value === status)?.label;
   const selectedServiceLabel = serviceCategories.find(option => option.value === serviceCategory)?.label;
-  const listTitle = selectedServiceLabel
+  const listTitle = serviceCategory && selectedServiceLabel
     ? `${selectedServiceLabel} · ${selectedStatusLabel || (scope === 'pending' ? 'Pending shoots' : 'All bookings')}`
-    : selectedStatusLabel;
+    : selectedStatusLabel || (scope === 'pending' ? 'Pending shoots' : 'All bookings');
   const activeFilterCount = Number(Boolean(status)) + Number(Boolean(assignee)) + Number(Boolean(paymentFilter)) + Number(overdueOnly);
   const hasAnyFilter = Boolean(status || assignee || paymentFilter || overdueOnly || query || serviceCategory);
 
@@ -332,7 +332,7 @@ export function BookingsPage() {
     <div className="mx-auto max-w-[1320px] space-y-3 pb-2 sm:space-y-4">
       <SalesWorkspaceHeader
         title="Bookings"
-        titleControls={(
+        viewControls={(
           <BookingViewSwitch
             scope={scope}
             pendingCount={pendingBookingCount}

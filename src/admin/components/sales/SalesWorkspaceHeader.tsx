@@ -3,7 +3,7 @@ import { serviceCategoryTabId, type ServiceCategoryOption } from './serviceCateg
 
 type SalesWorkspaceHeaderProps = {
   title: string;
-  titleControls?: ReactNode;
+  viewControls?: ReactNode;
   actions: ReactNode;
   listControls: ReactNode;
   serviceCategories: ServiceCategoryOption[];
@@ -15,7 +15,7 @@ type SalesWorkspaceHeaderProps = {
 
 export function SalesWorkspaceHeader({
   title,
-  titleControls,
+  viewControls,
   actions,
   listControls,
   serviceCategories,
@@ -45,46 +45,54 @@ export function SalesWorkspaceHeader({
 
   return (
     <header className="rounded-2xl border border-admin-border bg-admin-surface shadow-[0_4px_18px_rgba(62,56,46,0.04)]">
-      <div className={`flex flex-col justify-between gap-3 px-3 py-3 sm:px-4 ${titleControls ? '2xl:flex-row 2xl:items-center' : 'xl:flex-row xl:items-center'}`}>
+      <div className="flex flex-col justify-between gap-3 px-3 py-3 sm:px-4 lg:flex-row lg:items-center">
         <div className="flex min-w-0 flex-wrap items-center gap-2.5">
           <h1 className="min-w-0 truncate text-2xl font-semibold tracking-tight text-admin-text">{title}</h1>
-          {titleControls}
           {readOnlyNotice}
         </div>
-        <div className="min-w-0 xl:shrink-0">{actions}</div>
+        <div className="min-w-0 lg:shrink-0">{actions}</div>
       </div>
 
-      <div className="flex min-w-0 items-center gap-2 border-t border-admin-border px-2 py-2 sm:px-3">
-        <div className="flex min-w-0 flex-1 items-center gap-2">
-          <span className="hidden shrink-0 px-1 text-[11px] font-bold uppercase tracking-[0.13em] text-admin-subtle sm:inline">Service</span>
-          <div className="min-w-0 flex-1 overflow-x-auto px-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <div role="tablist" aria-label="Filter by photography service" className="flex min-w-max items-center gap-1.5">
-              {serviceCategories.map((category, index) => {
-                const selected = serviceCategory === category.value;
-                return (
-                  <button
-                    key={category.value || 'all'}
-                    ref={node => { tabRefs.current[index] = node; }}
-                    id={serviceCategoryTabId(category.value)}
-                    type="button"
-                    role="tab"
-                    aria-selected={selected}
-                    aria-controls={panelId}
-                    tabIndex={selected ? 0 : -1}
-                    onClick={() => onServiceCategoryChange(category.value)}
-                    onKeyDown={event => moveServiceFocus(event, index)}
-                    className={`inline-flex min-h-11 items-center gap-2 rounded-lg border px-3 text-xs font-semibold outline-none transition focus-visible:ring-2 focus-visible:ring-admin-focus sm:min-h-9 ${selected ? 'border-admin-primary bg-admin-primary text-white shadow-sm' : 'border-admin-border bg-admin-surface text-admin-secondary hover:border-admin-primary/35 hover:bg-admin-muted hover:text-admin-text'}`}
-                  >
-                    <span>{category.label}</span>
-                    <span className={`inline-flex min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] tabular-nums ${selected ? 'bg-white/20 text-white' : 'bg-admin-muted text-admin-subtle'}`}>{category.count}</span>
-                  </button>
-                );
-              })}
+      <div className="flex min-w-0 flex-col border-t border-admin-border sm:flex-row sm:items-center">
+        {viewControls && (
+          <div className="flex shrink-0 items-center gap-2 border-b border-admin-border px-3 py-2 sm:border-b-0 sm:border-r">
+            <span className="shrink-0 text-[11px] font-bold uppercase tracking-[0.13em] text-admin-subtle">View</span>
+            {viewControls}
+          </div>
+        )}
+
+        <div className="flex min-w-0 flex-1 items-center gap-2 px-2 py-2 sm:px-3">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <span className="hidden shrink-0 px-1 text-[11px] font-bold uppercase tracking-[0.13em] text-admin-subtle md:inline">Service</span>
+            <div className="min-w-0 flex-1 overflow-x-auto px-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div role="tablist" aria-label="Filter by photography service" className="flex min-w-max items-center gap-1.5">
+                {serviceCategories.map((category, index) => {
+                  const selected = serviceCategory === category.value;
+                  return (
+                    <button
+                      key={category.value || 'all'}
+                      ref={node => { tabRefs.current[index] = node; }}
+                      id={serviceCategoryTabId(category.value)}
+                      type="button"
+                      role="tab"
+                      aria-selected={selected}
+                      aria-controls={panelId}
+                      tabIndex={selected ? 0 : -1}
+                      onClick={() => onServiceCategoryChange(category.value)}
+                      onKeyDown={event => moveServiceFocus(event, index)}
+                      className={`inline-flex min-h-11 items-center gap-2 rounded-lg border px-3 text-xs font-semibold outline-none transition focus-visible:ring-2 focus-visible:ring-admin-focus sm:min-h-9 ${selected ? 'border-admin-primary bg-admin-primary text-white shadow-sm' : 'border-admin-border bg-admin-surface text-admin-secondary hover:border-admin-primary/35 hover:bg-admin-muted hover:text-admin-text'}`}
+                    >
+                      <span>{category.label}</span>
+                      <span className={`inline-flex min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] tabular-nums ${selected ? 'bg-white/20 text-white' : 'bg-admin-muted text-admin-subtle'}`}>{category.count}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
-        </div>
-        <div className="flex min-w-0 shrink-0 items-center justify-end gap-1">
-          {listControls}
+          <div className="flex min-w-0 shrink-0 items-center justify-end gap-1">
+            {listControls}
+          </div>
         </div>
       </div>
     </header>

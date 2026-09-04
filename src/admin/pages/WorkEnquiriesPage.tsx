@@ -14,7 +14,7 @@ import {
   EnquirySortControl,
 } from '../components/enquiries/EnquiryStatusFilter';
 import { EnquiryPrioritySummary } from '../components/enquiries/EnquiryPrioritySummary';
-import { EnquiryListHeader } from '../components/enquiries/EnquiryListHeader';
+import { EnquiryListHeader, EnquiryViewSwitch } from '../components/enquiries/EnquiryListHeader';
 import { EnquiryCard, EnquiryCardSkeleton } from '../components/enquiries/EnquiryCard';
 import { SalesWorkspaceHeader } from '../components/sales/SalesWorkspaceHeader';
 import {
@@ -25,11 +25,13 @@ import {
 } from '../components/sales/serviceCategories';
 import {
   ENQUIRY_STAGES,
+  enquiryMatchesScope,
   enquiryMatchesPriority,
   enquiryMatchesSearch,
   enquiryStageLabel,
   followUpUrgency,
   sortEnquiries,
+  type EnquiryListScope,
   type EnquiryPriorityFilter,
   type EnquirySort,
 } from '../components/enquiries/enquiryList';
@@ -50,6 +52,7 @@ export function WorkEnquiriesPage() {
   const serviceParam = params.get('service') || '';
   const requestedServiceCategory = serviceParam ? normalizeServiceCategory(serviceParam) : '';
   const [items, setItems] = useState<Enquiry[]>([]);
+  const [scope, setScope] = useState<EnquiryListScope>('active');
   const [stage, setStage] = useState<EnquiryStage | 'all'>('all');
   const [priority, setPriority] = useState<EnquiryPriorityFilter>('');
   const [query, setQuery] = useState('');
@@ -116,11 +119,12 @@ export function WorkEnquiriesPage() {
   const matching = useMemo(() => {
     const now = new Date();
     return items.filter(item => {
+      if (!enquiryMatchesScope(item, scope)) return false;
       if (stage !== 'all' && item.stage !== stage) return false;
       if (!enquiryMatchesPriority(item, priority, now)) return false;
       return enquiryMatchesSearch(item, query);
     });
-  }, [items, priority, query, stage]);
+  }, [items, priority, query, scope, stage]);
 
   const serviceCategories = useMemo(
     () => buildServiceCategoryOptions(items, matching),
@@ -129,6 +133,11 @@ export function WorkEnquiriesPage() {
   const visible = useMemo(
     () => sortEnquiries(matching.filter(item => serviceCategoryMatches(item, serviceCategory)), sort),
     [matching, serviceCategory, sort],
+  );
+
+  const activeEnquiryCount = useMemo(
+    () => items.filter(item => enquiryMatchesScope(item, 'active')).length,
+    [items],
   );
 
   const activeFilterCount = Number(stage !== 'all') + Number(Boolean(priority));
@@ -140,12 +149,10 @@ export function WorkEnquiriesPage() {
     : priority === 'due_today'
       ? 'Follow-ups due today'
       : stage === 'all'
-        ? 'All enquiries'
+        ? scope === 'active' ? 'Active enquiries' : 'All enquiries'
         : `${enquiryStageLabel(stage)} enquiries`;
   const selectedListName = serviceCategory && selectedServiceLabel
-    ? stage === 'all' && !priority
-      ? `${selectedServiceLabel} enquiries`
-      : `${selectedServiceLabel} · ${selectedListNameBase}`
+    ? `${selectedServiceLabel} · ${selectedListNameBase}`
     : selectedListNameBase;
 
   const selectServiceCategory = (value: string) => {
@@ -178,6 +185,17 @@ export function WorkEnquiriesPage() {
     <div className="mx-auto max-w-[1320px] space-y-3 pb-2 sm:space-y-4">
       <SalesWorkspaceHeader
         title="Enquiries"
+        viewControls={(
+          <EnquiryViewSwitch
+            scope={scope}
+            activeCount={activeEnquiryCount}
+            totalCount={items.length}
+            onScopeChange={nextScope => {
+              setScope(nextScope);
+              if (nextScope === 'active' && stage === 'closed_lost') setStage('all');
+            }}
+          />
+        )}
         serviceCategories={serviceCategories}
         serviceCategory={serviceCategory}
         onServiceCategoryChange={selectServiceCategory}
@@ -204,7 +222,11 @@ export function WorkEnquiriesPage() {
           <div className="flex flex-col gap-2 rounded-xl border border-admin-border bg-admin-surface p-2 shadow-sm sm:flex-row sm:items-center">
             <label className="block min-w-0 flex-1 sm:max-w-xs">
               <span className="sr-only">Enquiry status</span>
-              <select value={stage} onChange={event => setStage(event.target.value as EnquiryStage | 'all')} className="h-11 w-full rounded-xl border border-admin-control bg-admin-surface px-3 text-sm text-admin-secondary outline-none focus-visible:ring-2 focus-visible:ring-admin-focus">
+              <select value={stage} onChange={event => {
+                const nextStage = event.target.value as EnquiryStage | 'all';
+                setStage(nextStage);
+                if (nextStage === 'closed_lost') setScope('all');
+              }} className="h-11 w-full rounded-xl border border-admin-control bg-admin-surface px-3 text-sm text-admin-secondary outline-none focus-visible:ring-2 focus-visible:ring-admin-focus">
                 <option value="all">All statuses ({itemsForSelectedService.length})</option>
                 {ENQUIRY_STAGES.map(item => <option key={item.value} value={item.value}>{item.label} ({counts[item.value]})</option>)}
               </select>
@@ -289,12 +311,19 @@ export function WorkEnquiriesPage() {
             description="Try a different customer name, phone number, service, or enquiry source."
             action={<AdminButton variant="secondary" onClick={clearFilters}>Clear search and filters</AdminButton>}
           />
-        ) : hasStatusOrPriorityFilter ? (
+        ) : hasStatusOrPriorityFilter || serviceCategory ? (
           <AdminEmptyState
             icon={Inbox}
             title="No enquiries in this view"
-            description="Choose another status or reset the active priority filter."
+            description="Choose another service or status, or reset the active filters."
             action={<AdminButton variant="secondary" onClick={clearFilters}>Reset filters</AdminButton>}
+          />
+        ) : scope === 'active' ? (
+          <AdminEmptyState
+            icon={Inbox}
+            title="No active enquiries"
+            description="Not interested enquiries remain available in the complete list."
+            action={<AdminButton variant="secondary" onClick={() => setScope('all')}>View all enquiries</AdminButton>}
           />
         ) : null}
       </section>

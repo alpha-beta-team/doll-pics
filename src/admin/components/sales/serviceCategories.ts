@@ -70,5 +70,5 @@ export function buildServiceCategoryOptions(
     return left.label.localeCompare(right.label, 'en-IN', { sensitivity: 'base' });
   });
 
-  return [{ value: '', label: 'All services', count: matchingItems.length }, ...categories];
+  return [{ value: '', label: 'All', count: matchingItems.length }, ...categories];
 }

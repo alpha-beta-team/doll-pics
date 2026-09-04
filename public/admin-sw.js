@@ -1,9 +1,6 @@
-const CACHE_NAME = 'doll-work-shell-v5';
+const CACHE_NAME = 'doll-work-shell-v6';
 const SHELL = [
-  '/admin',
-  '/admin/today',
-  '/employee',
-  '/kiosk',
+  '/',
   '/manifest.webmanifest',
   '/employee.webmanifest',
   '/kiosk.webmanifest',
@@ -33,7 +30,10 @@ self.addEventListener('fetch', event => {
           ? '/kiosk'
           : '';
     if (!shell) return;
-    event.respondWith(fetch(request).catch(() => caches.match(shell)));
+    event.respondWith(fetch(request).then(response => {
+      if (response.ok) return response;
+      return caches.match('/').then(cached => cached || response);
+    }).catch(() => caches.match('/')));
     return;
   }
   if (['script', 'style', 'image', 'font'].includes(request.destination)) {

@@ -14,22 +14,26 @@ export function BookingViewSwitch({
   onScopeChange,
 }: BookingViewSwitchProps) {
   return (
-    <div className="inline-flex w-fit rounded-lg border border-admin-border bg-admin-muted/60 p-1" role="group" aria-label="Booking view">
+    <div className="inline-flex w-fit rounded-lg bg-admin-muted p-0.5" role="group" aria-label="Booking view">
       <button
         type="button"
         aria-pressed={scope === 'pending'}
+        aria-controls="booking-list-panel"
         onClick={() => onScopeChange('pending')}
-        className={`min-h-9 rounded-md px-3 text-xs font-semibold outline-none transition focus-visible:ring-2 focus-visible:ring-admin-focus ${scope === 'pending' ? 'bg-admin-primary text-white shadow-sm' : 'text-admin-secondary hover:bg-admin-surface hover:text-admin-text'}`}
+        className={`inline-flex min-h-9 items-center gap-1.5 rounded-md px-3 text-xs font-semibold outline-none transition focus-visible:ring-2 focus-visible:ring-admin-focus ${scope === 'pending' ? 'bg-admin-surface text-admin-text shadow-sm ring-1 ring-admin-border' : 'text-admin-secondary hover:text-admin-text'}`}
       >
-        Pending shoots <span className={`ml-1 tabular-nums ${scope === 'pending' ? 'text-white/75' : 'text-admin-subtle'}`}>{pendingCount}</span>
+        Pending shoots
+        <span className={`inline-flex min-w-5 justify-center rounded-full px-1.5 py-0.5 text-[10px] tabular-nums ${scope === 'pending' ? 'bg-admin-primary text-white' : 'bg-admin-surface text-admin-subtle'}`}>{pendingCount}</span>
       </button>
       <button
         type="button"
         aria-pressed={scope === 'all'}
+        aria-controls="booking-list-panel"
         onClick={() => onScopeChange('all')}
-        className={`min-h-9 rounded-md px-3 text-xs font-semibold outline-none transition focus-visible:ring-2 focus-visible:ring-admin-focus ${scope === 'all' ? 'bg-admin-primary text-white shadow-sm' : 'text-admin-secondary hover:bg-admin-surface hover:text-admin-text'}`}
+        className={`inline-flex min-h-9 items-center gap-1.5 rounded-md px-3 text-xs font-semibold outline-none transition focus-visible:ring-2 focus-visible:ring-admin-focus ${scope === 'all' ? 'bg-admin-surface text-admin-text shadow-sm ring-1 ring-admin-border' : 'text-admin-secondary hover:text-admin-text'}`}
       >
-        All bookings <span className={`ml-1 tabular-nums ${scope === 'all' ? 'text-white/75' : 'text-admin-subtle'}`}>{totalCount}</span>
+        All bookings
+        <span className={`inline-flex min-w-5 justify-center rounded-full px-1.5 py-0.5 text-[10px] tabular-nums ${scope === 'all' ? 'bg-admin-primary text-white' : 'bg-admin-surface text-admin-subtle'}`}>{totalCount}</span>
       </button>
     </div>
   );
