@@ -14,6 +14,13 @@ import '@fontsource/inter/latin-700.css';
 
 import App from './App.tsx';
 import './index.css';
+import { dismissBuildTimeHero } from './lib/buildTimeHero';
+
+// Private and deep-link routes can be rewritten to the prerendered home shell.
+// Remove its static LCP poster before mounting anything except the home route.
+if (window.location.pathname !== '/') {
+  dismissBuildTimeHero();
+}
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -328,6 +328,7 @@ function injectRouteHtml(template: string, page: CatalogPage) {
       `        <img src="${href}" alt="" width="1920" height="1080" sizes="${HERO_SIZES}" fetchpriority="high" decoding="async" data-home-hero-poster-image />`,
       '      </picture>',
       '    </div>',
+      '    <script>if(location.pathname!=="/"){document.getElementById("home-hero-poster")?.remove();document.getElementById("home-hero-poster-style")?.remove();document.querySelectorAll("link[data-home-hero-source]").forEach(function(link){link.remove()})}</script>',
     ]
       .filter(Boolean)
       .join('\n');

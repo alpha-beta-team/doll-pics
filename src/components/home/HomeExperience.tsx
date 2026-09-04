@@ -21,13 +21,10 @@ import {
   mediaSrcSet,
   mediaUrl,
 } from '../../lib/images';
+import { dismissBuildTimeHero } from '../../lib/buildTimeHero';
 import { ResponsiveImage } from '../ResponsiveImage';
 
 const HERO_INTERVAL_MS = 6500;
-
-function dismissBuildTimeHero() {
-  document.getElementById('home-hero-poster')?.remove();
-}
 
 function Reveal({
   children,
