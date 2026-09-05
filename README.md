@@ -256,3 +256,31 @@ Branding and shared contact metadata are primarily defined in:
 ## Workflow Notes
 
 This repository also contains `AGENT_PLANS`, `AGENT_TASK`, and `AGENT_TASK_SUMMARY` directories used to track approved changes and implementation history.
+
+## Frontend release checks
+
+Use Node.js 22 and the committed lockfile:
+
+```sh
+npm ci
+VITE_API_URL='' API_URL='' SEO_REQUIRE_CMS=false npm run check:release
+npx playwright install chromium
+npm run test:browser
+```
+
+`check:release` runs application/tooling typechecks, library/admin/SEO tests, lint,
+then the production build. Empty API variables select the existing static SEO
+fallback, including when a local `.env` contains a CMS URL. This build verifies
+bundling and fallback prerendering; it does not verify live CMS content.
+
+`test:browser` starts a dedicated local Vite server on port 4173 and runs Chromium
+smoke tests for public enquiry submission, enquiry conversion, and role visibility.
+API responses use isolated fixtures; external requests are blocked. No backend,
+login credentials, test emails, or production writes are required. Browser checks
+exercise the frontend against mocked contracts, not deployed end-to-end behavior.
+Failure traces are written to `test-results/`.
+
+The **Frontend release checks** workflow runs both commands on pull requests and
+supports manual runs. The existing production SEO sitemap monitor remains separate.
+Browser harness references: [local web server](https://playwright.dev/docs/test-webserver)
+and [API mocking](https://playwright.dev/docs/mock).

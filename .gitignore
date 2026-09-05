@@ -24,3 +24,5 @@ dist-ssr
 public/_redirects
 public/_sitemap-proxy.json
 public/sitemap.xml
+playwright-report/
+test-results/

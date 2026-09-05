@@ -257,6 +257,7 @@ export function mapBooking(doc: Record<string, unknown>): Booking {
     deliverySentAt: doc.deliverySentAt ? String(doc.deliverySentAt) : undefined,
     status: (legacyStatus as BookingStatus) ?? 'draft',
     confirmedAt: doc.confirmedAt ? String(doc.confirmedAt) : undefined,
+    separateShootDecision: doc.separateShootDecision as Booking['separateShootDecision'],
     shootCompletedAt: doc.shootCompletedAt ? String(doc.shootCompletedAt) : undefined,
     deliveredAt: doc.deliveredAt ? String(doc.deliveredAt) : undefined,
     cancelledAt: doc.cancelledAt ? String(doc.cancelledAt) : undefined,

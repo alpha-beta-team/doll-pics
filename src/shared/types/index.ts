@@ -455,6 +455,7 @@ export type AdminEnquiryWritePayload = {
 };
 
 export type ConvertEnquiryPayload = {
+  creationRequestId?: string;
   bookingDate: string;
   startTime?: string;
   endTime?: string;
@@ -523,6 +524,7 @@ export type WhatsAppMessageSummary = {
 };
 
 export type Booking = {
+  separateShootDecision?: { reason: string; reviewedRecordIds: string[]; actorId: string; decidedAt: string };
   id: string;
   customerName: string;
   customerPhone: string;
@@ -742,6 +744,9 @@ export type OwnerOverviewReport = {
 };
 
 export type BookingWritePayload = {
+  creationRequestId?: string;
+  separateShootReason?: string;
+  reviewedRecordIds?: string[];
   customerName: string;
   customerPhone: string;
   customerEmail?: string;
@@ -1015,6 +1020,7 @@ export type AdminSearchResponse = {
 };
 
 export type CustomerLookupRecord = {
+  bookingDate?: string;
   id: string;
   type: 'enquiry' | 'booking';
   customerName: string;

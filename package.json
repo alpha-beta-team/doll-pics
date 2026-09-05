@@ -17,7 +17,9 @@
     "seed:admin-mock:dry-run": "npm --prefix ../photography-cms-backend run seed:admin-mock:dry-run",
     "lint": "eslint .",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit -p tsconfig.app.json"
+    "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
+    "test:browser": "playwright test",
+    "check:release": "npm run typecheck && npm run test:lib && npm run test:admin && npm run test:seo && npm run lint && npm run build"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -35,6 +37,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
+    "@playwright/test": "^1.63.0",
     "@types/jsdom": "^30.0.0",
     "@types/node": "^26.2.0",
     "@types/react": "^18.3.5",

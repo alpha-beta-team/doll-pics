@@ -301,27 +301,7 @@ export function BookingsPage() {
   };
 
   const saveNew = async (payload: BookingWritePayload) => {
-    const created = convertFromEnquiry
-      ? await api.convertEnquiry(convertFromEnquiry.id, {
-          bookingDate: payload.bookingDate || '',
-          startTime: payload.startTime,
-          endTime: payload.endTime,
-          shootType: payload.shootType,
-          preferredEvent: payload.preferredEvent,
-          location: payload.location,
-          packageId: payload.packageId,
-          agreedTotal: payload.agreedTotal,
-          assignedStaffAccountId: payload.assignedStaffAccountId,
-          advanceAmount: payload.advanceAmount,
-          advancePaidAt: payload.advancePaidAt,
-          advanceMethod: payload.advanceMethod,
-          paymentDueDate: payload.paymentDueDate,
-          notes: payload.notes,
-          whatsappOptIn: payload.whatsappOptIn,
-          whatsappNotificationsEnabled: payload.whatsappNotificationsEnabled,
-          acknowledgeUntimedConflict: payload.acknowledgeUntimedConflict,
-        })
-      : await api.createBooking(payload);
+    const created = await api.createBooking(payload);
     setBookings(current => [created, ...current]);
     setCreating(false);
     setConvertFromEnquiry(null);

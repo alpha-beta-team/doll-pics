@@ -11,6 +11,7 @@ import {
   UserRound,
   MoreHorizontal,
   Pencil,
+  Phone,
   RefreshCw,
   X,
 } from 'lucide-react';
@@ -459,6 +460,12 @@ function BookingDetailWorkspace() {
             </div>
             <p className="mt-1 text-sm font-medium text-slate-700">{booking.shootType.trim().toLowerCase() === 'other' && booking.preferredEvent ? booking.preferredEvent : booking.packageName || booking.shootType || 'Photography session'}</p>
             <div className="mt-3 space-y-1.5 text-xs text-slate-500 sm:text-sm lg:flex lg:flex-wrap lg:gap-x-4 lg:gap-y-1 lg:space-y-0">
+              <div className="flex items-start gap-2">
+                <Phone className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                {canViewPhone && booking.customerPhone ? (
+                  <a href={`tel:${booking.customerPhone}`} className="min-w-0 break-words rounded text-admin-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-focus">{booking.customerPhone}</a>
+                ) : <span>{booking.customerPhone || 'Not recorded'}</span>}
+              </div>
               <div className="flex items-start gap-2"><CalendarCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" /><div className="flex flex-wrap gap-x-2 gap-y-0.5"><span>{formatDay(booking.bookingDate)}</span>{booking.startTime && booking.endTime && <span>{[booking.startTime, booking.endTime].map(time => new Date(`2000-01-01T${time}:00+05:30`).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' })).join(' – ')}</span>}</div></div>
               <div className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" /><span className="min-w-0 break-words">{booking.location || 'Location not set'}</span></div>
               <div className="flex items-start gap-2"><UserRound className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" /><span className="min-w-0 break-words">{booking.assignedStaffAccountName || 'No staff assigned'}</span>{canManageBooking && <button disabled={resourcesLoading || Boolean(resourcesError)} onClick={() => openEditor('assignment')} className="min-h-6 shrink-0 font-semibold text-admin-primary underline disabled:opacity-50">{booking.assignedStaffAccountId ? 'Change' : 'Assign'}</button>}</div>
@@ -568,7 +575,8 @@ function BookingDetailWorkspace() {
 {(visited.has('customer') || tab === 'customer') && <>      {canManageBooking && canViewPhone && <CustomerLookupPanel phone={booking.customerPhone} current={{ type: 'booking', id: booking.id }} />}
       {canManageBooking && canViewPhone && <ImportantDatesPanel compact phone={booking.customerPhone} customerName={booking.customerName} email={booking.customerEmail} source={{ type: 'booking', id: booking.id }} />}
 </>}</BookingTabPanel>
-      <BookingTabPanel id="activity" active={tab === 'activity'}>        {canManageBooking && <Card title="WhatsApp automation" action={<button onClick={() => void loadMessages()} className="text-slate-400" aria-label="Refresh messages"><RefreshCw className="h-4 w-4" /></button>}>
+      <BookingTabPanel id="activity" active={tab === 'activity'}>
+        {booking.separateShootDecision && <Card title="Different shoot confirmed"><p className="whitespace-pre-wrap break-words text-sm">{booking.separateShootDecision.reason}</p><p className="mt-2 text-xs text-admin-subtle">Staff: {booking.separateShootDecision.actorId} · {formatDateTime(booking.separateShootDecision.decidedAt)}</p><p className="mt-1 text-xs text-admin-subtle">{booking.separateShootDecision.reviewedRecordIds.length} matching records reviewed</p></Card>}        {canManageBooking && <Card title="WhatsApp automation" action={<button onClick={() => void loadMessages()} className="text-slate-400" aria-label="Refresh messages"><RefreshCw className="h-4 w-4" /></button>}>
           <div className="grid gap-4 sm:grid-cols-2"><Field label="Consent">{booking.whatsappOptIn ? `Recorded ${formatDateTime(booking.whatsappOptInAt)}` : 'Not recorded'}</Field><Field label="Source">{booking.whatsappOptInSource || '—'}</Field><Field label="Opt-out">{booking.whatsappOptOutAt ? formatDateTime(booking.whatsappOptOutAt) : 'No'}</Field><Field label="Language">English</Field></div>
           <button onClick={toggleNotifications} disabled={!booking.whatsappOptIn || Boolean(booking.whatsappOptOutAt) || saving} className={`mt-4 rounded-lg px-3 py-2 text-sm font-medium ${booking.whatsappNotificationsEnabled ? 'bg-emerald-600 text-white' : 'border border-slate-300 text-slate-700'} disabled:opacity-50`}>{booking.whatsappNotificationsEnabled ? 'Automated updates enabled' : 'Enable automated updates'}</button>
           {messagesLoading && <p role="status">Loading messages…</p>}{messagesError && <p role="alert" className="mt-3 text-sm text-red-700">{messagesError} <button onClick={() => void loadMessages()}>Retry</button></p>}
