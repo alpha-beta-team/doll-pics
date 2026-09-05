@@ -2,7 +2,7 @@
 
 **Priority:** P1  
 **Effort:** Medium  
-**Status:** In progress — safe omission live; route-specific restoration pending
+**Status:** In progress — service/package revision tracking implemented locally; deployment and other route types pending
 **Owner:** Unassigned
 
 [← Master plan](./README.md)
@@ -114,3 +114,22 @@ Production verification on 7 Aug 2026 found 24 canonical URLs and zero
 ## Dependencies
 
 SEO-01 must restore public sitemap delivery before production verification.
+
+## Implementation update — 5 Sep 2026
+
+Implemented a first route-specific restoration for service and package landings. This does not complete the gallery/work/stories/about tracking items above.
+
+### Significant updates and date sources
+
+- Service links now store a server-owned `contentUpdatedAt`. Publication, title, description, heading, intro, path, label, image and section-content changes advance only the matching link's date. Footer/contact changes, unchanged submissions, section IDs, icons, and link reorder do not advance it. The timestamp is stored with the content write rather than generated during sitemap requests.
+- Package categories store `contentUpdatedAt` for published category content changes. Published package creation, content changes, moves, unpublishing and deletion advance affected published category dates; drafts and unchanged values do not. Package mutations request a frontend rebuild through the existing deploy hook service.
+- Legacy records retain missing dates until a tracked material update occurs. No migration invents historical dates. Invalid/future dates are omitted.
+- Core/static/legal pages and gallery/work/stories/about still omit dates because their complete material-change history is not tracked. Do not substitute generic model `updatedAt` values or deployment dates.
+
+### Delivery and rollout
+
+- Backend sitemap emits explicit service/category revision dates without extra per-route reads.
+- The public sitemap is also emitted by the frontend prerender build. Its CMS loader now carries these explicit dates into `dist/sitemap.xml`; merely deploying the backend is insufficient.
+- Deploy backend first, then frontend. Make a real material service or package edit and verify only the relevant landing dates change after the generated site deploys. Repeated reads must retain identical dates. Existing records without tracked revisions should continue to omit them.
+- Backend and frontend builds passed; focused tests cover stable XML, missing/invalid/future dates, isolated service updates, package moves/removals, draft/no-op exclusions, and static sitemap date serialization.
+- Not deployed or verified against a live material edit. Direct database/seed writes bypass application revision tracking; audit those separately before relying on their resulting dates. Gallery/portfolio and frontend-authored content revisions require additional tracking before this broader plan can be marked complete.

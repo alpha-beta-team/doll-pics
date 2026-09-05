@@ -99,14 +99,23 @@ export function assertCatalogCoverage(
   }
 }
 
-export async function loadCmsOverlays() {
+export interface CmsOverlays {
+  packagesByPath: Map<string, PackageNavLinkLike>;
+  servicesByPath: Map<string, ServiceNavLinkLike>;
+  servicesLoaded: boolean;
+  lastmodByPath: Record<string, string>;
+  apiBase: string;
+}
+
+export async function loadCmsOverlays(): Promise<CmsOverlays> {
   const apiBase = getApiBase();
+  const lastmodByPath: Record<string, string> = {};
   const packagesByPath = new Map<string, PackageNavLinkLike>();
   const servicesByPath = new Map<string, ServiceNavLinkLike>();
   let servicesLoaded = false;
 
   if (!apiBase) {
-    return { packagesByPath, servicesByPath, servicesLoaded, apiBase: '' };
+    return { packagesByPath, servicesByPath, servicesLoaded, lastmodByPath, apiBase: '' };
   }
 
   try {
@@ -115,6 +124,7 @@ export async function loadCmsOverlays() {
       for (const c of categories) {
         const path = normalizePath(c?.path);
         if (!path) continue;
+        if (c.contentUpdatedAt) lastmodByPath[path] = c.contentUpdatedAt;
         packagesByPath.set(path, {
           label: c.name || 'Packages',
           path,
@@ -153,6 +163,7 @@ export async function loadCmsOverlays() {
       if (link?.isPublished === false) continue;
       const path = normalizePath(link?.path);
       if (!path || path === '/services' || servicesByPath.has(path)) continue;
+      if (link.contentUpdatedAt) lastmodByPath[path] = link.contentUpdatedAt;
       servicesByPath.set(path, {
         label: String(link.label ?? '').trim() || 'Service',
         path,
@@ -169,7 +180,7 @@ export async function loadCmsOverlays() {
     console.warn('SEO build: site-content services unavailable:', message);
   }
 
-  return { packagesByPath, servicesByPath, servicesLoaded, apiBase };
+  return { packagesByPath, servicesByPath, servicesLoaded, lastmodByPath, apiBase };
 }
 
 /** Validate the resolved catalog, including CMS-only routes, before emitting HTML. */

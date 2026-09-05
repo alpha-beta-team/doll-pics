@@ -37,7 +37,7 @@ const ogImage = `${siteUrl}/og-share.jpg`;
 
 const { seoPages, servicePages, packagePages, sitemapRoutes } =
   loadStaticSeoData();
-const { packagesByPath, servicesByPath, servicesLoaded, apiBase } =
+const { packagesByPath, servicesByPath, servicesLoaded, lastmodByPath, apiBase } =
   await loadCmsOverlays();
 
 async function loadFirstHeroImage() {
@@ -512,7 +512,7 @@ written.push(notFoundFile);
 
 const sitemapPaths = Object.values(pages).map((page) => page.path);
 const sitemapFile = join(distDir, 'sitemap.xml');
-writeFileSync(sitemapFile, buildSitemapXml(siteUrl, sitemapPaths));
+writeFileSync(sitemapFile, buildSitemapXml(siteUrl, sitemapPaths, lastmodByPath));
 
 const apiNote = apiBase
   ? ` (CMS overlays: ${packagesByPath.size} packages, ${servicesByPath.size} services${firstHeroImage ? ', hero preloaded' : ''})`

@@ -7,7 +7,7 @@ function escapeXml(value) {
     .replaceAll("'", '&apos;');
 }
 
-export function buildSitemapXml(siteUrl, paths) {
+export function buildSitemapXml(siteUrl, paths, lastmodByPath = {}) {
   const origin = String(siteUrl).replace(/\/$/, '');
   const normalizedPaths = paths
     .filter((path) => typeof path === 'string' && path.startsWith('/'))
@@ -16,7 +16,11 @@ export function buildSitemapXml(siteUrl, paths) {
 
   const urls = uniquePaths.map((path) => {
     const location = path === '/' ? origin : `${origin}${path}`;
-    return `  <url>\n    <loc>${escapeXml(location)}</loc>\n  </url>`;
+    const rawDate = lastmodByPath[path];
+    const date = typeof rawDate === 'string' && rawDate.trim() ? new Date(rawDate) : null;
+    const lastmod = date && Number.isFinite(date.getTime()) && date.getTime() <= Date.now()
+      ? `\n    <lastmod>${date.toISOString()}</lastmod>` : '';
+    return `  <url>\n    <loc>${escapeXml(location)}</loc>${lastmod}\n  </url>`;
   });
 
   return [
