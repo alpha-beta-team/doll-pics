@@ -1,3 +1,4 @@
+import { CampaignPerformance } from '../components/CampaignPerformance';
 import { leadSourceLabel } from '../components/leadSource';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -281,6 +282,8 @@ export function OwnerOverviewPage() {
             <EnquiryFunnel report={report} />
             <BookingHealth report={report} />
           </section>
+
+          <CampaignPerformance report={report} />
 
           <section className="grid gap-4 xl:grid-cols-2">
             <CashTrend report={report} />

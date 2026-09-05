@@ -1,3 +1,4 @@
+import { captureAttribution } from './lib/attribution';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
@@ -21,6 +22,8 @@ import { dismissBuildTimeHero } from './lib/buildTimeHero';
 if (window.location.pathname !== '/') {
   dismissBuildTimeHero();
 }
+
+captureAttribution();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -1,3 +1,4 @@
+import { publicPath, referrerOrigin, isPrivatePath, campaignValue, captureAttribution } from './attribution';
 /**
  * GA4 helpers for the Doll Pictures SPA.
  * Never send names, emails, phones, or enquiry message text.
@@ -39,9 +40,9 @@ function canUseDom(): boolean {
   return typeof window !== 'undefined' && typeof document !== 'undefined';
 }
 
-function isAdminPath(pathname?: string): boolean {
+function isPrivateRoute(pathname?: string): boolean {
   const path = pathname ?? (canUseDom() ? window.location.pathname : '');
-  return path.startsWith('/admin');
+  return isPrivatePath(path);
 }
 
 function isAllowedOrigin(): boolean {
@@ -59,7 +60,8 @@ function isReady(): boolean {
   return (
     Boolean(MEASUREMENT_ID) &&
     canUseDom() &&
-    !isAdminPath() &&
+    !isPrivateRoute() &&
+    (window as unknown as Record<string, unknown>)[`ga-disable-${MEASUREMENT_ID}`] !== true &&
     isAllowedOrigin()
   );
 }
@@ -73,10 +75,39 @@ function safeGtag(...args: unknown[]): void {
   }
 }
 
-/** Current path + query for event payloads. */
+/** Public pathname only; queries and private tokens never enter event payloads. */
 export function getPagePath(): string {
   if (!canUseDom()) return '';
-  return `${window.location.pathname}${window.location.search}`;
+  return publicPath(window.location.pathname);
+}
+
+function pageContext() {
+  const attribution = captureAttribution();
+  return {
+    ...(attribution?.utm_source ? { campaign_source: attribution.utm_source } : {}),
+    ...(attribution?.utm_medium ? { campaign_medium: attribution.utm_medium } : {}),
+    ...(attribution?.utm_campaign ? { campaign_name: attribution.utm_campaign } : {}),
+    ...(attribution?.utm_content ? { campaign_content: attribution.utm_content } : {}),
+    ...(attribution?.utm_term ? { campaign_term: attribution.utm_term } : {}),
+    page_title: 'Doll Pictures',
+    page_location: `${window.location.origin}${getPagePath()}`,
+    page_referrer: referrerOrigin(document.referrer) || '',
+  };
+}
+
+/** The SDK checks this property before sending, including automatic events.
+ * A getter blocks private routes immediately, before React's route effect runs,
+ * while retaining an opt-out value set by another integration.
+ */
+function installPrivateRouteGuard() {
+  const key = `ga-disable-${MEASUREMENT_ID}`;
+  const state = window as unknown as Record<string, unknown>;
+  let optedOut = state[key] === true;
+  Object.defineProperty(window, key, {
+    configurable: true,
+    get: () => optedOut || isPrivateRoute(),
+    set: (value: unknown) => { optedOut = value === true; },
+  });
 }
 
 /**
@@ -87,6 +118,7 @@ export function initializeAnalytics(): void {
   if (!isReady() || scriptRequested) return;
 
   try {
+    installPrivateRouteGuard();
     window.dataLayer = window.dataLayer || [];
 
     // Must push `arguments` (not a rest-args array) for gtag.js to process the queue.
@@ -98,7 +130,7 @@ export function initializeAnalytics(): void {
     }
 
     window.gtag('js', new Date());
-    window.gtag('config', MEASUREMENT_ID, { send_page_view: false });
+    window.gtag('config', MEASUREMENT_ID, { send_page_view: false, ...pageContext() });
 
     if (!document.getElementById('ga4-gtag')) {
       const script = document.createElement('script');
@@ -117,10 +149,15 @@ export function initializeAnalytics(): void {
 }
 
 /**
- * Manual SPA page_view. Dedupes identical path+search (covers React Strict Mode).
+ * Manual SPA page_view. Dedupes identical public pathnames (covers React Strict Mode).
  */
 export function trackPageView(pagePath?: string): void {
-  const path = pagePath ?? getPagePath();
+  const path = publicPath(pagePath ?? getPagePath());
+  if (!path || isPrivateRoute()) {
+    trackMetaPageView(pagePath);
+    lastPagePath = null; lastViewServicePath = null;
+    return;
+  }
 
   // Meta PageView uses its own dedupe; always attempt when path changes.
   trackMetaPageView(path);
@@ -137,8 +174,7 @@ export function trackPageView(pagePath?: string): void {
   initializeAnalytics();
 
   safeGtag('event', 'page_view', {
-    page_title: document.title,
-    page_location: window.location.href,
+    ...pageContext(),
     page_path: path,
   });
 }
@@ -146,7 +182,12 @@ export function trackPageView(pagePath?: string): void {
 export function trackEvent(eventName: string, params: EventParams = {}): void {
   if (!isReady() || !eventName) return;
   initializeAnalytics();
-  safeGtag('event', eventName, params);
+  safeGtag('event', eventName, {
+    ...params,
+    ...(params.service_name !== undefined ? { service_name: campaignValue(params.service_name) || '' } : {}),
+    ...pageContext(),
+    page_path: publicPath(String(params.page_path ?? getPagePath())),
+  });
 }
 
 export function trackWhatsAppClick(params: {

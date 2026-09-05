@@ -1,3 +1,4 @@
+import { captureAttribution } from './attribution';
 import type {
   CreateEnquiryPayload,
   PublicBookingBackground,
@@ -255,6 +256,6 @@ export const publicApi = {
     publicFetch('/enquiries', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+      body: JSON.stringify({ ...data, attribution: captureAttribution() }),
     }),
 };

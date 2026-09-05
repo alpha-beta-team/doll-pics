@@ -1,3 +1,4 @@
+import { normalizeAttribution } from '../../lib/attribution';
 import type {
   BehindScene,
   Booking,
@@ -183,6 +184,7 @@ export function mapEnquiry(doc: Record<string, unknown>): Enquiry {
     status: (doc.status as Enquiry['status']) ?? 'new',
     stage: (doc.stage as Enquiry['stage']) ?? (doc.status === 'new' ? 'new' : 'contacted'),
     source: (doc.source as Enquiry['source']) ?? '',
+    attribution: normalizeAttribution(doc.attribution),
     nextFollowUpAt: doc.nextFollowUpAt ? String(doc.nextFollowUpAt) : undefined,
     followUpNote: String(doc.followUpNote ?? ''),
     lastFollowUpCompletedAt: doc.lastFollowUpCompletedAt
@@ -216,6 +218,7 @@ export function mapBooking(doc: Record<string, unknown>): Booking {
     customerPhone: (doc.customerPhone as string) ?? '',
     customerEmail: (doc.customerEmail as string) ?? '',
     source: (doc.source as Booking['source']) ?? '',
+    attribution: normalizeAttribution(doc.attribution),
     shootType: (doc.shootType as string) ?? '',
     preferredEvent: (doc.preferredEvent as string) ?? '',
     bookingDate: (doc.bookingDate as string) || String(doc.shootDate ?? '').slice(0, 10),

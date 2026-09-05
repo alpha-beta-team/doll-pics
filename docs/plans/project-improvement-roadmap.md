@@ -1,7 +1,7 @@
 # Doll Pictures improvement roadmap
 
 Created: 2026-09-05
-Status: Enquiry email verification completed (user confirmed 2026-09-05). Release checks repaired and locally verified; pull-request CI added, hosted run pending. Remaining workstreams pending.
+Status: Enquiry email verification completed (user confirmed 2026-09-05). Release checks repaired and locally verified; pull-request CI added, hosted run pending. Marketing attribution is implemented locally; deployment and provider checks are pending. Later workstreams remain pending.
 
 ## Objective
 
@@ -20,7 +20,7 @@ This document captures the priorities from the project investigation and the ema
 | --- | --- | --- | --- |
 | 1 | Reliable enquiry notifications | Completed; email verification confirmed by user on 2026-09-05 | Studio receives enquiry alerts without email errors breaking saved enquiries |
 | 2 | Dependable release checks | Local checks pass; PR CI and isolated browser smoke suite added | Relevant checks pass before changes are released |
-| 3 | Marketing attribution and analytics | Planned | Campaigns can be connected to enquiries and bookings |
+| 3 | Marketing attribution and analytics | Implemented locally; deployment and provider checks pending | Campaigns can be connected to enquiries and bookings |
 | 4 | CMS failure handling | Planned | Partial content failures do not unnecessarily degrade the whole site |
 | 5 | Public HTML rendering | Planned | Important page content is available in the initial HTML |
 | 6 | Admin scalability and maintainability | Planned | Lists remain usable as records grow; changes are easier to review |
@@ -95,11 +95,11 @@ Local results: typechecks passed; library **15/15**, admin **81/81**, SEO **16/1
 
 Hosted PR CI has not run in this session. No deployment or live CMS/backend/customer delivery verification was performed. Browser tests validate the frontend against mocked API contracts. Existing hook/fast-refresh warnings and build size/tooling warnings remain separate follow-up work.
 
-## 3. Connect marketing to bookings
+## 3. Connect marketing to bookings — implemented locally
 
-Current gap from the audit: public enquiries default to the `website` source and do not retain campaign attribution. GA4/Meta events already exist; the page tracker waits for interaction or 20 seconds, which can exclude short non-interactive visits.
+Original gap from the audit: public enquiries default to the `website` source and do not retain campaign attribution. GA4/Meta events already exist; the page tracker waits for interaction or 20 seconds, which can exclude short non-interactive visits.
 
-### Planned changes
+### Implemented changes
 
 - Capture landing path, referrer origin, and allowlisted UTM campaign fields when the visitor arrives. Store first-touch attribution for the browser session; bound lengths and omit arbitrary URL query strings.
 - Keep attribution separate from the existing manually selected lead source. A website submission remains a website lead, with campaign metadata alongside it.
@@ -109,14 +109,20 @@ Current gap from the audit: public enquiries default to the `website` source and
 
 ### Acceptance
 
-- [ ] A tagged landing visit retains attribution after navigation and form submission.
-- [ ] The linked booking retains the same attribution.
-- [ ] Unattributed visitors and legacy records still work.
-- [ ] Analytics receives no customer names, email addresses, phone numbers, messages, or private quotation tokens.
-- [ ] Short visits and SPA navigation are measured without duplicate page views.
-- [ ] Report totals reconcile to the enquiry and booking records under the selected date definition.
+- [x] A tagged landing visit retains attribution after navigation and form submission.
+- [x] The linked booking retains the same attribution.
+- [x] Unattributed visitors and legacy records still work.
+- [ ] Live analytics-provider traffic contains no customer names, email addresses, phone numbers, messages, or private quotation tokens. Application queue checks pass; provider automatic settings still need review.
+- [x] Short visits and SPA navigation trigger immediate, deduplicated application page views in browser tests. Live provider receipt remains pending.
+- [x] Report totals reconcile to the enquiry and booking records under the selected date definition.
 
-Deploy optional backend support first, then frontend capture, then reporting. Define reporting date/revenue semantics before implementing the report extension.
+Local acceptance uses isolated fixtures; checked boxes do not mean deployed/live verification.
+
+Campaign reporting uses enquiry creation dates in Asia/Kolkata. It counts linked bookings currently confirmed, shoot-completed, or delivered and sums their agreed totals regardless of confirmation date. Unpriced bookings are counted separately; this is not cash received. Legacy records remain Not recorded.
+
+Local checks: frontend typechecks and build pass; library **17/17**, admin **78/78**, SEO **16/16**; lint **0 errors, 6 existing warnings**; Chromium **5/5**, including a mobile campaign-table check. Backend build and **13/13** focused tests pass, including a temporary MongoDB replica-set test for persistence, conversion replay, and campaign totals. Hosted CI and live provider receipt were not verified.
+
+Implementation and ordered rollout: [Marketing attribution](marketing-attribution.md). Backend support must deploy before the frontend. GA automatic measurement settings and real provider traffic must be checked before live acceptance. No production records were changed.
 
 ## 4. Improve CMS failure handling
 

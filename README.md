@@ -284,3 +284,10 @@ The **Frontend release checks** workflow runs both commands on pull requests and
 supports manual runs. The existing production SEO sitemap monitor remains separate.
 Browser harness references: [local web server](https://playwright.dev/docs/test-webserver)
 and [API mocking](https://playwright.dev/docs/mock).
+
+## Campaign attribution
+
+See [the attribution contract and rollout plan](docs/plans/marketing-attribution.md)
+for first-touch capture, booking inheritance, campaign reporting semantics, local
+tests, and analytics-provider configuration required before release. Deploy the
+optional backend contract before the frontend.

@@ -1,3 +1,4 @@
+import { isPrivatePath, publicPath, campaignValue } from './attribution';
 /**
  * Meta Pixel helpers for the Doll Pictures SPA.
  * Never send names, emails, phones, or enquiry message text.
@@ -10,6 +11,7 @@ const SITE_URL = (
 
 let scriptRequested = false;
 let lastPagePath: string | null = null;
+let suspendedByRoute = false;
 
 type FbqCommand = 'init' | 'track' | 'trackCustom' | 'consent';
 
@@ -35,7 +37,7 @@ function canUseDom(): boolean {
 
 function isAdminPath(pathname?: string): boolean {
   const path = pathname ?? (canUseDom() ? window.location.pathname : '');
-  return path.startsWith('/admin');
+  return isPrivatePath(path);
 }
 
 function isAllowedOrigin(): boolean {
@@ -48,8 +50,22 @@ function isAllowedOrigin(): boolean {
   );
 }
 
+// The SDK reads document URLs itself. Do not activate it on URLs carrying
+// arbitrary parameters, fragments, or private referrers; GA uses explicit safe URLs.
+function hasSafeSdkContext(): boolean {
+  return [window.location.href, document.referrer].every(value => {
+    if (!value) return true;
+    try {
+      const url = new URL(value);
+      if (isPrivatePath(url.pathname) || publicPath(url.pathname) !== url.pathname || url.hash) return false;
+      return [...url.searchParams].every(([key, value]) =>
+        ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'].includes(key) && Boolean(campaignValue(value)));
+    } catch { return false; }
+  });
+}
+
 function isReady(): boolean {
-  return Boolean(PIXEL_ID) && canUseDom() && !isAdminPath() && isAllowedOrigin();
+  return Boolean(PIXEL_ID) && canUseDom() && !isAdminPath() && isAllowedOrigin() && hasSafeSdkContext();
 }
 
 function ensureFbqStub(): FbqFunction | null {
@@ -89,6 +105,7 @@ export function initializeMetaPixel(): void {
 
   try {
     ensureFbqStub();
+    safeFbq('set', 'autoConfig', false, PIXEL_ID);
     safeFbq('init', PIXEL_ID);
 
     if (!document.getElementById('meta-pixel')) {
@@ -106,10 +123,13 @@ export function initializeMetaPixel(): void {
 }
 
 export function trackMetaPageView(pagePath?: string): void {
-  if (!isReady()) return;
-  const path =
-    pagePath ??
-    (canUseDom() ? `${window.location.pathname}${window.location.search}` : '');
+  const path = publicPath(pagePath ?? (canUseDom() ? window.location.pathname : ''));
+  if (!isReady() || !path) {
+    if (scriptRequested) { window.fbq?.('consent', 'revoke'); suspendedByRoute = true; }
+    if (!path || (canUseDom() && isPrivatePath(window.location.pathname))) lastPagePath = null;
+    return;
+  }
+  if (suspendedByRoute) { window.fbq?.('consent', 'grant'); suspendedByRoute = false; }
   if (path === lastPagePath) return;
   lastPagePath = path;
 
@@ -127,7 +147,7 @@ export function trackMetaViewContent(contentName: string): void {
   if (!isReady()) return;
   initializeMetaPixel();
   safeFbq('track', 'ViewContent', {
-    content_name: contentName,
+    content_name: campaignValue(contentName) || '',
   });
 }
 
@@ -140,5 +160,6 @@ export function trackMetaContact(): void {
 /** Test-only: reset module dedupe state. */
 export function __resetMetaPixelForTests(): void {
   scriptRequested = false;
+  suspendedByRoute = false;
   lastPagePath = null;
 }

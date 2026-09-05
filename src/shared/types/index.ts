@@ -405,6 +405,7 @@ export type PublicStaffProfile = Pick<StaffProfile, 'name' | 'jobTitle' | 'bio' 
 // —— Ops ——————————————————————————————————————————————————————
 
 export type Enquiry = {
+  attribution?: MarketingAttribution;
   id: string;
   name: string;
   email: string;
@@ -475,7 +476,18 @@ export type ConvertEnquiryPayload = {
   acknowledgeUntimedConflict?: boolean;
 };
 
+export type MarketingAttribution = {
+  landingPath: string;
+  referrerOrigin?: string;
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  utm_content?: string;
+  utm_term?: string;
+};
+
 export type CreateEnquiryPayload = {
+  attribution?: MarketingAttribution;
   name: string;
   email?: string;
   phone: string;
@@ -524,6 +536,7 @@ export type WhatsAppMessageSummary = {
 };
 
 export type Booking = {
+  attribution?: MarketingAttribution;
   separateShootDecision?: { reason: string; reviewedRecordIds: string[]; actorId: string; decidedAt: string };
   id: string;
   customerName: string;
@@ -691,7 +704,19 @@ export type FinanceReport = {
   };
 };
 
+export type CampaignReportRow = {
+  recorded: boolean;
+  source: string;
+  medium: string;
+  campaign: string;
+  enquiries: number;
+  confirmedBookings: number;
+  bookedValue: number;
+  unpricedBookings: number;
+};
+
 export type OwnerOverviewReport = {
+  campaigns?: CampaignReportRow[];
   period: {
     dateFrom: string;
     dateTo: string;
