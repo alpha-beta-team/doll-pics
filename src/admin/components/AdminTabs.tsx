@@ -12,15 +12,19 @@ export function AdminTabs({
   value,
   onChange,
   label,
+  wrap = false,
+  compact = false,
 }: {
   tabs: AdminTab[];
   value: string;
   onChange: (tab: string) => void;
   label: string;
+  wrap?: boolean;
+  compact?: boolean;
 }) {
   return (
     <div
-      className="overflow-x-auto border-b border-admin-border"
+      className={`${wrap ? '' : 'overflow-x-auto'} border-b border-admin-border`}
       role="tablist"
       aria-label={label}
       aria-orientation="horizontal"
@@ -42,7 +46,7 @@ export function AdminTabs({
         });
       }}
     >
-      <div className="flex min-w-max gap-1">
+      <div className={`flex gap-1 ${compact ? 'w-full flex-wrap sm:flex-nowrap' : wrap ? 'flex-wrap' : 'min-w-max'}`}>
         {tabs.map((tab) => {
           const active = tab.id === value;
           const Icon = tab.icon;
@@ -57,7 +61,7 @@ export function AdminTabs({
               aria-controls={`${label}-${tab.id}-panel`.replace(/\s+/g, '-').toLowerCase()}
               tabIndex={active ? 0 : -1}
               onClick={() => onChange(tab.id)}
-              className={`relative inline-flex min-h-11 items-center gap-2 px-4 text-sm font-semibold outline-none transition focus-visible:ring-2 focus-visible:ring-admin-focus ${active ? 'text-admin-primary' : 'text-admin-subtle hover:text-admin-text'}`}
+              className={`relative inline-flex min-h-11 items-center gap-2 ${compact ? `min-w-0 ${tabs.length === 4 ? 'flex-[1_0_40%]' : 'flex-[1_0_30%]'} justify-center px-2 text-sm sm:flex-none sm:px-4` : 'px-4 text-sm'} font-semibold outline-none transition focus-visible:ring-2 focus-visible:ring-admin-focus ${active ? 'text-admin-primary' : 'text-admin-subtle hover:text-admin-text'}`}
             >
               {Icon && <Icon className="h-4 w-4" aria-hidden="true" />}
               {tab.label}

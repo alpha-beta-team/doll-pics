@@ -9,9 +9,10 @@ import { request } from './http';
 import { mapBooking, mapEnquiry } from './mappers';
 
 export const enquiriesApi = {
-  async getEnquiryListRows(filters?: { inbox?: boolean }): Promise<Enquiry[]> {
+  async getEnquiryListRows(filters?: { inbox?: boolean; source?: string; dateFrom?: string; dateTo?: string }): Promise<Enquiry[]> {
     const params = new URLSearchParams();
     if (filters?.inbox) params.set('inbox', 'true');
+    for (const key of ['source', 'dateFrom', 'dateTo'] as const) { if (filters?.[key]) params.set(key, filters[key]); }
     const qs = params.size ? `?${params}` : '';
     const docs = await request<Record<string, unknown>[]>(
       `/admin/lists/enquiries${qs}`,

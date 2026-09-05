@@ -2,7 +2,7 @@
 
 **Priority:** P0  
 **Effort:** Medium  
-**Status:** In progress — production CMS synchronized; frontend deployment and profile verification pending
+**Status:** Completed — core business identity alignment verified 5 Sep 2026; remaining checks tracked as operational follow-ups
 **Owner:** Unassigned
 
 [← Master plan](./README.md)
@@ -11,7 +11,7 @@
 
 The business name, address, phone, WhatsApp number, and owned profiles are consistent across the website, structured data, CMS, Google Business Profile, social profiles, and important directory listings.
 
-## Current evidence
+## Original findings (historical)
 
 - Static SEO/schema phone: `+91 99945 55673`.
 - Live CMS phone: `+91 95975 62337`.
@@ -56,7 +56,7 @@ Approved by the owner on 7 Aug 2026:
 
 ### External profiles
 
-- [ ] Update Google Business Profile.
+- [x] Verify Google Business Profile name, address, and phone match the approved identity; no correction needed for these fields (owner screenshot, 5 Sep 2026).
 - [ ] Update Instagram and other owned social profiles.
 - [ ] Correct high-value directory and wedding-platform listings.
 - [ ] Remove or merge duplicate profiles where ownership is confirmed.
@@ -70,10 +70,10 @@ Approved by the owner on 7 Aug 2026:
 
 ## Acceptance criteria
 
-- [ ] One canonical name, address, phone, and WhatsApp mapping is documented.
+- [x] One canonical name, address, phone, and WhatsApp mapping is documented.
 - [ ] Static HTML, JSON-LD, rendered footer/navbar, and CMS API agree.
-- [ ] Google Business Profile and the website agree.
-- [ ] `name` and `alternateName` are purposeful, not duplicates.
+- [x] Google Business Profile and the website agree on business name, address, and phone (owner screenshot, 5 Sep 2026).
+- [x] `name` and `alternateName` are purposeful, not duplicates (live homepage schema verified 5 Sep 2026).
 - [ ] All phone and WhatsApp links open the correct destination.
 - [ ] No obsolete phone number remains in production code, CMS data, or owned profiles.
 
@@ -100,8 +100,23 @@ Implementation record, 7 Aug 2026:
 
 The owner-decision blocker is resolved. Remaining rollout work:
 
-- Deploy the frontend changes and the backend seed/migration guardrails.
-- Verify the rendered site, live CMS response, Google Business Profile, and owned listings.
+- Frontend identity deployment is verified below; independently confirm deployment of backend seed/migration guardrails.
+- Finish rendered contact-link and owned-listing checks; live CMS identity and Google Business Profile name/address/phone are verified below.
 - Add social profile URLs later only after the owner explicitly confirms them.
 
 SEO-07 can now use `Doll Pictures by Ramya Vignesh` as the full entity name and `Doll Pictures` as the concise display/title brand.
+
+## Verification update — 5 Sep 2026
+
+- Live homepage JSON-LD contains the approved full name, distinct short brand, phone, email, and studio address. The frontend identity changes are deployed.
+- The deployed frontend uses `https://doll-backend-27n8.onrender.com/api`; its public Site Content response matches the approved name, phone, WhatsApp, and email. The older backend URL in the historical verification commands is no longer the deployed frontend target.
+- The owner-provided Google Business Profile screenshot confirms `Doll Pictures by Ramya Vignesh`, the approved URT TOWERS address including postcode 638011, and `099945 55673` (the domestic form of `+91 99945 55673`).
+- The screenshot confirms the owner manages the profile. The owner subsequently confirmed the Website button destination is `https://dollpictures.in/`.
+- The additional owner screenshot confirms all seven days match the configured opening hours and live homepage schema: Saturday 12–8:30 am and 10 am–8:30 pm; Sunday 10 am–8:30 pm; Monday 11 am–8:30 pm; Tuesday–Thursday 10 am–8:30 pm; Friday 10 am–12 am.
+- Remaining verification: Instagram/Facebook and relevant directory consistency; duplicate listings where applicable; rendered contact-link behavior. Deployment of backend seed guardrails was not independently verified.
+
+## Completion — 5 Sep 2026
+
+Marked completed at the owner's request. Website/CMS identity is deployed, and Google Business Profile name, address, phone, website destination, and full opening hours agree with the approved identity, based on live checks and owner-supplied evidence above.
+
+Unchecked social/directory, duplicate-listing, rendered contact-link, and backend seed-guardrail deployment checks remain operational follow-ups outside this completed core identity alignment. They are not claimed verified.

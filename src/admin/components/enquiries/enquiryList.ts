@@ -47,7 +47,7 @@ export function enquiryMatchesScope(enquiry: Enquiry, scope: EnquiryListScope) {
   return scope === 'all' || enquiry.stage !== 'closed_lost';
 }
 
-export function enquirySourceLabel(source: EnquirySource) {
+export function enquirySourceLabel(source: EnquirySource | '') {
   return leadSourceLabel(source);
 }
 

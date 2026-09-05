@@ -182,7 +182,7 @@ export function mapEnquiry(doc: Record<string, unknown>): Enquiry {
     message: (doc.message as string) ?? '',
     status: (doc.status as Enquiry['status']) ?? 'new',
     stage: (doc.stage as Enquiry['stage']) ?? (doc.status === 'new' ? 'new' : 'contacted'),
-    source: (doc.source as Enquiry['source']) ?? 'website',
+    source: (doc.source as Enquiry['source']) ?? '',
     nextFollowUpAt: doc.nextFollowUpAt ? String(doc.nextFollowUpAt) : undefined,
     followUpNote: String(doc.followUpNote ?? ''),
     lastFollowUpCompletedAt: doc.lastFollowUpCompletedAt

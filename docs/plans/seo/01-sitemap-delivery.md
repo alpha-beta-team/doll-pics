@@ -2,7 +2,7 @@
 
 **Priority:** P0
 **Effort:** Medium
-**Status:** Monitoring — production live; Search Console confirmation pending
+**Status:** Completed — public delivery verified 5 Sep 2026; operational follow-ups tracked separately
 **Owner:** Unassigned
 
 [← Master plan](./README.md)
@@ -11,7 +11,7 @@
 
 `https://dollpictures.in/sitemap.xml` consistently returns the backend-generated XML sitemap so Google can discover every intended canonical page.
 
-## Current evidence
+## Original issue (resolved)
 
 - The public sitemap returns HTTP 404 with an HTML `noindex` page.
 - `robots.txt` still advertises the broken public sitemap.
@@ -45,7 +45,7 @@
 - [x] Fail when the body does not contain `<urlset>` and at least the expected core URLs.
 - [x] Verify every `<loc>` is HTTPS and uses the apex canonical host.
 
-### Google operations
+### Google operations (follow-up; not verified)
 
 - [ ] Resubmit `https://dollpictures.in/sitemap.xml` in Search Console.
 - [ ] Confirm Search Console reports “Success”.
@@ -88,7 +88,13 @@ Production verified on 7 Aug 2026:
   and a generated unknown route returned a true `noindex` 404.
 - The `www` sitemap URL redirected permanently to the apex URL.
 
-Remaining operational confirmation:
+Completion record, 5 Sep 2026:
+
+- Rechecked the public sitemap: HTTP 200, `application/xml`, valid sitemap `urlset`, and 32 URLs.
+- Marked SEO-01 completed at the owner's request for the restored public sitemap delivery.
+- Search Console submission, URL inspection, and hosting settings were not verified in this check; unchecked items remain operational follow-ups and are not claimed complete.
+
+Remaining operational follow-ups (outside the completed delivery fix):
 
 - Resubmit the sitemap in Google Search Console and record the result.
 - Confirm the production `SEO_REQUIRE_CMS` and deploy-hook settings in their host dashboards when access is available.

@@ -1,3 +1,4 @@
+import { leadSourceLabel } from '../components/leadSource';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -37,7 +38,6 @@ import {
 } from '../components/ui';
 import {
   REPORTING_PERIOD_PRESETS,
-  kolkataToday,
   rangeForReportingPreset,
   type ReportingDateRange,
   type ReportingPeriodPreset,
@@ -90,10 +90,6 @@ function greeting() {
   if (hour < 12) return 'Good morning';
   if (hour < 17) return 'Good afternoon';
   return 'Good evening';
-}
-
-function sourceLabel(value: string) {
-  return value.replace(/_/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 function trendLabel(value: string) {
@@ -190,13 +186,23 @@ export function OwnerOverviewPage() {
             <SectionHeading
               id="owner-finance-title"
               title="Financial health"
-              description="Cash received and bookings won use the selected period. Outstanding and overdue are current balances."
+              description="Values for the selected period. Each card explains which date it uses."
               to="/admin/payments"
               linkLabel="Full finance report"
             />
-            <div className="mt-2 grid grid-cols-2 gap-2 xl:grid-cols-4">
+            <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
+              <MetricCard
+                label="Shoot value"
+                value={report.finance.summary.shootValue == null ? 'Unavailable' : money(report.finance.summary.shootValue)}
+                description="Shoot dates in this period · Includes paid and unpaid amounts"
+                detail={report.finance.summary.pricedShootBookings == null ? 'Shoot value is not available yet' : `${report.finance.summary.pricedShootBookings} priced bookings · Excludes drafts and cancellations`}
+                icon={CalendarCheck2}
+                tone="violet"
+                to="/admin/payments"
+              />
               <MetricCard
                 label="Payments received"
+                description="Money received in this period · Uses payment dates"
                 value={money(report.finance.summary.paymentsReceived)}
                 detail={`${report.finance.summary.paymentTransactions} transaction${report.finance.summary.paymentTransactions === 1 ? '' : 's'}`}
                 comparison={preset === 'all' ? undefined : report.comparisons.paymentsReceived}
@@ -205,7 +211,8 @@ export function OwnerOverviewPage() {
                 to="/admin/payments"
               />
               <MetricCard
-                label="Booked revenue"
+                label="Bookings confirmed value"
+                description="Confirmed in this period · Includes paid and unpaid amounts"
                 value={money(report.finance.summary.bookedRevenue)}
                 detail={`${report.finance.summary.confirmedBookings} priced booking${report.finance.summary.confirmedBookings === 1 ? '' : 's'} · Avg ${money(report.finance.summary.averageBookingValue)}`}
                 comparison={preset === 'all' ? undefined : report.comparisons.bookedRevenue}
@@ -213,6 +220,16 @@ export function OwnerOverviewPage() {
                 tone="violet"
                 to="/admin/payments"
               />
+            </div>
+          </section>
+
+          <section aria-labelledby="owner-balances-title">
+            <SectionHeading
+              id="owner-balances-title"
+              title="Current balances"
+              description="Across all dates · Not affected by the selected period"
+            />
+            <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
               <MetricCard
                 label="Outstanding now"
                 value={money(report.finance.summary.outstandingNow)}
@@ -259,7 +276,8 @@ export function OwnerOverviewPage() {
             <AttentionGrid report={report} />
           </AdminCard>
 
-          <section className="grid gap-4 xl:grid-cols-2">
+          <section className="grid items-start gap-4 xl:grid-cols-3">
+            <EnquirySources report={report} />
             <EnquiryFunnel report={report} />
             <BookingHealth report={report} />
           </section>
@@ -313,22 +331,23 @@ function OwnerPeriodFilter({
 function DateFields({ range, onRange, className = '' }: { range: ReportingDateRange; onRange: (value: ReportingDateRange) => void; className?: string }) {
   return <div className={`grid grid-cols-2 gap-2 sm:flex sm:items-center ${className}`}>
     <label className="text-[11px] font-semibold text-admin-subtle">From<input type="date" value={range.dateFrom} max={range.dateTo} onChange={(event) => onRange({ ...range, dateFrom: event.target.value })} className="mt-0.5 h-9 w-full rounded-lg border border-admin-control bg-admin-surface px-2 text-xs text-admin-text outline-none focus:border-admin-focus focus:ring-2 focus:ring-admin-focus/20 sm:w-36" /></label>
-    <label className="text-[11px] font-semibold text-admin-subtle">To<input type="date" value={range.dateTo} min={range.dateFrom} max={kolkataToday()} onChange={(event) => onRange({ ...range, dateTo: event.target.value })} className="mt-0.5 h-9 w-full rounded-lg border border-admin-control bg-admin-surface px-2 text-xs text-admin-text outline-none focus:border-admin-focus focus:ring-2 focus:ring-admin-focus/20 sm:w-36" /></label>
+    <label className="text-[11px] font-semibold text-admin-subtle">To<input type="date" value={range.dateTo} min={range.dateFrom} onChange={(event) => onRange({ ...range, dateTo: event.target.value })} className="mt-0.5 h-9 w-full rounded-lg border border-admin-control bg-admin-surface px-2 text-xs text-admin-text outline-none focus:border-admin-focus focus:ring-2 focus:ring-admin-focus/20 sm:w-36" /></label>
   </div>;
 }
 
 function SectionHeading({ id, title, description, to, linkLabel }: { id: string; title: string; description: string; to?: string; linkLabel?: string }) {
   return <div className="flex items-center justify-between gap-4">
-    <div className="min-w-0 md:flex md:items-baseline md:gap-3"><h2 id={id} className="shrink-0 text-sm font-semibold text-admin-text">{title}</h2><p className="mt-0.5 truncate text-xs text-admin-subtle md:mt-0">{description}</p></div>
+    <div className="min-w-0 md:flex md:items-baseline md:gap-3"><h2 id={id} className="shrink-0 text-sm font-semibold text-admin-text">{title}</h2><p className="mt-0.5 text-xs text-admin-subtle md:mt-0">{description}</p></div>
     {to && <Link to={to} className="hidden shrink-0 items-center gap-1 text-xs font-semibold text-admin-primary hover:underline sm:flex">{linkLabel}<ArrowRight className="h-3.5 w-3.5" /></Link>}
   </div>;
 }
 
-function MetricCard({ label, value, detail, comparison, icon: Icon, tone, to }: { label: string; value: string; detail: string; comparison?: number | null; icon: LucideIcon; tone: MetricTone; to: string }) {
+function MetricCard({ label, value, detail, description, comparison, icon: Icon, tone, to }: { label: string; value: string; detail: string; description?: string; comparison?: number | null; icon: LucideIcon; tone: MetricTone; to: string }) {
   const colors = metricTone[tone];
   return <Link to={to} className="group min-w-0 rounded-xl border border-admin-border bg-admin-surface p-3 shadow-[0_8px_22px_rgba(62,56,46,0.035)] transition hover:-translate-y-0.5 hover:border-admin-control hover:shadow-md sm:p-3.5">
-    <div className="flex items-center justify-between gap-2"><p className="truncate text-xs font-semibold text-admin-subtle">{label}</p><span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${colors.icon}`}><Icon className="h-4 w-4" /></span></div>
+    <div className="flex items-center justify-between gap-2"><p className="text-xs font-semibold text-admin-subtle">{label}</p><span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${colors.icon}`}><Icon className="h-4 w-4" /></span></div>
     <p className={`mt-2 break-words text-xl font-semibold tracking-tight sm:text-2xl ${colors.value}`}>{value}</p>
+    {description && <p className="mt-1 text-[11px] leading-4 text-admin-subtle">{description}</p>}
     <div className="mt-2 flex min-h-4 flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] leading-4 text-admin-subtle sm:text-[11px]"><span>{detail}</span>{comparison !== undefined && <Comparison value={comparison} />}</div>
   </Link>;
 }
@@ -361,6 +380,12 @@ function AttentionGrid({ report }: { report: OwnerOverviewReport }) {
   </div>;
 }
 
+export function EnquirySources({ report }: { report: OwnerOverviewReport }) {
+  const sources = [...report.enquiries.sourceBreakdown].sort((a, b) => b.count - a.count || a.source.localeCompare(b.source));
+  const total = sources.reduce((sum, item) => sum + item.count, 0);
+  return <AdminCard className="overflow-hidden"><CardHeader icon={UsersRound} title="Enquiries by source" description="Enquiries created in the selected period · All stages" to="/admin/enquiries" /><div className="p-4">{total ? <><p className="mb-3 text-xs text-admin-subtle">{total} enquiries · Select a source to view its enquiries</p><div className="space-y-2">{sources.map(item => { const percentage = Math.round(item.count / total * 1000) / 10; const query = new URLSearchParams({ source: item.source || 'not_recorded', dateFrom: report.period.dateFrom, dateTo: report.period.dateTo }); return <Link key={item.source || 'not_recorded'} to={`/admin/enquiries?${query}`} className="block rounded-lg p-2 outline-none hover:bg-admin-muted focus-visible:ring-2 focus-visible:ring-admin-focus"><div className="mb-2 flex items-center justify-between gap-3 text-sm"><span>{leadSourceLabel(item.source)}</span><span className="shrink-0 font-semibold">{item.count} <span className="ml-2 font-normal text-admin-subtle">{percentage}%</span></span></div><div aria-hidden="true" className="h-1.5 rounded-full bg-admin-muted"><div className="h-full rounded-full bg-admin-primary" style={{ width: `${percentage}%` }} /></div></Link>; })}</div></> : <AdminEmptyState title="No enquiries in this period" description="Choose a different date range." />}</div></AdminCard>;
+}
+
 function EnquiryFunnel({ report }: { report: OwnerOverviewReport }) {
   const total = Math.max(report.enquiries.newEnquiries, 1);
   const stages = [
@@ -368,8 +393,7 @@ function EnquiryFunnel({ report }: { report: OwnerOverviewReport }) {
     { label: 'Engaged', value: report.enquiries.engaged, color: 'bg-indigo-500' },
     { label: 'Converted', value: report.enquiries.converted, color: 'bg-violet-500' },
   ];
-  const maxSource = Math.max(...report.enquiries.sourceBreakdown.map((item) => item.count), 1);
-  return <AdminCard className="overflow-hidden"><CardHeader icon={Target} title="Enquiry funnel" description="How enquiries received in this period moved toward a booking." to="/admin/enquiries" /><div className="space-y-3.5 p-4">{report.enquiries.newEnquiries ? stages.map((stage) => <div key={stage.label}><div className="mb-1.5 flex justify-between text-xs"><span className="font-medium text-admin-secondary">{stage.label}</span><span className="font-semibold text-admin-text">{stage.value} <span className="ml-1 text-[10px] font-normal text-admin-subtle">{Math.round((stage.value / total) * 100)}%</span></span></div><div className="h-2 overflow-hidden rounded-full bg-admin-muted"><div className={`h-full rounded-full ${stage.color}`} style={{ width: `${(stage.value / total) * 100}%` }} /></div></div>) : <AdminEmptyState title="No enquiries in this period" description="Try a wider reporting period." />}{report.enquiries.sourceBreakdown.length > 0 && <div className="border-t border-admin-border pt-3.5"><p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-admin-subtle">Where enquiries came from</p><div className="space-y-2.5">{report.enquiries.sourceBreakdown.slice(0, 5).map((source) => <div key={source.source}><div className="mb-1 flex justify-between text-[11px]"><span className="text-admin-secondary">{sourceLabel(source.source)}</span><span className="font-semibold text-admin-text">{source.count}</span></div><div className="h-1 rounded-full bg-admin-muted"><div className="h-full rounded-full bg-admin-primary" style={{ width: `${(source.count / maxSource) * 100}%` }} /></div></div>)}</div></div>}</div></AdminCard>;
+  return <AdminCard className="overflow-hidden"><CardHeader icon={Target} title="Enquiry funnel" description="How enquiries received in this period moved toward a booking." to="/admin/enquiries" /><div className="space-y-3.5 p-4">{report.enquiries.newEnquiries ? stages.map((stage) => <div key={stage.label}><div className="mb-1.5 flex justify-between text-xs"><span className="font-medium text-admin-secondary">{stage.label}</span><span className="font-semibold text-admin-text">{stage.value} <span className="ml-1 text-[10px] font-normal text-admin-subtle">{Math.round((stage.value / total) * 100)}%</span></span></div><div className="h-2 overflow-hidden rounded-full bg-admin-muted"><div className={`h-full rounded-full ${stage.color}`} style={{ width: `${(stage.value / total) * 100}%` }} /></div></div>) : <AdminEmptyState title="No enquiries in this period" description="Try a wider reporting period." />}</div></AdminCard>;
 }
 
 function BookingHealth({ report }: { report: OwnerOverviewReport }) {
@@ -389,7 +413,7 @@ function CashTrend({ report }: { report: OwnerOverviewReport }) {
 function RevenueByShootType({ report }: { report: OwnerOverviewReport }) {
   const items = report.finance.revenueByShootType.slice(0, 6);
   const max = Math.max(...items.map((item) => item.bookedRevenue), 1);
-  return <AdminCard className="overflow-hidden"><CardHeader icon={TrendingUp} title="Revenue by shoot type" description="Agreed value of priced bookings won in this period." to="/admin/payments" />{items.length ? <div className="space-y-3.5 p-4">{items.map((item) => <div key={item.shootType}><div className="mb-1.5 flex items-end justify-between gap-4"><div className="min-w-0"><p className="truncate text-xs font-medium text-admin-secondary">{item.shootType}</p><p className="text-[10px] text-admin-subtle">{item.bookings} booking{item.bookings === 1 ? '' : 's'}</p></div><p className="shrink-0 text-xs font-semibold text-admin-text">{money(item.bookedRevenue)}</p></div><div className="h-2 overflow-hidden rounded-full bg-admin-muted"><div className="h-full rounded-full bg-violet-500" style={{ width: `${(item.bookedRevenue / max) * 100}%` }} /></div></div>)}</div> : <AdminEmptyState title="No booked revenue in this period" description="Confirmed priced bookings will be grouped here." />}</AdminCard>;
+  return <AdminCard className="overflow-hidden"><CardHeader icon={TrendingUp} title="Confirmed value by shoot type" description="Agreed value of priced bookings won in this period." to="/admin/payments" />{items.length ? <div className="space-y-3.5 p-4">{items.map((item) => <div key={item.shootType}><div className="mb-1.5 flex items-end justify-between gap-4"><div className="min-w-0"><p className="truncate text-xs font-medium text-admin-secondary">{item.shootType}</p><p className="text-[10px] text-admin-subtle">{item.bookings} booking{item.bookings === 1 ? '' : 's'}</p></div><p className="shrink-0 text-xs font-semibold text-admin-text">{money(item.bookedRevenue)}</p></div><div className="h-2 overflow-hidden rounded-full bg-admin-muted"><div className="h-full rounded-full bg-violet-500" style={{ width: `${(item.bookedRevenue / max) * 100}%` }} /></div></div>)}</div> : <AdminEmptyState title="No priced bookings confirmed in this period" description="Confirmed priced bookings will be grouped here." />}</AdminCard>;
 }
 
 function CardHeader({ icon: Icon, title, description, to }: { icon: LucideIcon; title: string; description: string; to: string }) {

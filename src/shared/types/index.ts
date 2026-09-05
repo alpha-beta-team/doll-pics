@@ -419,7 +419,7 @@ export type Enquiry = {
   message: string;
   status: EnquiryStatus;
   stage: EnquiryStage;
-  source: EnquirySource;
+  source: EnquirySource | '';
   nextFollowUpAt?: string;
   followUpNote: string;
   lastFollowUpCompletedAt?: string;
@@ -628,6 +628,8 @@ export type FinanceReport = {
     paymentsReceived: number;
     paymentTransactions: number;
     bookedRevenue: number;
+    shootValue: number;
+    pricedShootBookings: number;
     confirmedBookings: number;
     outstandingNow: number;
     outstandingBookings: number;
@@ -709,7 +711,7 @@ export type OwnerOverviewReport = {
     converted: number;
     closedLost: number;
     conversionRate: number;
-    sourceBreakdown: Array<{ source: EnquirySource; count: number }>;
+    sourceBreakdown: Array<{ source: EnquirySource | ''; count: number }>;
   };
   bookings: {
     confirmedBookings: number;

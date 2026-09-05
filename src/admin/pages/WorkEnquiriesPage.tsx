@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { LEAD_SOURCE_OPTIONS, leadSourceLabel } from '../components/leadSource';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { AlertCircle, Inbox, SearchX, X } from 'lucide-react';
 import { api } from '../api/client';
@@ -49,10 +50,15 @@ export function WorkEnquiriesPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [params, setParams] = useSearchParams();
+  const source = params.get('source') || '';
+  const dateFrom = params.get('dateFrom') || '';
+  const dateTo = params.get('dateTo') || '';
+  const reportMode = Boolean(source || dateFrom || dateTo);
+  const requestVersion = useRef(0);
   const serviceParam = params.get('service') || '';
   const requestedServiceCategory = serviceParam ? normalizeServiceCategory(serviceParam) : '';
   const [items, setItems] = useState<Enquiry[]>([]);
-  const [scope, setScope] = useState<EnquiryListScope>('active');
+  const [scope, setScope] = useState<EnquiryListScope>(reportMode ? 'all' : 'active');
   const [stage, setStage] = useState<EnquiryStage | 'all'>('all');
   const [priority, setPriority] = useState<EnquiryPriorityFilter>('');
   const [query, setQuery] = useState('');
@@ -75,16 +81,18 @@ export function WorkEnquiriesPage() {
     if (refresh) setRefreshing(true);
     else setLoading(true);
     setError('');
+    const version = ++requestVersion.current;
     try {
-      setItems(await api.getEnquiryListRows({ inbox: true }));
+      const rows = await api.getEnquiryListRows({ inbox: !reportMode, source, dateFrom, dateTo });
+      if (version === requestVersion.current) setItems(rows);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not load enquiries.');
+      if (version === requestVersion.current) { setItems([]); setError(err instanceof Error ? err.message : 'Could not load enquiries.'); }
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      if (version === requestVersion.current) { setLoading(false); setRefreshing(false); }
     }
-  }, []);
+  }, [source, dateFrom, dateTo, reportMode]);
 
+  useEffect(() => { setScope(reportMode ? 'all' : 'active'); setStage('all'); setPriority(''); setQuery(''); }, [source, dateFrom, dateTo, reportMode]);
   useEffect(() => { void load(); }, [load]);
 
   const serviceCategory = requestedServiceCategory
@@ -140,9 +148,9 @@ export function WorkEnquiriesPage() {
     [items],
   );
 
-  const activeFilterCount = Number(stage !== 'all') + Number(Boolean(priority));
+  const activeFilterCount = Number(stage !== 'all') + Number(Boolean(priority)) + Number(Boolean(source)) + Number(Boolean(dateFrom || dateTo));
   const hasStatusOrPriorityFilter = stage !== 'all' || Boolean(priority);
-  const hasAnyFilter = hasStatusOrPriorityFilter || Boolean(query.trim()) || Boolean(serviceCategory);
+  const hasAnyFilter = reportMode || hasStatusOrPriorityFilter || Boolean(query.trim()) || Boolean(serviceCategory);
   const selectedServiceLabel = serviceCategories.find(option => option.value === serviceCategory)?.label;
   const selectedListNameBase = priority === 'overdue'
     ? 'Overdue follow-ups'
@@ -166,7 +174,9 @@ export function WorkEnquiriesPage() {
     setStage('all');
     setPriority('');
     setQuery('');
-    selectServiceCategory('');
+    const next = new URLSearchParams(params);
+    for (const key of ['source', 'dateFrom', 'dateTo', 'service']) next.delete(key);
+    setParams(next);
   };
 
   const openForm = () => {
@@ -216,6 +226,11 @@ export function WorkEnquiriesPage() {
           />
         )}
       />
+
+      {(reportMode || filtersOpen) && <section aria-label="Source reporting filters" className="rounded-xl border border-admin-border bg-admin-surface p-3">
+        <div className="flex flex-wrap items-end gap-3"><label className="min-w-0 flex-1 text-xs font-semibold text-admin-subtle">Source<select aria-label="Enquiry source" value={source} onChange={event => { const next = new URLSearchParams(params); if (event.target.value) next.set('source', event.target.value); else next.delete('source'); setParams(next); }} className="mt-1 min-h-11 w-full rounded-lg border border-admin-border bg-admin-surface px-2 text-sm text-admin-text"><option value="">All sources</option>{LEAD_SOURCE_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}<option value="not_recorded">Not recorded</option></select></label>{(['dateFrom', 'dateTo'] as const).map(key => <label key={key} className="text-xs font-semibold text-admin-subtle">{key === 'dateFrom' ? 'Created from' : 'Created through'}<input aria-label={key === 'dateFrom' ? 'Created from' : 'Created through'} type="date" value={key === 'dateFrom' ? dateFrom : dateTo} onChange={event => { const next = new URLSearchParams(params); if (event.target.value) next.set(key, event.target.value); else next.delete(key); setParams(next); }} className="mt-1 block min-h-11 max-w-full rounded-lg border border-admin-border bg-admin-surface px-2 text-sm text-admin-text" /></label>)}{reportMode && <button className="min-h-11 text-sm font-semibold text-admin-primary underline" onClick={clearFilters}>Clear filters</button>}</div>
+        {reportMode && <p className="mt-2 text-xs text-admin-subtle">{source === 'not_recorded' ? 'Not recorded' : source ? leadSourceLabel(source as Enquiry['source']) : 'All sources'} · Creation dates in India time. All stages included unless narrowed below.</p>}
+      </section>}
 
       {filtersOpen && (
         <section id="enquiry-advanced-filters" aria-label="Enquiry filters" className="space-y-2">
@@ -300,8 +315,8 @@ export function WorkEnquiriesPage() {
         ) : items.length === 0 ? (
           <AdminEmptyState
             icon={Inbox}
-            title="No enquiries yet"
-            description="New website submissions and enquiries added by the studio will appear here."
+            title={reportMode ? "No enquiries match these filters" : "No enquiries yet"}
+            description={reportMode ? "Choose another source or creation-date range." : "New website submissions and enquiries added by the studio will appear here."}
             action={canManage ? <AdminButton onClick={openForm}>Add enquiry</AdminButton> : undefined}
           />
         ) : query.trim() ? (

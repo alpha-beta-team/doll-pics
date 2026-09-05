@@ -5,6 +5,7 @@ import type { CustomerOccasion } from '../types';
 import { useConfirmDialog } from '../hooks/useConfirmDialog';
 
 type Props = {
+  compact?: boolean;
   phone: string;
   customerName: string;
   email?: string;
@@ -38,7 +39,7 @@ export function ImportantDatesPanel(props: Props) {
     catch (err) { setError(err instanceof Error ? err.message : 'Could not update this reminder.'); }
   };
 
-  return <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+  return <section className={`rounded-2xl border border-slate-200 bg-white ${props.compact ? 'p-4' : 'p-5'} shadow-sm`}>
     <div className="flex items-center justify-between gap-3"><div><h2 className="font-semibold text-slate-900">Important dates</h2><p className="mt-1 text-sm text-slate-500">Birthday and anniversary reminders for this phone.</p></div><button type="button" onClick={() => setEditing('new')} className="flex min-h-11 items-center gap-2 rounded-xl bg-blue-600 px-3 text-sm font-semibold text-white"><Plus className="h-4 w-4" />Add</button></div>
     {error && <p className="mt-3 rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}
     {loading ? <div className="mt-4 flex items-center gap-2 text-sm text-slate-500"><RefreshCw className="h-4 w-4 animate-spin" />Loading dates…</div> : <div className="mt-4 space-y-3">
@@ -47,7 +48,7 @@ export function ImportantDatesPanel(props: Props) {
         {!!item.contactHistory?.length && <details className="mt-3 text-sm"><summary className="cursor-pointer font-medium text-slate-600">Previous contacts ({item.contactHistory.length})</summary><div className="mt-2 space-y-1 text-xs text-slate-500">{item.contactHistory.map(entry => <p key={`${entry.occurrenceDate}-${entry.contactedAt}`}>{formatDate(entry.occurrenceDate)} · {entry.contactedBy.name} · {formatDateTime(entry.contactedAt)}</p>)}</div></details>}
         <button type="button" onClick={() => void archive(item)} className={`mt-3 min-h-10 text-sm font-semibold ${item.active ? 'text-red-600' : 'text-blue-600'}`}>{item.active ? 'Archive reminder' : 'Restore reminder'}</button>
       </article>)}
-      {!items.length && <div className="rounded-xl border border-dashed border-slate-300 p-5 text-center text-sm text-slate-500">No important dates saved yet.</div>}
+      {!items.length && <div className={props.compact ? 'text-sm text-slate-500' : 'rounded-xl border border-dashed border-slate-300 p-5 text-center text-sm text-slate-500'}>No important dates saved yet.</div>}
     </div>}
     {editing && <OccasionForm initial={editing === 'new' ? null : editing} {...props} onClose={() => setEditing(null)} onSaved={async () => { setEditing(null); await load(); }} />}
   </section>;

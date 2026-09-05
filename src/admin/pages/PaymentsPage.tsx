@@ -26,7 +26,6 @@ import {
 } from '../components/ui';
 import {
   REPORTING_PERIOD_PRESETS as PRESETS,
-  kolkataToday,
   rangeForReportingPreset as rangeForPreset,
   type ReportingDateRange as DateRange,
   type ReportingPeriodPreset as PeriodPreset,
@@ -136,7 +135,7 @@ export function PaymentsPage() {
       <AdminPageHeader
         eyebrow="Owner finance"
         title="Revenue & Payments"
-        description="Track booked revenue, money received, and balances still due. Expenses and profit are not included."
+        description="Track confirmed booking value, money received, and balances still due. Expenses and profit are not included."
         titleAction={(
           <AdminIconButton label="Refresh revenue and payments" disabled={refreshing} onClick={() => void load(true)}>
             <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
@@ -233,7 +232,6 @@ function PeriodFilter({
                 type="date"
                 value={range.dateTo}
                 min={range.dateFrom}
-                max={kolkataToday()}
                 onChange={(event) => onRange({ ...range, dateTo: event.target.value })}
                 className={`${adminFieldClass} min-h-10 px-2 text-xs`}
               />
@@ -276,7 +274,6 @@ function PeriodFilter({
               type="date"
               value={range.dateTo}
               min={range.dateFrom}
-              max={kolkataToday()}
               onChange={(event) => onRange({ ...range, dateTo: event.target.value })}
               className={`${adminFieldClass} min-h-10 sm:w-40`}
             />
@@ -290,6 +287,13 @@ function PeriodFilter({
 function KpiGrid({ report, selectedPeriod }: { report: FinanceReport; selectedPeriod: string }) {
   const cards = [
     {
+      label: 'Shoot value',
+      value: report.summary.shootValue == null ? 'Unavailable' : money(report.summary.shootValue),
+      detail: report.summary.pricedShootBookings == null ? 'Shoot value is not available yet' : `${report.summary.pricedShootBookings} priced bookings with shoot dates in this period · Includes paid and unpaid amounts`,
+      icon: CalendarClock,
+      iconClass: 'bg-violet-50 text-violet-700',
+    },
+    {
       label: 'Customer cash collected',
       value: money(report.summary.paymentsReceived),
       detail: `${report.summary.paymentTransactions} payment${report.summary.paymentTransactions === 1 ? '' : 's'} · ${selectedPeriod}`,
@@ -297,23 +301,23 @@ function KpiGrid({ report, selectedPeriod }: { report: FinanceReport; selectedPe
       iconClass: 'bg-emerald-50 text-emerald-700',
     },
     {
-      label: 'Booked revenue',
+      label: 'Bookings confirmed value',
       value: money(report.summary.bookedRevenue),
-      detail: `${report.summary.confirmedBookings} confirmed · Avg ${money(report.summary.averageBookingValue)}`,
+      detail: `${report.summary.confirmedBookings} priced bookings confirmed in this period · Includes paid and unpaid amounts · Avg ${money(report.summary.averageBookingValue)}`,
       icon: TrendingUp,
       iconClass: 'bg-violet-50 text-violet-700',
     },
     {
       label: 'Outstanding now',
       value: money(report.summary.outstandingNow),
-      detail: `${report.summary.outstandingBookings} booking${report.summary.outstandingBookings === 1 ? '' : 's'} with balance due`,
+      detail: `${report.summary.outstandingBookings} booking${report.summary.outstandingBookings === 1 ? '' : 's'} with balance due · Across all dates`,
       icon: CircleDollarSign,
       iconClass: 'bg-amber-50 text-amber-700',
     },
     {
       label: 'Overdue now',
       value: money(report.summary.overdueNow),
-      detail: `${report.summary.overdueBookings} overdue booking${report.summary.overdueBookings === 1 ? '' : 's'}`,
+      detail: `${report.summary.overdueBookings} overdue booking${report.summary.overdueBookings === 1 ? '' : 's'} · Across all dates`,
       icon: CalendarClock,
       iconClass: 'bg-rose-50 text-rose-700',
     },
@@ -334,7 +338,7 @@ function KpiGrid({ report, selectedPeriod }: { report: FinanceReport; selectedPe
     {
       label: 'Collection rate',
       value: `${report.summary.collectionRate.toFixed(1)}%`,
-      detail: 'Customer cash collected ÷ booked revenue',
+      detail: 'Customer cash collected ÷ confirmed booking value',
       icon: TrendingUp,
       iconClass: 'bg-cyan-50 text-cyan-700',
     },
@@ -418,7 +422,7 @@ function RevenueByShootType({ report }: { report: FinanceReport }) {
   return (
     <AdminCard className="overflow-hidden">
       <div className="border-b border-admin-border p-5 sm:p-6">
-        <h2 className="font-semibold text-admin-text">Booked revenue by shoot type</h2>
+        <h2 className="font-semibold text-admin-text">Bookings confirmed value by shoot type</h2>
         <p className="mt-1 text-sm text-admin-subtle">Confirmed booking value in the selected period.</p>
       </div>
       {report.revenueByShootType.length ? (
@@ -439,7 +443,7 @@ function RevenueByShootType({ report }: { report: FinanceReport }) {
           ))}
         </div>
       ) : (
-        <AdminEmptyState title="No booked revenue in this period" description="Confirmed priced bookings will be grouped here." />
+        <AdminEmptyState title="No confirmed booking value in this period" description="Confirmed priced bookings will be grouped here." />
       )}
     </AdminCard>
   );
