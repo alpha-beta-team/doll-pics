@@ -171,3 +171,21 @@ export async function loadCmsOverlays() {
 
   return { packagesByPath, servicesByPath, servicesLoaded, apiBase };
 }
+
+/** Validate the resolved catalog, including CMS-only routes, before emitting HTML. */
+export function assertCatalogMetadata(pages: Record<string, CatalogPage>) {
+  for (const field of ['title', 'description'] as const) {
+    const seen = new Map<string, string>();
+    for (const [path, page] of Object.entries(pages)) {
+      const value = page[field].trim();
+      if (!value) throw new Error(`SEO build: empty ${field} on ${path}`);
+      const key = value.toLowerCase().replace(/\s+/g, ' ');
+      const previous = seen.get(key);
+      if (previous) throw new Error(`SEO build: duplicate ${field} on ${previous} and ${path}`);
+      seen.set(key, path);
+      if (field === 'title' && value.length > 70) {
+        console.warn(`SEO build: review long title (${value.length}) on ${path}: ${value}`);
+      }
+    }
+  }
+}

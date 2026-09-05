@@ -2,7 +2,7 @@
 
 **Priority:** P1  
 **Effort:** Medium  
-**Status:** Not started  
+**Status:** Implemented locally — deployment and Search Console verification pending
 **Owner:** Unassigned
 
 [← Master plan](./README.md)
@@ -11,7 +11,7 @@
 
 Every indexable page has a concise, unique, intent-aligned title while structured data and business profiles retain the full canonical business identity.
 
-## Current evidence
+## Original findings (historical)
 
 - Core page titles now repeat `Doll Pictures by Ramya Vignesh`.
 - Homepage title is 68 characters and puts the long brand before the service/location intent.
@@ -31,54 +31,54 @@ Every indexable page has a concise, unique, intent-aligned title while structure
 
 ### Identity mapping
 
-- [ ] Use SEO-03’s approved canonical name and short brand.
-- [ ] Assign clear semantics to `businessName`, `siteName`, and `brandByline`.
-- [ ] Keep the structured-data entity consistent with Google Business Profile.
+- [x] Use SEO-03’s approved canonical name and short brand.
+- [x] Assign clear semantics to `businessName`, `siteName`, and `brandByline`.
+- [x] Keep the structured-data entity consistent with Google Business Profile.
 
 ### Rewrite core titles
 
-- [ ] Homepage: lead with wedding/baby photography and Erode.
-- [ ] Gallery/work: describe portfolio intent.
-- [ ] Services/packages: retain category and Erode where useful.
-- [ ] About: emphasize Ramya Vignesh and the Erode studio.
-- [ ] Stories: use client stories/reviews only when real proof exists.
-- [ ] Booking: focus on booking a photography session in Erode.
-- [ ] Privacy/terms: keep simple legal titles.
+- [x] Homepage: lead with wedding/baby photography and Erode.
+- [x] Gallery/work: describe portfolio intent.
+- [x] Services/packages: retain category and Erode where useful.
+- [x] About: emphasize Ramya Vignesh and the Erode studio.
+- [x] Stories: use client stories/reviews only when real proof exists.
+- [x] Booking: focus on booking a photography session in Erode.
+- [x] Privacy/terms: keep simple legal titles.
 
 ### Align CMS titles
 
-- [ ] Review all six service titles.
-- [ ] Review all seven package-category titles.
-- [ ] Standardize capitalization and separators.
-- [ ] Keep CMS fallback and build-time JSON titles aligned.
+- [x] Review all 12 currently published CMS service titles.
+- [x] Review all nine currently published CMS package-category titles.
+- [x] Standardize capitalization and separators.
+- [x] Keep CMS fallback and build-time JSON titles aligned.
 
 ### Headings and descriptions
 
 - [ ] Make the homepage visible hero copy clearly communicate service and location.
 - [ ] Keep poetic copy as supporting text rather than the only page-topic signal.
-- [ ] Remove awkward repeated full-brand phrases from descriptions.
-- [ ] Ensure each description is unique and useful to a searcher.
+- [x] Remove awkward repeated full-brand phrases from descriptions.
+- [x] Ensure each description is unique and useful to a searcher.
 
 ### Automated checks
 
-- [ ] Detect duplicate titles/descriptions.
-- [ ] Warn on unusually long or empty titles.
+- [x] Detect duplicate titles/descriptions.
+- [x] Warn on unusually long or empty titles.
 - [ ] Verify title, H1/topic copy, canonical, and OG title per route.
-- [ ] Include CMS overlay pages in the check.
+- [x] Include CMS overlay pages in the check.
 
 ## Acceptance criteria
 
-- [ ] All indexable routes have unique titles and descriptions.
-- [ ] Full business name remains correct in structured data.
-- [ ] Short brand is used consistently as the title suffix.
-- [ ] Homepage and key service titles lead with user intent.
-- [ ] `name` and `alternateName` are distinct when an alternate name exists.
-- [ ] No title is mechanically duplicated between unrelated routes.
+- [x] All indexable routes have unique titles and descriptions.
+- [x] Full business name remains correct in structured data.
+- [x] Short brand is used consistently as the title suffix.
+- [x] Homepage and key service titles lead with user intent.
+- [x] `name` and `alternateName` are distinct when an alternate name exists.
+- [x] No title is mechanically duplicated between unrelated routes.
 - [ ] Prerendered and runtime metadata agree.
 
 ## Verification
 
-- [ ] Build all 23 indexable routes.
+- [x] Build all 32 current indexable routes using production CMS overlays.
 - [ ] Extract and compare title, description, H1/topic, canonical, and OG title.
 - [ ] Inspect the live homepage and six service URLs in Search Console.
 - [ ] Monitor title rewrites and CTR after recrawling.
@@ -96,3 +96,14 @@ Every indexable page has a concise, unique, intent-aligned title while structure
 ## Dependencies
 
 SEO-03 must first confirm the canonical full name and approved short brand.
+
+## Implementation and validation — 5 Sep 2026
+
+- Rewrote core titles to use intent first and the short `Doll Pictures` suffix; synchronized initial HTML title, OG and Twitter fallbacks. Simplified repeated full-name wording in core descriptions and topic copy.
+- Canonical identity mapping already distinguishes `businessName`/`brandByline` (full name) from `siteName` (short brand); preserved it.
+- Reviewed production CMS titles: 12 services and nine package categories already use the short brand and Erode intent. No production CMS mutation was needed. Added Erode to the generated package-title fallback.
+- Prerender now rejects empty or duplicate titles/descriptions across the resolved catalog, including CMS-only routes, and warns on titles over 70 characters without imposing a hard length limit.
+- Nine focused metadata/identity tests pass; changed-file ESLint and diff checks pass. Production build with strict CMS mode succeeds for 32 routes. Generated HTML checks confirm title/OG/Twitter agreement, canonical URL, description and H1 presence on all 32 routes.
+- Existing homepage source already includes visible Wedding/Baby/Family and Erode topic labels. Visual/browser verification and runtime DOM comparison were not performed.
+- Full `test:seo` remains blocked by an unrelated pre-existing `social-proof.spec.ts` import of the removed `teamMembers` export.
+- Remaining: deploy frontend; verify live metadata and rendered page topics, then inspect key URLs in Search Console and monitor title rewrites/CTR after recrawling.

@@ -1,6 +1,6 @@
 {
   "tagline": "Wedding & Baby Photography in Erode",
-  "defaultDescription": "Wedding, maternity, newborn, milestone and family photography in Erode, with creative setups and baby-friendly sessions across Tamil Nadu.",
+  "defaultDescription": "Wedding, maternity, newborn, milestone and family photography in Erode. Capture your precious moments with Doll Pictures.",
   "serviceAreas": [
     "Erode",
     "Salem",
@@ -10,22 +10,22 @@
   ],
   "pages": {
     "/": {
-      "title": "Doll Pictures by Ramya Vignesh | Wedding & Baby Photography in Erode",
-      "description": "Wedding, maternity, newborn, milestone and family photography in Erode, with creative setups and baby-friendly sessions across Tamil Nadu.",
-      "heading": "Doll Pictures by Ramya Vignesh",
-      "body": "Doll Pictures by Ramya Vignesh — premium wedding and baby photography in Erode, Tamil Nadu, with travel across Salem, Namakkal, Coimbatore, Chennai and statewide. We don't just take photos — we preserve emotions."
+      "title": "Wedding & Baby Photography in Erode | Doll Pictures",
+      "description": "Wedding, maternity, newborn, milestone and family photography in Erode. Capture your precious moments with Doll Pictures.",
+      "heading": "Wedding & Baby Photography in Erode",
+      "body": "Doll Pictures – premium wedding and baby photography in Erode, Tamil Nadu. We specialize in capturing authentic emotions, candid wedding moments, and timeless newborn memories."
     },
     "/work": {
-      "title": "Featured Work | Doll Pictures by Ramya Vignesh",
+      "title": "Featured Photography Work | Doll Pictures",
       "description": "Explore cinematic wedding, maternity, newborn and family photography by Doll Pictures, with portfolio highlights from Erode and across Tamil Nadu.",
       "heading": "Featured Work",
-      "body": "Cinematic wedding, baby and family photography from Doll Pictures by Ramya Vignesh in Erode and across Tamil Nadu."
+      "body": "Cinematic wedding, baby and family photography from Doll Pictures in Erode and across Tamil Nadu."
     },
     "/gallery": {
-      "title": "Photo Gallery | Doll Pictures by Ramya Vignesh",
-      "description": "Browse the Doll Pictures by Ramya Vignesh gallery — cinematic stills from weddings, maternity, newborn and family sessions captured with emotion and craft.",
-      "heading": "Every Frame, a Feeling Held",
-      "body": "An unfolding visual journal of celebrations, connections and the quiet in-between moments that define the work of Doll Pictures by Ramya Vignesh."
+      "title": "Photography Gallery | Doll Pictures",
+      "description": "Browse the Doll Pictures gallery — cinematic stills from weddings, maternity, newborn and family sessions captured with emotion and craft.",
+      "heading": "Photography Gallery",
+      "body": "An unfolding visual journal of celebrations, connections and the quiet in-between moments that define the work of Doll Pictures."
     },
     "/services": {
       "title": "Photography Services in Erode | Doll Pictures",
@@ -34,44 +34,44 @@
       "body": "From weddings and maternity journeys to newborn milestones, toddler portraits, cake smashes, birthdays and family celebrations, Doll Pictures creates warm, natural photography from our Erode studio, with travel available across Tamil Nadu."
     },
     "/packages": {
-      "title": "Photography Packages & Pricing | Doll Pictures by Ramya Vignesh",
-      "description": "Browse wedding, maternity, newborn and family photography packages in Erode. Compare inclusions by category, then enquire with Doll Pictures by Ramya Vignesh.",
+      "title": "Photography Packages in Erode | Doll Pictures",
+      "description": "Browse wedding, maternity, newborn and family photography packages in Erode. Compare inclusions by category, then enquire with Doll Pictures.",
       "heading": "Photography Packages",
       "body": "Explore photography packages by category — wedding, maternity, newborn and more — with clear inclusions confirmed at consultation."
     },
     "/about": {
-      "title": "About Us | Doll Pictures by Ramya Vignesh",
-      "description": "Meet Ramya Vignesh and the Doll Pictures by Ramya Vignesh team. A cinematic photography studio based in Erode, serving families and couples across Tamil Nadu.",
-      "heading": "About Doll Pictures by Ramya Vignesh",
-      "body": "Meet Ramya Vignesh and the team behind Doll Pictures by Ramya Vignesh — a photography studio in Erode serving clients across Tamil Nadu."
+      "title": "Ramya Vignesh & Our Erode Studio | Doll Pictures",
+      "description": "Meet Ramya Vignesh and the Doll Pictures team at our Erode photography studio, serving couples and families across Tamil Nadu.",
+      "heading": "About Doll Pictures",
+      "body": "Meet Ramya Vignesh and the team behind Doll Pictures — a photography studio in Erode serving clients across Tamil Nadu."
     },
     "/stories": {
-      "title": "Client Reviews & Stories | Doll Pictures by Ramya Vignesh",
-      "description": "Read honest reviews from couples and families who trusted Doll Pictures by Ramya Vignesh with weddings, maternity, newborn and celebration sessions.",
+      "title": "Client Reviews & Stories | Doll Pictures",
+      "description": "Read honest reviews from couples and families who trusted Doll Pictures with weddings, maternity, newborn and celebration sessions.",
       "heading": "Client Stories",
-      "body": "Honest words from couples and families who trusted Doll Pictures by Ramya Vignesh with the moments they never want to forget."
+      "body": "Honest words from couples and families who trusted Doll Pictures with the moments they never want to forget."
     },
     "/contact": {
-      "title": "Contact Doll Pictures | Photography Studio in Erode",
-      "description": "Contact Doll Pictures by Ramya Vignesh in Erode for wedding, maternity, newborn and family photography. Share your plans and receive a reply within 24 hours.",
+      "title": "Contact Our Erode Photography Studio | Doll Pictures",
+      "description": "Contact Doll Pictures in Erode for wedding, maternity, newborn and family photography. Share your plans and receive a reply within 24 hours.",
       "heading": "Contact Doll Pictures",
       "body": "Tell us about your celebration or portrait session. Visit our Erode studio, call, WhatsApp or send an enquiry and our team will reply within 24 hours."
     },
     "/booking": {
-      "title": "Book a Session | Doll Pictures by Ramya Vignesh",
-      "description": "Book wedding, maternity, newborn or family photography with Doll Pictures by Ramya Vignesh in Erode. Free consultation — travel across Tamil Nadu available.",
+      "title": "Book a Photography Session in Erode | Doll Pictures",
+      "description": "Book wedding, maternity, newborn or family photography with Doll Pictures in Erode. Free consultation — travel across Tamil Nadu available.",
       "heading": "Book a Session",
-      "body": "Book a wedding, baby or family photography session with Doll Pictures by Ramya Vignesh in Erode. Free consultation available."
+      "body": "Book a wedding, baby or family photography session with Doll Pictures in Erode. Free consultation available."
     },
     "/privacy": {
-      "title": "Privacy Policy — Doll Pictures by Ramya Vignesh",
-      "description": "How Doll Pictures by Ramya Vignesh collects, uses, and protects personal information when you visit our website or enquire about photography services.",
+      "title": "Privacy Policy | Doll Pictures",
+      "description": "How Doll Pictures collects, uses, and protects personal information when you visit our website or enquire about photography services.",
       "heading": "Privacy Policy",
       "body": "How we collect, use, and protect your personal information."
     },
     "/terms": {
-      "title": "Terms of Service — Doll Pictures by Ramya Vignesh",
-      "description": "Terms governing use of the Doll Pictures by Ramya Vignesh website and photography services provided in Erode, Tamil Nadu.",
+      "title": "Terms of Service | Doll Pictures",
+      "description": "Terms governing use of the Doll Pictures website and photography services provided in Erode, Tamil Nadu.",
       "heading": "Terms of Service",
       "body": "Terms governing use of our website and photography services."
     }

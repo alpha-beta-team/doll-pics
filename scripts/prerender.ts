@@ -6,6 +6,7 @@ import { fetchJson, loadEnvFiles, root } from './lib/env.mjs';
 import {
   absoluteUrl,
   assertCatalogCoverage,
+  assertCatalogMetadata,
   buildBreadcrumbJsonLd,
   buildBusinessJsonLd,
   buildFaqPageJsonLd,
@@ -77,6 +78,8 @@ const pages = buildPageCatalog({
 if (String(process.env.SEO_REQUIRE_CMS ?? '').toLowerCase() === 'true') {
   assertCatalogCoverage(pages, sitemapRoutes);
 }
+
+assertCatalogMetadata(pages);
 
 const siteName = seoPages.siteName;
 

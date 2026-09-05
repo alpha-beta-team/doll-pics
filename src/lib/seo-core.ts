@@ -299,7 +299,7 @@ export function resolvePackagePage(
       }
     : nav
       ? {
-          title: `${nav.label} Photography Packages | Doll Pictures`,
+          title: `${nav.label} Photography Packages in Erode | Doll Pictures`,
           description:
             nav.description ||
             `${nav.label} photography packages in Erode from Doll Pictures.`,

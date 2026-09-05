@@ -2,7 +2,7 @@
 
 **Priority:** P0  
 **Effort:** Medium  
-**Status:** Monitoring — public cleanup live; authentic replacements pending
+**Status:** Monitoring — cleanup live; owner verified published reviews, like counts, and Stories page; team/process content pending
 **Owner:** Unassigned
 
 [← Master plan](./README.md)
@@ -11,7 +11,7 @@
 
 Public testimonials, team profiles, statistics, awards, and behind-the-scenes claims are genuine, attributable, and supported by evidence.
 
-## Current evidence
+## Original findings (historical)
 
 - Production testimonials include Tuscany, Kyoto, and Paris placeholder stories.
 - The team endpoint includes placeholder profiles and a record named `111`.
@@ -113,3 +113,10 @@ Remaining content work:
 
 - Obtain consent/evidence and real portraits/process media before republishing
   any preserved draft or creating replacements.
+
+## Verification update — 5 Sep 2026
+
+- Current public API checks return three published testimonials (Kaarmuhilan, Rohini Jai, and Gopinath); public staff profiles, statistics, and behind-the-scenes lists are empty. The earlier all-empty API snapshot is historical.
+- The owner confirmed the published reviews are genuine, verified their displayed like counts (50, 100, and 150), and confirmed the Stories page display was checked. These are owner confirmations, not independent source or browser verification.
+- Website publication consent was not separately stated or documented in this exchange.
+- Real team biographies/portraits and studio/process content remain future content work; empty sections can remain hidden. Google review linking and project context remain unchecked where applicable.
