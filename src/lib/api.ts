@@ -1,3 +1,5 @@
+import { createPublicFetch } from './publicRequest';
+export { ApiError } from './publicRequest';
 import { captureAttribution } from './attribution';
 import type {
   CreateEnquiryPayload,
@@ -35,23 +37,10 @@ const IMAGEKIT_ENDPOINT = 'https://ik.imagekit.io/dollpictures';
 // Include candidates near the actual mobile card widths. Without these, a
 // 260-650 px rendered image is rounded up to an 800 px download.
 const IMAGEKIT_WIDTHS = [320, 480, 640, 720, 960, 1200, 1600] as const;
-const inflightPublicGets = new Map<string, Promise<unknown>>();
 
 function imageKitPhotoUrl(storageKey: string, width: number, quality = 78): string {
   const path = storageKey.split('/').map(encodeURIComponent).join('/');
   return `${IMAGEKIT_ENDPOINT}/tr:w-${width},q-${quality},f-auto/${path}`;
-}
-
-export class ApiError extends Error {
-  status: number;
-  messages: string[];
-
-  constructor(status: number, messages: string[]) {
-    super(messages.join(', ') || `API error ${status}`);
-    this.name = 'ApiError';
-    this.status = status;
-    this.messages = messages;
-  }
 }
 
 /** Map NestJS/class-validator messages ("email must be an email") to field keys. */
@@ -69,47 +58,7 @@ export function parseApiFieldErrors(
   return errors;
 }
 
-async function executePublicFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, init);
-  if (!res.ok) {
-    const body = await res.json().catch(() => null) as { message?: string | string[] } | null;
-    const raw = body?.message;
-    const messages = Array.isArray(raw)
-      ? raw.map(String)
-      : raw
-        ? [String(raw)]
-        : [`API error ${res.status}`];
-    throw new ApiError(res.status, messages);
-  }
-  if (res.status === 204) return undefined as T;
-  return res.json() as Promise<T>;
-}
-
-export function publicFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  // Site-level data and route components can ask for the same public resource
-  // during the same render. Share only plain GETs: requests with signals or
-  // custom options retain their independent cancellation/auth semantics.
-  if (init !== undefined) return executePublicFetch<T>(path, init);
-
-  const existing = inflightPublicGets.get(path);
-  if (existing) return existing as Promise<T>;
-
-  const request = executePublicFetch<T>(path);
-  inflightPublicGets.set(path, request);
-  request.then(
-    () => {
-      if (inflightPublicGets.get(path) === request) {
-        inflightPublicGets.delete(path);
-      }
-    },
-    () => {
-      if (inflightPublicGets.get(path) === request) {
-        inflightPublicGets.delete(path);
-      }
-    },
-  );
-  return request;
-}
+export const publicFetch = createPublicFetch(API_BASE);
 
 export function resolveMediaUrl(url: string): string {
   if (!url) return '';
@@ -223,9 +172,9 @@ export type PhotosQuery = {
 };
 
 export const publicApi = {
-  getSiteContent: () => publicFetch<PublicSiteContent>('/site-content'),
-  getBookingBackgrounds: () =>
-    publicFetch<PublicBookingBackground[]>('/booking-backgrounds'),
+  getSiteContent: (init?: RequestInit) => publicFetch<PublicSiteContent>('/site-content', init),
+  getBookingBackgrounds: (init?: RequestInit) =>
+    publicFetch<PublicBookingBackground[]>('/booking-backgrounds', init),
   getPhotos: (params?: PhotosQuery, init?: RequestInit) => {
     const qs = new URLSearchParams();
     if (params?.featured) qs.set('featured', 'true');
@@ -239,19 +188,20 @@ export const publicApi = {
       init,
     );
   },
-  getCategory: (slug: string) =>
+  getCategory: (slug: string, init?: RequestInit) =>
     publicFetch<import('../shared/types').PublicCategory>(
       `/categories/${encodeURIComponent(slug)}`,
+      init,
     ),
-  getPackages: () => publicFetch<PublicPackage[]>('/packages'),
-  getPackageCategories: () =>
-    publicFetch<PublicPackageCategory[]>('/package-categories'),
-  getHeroSlides: () => publicFetch<PublicHeroSlide[]>('/hero-slides'),
-  getStoryScenes: () => publicFetch<PublicStoryScene[]>('/story-scenes'),
-  getStats: () => publicFetch<PublicStat[]>('/stats'),
-  getTestimonials: () => publicFetch<PublicTestimonial[]>('/testimonials'),
-  getBehindScenes: () => publicFetch<PublicBehindScene[]>('/behind-scenes'),
-  getStaffProfiles: () => publicFetch<PublicStaffProfile[]>('/staff-profiles'),
+  getPackages: (init?: RequestInit) => publicFetch<PublicPackage[]>('/packages', init),
+  getPackageCategories: (init?: RequestInit) =>
+    publicFetch<PublicPackageCategory[]>('/package-categories', init),
+  getHeroSlides: (init?: RequestInit) => publicFetch<PublicHeroSlide[]>('/hero-slides', init),
+  getStoryScenes: (init?: RequestInit) => publicFetch<PublicStoryScene[]>('/story-scenes', init),
+  getStats: (init?: RequestInit) => publicFetch<PublicStat[]>('/stats', init),
+  getTestimonials: (init?: RequestInit) => publicFetch<PublicTestimonial[]>('/testimonials', init),
+  getBehindScenes: (init?: RequestInit) => publicFetch<PublicBehindScene[]>('/behind-scenes', init),
+  getStaffProfiles: (init?: RequestInit) => publicFetch<PublicStaffProfile[]>('/staff-profiles', init),
   createEnquiry: (data: CreateEnquiryPayload) =>
     publicFetch('/enquiries', {
       method: 'POST',

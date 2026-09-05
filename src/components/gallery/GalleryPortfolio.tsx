@@ -1,3 +1,4 @@
+import { PublicRequestError } from '../../lib/publicRequest';
 import {
   useCallback,
   useEffect,
@@ -66,7 +67,8 @@ function normalizePhotos(photos: PublicPhoto[]): PortfolioPhoto[] {
 }
 
 function errorMessage(error: unknown): string {
-  if (error instanceof DOMException && error.name === 'AbortError') return '';
+  if (error instanceof Error && error.name === 'AbortError') return '';
+  if (error instanceof PublicRequestError) return 'We could not load the gallery right now. Please try again.';
   return error instanceof Error
     ? error.message
     : 'We could not load the gallery right now.';
@@ -91,10 +93,12 @@ export function GalleryPortfolio() {
         { signal: controller.signal },
       )
       .then((photoData) => {
+        if (controller.signal.aborted) return;
         setPhotos(normalizePhotos(photoData));
         setLoading(false);
       })
       .catch((loadError: unknown) => {
+        if (controller.signal.aborted) return;
         const message = errorMessage(loadError);
         if (!message) return;
         setError(message);

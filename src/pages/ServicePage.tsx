@@ -161,47 +161,26 @@ function ServicePageContent() {
   const apiServiceCategory = resolveApiServiceCategory(path, nav?.label);
 
   useEffect(() => {
-    let cancelled = false;
-    if (!apiServiceCategory) {
-      setApiServiceMedia({ path, images: [] });
-      return () => {
-        cancelled = true;
-      };
-    }
-
+    const controller = new AbortController();
     setApiServiceMedia({ path, images: [] });
-    void Promise.all([
-      publicApi.getCategory(apiServiceCategory).catch(() => null),
-      publicApi.getPhotos({
-        category: apiServiceCategory,
-        limit: SERVICE_GALLERY_LIMIT,
-      }),
-    ])
-      .then(([category, photos]) => {
-        if (!cancelled) {
-          const cover = category?.coverPhotoId && typeof category.coverPhotoId === 'object'
-            ? serviceImagesFromApi([category.coverPhotoId])
-            : [];
-          const categoryImages = serviceImagesFromApi(photos);
-          const coverKey = cover[0]?.src.split('?')[0];
-          setApiServiceMedia({
-            path,
-            images: [
-              ...cover,
-              ...categoryImages.filter(
-                (image) => !coverKey || image.src.split('?')[0] !== coverKey,
-              ),
-            ],
-          });
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setApiServiceMedia({ path, images: [] });
-      });
-
-    return () => {
-      cancelled = true;
+    if (!apiServiceCategory) return () => controller.abort();
+    let cover: ServiceImage[] = [];
+    let photos: ServiceImage[] = [];
+    const commit = () => {
+      if (controller.signal.aborted) return;
+      const coverKey = cover[0]?.src.split('?')[0];
+      setApiServiceMedia({ path, images: [...cover, ...photos.filter(image => !coverKey || image.src.split('?')[0] !== coverKey)] });
     };
+    void publicApi.getCategory(apiServiceCategory, { signal: controller.signal })
+      .then(category => {
+        cover = category?.coverPhotoId && typeof category.coverPhotoId === 'object'
+          ? serviceImagesFromApi([category.coverPhotoId]) : [];
+        commit();
+      }).catch(() => { /* Existing page imagery remains usable. */ });
+    void publicApi.getPhotos({ category: apiServiceCategory, limit: SERVICE_GALLERY_LIMIT }, { signal: controller.signal })
+      .then(result => { photos = serviceImagesFromApi(result); commit(); })
+      .catch(() => { /* A failed gallery does not discard a successful category cover. */ });
+    return () => controller.abort();
   }, [apiServiceCategory, path]);
 
   useEffect(() => {

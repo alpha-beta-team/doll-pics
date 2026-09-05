@@ -1,5 +1,7 @@
+import { PublicRequestError, publicFailure } from '../lib/publicRequest';
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useRef,
@@ -320,298 +322,193 @@ function readBuildTimeHero(): PublicHeroSlide[] {
     : fallbackHeroSlides;
 }
 
+type CmsResource = 'siteContent' | 'hero' | 'categories' | 'storyScenes' | 'stats'
+  | 'testimonials' | 'behindScenes' | 'featuredPhotos' | 'galleryPhotos' | 'packages' | 'staffProfiles';
+const CRITICAL_RESOURCES: CmsResource[] = ['siteContent', 'hero', 'categories'];
+const ROUTING_RESOURCES: CmsResource[] = ['siteContent', 'categories'];
+const BUCKET_RESOURCES: Record<DataBucket, CmsResource[]> = {
+  home: ['storyScenes', 'stats', 'testimonials', 'behindScenes'],
+  reviews: ['testimonials'],
+  media: ['featuredPhotos', 'galleryPhotos'],
+  packages: ['packages'],
+  about: ['staffProfiles', 'behindScenes'],
+};
+type SitePatch = Partial<SiteData> | ((previous: SiteData) => Partial<SiteData>);
+
+function collection<T>(value: T[]): T[] {
+  if (!Array.isArray(value)) throw new PublicRequestError('invalid_response');
+  return value;
+}
+
+/** Each resource produces its own patch; another endpoint cannot discard it. */
+async function loadResource(resource: CmsResource, signal: AbortSignal): Promise<SitePatch> {
+  const init = { signal };
+  switch (resource) {
+    case 'siteContent': {
+      const content = await publicApi.getSiteContent(init);
+      if (!content || typeof content !== 'object' || Array.isArray(content)) throw new PublicRequestError('invalid_response');
+      const serviceNavLinks = normalizeServiceNavLinks(content.serviceNavLinks);
+      return {
+        siteContent: {
+          ...defaultSiteContent, ...content,
+          brandName: BUSINESS_NAME, contactEmail: BUSINESS_EMAIL,
+          whatsapp: BUSINESS_WHATSAPP, phone: BUSINESS_PHONE, socials: BUSINESS_SOCIALS,
+          ourStory: content.ourStory || defaultSiteContent.ourStory,
+          mission: content.mission || defaultSiteContent.mission,
+          aboutHeroSubtext: content.aboutHeroSubtext || defaultSiteContent.aboutHeroSubtext,
+          serviceNavLinks,
+        },
+        services: servicesFromNavLinks(getPublishedServiceNavLinks(serviceNavLinks)),
+      };
+    }
+    case 'hero': {
+      const slides = collection(await publicApi.getHeroSlides(init)).filter(slide => !isLegacyHeroSlide(slide));
+      // Keep the initial HTML/preload hero until a usable CMS hero is available.
+      return slides.length ? { heroSlides: slides } : {};
+    }
+    case 'categories': {
+      const result = collection(await publicApi.getPackageCategories(init));
+      const categories = result.length ? result.map((c, index) => ({
+        name: c.name, slug: c.slug, path: c.path, description: c.description,
+        seoTitle: c.seoTitle, seoDescription: c.seoDescription, heading: c.heading, lead: c.lead,
+        order: typeof c.order === 'number' ? c.order : index,
+      })).sort((a, b) => a.order - b.order) : fallbackPackageCategories;
+      return { packageCategories: categories, packageNavLinks: getPublishedPackageNavLinks(categories) };
+    }
+    case 'storyScenes': {
+      const result = collection(await publicApi.getStoryScenes(init));
+      return { storyScenes: result.length ? result : fallbackStoryScenes };
+    }
+    case 'stats': return { stats: collection(await publicApi.getStats(init)) };
+    case 'testimonials': return { testimonials: collection(await publicApi.getTestimonials(init)) };
+    case 'behindScenes': return { behindScenes: collection(await publicApi.getBehindScenes(init)) };
+    case 'staffProfiles': return { staffProfiles: collection(await publicApi.getStaffProfiles(init)) };
+    case 'packages': return { packages: collection(await publicApi.getPackages(init)).map(normalizePublicPackage) };
+    case 'featuredPhotos': {
+      const result = featuredFromPhotos(collection(await publicApi.getPhotos({ featured: true }, init)));
+      const featuredWork = result.length ? result : normalizedFallbackFeatured;
+      return previous => ({
+        featuredWork,
+        ...(previous.galleryImages === normalizedFallbackGallery && result.length ? {
+          galleryImages: result.map(w => ({ src: w.image, alt: w.alt, avifSrcSet: w.avifSrcSet, webpSrcSet: w.webpSrcSet })),
+        } : {}),
+      });
+    }
+    case 'galleryPhotos': {
+      const result = galleryFromPhotos(collection(await publicApi.getPhotos({ limit: GALLERY_PHOTO_LIMIT }, init)));
+      return previous => ({ galleryImages: result.length ? result : previous.featuredWork.length
+        ? previous.featuredWork.map(w => ({ src: w.image, alt: w.alt, avifSrcSet: w.avifSrcSet, webpSrcSet: w.webpSrcSet }))
+        : normalizedFallbackGallery });
+    }
+  }
+}
+
 export function SiteDataProvider({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
-  const buildTimeHero = useRef<PublicHeroSlide[] | null>(null);
-  if (buildTimeHero.current === null) {
-    buildTimeHero.current = readBuildTimeHero();
-  }
   const [data, setData] = useState<SiteData>(() => ({
-    ...fallbackData,
-    heroSlides: buildTimeHero.current || fallbackHeroSlides,
-    loading: true,
-    fromApi: false,
+    ...fallbackData, heroSlides: readBuildTimeHero(), loading: true, fromApi: false,
   }));
+  const mounted = useRef(false);
+  const loaded = useRef(new Set<CmsResource>());
+  const failed = useRef(new Map<CmsResource, number>());
+  const inflight = useRef(new Map<CmsResource, AbortController>());
+  const settled = useRef(new Set<CmsResource>());
+  const desired = useRef(new Set<CmsResource>(CRITICAL_RESOURCES));
+  const lastPath = useRef(pathname);
 
-  const loadedBuckets = useRef(new Set<DataBucket>());
-  const inflightBuckets = useRef(new Set<DataBucket>());
-  const packagePathsRef = useRef(
-    new Set(DEFAULT_PACKAGE_NAV_LINKS.map((l) => l.path)),
-  );
-  const servicePathsRef = useRef(new Set<string>());
-  const cancelledRef = useRef(false);
-
-  useEffect(() => {
-    cancelledRef.current = false;
-    return () => {
-      cancelledRef.current = true;
-    };
-  }, []);
-
-  // Critical bootstrap: site content, hero, package categories (routing/nav).
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadCritical() {
-      try {
-        const [siteContent, heroSlides, packageCategories] = await Promise.all([
-          publicApi.getSiteContent(),
-          publicApi.getHeroSlides(),
-          publicApi
-            .getPackageCategories()
-            .catch(() => [] as PublicPackageCategory[]),
-        ]);
-
-        if (cancelled || cancelledRef.current) return;
-
-        const productionHeroSlides = heroSlides.filter(
-          (slide) => !isLegacyHeroSlide(slide),
-        );
-        const nextHero =
-          productionHeroSlides.length > 0
-            ? productionHeroSlides
-            : buildTimeHero.current || fallbackHeroSlides;
-
-        const serviceNavLinks = normalizeServiceNavLinks(
-          siteContent.serviceNavLinks,
-        );
-        const services = servicesFromNavLinks(
-          getPublishedServiceNavLinks(serviceNavLinks),
-        );
-
-        const categories =
-          packageCategories.length > 0
-            ? packageCategories
-                .map((c, index) => ({
-                  name: c.name,
-                  slug: c.slug,
-                  path: c.path,
-                  description: c.description,
-                  seoTitle: c.seoTitle,
-                  seoDescription: c.seoDescription,
-                  heading: c.heading,
-                  lead: c.lead,
-                  order: typeof c.order === 'number' ? c.order : index,
-                }))
-                .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-            : fallbackPackageCategories;
-
-        const packageNavLinks = getPublishedPackageNavLinks(categories);
-
-        packagePathsRef.current = new Set(packageNavLinks.map((l) => l.path));
-        servicePathsRef.current = new Set(
-          getPublishedServiceNavLinks(serviceNavLinks).map((l) => l.path),
-        );
-
-        setData((prev) => ({
-          ...prev,
-          siteContent: {
-            ...defaultSiteContent,
-            ...siteContent,
-            brandName: BUSINESS_NAME,
-            contactEmail: BUSINESS_EMAIL,
-            whatsapp: BUSINESS_WHATSAPP,
-            phone: BUSINESS_PHONE,
-            socials: BUSINESS_SOCIALS,
-            ourStory: siteContent.ourStory || defaultSiteContent.ourStory,
-            mission: siteContent.mission || defaultSiteContent.mission,
-            aboutHeroSubtext:
-              siteContent.aboutHeroSubtext || defaultSiteContent.aboutHeroSubtext,
-            serviceNavLinks,
-          },
-          services,
-          heroSlides: nextHero,
-          packageCategories: categories,
-          packageNavLinks,
-          loading: false,
-          fromApi: true,
-        }));
-      } catch {
-        if (!cancelled && !cancelledRef.current) {
-          setData({
-            ...fallbackData,
-            heroSlides: buildTimeHero.current || fallbackHeroSlides,
-            loading: false,
-            fromApi: false,
-          });
+  const requestResource = useCallback(async (resource: CmsResource) => {
+    if (!mounted.current || loaded.current.has(resource) || failed.current.has(resource) || inflight.current.has(resource)) return;
+    const controller = new AbortController();
+    inflight.current.set(resource, controller);
+    const isCurrent = () => mounted.current && !controller.signal.aborted && inflight.current.get(resource) === controller;
+    try {
+      const patch = await loadResource(resource, controller.signal);
+      if (!isCurrent()) return;
+      loaded.current.add(resource);
+      failed.current.delete(resource);
+      setData(previous => ({ ...previous, ...(typeof patch === 'function' ? patch(previous) : patch), fromApi: true }));
+    } catch (error) {
+      if (!isCurrent()) return;
+      failed.current.set(resource, Date.now());
+      console.warn('Public CMS resource unavailable', { resource, ...publicFailure(error) });
+      // Initial fallback or a previously successful response remains untouched.
+    } finally {
+      if (isCurrent()) {
+        inflight.current.delete(resource);
+        settled.current.add(resource);
+        // Hero availability must not hold up service/package route resolution.
+        if (ROUTING_RESOURCES.every(key => settled.current.has(key))) {
+          setData(previous => previous.loading ? { ...previous, loading: false } : previous);
         }
       }
     }
-
-    loadCritical();
-    return () => {
-      cancelled = true;
-    };
   }, []);
 
-  // Route-aware deferred buckets — only fetch what the current page needs.
   useEffect(() => {
-    if (data.loading && !data.fromApi) return;
-
-    const needed = bucketsForPath(
-      pathname,
-      packagePathsRef.current,
-      servicePathsRef.current,
-    );
-    const missing = needed.filter(
-      (b) => !loadedBuckets.current.has(b) && !inflightBuckets.current.has(b),
-    );
-    if (!missing.length) return;
-
-    for (const b of missing) inflightBuckets.current.add(b);
-
-    const defer =
-      typeof requestIdleCallback === 'function'
-        ? (cb: () => void) => requestIdleCallback(cb, { timeout: 2500 })
-        : (cb: () => void) => setTimeout(cb, 1);
-
-    let started = false;
-    let effectCancelled = false;
-
-    const run = () => {
-      if (effectCancelled) {
-        for (const b of missing) inflightBuckets.current.delete(b);
-        return;
-      }
-      started = true;
-      void (async () => {
-        try {
-          const patch: Partial<SiteData> = {};
-
-          await Promise.all(
-            missing.map(async (bucket) => {
-              if (cancelledRef.current || effectCancelled) return;
-
-              if (bucket === 'home') {
-                const [storyScenes, stats, testimonials, behindScenes] =
-                  await Promise.all([
-                    publicApi.getStoryScenes(),
-                    publicApi.getStats(),
-                    publicApi.getTestimonials(),
-                    publicApi.getBehindScenes(),
-                  ]);
-                if (cancelledRef.current || effectCancelled) return;
-                patch.storyScenes = storyScenes.length
-                  ? storyScenes
-                  : fallbackStoryScenes;
-                patch.stats = stats.length ? stats : fallbackStats;
-                patch.testimonials = testimonials.length
-                  ? testimonials
-                  : fallbackTestimonials;
-                patch.behindScenes = behindScenes.length
-                  ? behindScenes
-                  : fallbackBehindScenes;
-              }
-
-              if (bucket === 'reviews') {
-                const testimonials = await publicApi.getTestimonials();
-                if (cancelledRef.current || effectCancelled) return;
-                patch.testimonials = testimonials.length
-                  ? testimonials
-                  : fallbackTestimonials;
-              }
-
-              if (bucket === 'media') {
-                const [featuredPhotos, galleryPhotos] = await Promise.all([
-                  publicApi.getPhotos({ featured: true }),
-                  publicApi.getPhotos({ limit: GALLERY_PHOTO_LIMIT }),
-                ]);
-                if (cancelledRef.current || effectCancelled) return;
-
-                const featuredWork = featuredFromPhotos(featuredPhotos);
-                let galleryImages = galleryFromPhotos(galleryPhotos);
-                if (!galleryImages.length && featuredWork.length) {
-                  galleryImages = featuredWork.map((w) => ({
-                    src: w.image,
-                    alt: w.alt,
-                    avifSrcSet: w.avifSrcSet,
-                    webpSrcSet: w.webpSrcSet,
-                  }));
-                }
-
-                patch.featuredWork =
-                  featuredWork.length > 0
-                    ? featuredWork
-                    : normalizedFallbackFeatured;
-                patch.galleryImages =
-                  galleryImages.length > 0
-                    ? galleryImages
-                    : normalizedFallbackGallery;
-              }
-
-              if (bucket === 'packages') {
-                const packages = await publicApi.getPackages();
-                if (cancelledRef.current || effectCancelled) return;
-                patch.packages = packages.map(normalizePublicPackage);
-              }
-
-              if (bucket === 'about') {
-                const [staffProfiles, behindScenes] = await Promise.all([
-                  publicApi
-                    .getStaffProfiles()
-                    .catch(() => [] as PublicStaffProfile[]),
-                  loadedBuckets.current.has('home')
-                    ? Promise.resolve(null)
-                    : publicApi.getBehindScenes(),
-                ]);
-                if (cancelledRef.current || effectCancelled) return;
-                patch.staffProfiles = staffProfiles.length
-                  ? staffProfiles
-                  : fallbackStaffProfiles;
-                if (behindScenes) {
-                  patch.behindScenes = behindScenes.length
-                    ? behindScenes
-                    : fallbackBehindScenes;
-                }
-              }
-
-              loadedBuckets.current.add(bucket);
-              inflightBuckets.current.delete(bucket);
-            }),
-          );
-
-          if (cancelledRef.current || effectCancelled) return;
-          if (Object.keys(patch).length) {
-            setData((prev) => ({
-              ...prev,
-              ...patch,
-              loading: false,
-              fromApi: true,
-            }));
-          }
-        } catch {
-          for (const b of missing) inflightBuckets.current.delete(b);
-          if (!cancelledRef.current && !effectCancelled) {
-            setData((prev) => ({ ...prev, loading: false }));
-          }
+    mounted.current = true;
+    let cancelled = false;
+    const activeRequests = inflight.current;
+    // Strict Mode's discarded mount must not start an extra network attempt.
+    queueMicrotask(() => { if (!cancelled) CRITICAL_RESOURCES.forEach(key => void requestResource(key)); });
+    const recover = (force: boolean) => {
+      for (const [resource, failedAt] of failed.current) {
+        if (desired.current.has(resource) && (force || Date.now() - failedAt >= 5000)) {
+          failed.current.delete(resource);
+          void requestResource(resource);
         }
-      })();
+      }
     };
-
-    const idleId: number | ReturnType<typeof setTimeout> | undefined = defer(run);
-
+    const online = () => recover(true);
+    const focus = () => recover(false);
+    window.addEventListener('online', online);
+    window.addEventListener('focus', focus);
     return () => {
-      effectCancelled = true;
-      if (typeof idleId === 'number' && typeof cancelIdleCallback === 'function') {
-        cancelIdleCallback(idleId);
-      } else if (idleId != null) {
-        clearTimeout(idleId as ReturnType<typeof setTimeout>);
-      }
-      if (!started) {
-        for (const b of missing) inflightBuckets.current.delete(b);
-      }
+      cancelled = true;
+      mounted.current = false;
+      window.removeEventListener('online', online);
+      window.removeEventListener('focus', focus);
+      activeRequests.forEach(controller => controller.abort());
+      activeRequests.clear();
     };
-  }, [
-    pathname,
-    data.loading,
-    data.fromApi,
-    data.packageNavLinks,
-    data.siteContent.serviceNavLinks,
-  ]);
+  }, [requestResource]);
 
-  return (
-    <SiteDataContext.Provider value={data}>{children}</SiteDataContext.Provider>
-  );
+  useEffect(() => {
+    const needed = new Set<CmsResource>(CRITICAL_RESOURCES);
+    if (!data.loading) {
+      const buckets = bucketsForPath(pathname,
+        new Set(data.packageNavLinks.map(link => link.path)),
+        new Set(getPublishedServiceNavLinks(data.siteContent.serviceNavLinks).map(link => link.path)));
+      buckets.forEach(bucket => BUCKET_RESOURCES[bucket].forEach(resource => needed.add(resource)));
+    }
+    desired.current = needed;
+    // Cancel only resources the new route no longer needs. Shared work continues.
+    for (const [resource, controller] of inflight.current) {
+      if (!needed.has(resource)) {
+        controller.abort();
+        inflight.current.delete(resource);
+      }
+    }
+    if (lastPath.current !== pathname) {
+      lastPath.current = pathname;
+      needed.forEach(resource => failed.current.delete(resource));
+      CRITICAL_RESOURCES.forEach(resource => void requestResource(resource));
+    }
+    let cancelled = false;
+    const run = () => {
+      if (!cancelled) needed.forEach(resource => {
+        if (!CRITICAL_RESOURCES.includes(resource)) void requestResource(resource);
+      });
+    };
+    // Defer noncritical content without delaying navigation or the initial hero.
+    if (typeof requestIdleCallback === 'function') {
+      const id = requestIdleCallback(run, { timeout: 2500 });
+      return () => { cancelled = true; cancelIdleCallback(id); };
+    }
+    const id = setTimeout(run, 1);
+    return () => { cancelled = true; clearTimeout(id); };
+  }, [pathname, data.loading, data.packageNavLinks, data.siteContent.serviceNavLinks, requestResource]);
+
+  return <SiteDataContext.Provider value={data}>{children}</SiteDataContext.Provider>;
 }
 
 export function useSiteData() {

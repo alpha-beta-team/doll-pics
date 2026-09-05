@@ -1,7 +1,8 @@
 # Doll Pictures improvement roadmap
 
 Created: 2026-09-05
-Status: Enquiry email verification completed (user confirmed 2026-09-05). Release checks repaired and locally verified; pull-request CI added, hosted run pending. Marketing attribution is implemented locally; deployment and provider checks are pending. Later workstreams remain pending.
+Last updated: 2026-09-06
+Status: Enquiry email verification completed (user confirmed 2026-09-05). Release checks repaired and locally verified; pull-request CI added, hosted run pending. Marketing attribution is implemented locally; deployment and provider checks are pending. CMS failure handling is implemented locally; deployment and live QA are pending. Later workstreams remain pending.
 
 ## Objective
 
@@ -21,7 +22,7 @@ This document captures the priorities from the project investigation and the ema
 | 1 | Reliable enquiry notifications | Completed; email verification confirmed by user on 2026-09-05 | Studio receives enquiry alerts without email errors breaking saved enquiries |
 | 2 | Dependable release checks | Local checks pass; PR CI and isolated browser smoke suite added | Relevant checks pass before changes are released |
 | 3 | Marketing attribution and analytics | Implemented locally; deployment and provider checks pending | Campaigns can be connected to enquiries and bookings |
-| 4 | CMS failure handling | Planned | Partial content failures do not unnecessarily degrade the whole site |
+| 4 | CMS failure handling | Implemented locally; deployment and live QA pending | Partial content failures do not unnecessarily degrade the whole site |
 | 5 | Public HTML rendering | Planned | Important page content is available in the initial HTML |
 | 6 | Admin scalability and maintainability | Planned | Lists remain usable as records grow; changes are easier to review |
 | 7 | Customer conversion and mobile experience | Experiments planned after measurement repair | Visitors can understand the offer and enquire with less friction |
@@ -55,7 +56,7 @@ Detailed implementation plan: [Resend enquiry notifications](../../../photograph
 
 ## 2. Restore dependable release checks — implemented locally
 
-### Fresh baseline from this roadmap task
+### Original baseline — before fixes (2026-09-05)
 
 | Command | Result |
 | --- | --- |
@@ -66,7 +67,7 @@ Detailed implementation plan: [Resend enquiry notifications](../../../photograph
 
 The initial investigation also found no lint errors and a passing production SEO smoke check for 32 canonical URLs. Those two checks were not rerun for this document and are not fresh evidence.
 
-### Implementation sequence
+### Implemented sequence
 
 1. Repair the incomplete booking fixture in `src/admin/bookingList.spec.ts`, using an empty source for an unrecorded value. Preserve the mapper's existing legacy-data normalisation.
 2. Trace the failing role and navigation expectations against the current route configuration, backend permissions, and intended access rules. Update stale expectations where justified; do not expand permissions or restore removed screens just to make tests pass.
@@ -78,7 +79,8 @@ The initial investigation also found no lint errors and a passing production SEO
 ### Acceptance
 
 - [x] The refreshed failures have explicit resolutions tied to intended behaviour.
-- [ ] Relevant checks pass locally and in pull-request CI.
+- [x] Relevant checks passed locally during implementation.
+- [ ] Confirm the hosted pull-request CI run passes.
 - [x] No protected pricing/phone permissions change as a side effect.
 - [x] Build success is reported separately from browser and production verification.
 
@@ -91,7 +93,7 @@ The initial investigation also found no lint errors and a passing production SEO
 - Added `check:release`, tooling/browser typechecks, and `.github/workflows/release-checks.yml` with `npm ci`, static fallback build, and Chromium smoke tests. The production SEO monitor remains separate.
 - Added isolated browser coverage for public enquiry submission, owner enquiry conversion, and Content Manager visibility. Requests outside the local test origin are blocked; API responses are fixtures.
 
-Local results: typechecks passed; library **15/15**, admin **81/81**, SEO **16/16**; lint **0 errors, 7 existing warnings**; production build passed and prerendered **33 files using static JSON fallback**; Chromium smoke tests **3/3**. See README for reproducible commands.
+Earlier release-check results (2026-09-05): typechecks passed; library **15/15**, admin **81/81**, SEO **16/16**; lint **0 errors, 7 existing warnings**; production build passed and prerendered **33 files using static JSON fallback**; Chromium smoke tests **3/3**. See README for reproducible commands.
 
 Hosted PR CI has not run in this session. No deployment or live CMS/backend/customer delivery verification was performed. Browser tests validate the frontend against mocked API contracts. Existing hook/fast-refresh warnings and build size/tooling warnings remain separate follow-up work.
 
@@ -120,11 +122,75 @@ Local acceptance uses isolated fixtures; checked boxes do not mean deployed/live
 
 Campaign reporting uses enquiry creation dates in Asia/Kolkata. It counts linked bookings currently confirmed, shoot-completed, or delivered and sums their agreed totals regardless of confirmation date. Unpriced bookings are counted separately; this is not cash received. Legacy records remain Not recorded.
 
-Local checks: frontend typechecks and build pass; library **17/17**, admin **78/78**, SEO **16/16**; lint **0 errors, 6 existing warnings**; Chromium **5/5**, including a mobile campaign-table check. Backend build and **13/13** focused tests pass, including a temporary MongoDB replica-set test for persistence, conversion replay, and campaign totals. Hosted CI and live provider receipt were not verified.
+Latest recorded checks from the marketing implementation (not rerun for this documentation update): frontend typechecks and build pass; library **17/17**, admin **78/78**, SEO **16/16**; lint **0 errors, 6 existing warnings**; Chromium **5/5**, including a mobile campaign-table check. Backend build and **13/13** focused tests pass, including a temporary MongoDB replica-set test for persistence, conversion replay, and campaign totals. Hosted CI and live provider receipt were not verified.
 
 Implementation and ordered rollout: [Marketing attribution](marketing-attribution.md). Backend support must deploy before the frontend. GA automatic measurement settings and real provider traffic must be checked before live acceptance. No production records were changed.
 
-## 4. Improve CMS failure handling
+### Remaining rollout and live acceptance
+
+- [ ] Deploy the backend attribution DTO/schema, conversion, and owner-report changes.
+- [ ] Deploy the frontend capture, analytics, and campaign-report UI after backend support is available.
+- [ ] Review GA4 automatic measurement and Meta automatic event/advanced matching settings using the detailed rollout plan.
+- [ ] Complete a tagged enquiry-to-booking flow in an isolated QA environment and reconcile the campaign report.
+- [ ] Verify actual provider traffic for short visits, SPA navigation, duplicates, private routes, and sensitive data.
+
+### How to use and manually verify
+
+Use a tagged campaign link, for example:
+
+```text
+https://dollpictures.in/?utm_source=instagram&utm_medium=paid-social&utm_campaign=newborn-september
+```
+
+Use the local or QA frontend domain for tests. First-touch attribution is automatic;
+no staff field entry is required. Open a fresh incognito session, navigate to another
+page, then submit an enquiry using test recipients with notifications disabled or
+safely routed. In **Owner → Owner Home → Campaign performance**, choose the date
+range containing the enquiry creation date and refresh. Expect one new enquiry.
+Convert it with an agreed value of ₹5,000: expect one linked booking and ₹5,000
+in agreed booking value. Cancel it: the booking count/value should drop while the
+enquiry remains counted.
+
+Close all incognito windows before testing another first-touch campaign. A later
+campaign link in the same session does not overwrite the first visit. Untagged
+visits appear as **Untagged**; old/manual records without attribution appear as
+**Not recorded**. WhatsApp clicks alone do not create report enquiries or bookings.
+
+### Automated test commands — use the correct repository
+
+Use Node.js 22 to match the verified setup. These commands explicitly change into
+the appropriate checkout and can be run from either repository.
+
+Frontend release and browser checks:
+
+```sh
+cd /Users/kaarmuhilan/Documents/Personal/personal-pro/doll-pics
+npm ci
+VITE_API_URL='' API_URL='' SEO_REQUIRE_CMS=false npm run check:release
+npx playwright install chromium
+npm run test:browser
+```
+
+Backend attribution, conversion, and report checks:
+
+```sh
+cd /Users/kaarmuhilan/Documents/Personal/personal-pro/photography-cms-backend
+npm ci
+node --test -r ts-node/register src/work/campaign-report.spec.ts src/bookings/bookings.service.spec.ts
+npm run build
+```
+
+The backend command must run in `photography-cms-backend`: `ts-node/register` and
+`src/work/campaign-report.spec.ts` belong there. Running it in `doll-pics` caused
+the `Cannot find module 'ts-node/register'` error reported on 2026-09-06. The user’s
+rerun from the correct folder has not yet been confirmed; this update does not
+record a new test pass.
+
+Browser tests use intercepted APIs/provider scripts. Backend tests use a temporary
+local MongoDB replica set and stub notification services; the first run downloads
+a test binary. Neither suite verifies deployment or real provider delivery.
+
+## 4. Improve CMS failure handling — implemented locally
 
 Audit entrypoints: `src/contexts/SiteDataContext.tsx` and `src/lib/api.ts`.
 
@@ -134,7 +200,19 @@ Audit entrypoints: `src/contexts/SiteDataContext.tsx` and `src/lib/api.ts`.
 - Expose useful diagnostic categories without logging sensitive payloads.
 - Preserve route-aware deferred loading and the shared initial hero asset used by HTML, preload, and React.
 
-Acceptance: exercise individual endpoint failures, timeouts, full outage, navigation during loading, and recovery. Verify usable navigation/content, no permanent loading state, and no duplicate enquiry submissions.
+### Implementation and acceptance — 2026-09-06
+
+- [x] Independent critical/deferred resource updates preserve successful sibling content and existing fallbacks.
+- [x] GETs use an 8-second deadline, one transient retry after 300ms, and real request cancellation. Writes receive no automatic retries.
+- [x] Route changes/unmount abort unneeded requests; obsolete responses are ignored. Shared route resources continue.
+- [x] Failed provider resources recover on navigation, reconnect, or focus after five seconds; successful resources are retained.
+- [x] Sanitized diagnostic categories and unchanged build-time hero/preload behavior.
+- [x] Request-layer and isolated browser failure/recovery checks pass locally.
+- [ ] Deploy the frontend and verify real CMS failures/recovery and mobile/desktop appearance in QA.
+
+Current local validation: typecheck passed; library **23/23**, admin **78/78**, SEO **16/16**; Chromium resilience **10/10**; production build passed with **33 static-fallback files**.
+
+Implementation details, test commands, scope, and manual QA: [Public CMS failure handling](cms-resilience.md). Browser coverage exercises the actual provider against intercepted APIs; it does not establish deployment or live delivery.
 
 ## 5. Render meaningful public HTML
 
@@ -178,8 +256,8 @@ Acceptance: report form starts/completions, qualified enquiries, linked bookings
 ## Execution and release policy
 
 1. Email CTA/live-layout checks are complete (user confirmed); confirm the first hosted release-check CI run.
-2. Complete priority 2 before introducing broader behaviour changes.
-3. Repair attribution/analytics, then improve CMS resilience.
+2. Keep local release checks passing and confirm hosted CI before releasing the implemented changes.
+3. Deploy and verify attribution/analytics; CMS resilience is the next implementation workstream.
 4. Pilot public HTML rendering and introduce admin pagination as separate increments.
 5. Run customer conversion experiments using the repaired measurement.
 
@@ -193,3 +271,10 @@ For each increment, record changed behaviour, focused checks, known limitations,
 - [x] Run the full frontend release checks and add pull-request CI.
 - [ ] Confirm the first hosted pull-request CI run passes.
 - [x] Verify the latest enquiry email CTA and design after backend deployment (user confirmed 2026-09-05).
+
+- [x] Implement first-touch campaign capture and enquiry-to-booking inheritance.
+- [x] Implement immediate application analytics and the owner campaign report.
+- [x] Record isolated browser/MongoDB validation and correct per-repository test commands.
+- [ ] Deploy marketing backend support, then the frontend.
+- [ ] Complete marketing QA and live analytics-provider acceptance.
+- [ ] Implement priority 4: CMS partial-failure handling, timeouts, cancellation, and recovery.
