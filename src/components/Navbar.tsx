@@ -162,6 +162,10 @@ export function Navbar() {
 
   return (
     <>
+      <a href="#main-content" className="public-skip-link"
+        onClick={() => document.getElementById('main-content')?.focus()}>
+        Skip to content
+      </a>
       <header
         className="fixed top-0 left-0 right-0 z-[1000] transition-transform duration-700"
         style={{ transform: 'translateY(0)', animation: 'fadeIn 1s 0.3s ease-out both' }}

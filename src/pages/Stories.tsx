@@ -22,7 +22,7 @@ function StoriesContent() {
       <div className="film-grain" />
       <Navbar />
 
-      <main className="relative overflow-x-clip bg-ink-950 pt-20">
+      <main id="main-content" tabIndex={-1} className="relative overflow-x-clip bg-ink-950 pt-20">
         <header className="relative flex min-h-[68svh] items-center px-6 py-20 lg:px-10">
           <div
             className="pointer-events-none absolute inset-0"

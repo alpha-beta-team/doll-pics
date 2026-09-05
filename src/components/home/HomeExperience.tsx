@@ -7,6 +7,8 @@ import {
   ChevronLeft,
   ChevronRight,
   MapPin,
+  Pause,
+  Play,
   Sparkles,
 } from 'lucide-react';
 import {
@@ -14,6 +16,7 @@ import {
   type FeaturedWorkItem,
   type ServiceItem,
 } from '../../contexts/SiteDataContext';
+import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { useInView } from '../../hooks/useScroll';
 import { BOOKING_ROUTE } from '../../lib/navigation';
 import {
@@ -75,6 +78,8 @@ export function HomeExperience() {
 
 function EditorialHero() {
   const { heroSlides, siteContent } = useSiteData();
+  const reducedMotion = useReducedMotion();
+  const [paused, setPaused] = useState(false);
   const [active, setActive] = useState(0);
   const [carouselReady, setCarouselReady] = useState(false);
   const slides = heroSlides.slice(0, 5);
@@ -103,13 +108,13 @@ function EditorialHero() {
 
   useEffect(() => {
     if (!carouselReady || slides.length < 2) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (reducedMotion || paused) return;
     const interval = window.setInterval(
       () => setActive((current) => (current + 1) % slides.length),
       HERO_INTERVAL_MS,
     );
     return () => window.clearInterval(interval);
-  }, [carouselReady, slides.length]);
+  }, [carouselReady, slides.length, reducedMotion, paused]);
 
   useEffect(() => {
     if (active >= slides.length) setActive(0);
@@ -247,6 +252,13 @@ function EditorialHero() {
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
+              {slides.length > 1 && !reducedMotion && (
+                <button type="button" aria-label={paused ? 'Resume slideshow' : 'Pause slideshow'}
+                  onClick={() => setPaused((value) => !value)}
+                  className="grid h-11 w-11 place-items-center border border-white/20 text-white">
+                  {paused ? <Play className="h-4 w-4" aria-hidden="true" /> : <Pause className="h-4 w-4" aria-hidden="true" />}
+                </button>
+              )}
               <div className="ml-2 h-px flex-1 bg-white/15">
                 <div
                   className="h-full bg-gold-300 transition-[width] duration-700"
@@ -259,7 +271,7 @@ function EditorialHero() {
 
         <a
           href="#studio-intro"
-          aria-label="Scroll to studio introduction"
+          aria-label="Discover our approach: studio introduction"
           className="mt-10 inline-flex w-fit items-center gap-3 text-[0.6rem] uppercase tracking-[0.3em] text-white/55 transition-colors hover:text-white lg:mt-12"
         >
           <span className="grid h-9 w-9 place-items-center rounded-full border border-white/20">
@@ -313,7 +325,7 @@ function StudioManifesto() {
     >
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute right-0 top-10 font-display text-[24vw] leading-none text-hairline/[0.025]"
+        className="pointer-events-none absolute right-0 top-10 font-display text-[24vw] leading-none text-ink-300"
       >
         01
       </div>
@@ -445,7 +457,6 @@ function StoryTile({
     >
       <Link
         to={path}
-        aria-label={`View ${work.category} photography services: ${work.title}`}
         className="relative block h-full w-full outline-none"
       >
         <ResponsiveImage

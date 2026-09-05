@@ -16,7 +16,7 @@ export function PackagesGrid({
 }: PackagesGridProps) {
   if (!packages.length) {
     return (
-      <p className="py-16 text-center font-display text-lg text-ink-200/60">
+      <p className="py-16 text-center font-display text-lg text-ink-200/80">
         Packages will be available soon. Please enquire to book a session.
       </p>
     );

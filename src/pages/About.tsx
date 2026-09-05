@@ -17,7 +17,7 @@ function AboutContent() {
       <div className="film-grain" />
       <Navbar />
 
-      <main className="relative overflow-hidden bg-ink-950 pt-20">
+      <main id="main-content" tabIndex={-1} className="relative overflow-hidden bg-ink-950 pt-20">
         <OurStory />
         <BehindScenesPreview />
         <MeetTheTeam />

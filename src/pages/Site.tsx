@@ -49,7 +49,7 @@ function SectionOnlyView({
 
   return (
     <SiteShell>
-      <main className="relative pt-20">
+      <main id="main-content" tabIndex={-1} className="relative pt-20">
         {pathname !== '/gallery' &&
         pathname !== '/services' &&
         seo.heading &&
@@ -68,7 +68,7 @@ function SectionOnlyView({
 function HomeView() {
   return (
     <SiteShell>
-      <main>
+      <main id="main-content" tabIndex={-1}>
         <HomeExperience />
       </main>
     </SiteShell>

@@ -2,7 +2,7 @@
 
 **Priority:** P2  
 **Effort:** Medium  
-**Status:** Not started  
+**Status:** Implemented locally — manual desktop/theme checks and deployment pending
 **Owner:** Unassigned
 
 [← Master plan](./README.md)
@@ -88,3 +88,22 @@ Production mobile Lighthouse on 28 Jul 2026:
 ## Dependencies
 
 This plan can run in parallel, but hero/carousel checks should be reverified after SEO-05.
+
+## Implementation and audit — 5 Sep 2026
+
+Confirmed the production homepage baseline with headless mobile Lighthouse: accessibility 96, failing color contrast and visible-label/accessibility-name matching.
+
+Changes implemented:
+
+- Corrected the homepage introduction link name and removed redundant overriding names from portfolio and directions links so their visible text supplies the accessible name. Gallery controls retain the visible “View frame” label.
+- Improved measured contrast on the homepage decorative number, gallery archive caption, shared footer, package navigation and package empty-state text; underlined the inline package contact link.
+- Added a public skip-to-content link with focusable main targets and public-only keyboard focus outlines.
+- Added enquiry-dialog initial focus, Tab/Shift+Tab containment, escaped-focus recovery and trigger restoration. Field errors now connect to their inputs and announce updates; associated the date label and enlarged the close target. Success and general errors are announced.
+- Added hero slideshow pause/resume and reactive reduced-motion handling. Existing photo-lightbox focus handling was retained.
+
+Validation:
+
+- Local mobile Lighthouse audited homepage, gallery, booking, wedding service, wedding package, About and Stories; final scores are recorded in `10-accessibility-validation.md`. These are automated checks of the rendered local states, not proof of every populated CMS state or interaction.
+- Focus-containment DOM regression test passed, covering initial focus, both Tab boundaries, escaped focus and return focus.
+- Changed-file ESLint and production build passed. Full typecheck is blocked by an unrelated existing optional `source` field mismatch in `src/admin/bookingList.spec.ts:15`.
+- No interactive browser was connected. Desktop/light-theme inspection, real keyboard/screen-reader checks, modal visual review and post-deployment validation remain unchecked. No claim of complete accessibility compliance is made.

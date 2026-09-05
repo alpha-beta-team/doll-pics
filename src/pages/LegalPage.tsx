@@ -26,7 +26,7 @@ function LegalPageContent({ path, children }: LegalPageProps) {
       <div className="film-grain" />
       <Navbar />
 
-      <main className="relative overflow-hidden bg-ink-950 pt-20">
+      <main id="main-content" tabIndex={-1} className="relative overflow-hidden bg-ink-950 pt-20">
         <div
           className="pointer-events-none absolute inset-x-0 top-0 h-[24rem] opacity-50"
           style={{

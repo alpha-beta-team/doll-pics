@@ -135,7 +135,7 @@ function ContactContent() {
       <div className="film-grain" />
       <Navbar />
 
-      <main className="relative overflow-hidden bg-ink-950 pt-20">
+      <main id="main-content" tabIndex={-1} className="relative overflow-hidden bg-ink-950 pt-20">
         <section className="relative px-6 pb-20 pt-16 sm:pt-24 lg:px-10 lg:pb-28 lg:pt-32">
           <div
             className="pointer-events-none absolute inset-0"

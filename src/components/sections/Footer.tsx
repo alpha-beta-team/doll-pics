@@ -60,7 +60,7 @@ export function Footer() {
                 {brand}
               </span>
             </div>
-            <p className="text-ink-200/60 max-w-sm leading-relaxed mb-6">
+            <p className="text-ink-200/80 max-w-sm leading-relaxed mb-6">
               {siteContent.about || siteContent.tagline}
             </p>
             <div className="flex gap-3">
@@ -93,7 +93,7 @@ export function Footer() {
                     <Link
                       to={link.to}
                       data-cursor="hover"
-                      className="text-sm text-ink-200/60 hover:text-ink-50 transition-colors duration-300"
+                      className="text-sm text-ink-200/80 hover:text-ink-50 transition-colors duration-300"
                     >
                       {link.label}
                     </Link>
@@ -106,7 +106,7 @@ export function Footer() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-8 border-t border-hairline/5">
           {siteContent.contactEmail && (
-            <a href={`mailto:${siteContent.contactEmail}`} data-cursor="hover" className="flex items-center gap-3 text-ink-200/60 hover:text-gold-400 transition-colors">
+            <a href={`mailto:${siteContent.contactEmail}`} data-cursor="hover" className="flex items-center gap-3 text-ink-200/80 hover:text-gold-400 transition-colors">
               <Mail className="w-5 h-5" /> {siteContent.contactEmail}
             </a>
           )}
@@ -120,7 +120,7 @@ export function Footer() {
                     trackPhoneClick({ cta_location: 'footer' }),
                 );
               }}
-              className="flex items-center gap-3 text-ink-200/60 hover:text-gold-400 transition-colors"
+              className="flex items-center gap-3 text-ink-200/80 hover:text-gold-400 transition-colors"
             >
               <Phone className="w-5 h-5" /> {siteContent.phone}
             </a>
@@ -128,7 +128,7 @@ export function Footer() {
           <a
             href={STUDIO_MAPS_URL}
             data-cursor="hover"
-            className="flex items-center gap-3 text-ink-200/60 hover:text-gold-400 transition-colors"
+            className="flex items-center gap-3 text-ink-200/80 hover:text-gold-400 transition-colors"
             target="_blank"
             rel="noreferrer"
           >

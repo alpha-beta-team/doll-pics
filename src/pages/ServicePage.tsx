@@ -286,7 +286,7 @@ function ServicePageContent() {
       <div className="film-grain" />
       <Navbar />
 
-      <main className="relative overflow-clip bg-ink-950 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0">
+      <main id="main-content" tabIndex={-1} className="relative overflow-clip bg-ink-950 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0">
         <ServiceHero
           page={page}
           hero={hero}
@@ -873,7 +873,6 @@ function ServiceLocation({
           target="_blank"
           rel="noreferrer"
           data-cursor="hover"
-          aria-label="Get directions to Doll Pictures studio at URT TOWERS, Erode (opens in a new tab)"
           className="group relative min-h-72 overflow-hidden border-b border-hairline/10 p-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold-300 sm:p-10 lg:col-span-5 lg:min-h-[30rem] lg:border-b-0 lg:border-r"
         >
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgb(var(--gold-glow)/.18),transparent_38%),linear-gradient(145deg,rgb(var(--ink-800)),rgb(var(--ink-950)))]" />

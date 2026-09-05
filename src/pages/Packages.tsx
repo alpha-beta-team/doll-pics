@@ -20,7 +20,7 @@ function PackagesContent() {
       <div className="film-grain" />
       <Navbar />
 
-      <main className="relative overflow-hidden bg-ink-950 pt-20">
+      <main id="main-content" tabIndex={-1} className="relative overflow-hidden bg-ink-950 pt-20">
         <div className="packages-editorial-glow pointer-events-none absolute inset-x-0 top-0 h-[34rem]" />
 
         <section className="relative px-6 py-24 lg:px-10 lg:py-28">

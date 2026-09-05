@@ -26,7 +26,7 @@ export function NotFound() {
       <div className="film-grain" />
       <Navbar />
 
-      <main className="relative flex min-h-[70vh] items-center px-6 pb-24 pt-32 lg:px-10">
+      <main id="main-content" tabIndex={-1} className="relative flex min-h-[70vh] items-center px-6 pb-24 pt-32 lg:px-10">
         <div className="mx-auto max-w-3xl text-center">
           <p className="section-label mb-4">404</p>
           <h1 className="font-display text-5xl font-light leading-tight text-ink-50 md:text-7xl">

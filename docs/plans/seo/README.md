@@ -36,7 +36,7 @@ This plan does not include building a full SEO CMS. Core SEO remains version-con
 | SEO-07 | P1 | [Create a concise title and brand strategy](./07-title-brand-strategy.md) | M | Implemented locally — deployment and Search Console checks pending | SEO-03 |
 | SEO-08 | P1 | [Publish genuine shoot case studies](./08-shoot-case-studies.md) | L | Not started | SEO-02, SEO-03 |
 | SEO-09 | P2 | [Add image discovery and image sitemap support](./09-image-discovery.md) | M | Not started | SEO-01, SEO-02, SEO-08 |
-| SEO-10 | P2 | [Resolve accessibility and page-experience findings](./10-accessibility-page-experience.md) | M | Not started | — |
+| SEO-10 | P2 | [Resolve accessibility and page-experience findings](./10-accessibility-page-experience.md) | M | Implemented locally — manual desktop/theme checks and deployment pending | — |
 
 ## Recommended execution order
 

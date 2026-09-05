@@ -100,7 +100,7 @@ function PackageCategoryPageContent() {
       <div className="film-grain" />
       <Navbar />
 
-      <main className="relative overflow-hidden bg-ink-950 pt-20">
+      <main id="main-content" tabIndex={-1} className="relative overflow-hidden bg-ink-950 pt-20">
         <div className="packages-editorial-glow pointer-events-none absolute inset-x-0 top-0 h-[34rem]" />
 
         <section id="packages" className="relative px-6 pb-20 pt-12 lg:px-10 lg:pt-16">
@@ -199,7 +199,7 @@ function PackageCategoryPageContent() {
                     Call{' '}
                     <a
                       href={phoneHref}
-                      className="text-gold-400 transition-colors hover:text-gold-300"
+                      className="text-gold-400 underline underline-offset-4 transition-colors hover:text-gold-300"
                       onClick={() =>
                         trackPhoneClick({
                           cta_location: 'service_page',
@@ -269,7 +269,7 @@ function PackageCategoryPageContent() {
                     <Link
                       to={link.path}
                       data-cursor="hover"
-                      className="text-sm text-ink-200/60 transition-colors hover:text-ink-50"
+                      className="text-sm text-ink-200/80 transition-colors hover:text-ink-50"
                     >
                       {link.label}
                     </Link>
@@ -282,7 +282,7 @@ function PackageCategoryPageContent() {
                     <Link
                       to={route.path}
                       data-cursor="hover"
-                      className="text-sm text-ink-200/50 transition-colors hover:text-gold-400"
+                      className="text-sm text-ink-200/80 transition-colors hover:text-gold-400"
                     >
                       {route.label} Packages
                     </Link>

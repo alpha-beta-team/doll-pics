@@ -202,7 +202,7 @@ function GalleryIntroduction({ photoCount }: { photoCount: number }) {
             An unfolding journal of celebrations, connections, and the quiet
             in-between moments that define our work.
           </p>
-          <div className="mt-8 flex items-center justify-between border-t border-hairline/10 pt-4 text-[10px] uppercase tracking-[0.24em] text-ink-400">
+          <div className="mt-8 flex items-center justify-between border-t border-hairline/10 pt-4 text-[10px] uppercase tracking-[0.24em] text-ink-300">
             <span>{photoCount > 0 ? `${photoCount} photographs` : 'Portfolio archive'}</span>
             <span className="text-gold-400">Scroll to explore</span>
           </div>
@@ -259,7 +259,7 @@ function GalleryTile({ photo, index, layout, onOpen }: GalleryTileProps) {
       <button
         type="button"
         data-cursor="view"
-        aria-label={`Open ${photo.sources.alt}`}
+        aria-label={`${failed ? "Image unavailable" : "View frame"}: ${photo.sources.alt}`}
         onClick={(event) => onOpen(index, event.currentTarget)}
         className="group relative block w-full overflow-hidden bg-ink-900 text-left outline-none focus-visible:ring-2 focus-visible:ring-gold-300 focus-visible:ring-offset-4 focus-visible:ring-offset-ink-950"
         style={{ aspectRatio: `${photo.width} / ${photo.height}` }}

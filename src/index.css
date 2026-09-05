@@ -1236,3 +1236,20 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Public keyboard navigation: visible over either theme and photography. */
+.public-skip-link {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 3000;
+  padding: 0.75rem 1rem;
+  color: #111;
+  background: #fff;
+  transform: translateY(-200%);
+}
+.public-skip-link:focus { transform: translateY(0); }
+body:has(.public-skip-link) :where(a, button, input, select, textarea):focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}

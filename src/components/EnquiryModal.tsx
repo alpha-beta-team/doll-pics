@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
+import { containDialogFocus } from '../lib/dialogFocus';
 import { X } from 'lucide-react';
 import { ApiError, parseApiFieldErrors, publicApi } from '../lib/api';
 
@@ -17,9 +18,9 @@ const ENQUIRY_FIELDS = [
 
 type EnquiryField = (typeof ENQUIRY_FIELDS)[number];
 
-function FieldError({ message }: { message?: string }) {
+function FieldError({ message, id }: { message?: string; id: string }) {
   if (!message) return null;
-  return <p className="mt-1.5 text-sm text-red-400">{message}</p>;
+  return <p id={id} role="alert" className="mt-1.5 text-sm text-red-400">{message}</p>;
 }
 import {
   trackBookingStart,
@@ -57,6 +58,8 @@ export function EnquiryModal({
   prefill?: EnquiryPrefill;
 }) {
   const { siteContent } = useSiteData();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useEffect(() => dialogRef.current ? containDialogFocus(dialogRef.current) : undefined, []);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -196,6 +199,8 @@ export function EnquiryModal({
   const modal = (
     <div
       className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+      ref={dialogRef}
+      tabIndex={-1}
       role="dialog"
       aria-modal="true"
       aria-labelledby="enquiry-modal-title"
@@ -211,7 +216,7 @@ export function EnquiryModal({
           type="button"
           onClick={onClose}
           aria-label="Close booking form"
-          className="absolute right-4 top-4 z-10 text-ink-200 hover:text-ink-50"
+          className="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center text-ink-200 hover:text-ink-50"
         >
           <X className="h-5 w-5" aria-hidden="true" />
         </button>
@@ -223,7 +228,7 @@ export function EnquiryModal({
                 id="enquiry-modal-title"
                 className="mb-2 text-center font-display text-2xl text-ink-50"
               >
-                Thank you!
+                <span role="status">Thank you!</span>
               </h3>
               <p className="text-center text-ink-200/70">
                 We&apos;ll reply within 24 hours.
@@ -281,9 +286,10 @@ export function EnquiryModal({
                   placeholder="Your name *"
                   aria-label="Your name (required)"
                   aria-invalid={Boolean(fieldErrors.name)}
+                  aria-describedby={fieldErrors.name ? "enquiry-name-error" : undefined}
                   className={fieldClass(Boolean(fieldErrors.name))}
                 />
-                <FieldError message={fieldErrors.name} />
+                <FieldError id="enquiry-name-error" message={fieldErrors.name} />
               </div>
               <div>
                 <input
@@ -297,9 +303,10 @@ export function EnquiryModal({
                   placeholder={tipsOptIn ? 'Email *' : 'Email (optional)'}
                   aria-label={tipsOptIn ? 'Email (required for tips)' : 'Email (optional)'}
                   aria-invalid={Boolean(fieldErrors.email)}
+                  aria-describedby={fieldErrors.email ? "enquiry-email-error" : undefined}
                   className={fieldClass(Boolean(fieldErrors.email))}
                 />
-                <FieldError message={fieldErrors.email} />
+                <FieldError id="enquiry-email-error" message={fieldErrors.email} />
               </div>
               <div>
                 <input
@@ -317,9 +324,10 @@ export function EnquiryModal({
                   placeholder="Phone number *"
                   aria-label="Phone number (required)"
                   aria-invalid={Boolean(fieldErrors.phone)}
+                  aria-describedby={fieldErrors.phone ? "enquiry-phone-error" : undefined}
                   className={fieldClass(Boolean(fieldErrors.phone))}
                 />
-                <FieldError message={fieldErrors.phone} />
+                <FieldError id="enquiry-phone-error" message={fieldErrors.phone} />
               </div>
               <div>
                 <select
@@ -331,6 +339,7 @@ export function EnquiryModal({
                   }}
                   aria-label="Category (required)"
                   aria-invalid={Boolean(fieldErrors.shootType)}
+                  aria-describedby={fieldErrors.shootType ? "enquiry-shootType-error" : undefined}
                   className={fieldClass(Boolean(fieldErrors.shootType))}
                 >
                   <option value="" disabled>Select category *</option>
@@ -338,7 +347,7 @@ export function EnquiryModal({
                     <option key={t} value={t}>{t}</option>
                   ))}
                 </select>
-                <FieldError message={fieldErrors.shootType} />
+                <FieldError id="enquiry-shootType-error" message={fieldErrors.shootType} />
               </div>
               <div>
                 <input
@@ -350,13 +359,15 @@ export function EnquiryModal({
                   placeholder="Preferred event (e.g. Wedding, Anniversary)"
                   aria-label="Preferred event"
                   aria-invalid={Boolean(fieldErrors.preferredEvent)}
+                  aria-describedby={fieldErrors.preferredEvent ? "enquiry-preferredEvent-error" : undefined}
                   className={fieldClass(Boolean(fieldErrors.preferredEvent))}
                 />
-                <FieldError message={fieldErrors.preferredEvent} />
+                <FieldError id="enquiry-preferredEvent-error" message={fieldErrors.preferredEvent} />
               </div>
               <div>
-                <label className="mb-1.5 block text-xs text-ink-200/50">Preferred booking date</label>
+                <label htmlFor="enquiry-booking-date" className="mb-1.5 block text-xs text-ink-200">Preferred booking date</label>
                 <input
+                  id="enquiry-booking-date"
                   type="date"
                   value={bookingDate}
                   onChange={e => {
@@ -365,9 +376,10 @@ export function EnquiryModal({
                   }}
                   aria-label="Preferred booking date"
                   aria-invalid={Boolean(fieldErrors.bookingDate)}
+                  aria-describedby={fieldErrors.bookingDate ? "enquiry-bookingDate-error" : undefined}
                   className={fieldClass(Boolean(fieldErrors.bookingDate))}
                 />
-                <FieldError message={fieldErrors.bookingDate} />
+                <FieldError id="enquiry-bookingDate-error" message={fieldErrors.bookingDate} />
               </div>
               <div>
                 <input
@@ -379,9 +391,10 @@ export function EnquiryModal({
                   placeholder="Shoot location (e.g. pre-wedding venue / city)"
                   aria-label="Shoot location"
                   aria-invalid={Boolean(fieldErrors.location)}
+                  aria-describedby={fieldErrors.location ? "enquiry-location-error" : undefined}
                   className={fieldClass(Boolean(fieldErrors.location))}
                 />
-                <FieldError message={fieldErrors.location} />
+                <FieldError id="enquiry-location-error" message={fieldErrors.location} />
               </div>
               <div>
                 <textarea
@@ -393,10 +406,11 @@ export function EnquiryModal({
                   placeholder="Tell us about your event... (optional)"
                   aria-label="Tell us about your event (optional)"
                   aria-invalid={Boolean(fieldErrors.message)}
+                  aria-describedby={fieldErrors.message ? "enquiry-message-error" : undefined}
                   rows={3}
                   className={`${fieldClass(Boolean(fieldErrors.message))} resize-none`}
                 />
-                <FieldError message={fieldErrors.message} />
+                <FieldError id="enquiry-message-error" message={fieldErrors.message} />
               </div>
               <label className="flex cursor-pointer items-start gap-3 text-left text-sm text-ink-200/70">
                 <input
@@ -421,7 +435,7 @@ export function EnquiryModal({
                 </span>
               </label>
               {status === 'error' && errorMsg ? (
-                <p className="text-sm text-red-400">{errorMsg}</p>
+                <p role="alert" className="text-sm text-red-400">{errorMsg}</p>
               ) : null}
               <p className="text-xs leading-relaxed text-ink-200/50">
                 By submitting, you agree to our{' '}
