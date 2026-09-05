@@ -1,4 +1,4 @@
-const CACHE_NAME = 'doll-work-shell-v7';
+const CACHE_NAME = 'doll-work-shell-v8';
 const SHELL = [
   '/admin',
   '/admin/today',
@@ -37,9 +37,18 @@ self.addEventListener('fetch', event => {
     return;
   }
   if (['script', 'style', 'image', 'font'].includes(request.destination)) {
-    event.respondWith(caches.match(request).then(cached => cached || fetch(request).then(response => {
-      if (response.ok) caches.open(CACHE_NAME).then(cache => cache.put(request, response.clone()));
+    let cacheWrite = Promise.resolve();
+    const responsePromise = caches.match(request).then(cached => cached || fetch(request).then(response => {
+      if (response.ok) {
+        // Clone before the browser receives (and may consume) the response body.
+        const cacheResponse = response.clone();
+        cacheWrite = caches.open(CACHE_NAME)
+          .then(cache => cache.put(request, cacheResponse))
+          .catch(() => {}); // Cache failures must not fail a successful asset load.
+      }
       return response;
-    })));
+    }));
+    event.respondWith(responsePromise);
+    event.waitUntil(responsePromise.then(() => cacheWrite).catch(() => {}));
   }
 });
