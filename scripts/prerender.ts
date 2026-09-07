@@ -5,6 +5,7 @@ import { serializeInlineJson, shouldRenderPublicService } from './lib/public-htm
 import { createServer } from 'vite';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import postcss, { type Container } from 'postcss';
 import { fetchJson, loadEnvFiles, root } from './lib/env.mjs';
@@ -12,6 +13,7 @@ import {
   absoluteUrl,
   assertCatalogCoverage,
   assertCatalogMetadata,
+  assertCmsReadiness,
   buildBreadcrumbJsonLd,
   buildBusinessJsonLd,
   buildFaqPageJsonLd,
@@ -41,8 +43,9 @@ const ogImage = `${siteUrl}/og-share.jpg`;
 
 const { seoPages, servicePages, packagePages } =
   loadStaticSeoData();
-const { publicCatalog, packagesByPath, servicesByPath, servicesLoaded, lastmodByPath, apiBase, siteContent, packageCategories } =
-  await loadCmsOverlays();
+const overlays = await loadCmsOverlays();
+const { publicCatalog, packagesByPath, servicesByPath, servicesLoaded, lastmodByPath, apiBase, siteContent, packageCategories } = overlays;
+if (String(process.env.SEO_REQUIRE_CMS ?? '').toLowerCase() === 'true') assertCmsReadiness(overlays);
 
 async function loadFirstHeroImage() {
   if (!apiBase) return '';
@@ -377,6 +380,9 @@ function injectRouteHtml(template: string, page: CatalogPage) {
     `    <section>`,
     `      <h2>${escapeHtml(section.heading)}</h2>`,
     ...section.paragraphs.map((p) => `      <p>${escapeHtml(p)}</p>`),
+    ...(section.imageUrl ? [
+      `      <img src="${escapeHtml(section.imageUrl)}" alt="${escapeHtml(section.imageAlt || section.heading)}" loading="lazy" decoding="async" />`,
+    ] : []),
     `    </section>`,
   ]);
 
@@ -519,7 +525,7 @@ if (renderPaths.length) {
         loadOptional(`/categories/${category}`),
         loadOptional(`/photos?category=${category}&limit=${SERVICE_GALLERY_LIMIT}`),
       ]);
-      rendered.set(path, await renderPublicService({ path, siteContent, categories: packageCategories,
+      rendered.set(path, await renderPublicService({ path, siteContent, publicCatalog, categories: packageCategories,
         cover: cover && typeof cover === 'object' && !Array.isArray(cover) ? cover : undefined,
         photos: Array.isArray(photos) ? photos : undefined }));
     }
@@ -527,6 +533,7 @@ if (renderPaths.length) {
 }
 
 const written: string[] = [];
+const htmlSha256: Record<string, string> = {};
 removeRetiredCatalogPages(distDir, publicCatalog.paths);
 
 for (const page of Object.values(pages)) {
@@ -540,6 +547,7 @@ for (const page of Object.values(pages)) {
     // Server-rendered gallery content must be visible without observer JavaScript.
     html = html.replace('</head>', '<style>[data-public-html] .services-editorial .reveal,[data-public-html] .services-editorial .reveal-blur{opacity:1;transform:none;filter:none}</style></head>');
   }
+  htmlSha256[page.path] = createHash('sha256').update(html).digest('hex');
   written.push(writeRoute(page.path, html));
 }
 
@@ -549,12 +557,18 @@ writeFileSync(notFoundFile, notFoundHtml);
 written.push(notFoundFile);
 
 const sitemapPaths = Object.values(pages).map((page) => page.path);
+let commit: string | undefined;
+try { commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(); } catch { /* Exported sources may not have Git metadata. */ }
 writeFileSync(join(distDir, 'public-catalog.json'), JSON.stringify({
   version: 1,
   sources: Object.fromEntries(Object.entries(publicCatalog.sources).map(([key, source]) => [key, {
     status: source.status, ...(source.reason ? { reason: source.reason } : {}),
+    rejectedRecords: source.rejectedRecords ?? 0,
+    excludedConflicts: source.records.length - (key === 'services' ? publicCatalog.serviceLinks.length : publicCatalog.packageLinks.length),
   }])),
   paths: sitemapPaths,
+  build: { commit: commit ?? null, createdAt: new Date().toISOString(), publicOrigin: siteUrl },
+  htmlSha256,
 }, null, 2));
 const sitemapFile = join(distDir, 'sitemap.xml');
 writeFileSync(sitemapFile, buildSitemapXml(siteUrl, sitemapPaths, lastmodByPath));

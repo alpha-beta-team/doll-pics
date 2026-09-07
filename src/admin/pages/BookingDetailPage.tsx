@@ -452,8 +452,8 @@ function BookingDetailWorkspace() {
 
       {success && <div role="status" aria-live="polite" className="fixed right-3 top-20 z-[80] flex max-w-[calc(100vw-1.5rem)] items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900 shadow-lg"><CheckCircle className="h-4 w-4 shrink-0" />{success}<button onClick={() => setSuccess('')} aria-label="Dismiss confirmation" className="flex h-8 w-8 items-center justify-center"><X className="h-4 w-4" /></button></div>}
       <header className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-          <div className="min-w-0">
+        <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-start lg:justify-between">
+          <div className="min-w-0 lg:flex-1 lg:basis-96">
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <h1 className="min-w-0 break-words text-xl font-semibold tracking-tight text-slate-900 sm:text-3xl">{booking.customerName}</h1>
               <span className={`rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${statusStyles[booking.status]}`}>{booking.status.replace('_', ' ')}</span>
@@ -473,7 +473,7 @@ function BookingDetailWorkspace() {
           </div>
 
           {canManageBooking ? (
-            <div className="grid w-full grid-cols-[minmax(0,1fr)_minmax(0,1fr)_2.75rem] gap-2 border-t border-slate-100 pt-3 lg:flex lg:w-auto lg:border-0 lg:pt-0">
+            <div className="grid w-full grid-cols-[minmax(0,1fr)_minmax(0,1fr)_2.75rem] gap-2 border-t border-slate-100 pt-3 lg:flex lg:w-auto lg:max-w-full lg:shrink-0 lg:flex-wrap lg:border-0 lg:pt-0">
               {booking.status === 'shoot_completed' && <button type="button" onClick={() => selectTab('delivery')} className="col-span-3 min-h-11 rounded-lg bg-admin-primary px-4 text-sm font-semibold text-white lg:flex-none">Prepare delivery</button>}
               {primaryAction && (
                 <button

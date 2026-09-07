@@ -3,7 +3,7 @@
 **Audit ID:** F02  
 **Priority:** High  
 **Effort:** Medium (2–4 developer days)  
-**Status:** Ready for verification\
+**Status:** Complete\
 **Responsible role:** Frontend engineer with CMS engineer  
 **Assigned owner:** Codex (implementation/local validation); Frontend/CMS engineers (deployed acceptance)\
 **Chunk:** 1 — Routing and content correctness  
@@ -93,9 +93,11 @@ Promote through the existing release workflow only when this item's applicable g
 
 ## Status and evidence record
 
+Marked Complete at the user’s request for implementation tracking. Deployment acceptance remains a follow-up; this status does not establish deployed verification. The test results below are historical: all spec files and their npm/CI commands were subsequently removed at the user’s request. Typecheck passed after removal; `check:release` now runs typecheck, lint and build.
+
 | Stage | State | Evidence |
 |---|---|---|
-| Remediation implementation | Implemented | Shared normalized public catalog, independent CMS/fallback provenance, browser/build consumers, retirement cleanup and last-known build seed |
+| Remediation implementation | Complete | Shared normalized public catalog, independent CMS/fallback provenance, browser/build consumers, retirement cleanup and last-known build seed |
 | Local remediation validation | Passed | 25 library, 79 admin and 43 SEO tests; typechecks/lint/build via check:release; 58 browser tests; see evidence below |
 | Preview/production acceptance | Pending | Frontend engineer: deploy candidate, compare public-catalog.json and sitemap with approved published records, verify retired URLs and actual host behavior |
 | External checks | Source verified; deployed follow-up pending | Public package endpoint filters isPublished:true; public site-content returns service flags. CMS engineer: QA/live semantics and build-hook delivery verification |
@@ -108,6 +110,7 @@ Update this header, this record, the master row, chunk checkbox and totals toget
 |---|---|---|---|
 | 2026-09-07 | Created the issue checklist; remediation remains Not started | Conversation audit at `ff8e0ad`; no new remediation evidence | Assign owner, recheck baseline, then follow prerequisites and ordered checklist |
 | 2026-09-07 | Implemented F02 and passed local validation; Ready for verification | Working-tree changes on `21d91a7`; no F02 commit or deployment created. Existing staged F01 work retained | Frontend/CMS engineers: deployed catalog crawl and QA publication/build-hook acceptance |
+| 2026-09-07 | Marked Complete for implementation tracking at the user’s request; synchronized master totals | Prior local evidence retained; subsequent spec-file removal recorded above | Frontend/CMS engineers: deployed catalog and 404 acceptance |
 
 ### Implementation and local evidence — 7 September 2026
 

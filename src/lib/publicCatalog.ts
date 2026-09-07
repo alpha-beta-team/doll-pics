@@ -10,6 +10,7 @@ export type CatalogSource<T> = {
   status: 'cms' | 'fallback';
   reason?: 'unavailable' | 'invalid-response';
   records: T[];
+  rejectedRecords?: number;
 };
 export type PublicCatalogSources = {
   services: CatalogSource<ServiceNavLink>;
@@ -31,14 +32,17 @@ const fallbackServices = () => getPublishedServiceNavLinks(
 export function serviceCatalogSource(content?: unknown): CatalogSource<ServiceNavLink> {
   // The singleton endpoint can omit the optional array in legacy/default content.
   if (isRecord(content) && (content.serviceNavLinks === undefined || Array.isArray(content.serviceNavLinks))) {
-    return { status: 'cms', records: getPublishedServiceNavLinks((content.serviceNavLinks ?? []) as ServiceNavLinkInput[]) };
+    const rows = (content.serviceNavLinks ?? []) as ServiceNavLinkInput[];
+    const records = getPublishedServiceNavLinks(rows);
+    return { status: 'cms', records, rejectedRecords: rows.filter(row => !isRecord(row) || row.isPublished !== false).length - records.length };
   }
   return { status: 'fallback', reason: content === undefined ? 'unavailable' : 'invalid-response', records: fallbackServices() };
 }
 
 export function packageCatalogSource(categories?: unknown): CatalogSource<PackageNavLink> {
   if (Array.isArray(categories)) {
-    return { status: 'cms', records: getPublishedPackageNavLinks(categories as PackageCategoryInput[]) };
+    const records = getPublishedPackageNavLinks(categories as PackageCategoryInput[]);
+    return { status: 'cms', records, rejectedRecords: categories.filter(row => !isRecord(row) || row.isPublished !== false).length - records.length };
   }
   return { status: 'fallback', reason: categories === undefined ? 'unavailable' : 'invalid-response', records: getPublishedPackageNavLinks() };
 }
@@ -78,6 +82,7 @@ export function parseBuildPublicCatalog(text: string): PublicRouteCatalog | unde
     if (!isRecord(services) || !isRecord(packages)) return;
     for (const source of [services, packages]) {
       if (!['cms', 'fallback'].includes(String(source.status)) || !Array.isArray(source.records)) return;
+      if (source.rejectedRecords !== undefined && (!Number.isInteger(source.rejectedRecords) || Number(source.rejectedRecords) < 0)) return;
       if (source.reason !== undefined && !['unavailable', 'invalid-response'].includes(String(source.reason))) return;
     }
     const serviceRecords = getPublishedServiceNavLinks(services.records as ServiceNavLink[]);
@@ -86,8 +91,8 @@ export function parseBuildPublicCatalog(text: string): PublicRouteCatalog | unde
     } as PackageCategoryInput] : []));
     if (serviceRecords.length !== (services.records as unknown[]).length || packageRecords.length !== (packages.records as unknown[]).length) return;
     return resolvePublicCatalog({
-      services: { status: services.status as CatalogSource<ServiceNavLink>['status'], reason: services.reason as CatalogSource<ServiceNavLink>['reason'], records: serviceRecords },
-      packages: { status: packages.status as CatalogSource<PackageNavLink>['status'], reason: packages.reason as CatalogSource<PackageNavLink>['reason'], records: packageRecords },
+      services: { status: services.status as CatalogSource<ServiceNavLink>['status'], reason: services.reason as CatalogSource<ServiceNavLink>['reason'], records: serviceRecords, rejectedRecords: services.rejectedRecords as number | undefined },
+      packages: { status: packages.status as CatalogSource<PackageNavLink>['status'], reason: packages.reason as CatalogSource<PackageNavLink>['reason'], records: packageRecords, rejectedRecords: packages.rejectedRecords as number | undefined },
     });
   } catch { return; }
 }

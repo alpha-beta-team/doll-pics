@@ -1,3 +1,4 @@
+import type { PublicRouteCatalog } from './lib/publicCatalog';
 import type { PublicHtmlPath } from './lib/publicHtmlRoutes';
 import { StrictMode } from 'react';
 import { renderToString } from 'react-dom/server';
@@ -12,11 +13,13 @@ import type { PublicSiteContent, PublicPackageCategory, PublicPhoto, PublicCateg
 export async function renderPublicService(input: {
   path: PublicHtmlPath;
   siteContent?: PublicSiteContent;
+  publicCatalog?: PublicRouteCatalog;
   categories?: PublicPackageCategory[];
   cover?: PublicCategory;
   photos?: PublicPhoto[];
 }) {
   const { data, loaded } = await createPrerenderSiteData(input.siteContent, input.categories);
+  if (input.publicCatalog) data.publicCatalog = input.publicCatalog;
   const categoryName = data.siteContent.serviceNavLinks?.find(link => link.path === input.path)?.label;
   data.serviceMedia = {
     path: input.path,

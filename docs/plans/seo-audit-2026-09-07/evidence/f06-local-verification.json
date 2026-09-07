@@ -1,0 +1,577 @@
+{
+  "scope": "Local fixtures only; no production CMS writes or deployed acceptance",
+  "commit": "7fb737532143f50f518a83deb88fc424bca63fe7",
+  "workingTree": "includes uncommitted F06 changes",
+  "matrix": [
+    {
+      "scenario": "missing configuration",
+      "strictAccepted": false,
+      "sources": {
+        "services": {
+          "status": "fallback",
+          "reason": "unavailable"
+        },
+        "packages": {
+          "status": "fallback",
+          "reason": "unavailable"
+        }
+      }
+    },
+    {
+      "scenario": "both endpoints 503",
+      "strictAccepted": false,
+      "sources": {
+        "services": {
+          "status": "fallback",
+          "reason": "unavailable"
+        },
+        "packages": {
+          "status": "fallback",
+          "reason": "unavailable"
+        }
+      }
+    },
+    {
+      "scenario": "site endpoint 503",
+      "strictAccepted": false,
+      "sources": {
+        "services": {
+          "status": "fallback",
+          "reason": "unavailable"
+        },
+        "packages": {
+          "status": "cms",
+          "rejectedRecords": 0
+        }
+      }
+    },
+    {
+      "scenario": "package endpoint 503",
+      "strictAccepted": false,
+      "sources": {
+        "services": {
+          "status": "cms",
+          "rejectedRecords": 0
+        },
+        "packages": {
+          "status": "fallback",
+          "reason": "unavailable"
+        }
+      }
+    },
+    {
+      "scenario": "malformed JSON",
+      "strictAccepted": false,
+      "sources": {
+        "services": {
+          "status": "fallback",
+          "reason": "invalid-response"
+        },
+        "packages": {
+          "status": "cms",
+          "rejectedRecords": 0
+        }
+      }
+    },
+    {
+      "scenario": "invalid service shape",
+      "strictAccepted": false,
+      "sources": {
+        "services": {
+          "status": "fallback",
+          "reason": "invalid-response"
+        },
+        "packages": {
+          "status": "cms",
+          "rejectedRecords": 0
+        }
+      }
+    },
+    {
+      "scenario": "invalid package shape",
+      "strictAccepted": false,
+      "sources": {
+        "services": {
+          "status": "cms",
+          "rejectedRecords": 0
+        },
+        "packages": {
+          "status": "fallback",
+          "reason": "invalid-response"
+        }
+      }
+    },
+    {
+      "scenario": "valid empty collections",
+      "strictAccepted": true,
+      "sources": {
+        "services": {
+          "status": "cms",
+          "rejectedRecords": 0
+        },
+        "packages": {
+          "status": "cms",
+          "rejectedRecords": 0
+        }
+      }
+    },
+    {
+      "scenario": "legacy omitted services array",
+      "strictAccepted": true,
+      "sources": {
+        "services": {
+          "status": "cms",
+          "rejectedRecords": 0
+        },
+        "packages": {
+          "status": "cms",
+          "rejectedRecords": 0
+        }
+      }
+    },
+    {
+      "scenario": "invalid published row",
+      "strictAccepted": false,
+      "sources": {
+        "services": {
+          "status": "cms",
+          "rejectedRecords": 1
+        },
+        "packages": {
+          "status": "cms",
+          "rejectedRecords": 0
+        }
+      }
+    },
+    {
+      "scenario": "ambiguous destination",
+      "strictAccepted": false,
+      "sources": {
+        "services": {
+          "status": "cms",
+          "rejectedRecords": 0
+        },
+        "packages": {
+          "status": "cms",
+          "rejectedRecords": 0
+        }
+      }
+    },
+    {
+      "scenario": "complete response including unpublished rows",
+      "strictAccepted": true,
+      "sources": {
+        "services": {
+          "status": "cms",
+          "rejectedRecords": 0
+        },
+        "packages": {
+          "status": "cms",
+          "rejectedRecords": 0
+        }
+      }
+    }
+  ],
+  "builds": [
+    {
+      "revision": 1,
+      "publishedRoutes": 20,
+      "checkedRoutes": 29,
+      "passed": true
+    },
+    {
+      "revision": 2,
+      "publishedRoutes": 20,
+      "checkedRoutes": 29,
+      "passed": true
+    },
+    {
+      "revision": "valid empty CMS",
+      "publishedRoutes": 11,
+      "checkedRoutes": 23,
+      "passed": true
+    },
+    {
+      "revision": "offline fallback",
+      "publishedRoutes": 32,
+      "checkedRoutes": 41,
+      "passed": true,
+      "strictAcceptance": false
+    }
+  ],
+  "browser": [
+    {
+      "revision": 1,
+      "path": "/newborn-baby-photography-erode",
+      "javaScriptEnabled": false,
+      "marker": "Genuine newborn fixture content.",
+      "passed": true
+    },
+    {
+      "revision": 1,
+      "path": "/newborn-baby-photography-erode",
+      "javaScriptEnabled": true,
+      "marker": "Genuine newborn fixture content.",
+      "passed": true,
+      "reactAttachedToOriginalHeading": true
+    },
+    {
+      "revision": 1,
+      "path": "/editorial-photography",
+      "javaScriptEnabled": false,
+      "marker": "CMS-only material before edit",
+      "passed": true
+    },
+    {
+      "revision": 1,
+      "path": "/editorial-photography",
+      "javaScriptEnabled": true,
+      "marker": "CMS-only material before edit",
+      "passed": true,
+      "reactAttachedToOriginalHeading": true
+    },
+    {
+      "revision": 2,
+      "path": "/newborn-baby-photography-erode",
+      "javaScriptEnabled": false,
+      "marker": "Changed newborn QA content after rebuild.",
+      "passed": true
+    },
+    {
+      "revision": 2,
+      "path": "/newborn-baby-photography-erode",
+      "javaScriptEnabled": true,
+      "marker": "Changed newborn QA content after rebuild.",
+      "passed": true,
+      "reactAttachedToOriginalHeading": true
+    },
+    {
+      "revision": 2,
+      "path": "/editorial-photography",
+      "javaScriptEnabled": false,
+      "marker": "CMS-only material after edit",
+      "passed": true
+    },
+    {
+      "revision": 2,
+      "path": "/editorial-photography",
+      "javaScriptEnabled": true,
+      "marker": "CMS-only material after edit",
+      "passed": true,
+      "reactAttachedToOriginalHeading": true
+    }
+  ],
+  "negativeChecks": [
+    "release CLI requires saved artifact, full commit, deployment ID and report",
+    "strict prerender exits before output when CMS config missing",
+    "rebuilt content rejected against older saved artifact",
+    "cms-only HTML rejected",
+    "package HTML rejected",
+    "fallback provenance rejected",
+    "missing CMS-only path rejected",
+    "private path rejected",
+    "snapshot loaded provenance rejected",
+    "wrong commit rejected",
+    "wrong canonical rejected",
+    "sitemap omission rejected",
+    "complete release CLI accepted matching fixture artifact and wrote report"
+  ],
+  "commands": {
+    "checkRelease": "passed: typecheck, lint (8 existing warnings), offline production build",
+    "fixtureVerification": "passed: 12 loader cases, 2 edited CMS builds, empty build, offline build, 8 JS/no-JS observations with 4 React attachment checks",
+    "specFilesAdded": 0
+  },
+  "acceptanceReports": [
+    {
+      "checkedAt": "2026-09-07T17:39:37.732Z",
+      "baseUrl": "http://127.0.0.1:4180",
+      "publicOrigin": "https://dollpictures.in",
+      "deploymentId": "local-fixture-revision-1",
+      "deploymentIdSource": "operator-supplied; verify in hosting dashboard",
+      "expectedCommit": "7fb737532143f50f518a83deb88fc424bca63fe7",
+      "build": {
+        "commit": "7fb737532143f50f518a83deb88fc424bca63fe7",
+        "createdAt": "2026-09-07T17:39:36.363Z",
+        "publicOrigin": "https://dollpictures.in"
+      },
+      "requireCms": true,
+      "comparedExpectedArtifact": true,
+      "results": [
+        {
+          "path": "/",
+          "failures": []
+        },
+        {
+          "path": "/work",
+          "failures": []
+        },
+        {
+          "path": "/gallery",
+          "failures": []
+        },
+        {
+          "path": "/services",
+          "failures": []
+        },
+        {
+          "path": "/packages",
+          "failures": []
+        },
+        {
+          "path": "/about",
+          "failures": []
+        },
+        {
+          "path": "/stories",
+          "failures": []
+        },
+        {
+          "path": "/contact",
+          "failures": []
+        },
+        {
+          "path": "/booking",
+          "failures": []
+        },
+        {
+          "path": "/privacy",
+          "failures": []
+        },
+        {
+          "path": "/terms",
+          "failures": []
+        },
+        {
+          "path": "/newborn-baby-photography-erode",
+          "failures": []
+        },
+        {
+          "path": "/wedding-photography-erode",
+          "failures": []
+        },
+        {
+          "path": "/maternity-photography-erode",
+          "failures": []
+        },
+        {
+          "path": "/editorial-photography",
+          "failures": []
+        },
+        {
+          "path": "/newborn-packages-erode",
+          "failures": []
+        },
+        {
+          "path": "/wedding-packages-erode",
+          "failures": []
+        },
+        {
+          "path": "/maternity-packages-erode",
+          "failures": []
+        },
+        {
+          "path": "/custom-packages-erode",
+          "failures": []
+        },
+        {
+          "path": "/portrait-plans",
+          "failures": []
+        },
+        {
+          "path": "/admin",
+          "failures": []
+        },
+        {
+          "path": "/admin/bookings",
+          "failures": []
+        },
+        {
+          "path": "/employee",
+          "failures": []
+        },
+        {
+          "path": "/employee/dashboard",
+          "failures": []
+        },
+        {
+          "path": "/kiosk",
+          "failures": []
+        },
+        {
+          "path": "/kiosk/check-in",
+          "failures": []
+        },
+        {
+          "path": "/quotation/html-smoke",
+          "failures": []
+        },
+        {
+          "path": "/__public-html-smoke-not-found",
+          "failures": []
+        },
+        {
+          "path": "/sitemap.xml",
+          "failures": []
+        }
+      ],
+      "passed": true
+    },
+    {
+      "checkedAt": "2026-09-07T17:41:25.687Z",
+      "baseUrl": "http://127.0.0.1:4180",
+      "publicOrigin": "https://dollpictures.in",
+      "deploymentId": "local-revision-2",
+      "deploymentIdSource": "operator-supplied; verify in hosting dashboard",
+      "expectedCommit": "7fb737532143f50f518a83deb88fc424bca63fe7",
+      "build": {
+        "commit": "7fb737532143f50f518a83deb88fc424bca63fe7",
+        "createdAt": "2026-09-07T17:39:42.000Z",
+        "publicOrigin": "https://dollpictures.in"
+      },
+      "requireCms": true,
+      "comparedExpectedArtifact": true,
+      "results": [
+        {
+          "path": "/",
+          "failures": []
+        },
+        {
+          "path": "/work",
+          "failures": []
+        },
+        {
+          "path": "/gallery",
+          "failures": []
+        },
+        {
+          "path": "/services",
+          "failures": []
+        },
+        {
+          "path": "/packages",
+          "failures": []
+        },
+        {
+          "path": "/about",
+          "failures": []
+        },
+        {
+          "path": "/stories",
+          "failures": []
+        },
+        {
+          "path": "/contact",
+          "failures": []
+        },
+        {
+          "path": "/booking",
+          "failures": []
+        },
+        {
+          "path": "/privacy",
+          "failures": []
+        },
+        {
+          "path": "/terms",
+          "failures": []
+        },
+        {
+          "path": "/newborn-baby-photography-erode",
+          "failures": []
+        },
+        {
+          "path": "/wedding-photography-erode",
+          "failures": []
+        },
+        {
+          "path": "/maternity-photography-erode",
+          "failures": []
+        },
+        {
+          "path": "/editorial-photography",
+          "failures": []
+        },
+        {
+          "path": "/newborn-packages-erode",
+          "failures": []
+        },
+        {
+          "path": "/wedding-packages-erode",
+          "failures": []
+        },
+        {
+          "path": "/maternity-packages-erode",
+          "failures": []
+        },
+        {
+          "path": "/custom-packages-erode",
+          "failures": []
+        },
+        {
+          "path": "/portrait-plans",
+          "failures": []
+        },
+        {
+          "path": "/admin",
+          "failures": []
+        },
+        {
+          "path": "/admin/bookings",
+          "failures": []
+        },
+        {
+          "path": "/employee",
+          "failures": []
+        },
+        {
+          "path": "/employee/dashboard",
+          "failures": []
+        },
+        {
+          "path": "/kiosk",
+          "failures": []
+        },
+        {
+          "path": "/kiosk/check-in",
+          "failures": []
+        },
+        {
+          "path": "/quotation/html-smoke",
+          "failures": []
+        },
+        {
+          "path": "/__public-html-smoke-not-found",
+          "failures": []
+        },
+        {
+          "path": "/sitemap.xml",
+          "failures": []
+        }
+      ],
+      "passed": true
+    },
+    {
+      "checkedAt": "2026-09-07T17:41:28.827Z",
+      "baseUrl": "http://127.0.0.1:4180",
+      "publicOrigin": "https://dollpictures.in",
+      "deploymentId": null,
+      "deploymentIdSource": "operator-supplied; verify in hosting dashboard",
+      "expectedCommit": null,
+      "requireCms": true,
+      "comparedExpectedArtifact": false,
+      "results": [
+        {
+          "path": "/public-catalog.json",
+          "failures": [
+            "release requires successful services CMS provenance without rejected or conflicting records"
+          ]
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "runtime": {
+    "node": "v20.20.2",
+    "note": "Local runtime; hosted Node 22 CI was not run."
+  }
+}

@@ -16,7 +16,9 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
-    "check:release": "npm run typecheck && npm run lint && npm run build"
+    "check:release": "npm run typecheck && npm run lint && npm run build",
+    "build:cms": "SEO_REQUIRE_CMS=true npm run build",
+    "check:cms-release": "tsx scripts/check-public-html-deployment.ts --release"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

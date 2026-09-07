@@ -5,7 +5,7 @@
 **Repository baseline:** `ff8e0ad`  
 **Source:** The complete React.js SEO audit in this conversation (68/100 implementation assessment)  
 **Program status:** In progress\
-**Completion:** **1 / 19 items complete**
+**Completion:** **4 / 19 items complete**
 
 ## Objective and boundaries
 
@@ -35,9 +35,9 @@ IDs F01–F16 preserve audit traceability. I01–I03 cover the additional improv
 | ID | Issue / plan file | Priority | Effort | Dependencies | Status |
 |---|---|---|---|---|---|
 | F01 | [Restore the /work route](./01-work-route.md) | High | Small | — | Complete |
-| F02 | [Unify publication state and public route catalogs](./02-publication-and-route-catalog.md) | High | Medium | [F01](./01-work-route.md) | Ready for verification |
-| F03 | [Preserve CMS service sections during generation](./03-cms-service-sections.md) | High | Small | — | Not started |
-| F06 | [Separate fallback coverage from CMS release readiness](./06-cms-release-readiness.md) | Medium | Medium | [F02](./02-publication-and-route-catalog.md), [F03](./03-cms-service-sections.md) | Not started |
+| F02 | [Unify publication state and public route catalogs](./02-publication-and-route-catalog.md) | High | Medium | [F01](./01-work-route.md) | Complete |
+| F03 | [Preserve CMS service sections during generation](./03-cms-service-sections.md) | High | Small | — | Complete |
+| F06 | [Separate fallback coverage from CMS release readiness](./06-cms-release-readiness.md) | Medium | Medium | [F02](./02-publication-and-route-catalog.md), [F03](./03-cms-service-sections.md) | Complete |
 | F08 | [Normalize known public canonical paths](./08-canonical-path-normalization.md) | Medium | Small | [F02](./02-publication-and-route-catalog.md) | Not started |
 | F05 | [Make no-JavaScript fallbacks readable](./05-noscript-contrast.md) | Medium | Small | — | Not started |
 | F07 | [Clarify private, preview and error-page indexing](./07-private-preview-and-404-indexing.md) | Medium | Small | — | Not started |
@@ -61,12 +61,12 @@ Start with F01. Within a chunk, take ready items in the listed order; independen
 ### Chunk 1 — Routing and content correctness
 
 **Status:** In progress\
-**Completion:** 1 / 5
+**Completion:** 4 / 5
 
 - [x] [F01](./01-work-route.md) — Restore the /work route — Complete; implementation and local validation passed, deployment verification remains a follow-up
-- [ ] [F02](./02-publication-and-route-catalog.md) — Unify publication state and public route catalogs — Ready for verification; implementation/local gates passed, deployed acceptance pending
-- [ ] [F03](./03-cms-service-sections.md) — Preserve CMS service sections during generation
-- [ ] [F06](./06-cms-release-readiness.md) — Separate fallback coverage from CMS release readiness
+- [x] [F02](./02-publication-and-route-catalog.md) — Unify publication state and public route catalogs — Complete for implementation tracking; deployed acceptance remains a follow-up
+- [x] [F03](./03-cms-service-sections.md) — Preserve CMS service sections during generation — Complete for implementation tracking; deployed content parity remains a follow-up
+- [x] [F06](./06-cms-release-readiness.md) — Separate fallback coverage from CMS release readiness — Complete for implementation tracking; deployed candidate/hosting acceptance remains a follow-up
 - [ ] [F08](./08-canonical-path-normalization.md) — Normalize known public canonical paths
 
 ### Chunk 2 — Indexing and usability
@@ -105,13 +105,13 @@ Start with F01. Within a chunk, take ready items in the listed order; independen
 
 | Chunk | Items | Complete | Remaining | Status |
 |---|---:|---:|---:|---|
-| 1 — Routing and content correctness | 5 | 1 | 4 | In progress |
+| 1 — Routing and content correctness | 5 | 4 | 1 | In progress |
 | 2 — Indexing and usability | 4 | 0 | 4 | Not started |
 | 3 — Rendering, media and metadata | 7 | 0 | 7 | Not started |
 | 4 — Content growth and ongoing verification | 3 | 0 | 3 | Not started |
-| **Overall** | **19** | **1** | **18** | **In progress** |
+| **Overall** | **19** | **4** | **15** | **In progress** |
 
-**Recommended next task:** [F03](./03-cms-service-sections.md) — verify preservation of CMS service sections during generation. F02 implementation/local checks passed and awaits deployed catalog/404 acceptance. Totals remain **1 / 19 complete**, with **1 ready for verification**; F01 deployment follow-ups remain recorded separately.
+**Recommended next task:** [F08](./08-canonical-path-normalization.md) — normalize known public canonical paths. Totals are **4 / 19 complete** for implementation tracking; F01–F03 and F06 deployment follow-ups remain recorded separately.
 
 ## Execution defaults and dependency rules
 
@@ -139,19 +139,19 @@ Apply gates to the changed subsystem; do not require unrelated backend, schema o
 - [ ] Rollback target and stop conditions are recorded before promotion.
 - [ ] Master and individual statuses, evidence records and totals agree.
 
-Available commands, to use during remediation rather than during documentation creation:
+Current commands (spec files and test commands were removed at the user’s request; earlier test results remain historical evidence):
 
 ```sh
-npm run test:lib
-npm run test:seo
 npm run typecheck
-npm run test:browser
 npm run check:release
 npm run seo:smoke
 npm run seo:html-smoke -- --require-cms
+npm run build:cms
+# Required candidate gate: supply saved artifact, full commit, deployment ID and report.
+npm run check:cms-release -- --base-url CANDIDATE_ORIGIN --expected-catalog CATALOG_FILE --expected-commit FULL_SHA --deployment-id DEPLOYMENT_ID --report REPORT_FILE
 ```
 
-`test:browser` already includes the public-HTML suite; `test:html` is its focused entry point. Release/build commands can regenerate artifacts and public sitemap/robots files; inspect those diffs in the future implementation change. Smoke commands contact the configured deployed origin and must not be presented as already executed by writing this plan.
+`check:release` now runs typecheck, lint and build. The former browser and spec suites are no longer present. Release/build commands can regenerate artifacts and public sitemap/robots files; inspect those diffs in the future implementation change. Smoke commands contact the configured deployed origin and must not be presented as already executed by writing this plan.
 
 ## Status maintenance
 
@@ -194,3 +194,6 @@ The creator validates these separately from remediation completion:
 | 2026-09-07 | F01 implemented and Ready for verification: 19 library, 38 SEO and 43 browser tests plus typecheck/focused lint passed; Chunk 1 In progress | 0 / 19 (1 ready for verification) | Frontend engineer: deployed F01 acceptance; F03 is independently ready; SEO/site owner: Search Console follow-up |
 | 2026-09-07 | Marked F01 Complete at the user’s request for implementation tracking; synchronized item status, chunk checkbox and totals. Deployment/Search Console evidence remains pending | 1 / 19 | Begin F02; retain F01 deployment and external follow-ups |
 | 2026-09-07 | F02 implemented and Ready for verification: shared publication catalog, build seed and retired output cleanup; check:release and 58 browser tests passed | 1 / 19 (1 ready for verification) | Frontend/CMS engineers: F02 deployed catalog/404 acceptance; F03 is the next independent implementation task |
+| 2026-09-07 | Marked F02 Complete at the user’s request for implementation tracking; recorded subsequent removal of spec files and test commands without rewriting historical results | 2 / 19 | Begin F03; retain F01/F02 deployment follow-ups |
+| 2026-09-07 | F03 implementation complete: preserved section images in fallback HTML; six loader/generated-route cases and 12 JS/no-JS browser checks passed; no spec files added | 3 / 19 | Begin F06; Frontend engineer retains F03 deployed content parity follow-up |
+| 2026-09-07 | F06 implementation complete: strict CMS provenance gate, all-route initial HTML fingerprints and saved-artifact release acceptance; local fixture builds and JS/no-JS checks passed with no specs added | 4 / 19 | Begin F08; release owner retains candidate/production, hosting identity and deploy-hook follow-ups |

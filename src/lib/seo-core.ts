@@ -101,7 +101,12 @@ export type CatalogPage = {
   label?: string;
   lead?: string;
   categorySlug?: string;
-  sections: Array<{ heading: string; paragraphs: string[] }>;
+  sections: Array<{
+    heading: string;
+    paragraphs: string[];
+    imageUrl?: string;
+    imageAlt?: string;
+  }>;
   faqs: FaqItem[];
   related: Array<{ label: string; path: string }>;
   fallbackImages: Array<{ src: string; alt: string }>;

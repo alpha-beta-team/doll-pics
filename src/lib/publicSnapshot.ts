@@ -28,7 +28,9 @@ export function parsePublicSnapshot(text: string, pathname: string): PublicSnaps
     if (!record(catalog) || !record(catalog.sources)
       || !['services', 'packages'].every(key => {
         const source = (catalog.sources as Record<string, unknown>)[key];
-        return record(source) && ['cms', 'fallback'].includes(String(source.status)) && arrayOf(source.records, record);
+        return record(source) && ['cms', 'fallback'].includes(String(source.status)) && arrayOf(source.records, record)
+          && (source.reason === undefined || ['unavailable', 'invalid-response'].includes(String(source.reason)))
+          && (source.rejectedRecords === undefined || (Number.isInteger(source.rejectedRecords) && Number(source.rejectedRecords) >= 0));
       })
       || !arrayOf(catalog.serviceLinks, link => record(link) && strings(link, ['label', 'path']))
       || !arrayOf(catalog.packageLinks, link => record(link) && strings(link, ['label', 'path', 'categorySlug']))
@@ -45,6 +47,11 @@ export function parsePublicSnapshot(text: string, pathname: string): PublicSnaps
       || typeof data.loading !== 'boolean' || typeof data.fromApi !== 'boolean') return;
     // Build snapshots seed only these shared resources; others remain browser-loaded.
     if (!arrayOf(value.loaded, key => key === 'siteContent' || key === 'categories')) return;
+    for (const [sourceName, resource] of [['services', 'siteContent'], ['packages', 'categories']]) {
+      const source = (catalog.sources as Record<string, Record<string, unknown>>)[sourceName];
+      if ((source.status === 'cms') !== (value.loaded as string[]).includes(resource)
+        || (source.status === 'cms' && source.reason !== undefined)) return;
+    }
     const media = data.serviceMedia;
     if (!record(media) || media.path !== path || !arrayOf(media.cover, image) || !arrayOf(media.photos, image)
       || !arrayOf(media.loaded, key => key === 'cover' || key === 'photos')) return;

@@ -103,7 +103,10 @@ export async function loadCmsOverlays(): Promise<CmsOverlays> {
   const read = async (path: string): Promise<unknown> => {
     if (!apiBase) return undefined;
     try { return await fetchJson(`${apiBase}${path}`); }
-    catch { console.warn(`SEO build: ${path} unavailable; using static fallback`); return undefined; }
+    catch (error) {
+      console.warn(`SEO build: ${path} unavailable or invalid; using static fallback`);
+      return error instanceof SyntaxError ? null : undefined;
+    }
   };
   const [rawCategories, rawContent] = await Promise.all([read('/package-categories'), read('/site-content')]);
   const publicCatalog = resolvePublicCatalog({
@@ -143,4 +146,19 @@ export function assertCatalogMetadata(pages: Record<string, CatalogPage>) {
       }
     }
   }
+}
+
+/** Availability fallback is valid offline output, but is never CMS release evidence. */
+export function assertCmsReadiness({ apiBase, publicCatalog }: Pick<CmsOverlays, 'apiBase' | 'publicCatalog'>) {
+  const failures: string[] = [];
+  if (!apiBase) failures.push('CMS API is not configured');
+  for (const [name, source] of Object.entries(publicCatalog.sources)) {
+    if (source.status !== 'cms') failures.push(`${name}: ${source.reason ?? 'unavailable'}`);
+    if (source.rejectedRecords) failures.push(`${name}: ${source.rejectedRecords} invalid published records`);
+  }
+  if (publicCatalog.serviceLinks.length !== publicCatalog.sources.services.records.length
+    || publicCatalog.packageLinks.length !== publicCatalog.sources.packages.records.length) {
+    failures.push('ambiguous published paths or package slugs');
+  }
+  if (failures.length) throw new Error(`SEO CMS readiness failed: ${failures.join('; ')}`);
 }
