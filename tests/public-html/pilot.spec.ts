@@ -20,7 +20,7 @@ async function closeContext(context: BrowserContext) {
 }
 
 test('deployment validator accepts the isolated CMS-backed build and route exclusions', async () => {
-  const results = await checkPublicHtmlDeployment({ baseUrl: 'http://127.0.0.1:4180' });
+  const results = await checkPublicHtmlDeployment({ baseUrl: 'http://127.0.0.1:4180', requireCms: true });
   expect(results.filter(result => result.failures.length)).toEqual([]);
 });
 async function servePublic(route: Route) {

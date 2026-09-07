@@ -138,7 +138,25 @@ test('HTTP errors and indexing headers fail with the affected route', async () =
 
 test('CLI accepts only a base origin and rejects ambiguous or credential-bearing inputs', () => {
   assert.equal(parseArguments(['--base-url', 'http://localhost:4180/']).baseUrl, 'http://localhost:4180');
+  assert.equal(parseArguments(['--require-cms']).requireCms, true);
   for (const args of [['--base-url'], ['--unknown'], ['--base-url', 'https://host/path'], ['--base-url', 'https://user:password@host']]) {
     assert.throws(() => parseArguments(args));
   }
+});
+
+test('release mode distinguishes useful static fallback from published CMS content', () => {
+  assert.ok(validatePublicHtml(fixture(), path, origin, true).some(failure => failure.includes('release requires')));
+  const html = change(fixture(), document => {
+    const element = document.querySelector('#public-page-snapshot')!;
+    const snapshot = JSON.parse(element.textContent!);
+    snapshot.data.siteContent.serviceNavLinks = [{ path, label: 'Newborn', description: '', sections: [], isPublished: true }];
+    element.textContent = JSON.stringify(snapshot);
+  });
+  assert.deepEqual(validatePublicHtml(html, path, origin, true), []);
+  const offline = change(html, document => {
+    const element = document.querySelector('#public-page-snapshot')!;
+    const snapshot = JSON.parse(element.textContent!); snapshot.loaded = [];
+    element.textContent = JSON.stringify(snapshot);
+  });
+  assert.ok(validatePublicHtml(offline, path, origin, true).some(failure => failure.includes('release requires')));
 });

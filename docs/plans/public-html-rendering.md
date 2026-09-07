@@ -18,7 +18,7 @@ Snapshots represent build-time content. Publish CMS changes and rebuild/redeploy
 VITE_API_URL='' API_URL='' SEO_REQUIRE_CMS=false npm run check:release
 npm run test:browser
 npm run seo:smoke
-npm run seo:html-smoke
+npm run seo:html-smoke -- --require-cms
 ```
 
 `test:browser` includes the public HTML suite; `test:html` runs only that suite. Both use a temporary production build, a local read-only CMS fixture and intercepted enquiries/analytics. No real enquiries or notifications are sent. The existing GitHub release workflow runs the full release and browser checks.
@@ -32,14 +32,14 @@ Tests drain active mocked route handlers before closing pages/contexts, includin
 Preview example:
 
 ```sh
-npm run seo:html-smoke -- --base-url https://YOUR-PREVIEW-HOST
+npm run seo:html-smoke -- --require-cms --base-url https://YOUR-PREVIEW-HOST
 ```
 
 `--base-url` (or `SEO_CHECK_BASE_URL`) changes where requests go. Canonicals are checked against `VITE_SITE_URL`, defaulting to `https://dollpictures.in`, independently of the preview hostname. Supply environment variables explicitly for smoke commands; the new checker does not load local .env files. Output names failed routes and exits nonzero on failure.
 
 Vercel's intentional preview `X-Robots-Tag: noindex` is allowed on a different fetch origin; a blocking HTTP robots header on the canonical production origin still fails. Protected previews require authenticated access. The checker also exports its runner with an injectable fetch function for authenticated automation; keep credentials in request headers restricted to that host and out of URLs, logs and artifacts.
 
-The HTML validator is also run against the actual isolated fixture build by Playwright, not only synthetic unit fixtures. No minimum image count is imposed when media is legitimately empty.
+The HTML validator is also run against the actual isolated fixture build by Playwright, not only synthetic unit fixtures. No minimum image count is imposed when media is legitimately empty. Use `--require-cms` for preview and production acceptance: it additionally requires loaded CMS site content and a published target service. The default mode remains useful for verifying intentional offline fallback builds.
 
 ## Controlled freshness acceptance
 

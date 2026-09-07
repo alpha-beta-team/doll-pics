@@ -20,7 +20,7 @@ function schemaNodes(value: unknown): Record<string, unknown>[] {
 }
 
 /** Inspect the HTTP response, never a JavaScript-rendered DOM or noscript fallback. */
-export function validatePublicHtml(html: string, path: PublicHtmlPath, publicOrigin = defaultOrigin): string[] {
+export function validatePublicHtml(html: string, path: PublicHtmlPath, publicOrigin = defaultOrigin, requireCms = false): string[] {
   const dom = new JSDOM(html);
   const document = dom.window.document;
   const failures: string[] = [];
@@ -77,6 +77,8 @@ export function validatePublicHtml(html: string, path: PublicHtmlPath, publicOri
 
     if (snapshot) {
       const nav = snapshot.data.siteContent.serviceNavLinks?.find(link => link.path === path);
+      if (requireCms) expect(snapshot.loaded.includes('siteContent') && nav?.isPublished,
+        'release requires loaded CMS content and a published target service');
       expect(!nav || nav.isPublished, 'snapshot contains an unpublished target service');
       // The shared snapshot parser checked the normalized label/description/section fields.
       const page = resolveServicePage(path, servicePages[path], nav as ServiceNavLinkLike | undefined);
@@ -116,8 +118,8 @@ export function validateExcludedHtml(html: string, missing = false): string[] {
 }
 
 export async function checkPublicHtmlDeployment({
-  baseUrl = defaultOrigin, publicOrigin = defaultOrigin, fetchImpl = fetch,
-}: { baseUrl?: string; publicOrigin?: string; fetchImpl?: typeof fetch } = {}) {
+  baseUrl = defaultOrigin, publicOrigin = defaultOrigin, fetchImpl = fetch, requireCms = false,
+}: { baseUrl?: string; publicOrigin?: string; fetchImpl?: typeof fetch; requireCms?: boolean } = {}) {
   const excluded = ['/', '/family-photography-erode', '/admin', '/admin/bookings', '/employee', '/employee/dashboard',
     '/kiosk', '/kiosk/check-in', '/quotation/html-smoke'];
   const missing = '/__public-html-smoke-not-found';
@@ -136,7 +138,7 @@ export async function checkPublicHtmlDeployment({
         if (new URL(baseUrl).origin === new URL(publicOrigin).origin
           && /\b(noindex|none)\b/i.test(response.headers.get('x-robots-tag') ?? '')) failures.push('HTTP robots header blocks indexing');
         if (new URL(response.url || new URL(path, baseUrl)).pathname.replace(/\/$/, '') !== path) failures.push('redirected to a different route');
-        failures.push(...validatePublicHtml(html, path as PublicHtmlPath, publicOrigin));
+        failures.push(...validatePublicHtml(html, path as PublicHtmlPath, publicOrigin, requireCms));
       } else failures.push(...validateExcludedHtml(html, path === missing));
       return { path, failures };
     } catch (error) {
@@ -148,7 +150,9 @@ export async function checkPublicHtmlDeployment({
 
 export function parseArguments(argv: string[]) {
   let baseUrl = process.env.SEO_CHECK_BASE_URL || defaultOrigin;
+  let requireCms = false;
   for (let index = 0; index < argv.length; index++) {
+    if (argv[index] === '--require-cms') { requireCms = true; continue; }
     if (argv[index] !== '--base-url' || !argv[index + 1]) throw new Error(`Unknown or incomplete argument: ${argv[index]}`);
     baseUrl = argv[++index];
   }
@@ -158,7 +162,7 @@ export function parseArguments(argv: string[]) {
     if (!['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password
       || parsed.pathname !== '/' || parsed.search || parsed.hash) throw new Error('Expected an HTTP(S) origin without credentials, path, query or fragment');
   }
-  return { baseUrl: new URL(baseUrl).origin, publicOrigin: new URL(publicOrigin).origin };
+  return { baseUrl: new URL(baseUrl).origin, publicOrigin: new URL(publicOrigin).origin, requireCms };
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
