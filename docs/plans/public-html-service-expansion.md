@@ -14,6 +14,16 @@ Snapshot parsing requires a registered matching route, supported version, public
 
 ## Release gates
 
+### Rollout hardening, 2026-09-07
+
+The follow-up adds `seo:html-smoke`, with ten validator tests and an integration check against the isolated CMS-backed production build. It rejects empty/noscript-only roots, mismatched or malformed snapshots, inconsistent service metadata/schema, missing available imagery and snapshots on excluded routes. Preview requests use the configured public canonical origin.
+
+The browser teardown now drains in-flight route handlers before context closure. Visual comparisons are isolated per service/viewport. The complete browser run passed **29/29**, without retries or suppressed route errors; all six before/after pairs were visually reviewed. Fixture images are deliberately reused and unrelated card image fallbacks remain identical between modes; these screenshots are not a review of production portfolio content. The complete release checks passed: 15 library, 79 admin and 33 SEO tests, typechecks, build and lint (six existing warnings, zero errors).
+
+A separate candidate built against the public CMS used by production passed the HTML validator for all three services. Controlled QA freshness also passed: changing all three published headings in a temporary fixture and rebuilding produced the changed headings in initial HTML and after hydration, with working enquiry modals and no page exceptions. No production CMS records were changed.
+
+See [three-service rollout instructions](public-html-rendering.md) for commands and acceptance. Hosted checks and production acceptance must be recorded for the final commit; previous deployment results do not satisfy those gates.
+
 Push the focused branch and require hosted release checks before merging/deploying. Inspect the hosted preview and production raw HTML for the new bundle, correct route snapshot/canonical, and current CMS content. Verify mobile/desktop content without JavaScript, hydration, enquiry modal opening and cross-service navigation without submitting a real enquiry.
 
 Stop on wrong content, hydration errors, routing regressions or broken interactions. Restore the previous deployment/commit if needed. A controlled CMS edit followed by rebuild is still a separate acceptance check and must not be replaced by merely comparing unchanged CMS content. Do not expand further until release acceptance passes.

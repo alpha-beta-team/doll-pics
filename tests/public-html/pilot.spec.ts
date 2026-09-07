@@ -1,10 +1,28 @@
-import { expect, test, type Route } from '@playwright/test';
+import { expect, test, type BrowserContext, type Route } from '@playwright/test';
+import { checkPublicHtmlDeployment } from '../../scripts/check-public-html-deployment';
 
 import { readFileSync } from 'node:fs';
 const fixtures: Record<string, unknown> = JSON.parse(readFileSync(new URL('./fixtures.json', import.meta.url), 'utf8'));
 // Serve the isolated build under its configured public origin so production analytics
 // origin guards are exercised; every network request still stays mocked/local.
 test.use({ baseURL: 'https://dollpictures.in' });
+
+// Drain in-flight route.fetch calls while the page and its request context still exist.
+test.afterEach(async ({ page }) => {
+  await page.unrouteAll({ behavior: 'wait' });
+});
+
+async function closeContext(context: BrowserContext) {
+  try {
+    for (const page of context.pages()) await page.unrouteAll({ behavior: 'wait' });
+    await context.unrouteAll({ behavior: 'wait' });
+  } finally { await context.close(); }
+}
+
+test('deployment validator accepts the isolated CMS-backed build and route exclusions', async () => {
+  const results = await checkPublicHtmlDeployment({ baseUrl: 'http://127.0.0.1:4180' });
+  expect(results.filter(result => result.failures.length)).toEqual([]);
+});
 async function servePublic(route: Route) {
   const url = new URL(route.request().url());
   if (url.origin === 'https://dollpictures.in') {
@@ -26,21 +44,22 @@ for (const service of services) {
   for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 900 }]) {
     test(`${service.label}: initial HTML is usable without JavaScript at ${viewport.width}px`, async ({ browser }) => {
       const context = await browser.newContext({ javaScriptEnabled: false, viewport });
-      const page = await context.newPage();
-      await page.route('**/*', route => new URL(route.request().url()).origin === 'http://127.0.0.1:4180'
-        ? route.continue() : route.abort());
-      const response = await page.goto(`http://127.0.0.1:4180${pilot}`);
-      expect(response?.status()).toBe(200);
-      await expect(page.locator('#root h1')).toHaveText(heading);
-      await expect(page.getByText(`A calm ${service.category} session`, { exact: true })).toBeVisible();
-      const image = page.locator('#root img[src*="fixture-media/"]').first();
-      await expect(image).toBeVisible();
-      await expect.poll(() => image.evaluate(el => (el as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
-      await expect(page.locator('a[href^="tel:"]').first()).toHaveAttribute('href', /^tel:\+/);
-      await expect(page.locator('a[href*="wa.me"]').first()).toHaveAttribute('href', /wa\.me/);
-      await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', `https://dollpictures.in${pilot}`);
-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-      await context.close();
+      try {
+        const page = await context.newPage();
+        await page.route('**/*', route => new URL(route.request().url()).origin === 'http://127.0.0.1:4180'
+          ? route.continue() : route.abort());
+        const response = await page.goto(`http://127.0.0.1:4180${pilot}`);
+        expect(response?.status()).toBe(200);
+        await expect(page.locator('#root h1')).toHaveText(heading);
+        await expect(page.getByText(`A calm ${service.category} session`, { exact: true })).toBeVisible();
+        const image = page.locator('#root img[src*="fixture-media/"]').first();
+        await expect(image).toBeVisible();
+        await expect.poll(() => image.evaluate(el => (el as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+        await expect(page.locator('a[href^="tel:"]').first()).toHaveAttribute('href', /^tel:\+/);
+        await expect(page.locator('a[href*="wa.me"]').first()).toHaveAttribute('href', /wa\.me/);
+        await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', `https://dollpictures.in${pilot}`);
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      } finally { await closeContext(context); }
     });
   }
 
@@ -201,24 +220,25 @@ for (const service of services) {
 }
 
 for (const width of [390, 1440]) {
-  test(`visual parity with client rendering at ${width}px`, async ({ browser }, testInfo) => {
-    for (const service of services) {
+  for (const service of services) {
+    test(`${service.label}: visual parity with client rendering at ${width}px`, async ({ browser }, testInfo) => {
       const results: { heading: unknown; images: string[] }[] = [];
       for (const baseline of [true, false]) {
         const context = await browser.newContext({ viewport: { width, height: 900 }, reducedMotion: 'reduce' });
-        const page = await context.newPage();
-        await mockPublic(page);
-        await page.goto(`http://127.0.0.1:4180${service.path}${baseline ? '?client-only=1' : ''}`);
-        await expect(page.locator('h1')).toHaveText(`${service.label} sessions from the build`);
-        await page.evaluate(async () => { await document.fonts.ready; });
-        await expect(page.locator('#service-gallery button[aria-label^="Open "]').first()).toHaveAttribute('aria-label', new RegExp(service.label));
-        await page.evaluate(async () => { for (let y = 0; y < document.body.scrollHeight; y += 600) { scrollTo(0, y); await new Promise(resolve => setTimeout(resolve, 80)); } scrollTo(0, 0); });
-        await page.waitForTimeout(700); // Let existing reveal transitions settle equally for both renders.
-        results.push({ heading: await page.locator('h1').boundingBox(), images: await page.locator('#service-gallery img').evaluateAll(images => images.map(image => image.getAttribute('alt') || '')) });
-        await page.screenshot({ path: testInfo.outputPath(`${service.category}-${baseline ? 'before' : 'after'}.png`), fullPage: true, animations: 'disabled' });
-        await context.close();
+        try {
+          const page = await context.newPage();
+          await mockPublic(page);
+          await page.goto(`http://127.0.0.1:4180${service.path}${baseline ? '?client-only=1' : ''}`);
+          await expect(page.locator('h1')).toHaveText(`${service.label} sessions from the build`);
+          await page.evaluate(async () => { await document.fonts.ready; });
+          await expect(page.locator('#service-gallery button[aria-label^="Open "]').first()).toHaveAttribute('aria-label', new RegExp(service.label));
+          await page.evaluate(async () => { for (let y = 0; y < document.body.scrollHeight; y += 600) { scrollTo(0, y); await new Promise(resolve => setTimeout(resolve, 80)); } scrollTo(0, 0); });
+          await page.waitForTimeout(700); // Let existing reveal transitions settle equally for both renders.
+          results.push({ heading: await page.locator('h1').boundingBox(), images: await page.locator('#service-gallery img').evaluateAll(images => images.map(image => image.getAttribute('alt') || '')) });
+          await page.screenshot({ path: testInfo.outputPath(`${service.category}-${baseline ? 'before' : 'after'}.png`), fullPage: true, animations: 'disabled' });
+        } finally { await closeContext(context); }
       }
       expect(results[1]).toEqual(results[0]);
-    }
-  });
+    });
+  }
 }

@@ -6,7 +6,10 @@ import { join, resolve, extname } from 'node:path';
 import { spawn } from 'node:child_process';
 
 const output = mkdtempSync(join(tmpdir(), 'doll-public-html-'));
-const responses = JSON.parse(readFileSync(new URL('../tests/public-html/fixtures.json', import.meta.url), 'utf8'));
+// An optional temporary fixture supports controlled CMS-edit/rebuild acceptance
+// without editing tracked fixtures or writing to a live CMS.
+const responses = JSON.parse(readFileSync(process.env.PUBLIC_HTML_FIXTURE_FILE
+  || new URL('../tests/public-html/fixtures.json', import.meta.url), 'utf8'));
 const api = createServer((req, res) => {
   if (req.method !== 'GET') { res.writeHead(405).end(); return; }
   res.setHeader('Content-Type', 'application/json');
