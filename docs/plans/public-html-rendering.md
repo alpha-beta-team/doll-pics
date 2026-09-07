@@ -37,6 +37,8 @@ npm run seo:html-smoke -- --base-url https://YOUR-PREVIEW-HOST
 
 `--base-url` (or `SEO_CHECK_BASE_URL`) changes where requests go. Canonicals are checked against `VITE_SITE_URL`, defaulting to `https://dollpictures.in`, independently of the preview hostname. Supply environment variables explicitly for smoke commands; the new checker does not load local .env files. Output names failed routes and exits nonzero on failure.
 
+Vercel's intentional preview `X-Robots-Tag: noindex` is allowed on a different fetch origin; a blocking HTTP robots header on the canonical production origin still fails. Protected previews require authenticated access. The checker also exports its runner with an injectable fetch function for authenticated automation; keep credentials in request headers restricted to that host and out of URLs, logs and artifacts.
+
 The HTML validator is also run against the actual isolated fixture build by Playwright, not only synthetic unit fixtures. No minimum image count is imposed when media is legitimately empty.
 
 ## Controlled freshness acceptance

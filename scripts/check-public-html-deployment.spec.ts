@@ -113,14 +113,14 @@ test('excluded routes cannot contain service state and 404s must be noindex', ()
   assert.deepEqual(validateExcludedHtml('<meta name="robots" content="noindex, nofollow">', true), []);
 });
 
-test('preview requests retain production canonicals and check exclusions plus a true 404', async () => {
+test('preview requests retain production canonicals, allow platform noindex and check exclusions plus a true 404', async () => {
   const urls: string[] = [];
   const fetchImpl: typeof fetch = async input => {
     const url = new URL(String(input)); urls.push(url.href);
     const missing = url.pathname.includes('not-found');
     const body = Object.hasOwn(PUBLIC_HTML_ROUTES, url.pathname) ? fixture(url.pathname as PublicHtmlPath)
       : missing ? '<meta name="robots" content="noindex">' : '<div id="root"></div>';
-    return new Response(body, { status: missing ? 404 : 200, headers: { 'content-type': 'text/html' } });
+    return new Response(body, { status: missing ? 404 : 200, headers: { 'content-type': 'text/html', 'x-robots-tag': 'noindex' } });
   };
   const results = await checkPublicHtmlDeployment({ baseUrl: 'https://preview.example.test', fetchImpl });
   assert.ok(urls.every(url => url.startsWith('https://preview.example.test/')));

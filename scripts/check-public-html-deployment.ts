@@ -131,7 +131,10 @@ export async function checkPublicHtmlDeployment({
       if (!response.headers.get('content-type')?.includes('text/html')) failures.push('response is not HTML');
       const html = await response.text();
       if (Object.hasOwn(PUBLIC_HTML_ROUTES, path)) {
-        if (/\b(noindex|none)\b/i.test(response.headers.get('x-robots-tag') ?? '')) failures.push('HTTP robots header blocks indexing');
+        // Vercel deliberately sends noindex on preview hosts. Only the canonical
+        // production origin must be indexable at the HTTP layer.
+        if (new URL(baseUrl).origin === new URL(publicOrigin).origin
+          && /\b(noindex|none)\b/i.test(response.headers.get('x-robots-tag') ?? '')) failures.push('HTTP robots header blocks indexing');
         if (new URL(response.url || new URL(path, baseUrl)).pathname.replace(/\/$/, '') !== path) failures.push('redirected to a different route');
         failures.push(...validatePublicHtml(html, path as PublicHtmlPath, publicOrigin));
       } else failures.push(...validateExcludedHtml(html, path === missing));
