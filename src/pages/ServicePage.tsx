@@ -1,3 +1,5 @@
+import { ServicePreviewImage } from '../components/ServicePreviewImage';
+import { servicePackageLink } from '../lib/serviceDiscovery';
 import { PUBLIC_HTML_ROUTES, SERVICE_GALLERY_LIMIT } from '../lib/publicHtmlRoutes';
 import { Link, useLocation } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
@@ -116,7 +118,7 @@ function resolveApiServiceCategory(path: string, serviceLabel?: string): string 
 function ServicePageContent() {
   const { pathname } = useLocation();
   const path = normalizePathname(pathname);
-  const { siteContent, serviceMedia } = useSiteData();
+  const { siteContent, serviceMedia, packageNavLinks } = useSiteData();
   const serviceLinks = getPublishedServiceNavLinks(
     siteContent.serviceNavLinks,
   );
@@ -155,14 +157,14 @@ function ServicePageContent() {
     if (!initial?.loaded.includes('cover')) void publicApi.getCategory(apiServiceCategory, { signal: controller.signal })
       .then(category => {
         cover = category?.coverPhotoId && typeof category.coverPhotoId === 'object'
-          ? serviceImagesFromApi([category.coverPhotoId]) : [];
+          ? serviceImagesFromApi([category.coverPhotoId], nav?.label || apiServiceCategory) : [];
         commit();
       }).catch(() => { /* Existing page imagery remains usable. */ });
     if (!initial?.loaded.includes('photos')) void publicApi.getPhotos({ category: apiServiceCategory, limit: SERVICE_GALLERY_LIMIT }, { signal: controller.signal })
-      .then(result => { photos = serviceImagesFromApi(result); commit(); })
+      .then(result => { photos = serviceImagesFromApi(result, nav?.label || apiServiceCategory); commit(); })
       .catch(() => { /* A failed gallery does not discard a successful category cover. */ });
     return () => controller.abort();
-  }, [apiServiceCategory, path, serviceMedia]);
+  }, [apiServiceCategory, path, serviceMedia, nav?.label]);
 
   useEffect(() => {
     if (!page) return;
@@ -228,8 +230,9 @@ function ServicePageContent() {
     width: 1600,
     height: 1200,
   }));
+  const packageLink = servicePackageLink(path, packageNavLinks);
   const usefulLinks = page.related.filter(
-    (link) => !serviceLinks.some((service) => service.path === link.path),
+    (link) => link.path !== packageLink.path && !serviceLinks.some((service) => service.path === link.path),
   );
 
   const openWhatsApp = () => {
@@ -288,6 +291,7 @@ function ServicePageContent() {
         ) : null}
 
         <ServiceClosingCta
+          packageLink={packageLink}
           label={page.label}
           hasWhatsApp={hasWhatsApp}
           whatsappUrl={whatsappUrl}
@@ -958,12 +962,14 @@ function ServiceFaq({
 }
 
 function ServiceClosingCta({
+  packageLink,
   label,
   hasWhatsApp,
   whatsappUrl,
   onBook,
   onWhatsApp,
 }: {
+  packageLink: ReturnType<typeof servicePackageLink>;
   label: string;
   hasWhatsApp: boolean;
   whatsappUrl: string;
@@ -987,7 +993,7 @@ function ServiceClosingCta({
           We will reply with availability, thoughtful guidance, and the right
           experience for your story.
         </p>
-        <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+        <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap">
           <button
             type="button"
             onClick={onBook}
@@ -999,6 +1005,10 @@ function ServiceClosingCta({
               aria-hidden="true"
             />
           </button>
+          <Link to={packageLink.path} className="inline-flex min-h-14 w-full items-center justify-center gap-3 border border-hairline/20 px-8 text-xs font-semibold uppercase tracking-[0.2em] text-ink-50 hover:border-gold-300 hover:text-gold-300 focus-visible:ring-2 focus-visible:ring-gold-300 sm:w-auto">
+            {packageLink.label}
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
           {hasWhatsApp ? (
             <a
               href={whatsappUrl}
@@ -1051,7 +1061,9 @@ function ServiceDiscovery({
                   to={service.path}
                   className="group relative aspect-[4/5] w-[82vw] max-w-sm shrink-0 snap-center overflow-hidden bg-ink-900 outline-none focus-visible:ring-2 focus-visible:ring-gold-300 sm:w-[46vw] lg:w-auto lg:max-w-none"
                 >
-                  <img
+                  <ServicePreviewImage
+                    servicePath={service.path}
+                    label={service.label}
                     src={service.imageUrl}
                     alt={`${service.label} photography`}
                     width={800}

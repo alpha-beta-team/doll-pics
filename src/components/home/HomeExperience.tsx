@@ -1,3 +1,4 @@
+import { ServicePreviewImage } from '../ServicePreviewImage';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -562,7 +563,9 @@ function ServiceJournal() {
           {activeService ? (
             <div className="relative mt-10 hidden aspect-[4/3] overflow-hidden bg-ink-900 lg:block">
               {items.map((service, index) => (
-                <img
+                <ServicePreviewImage
+                  servicePath={service.path}
+                  label={service.title}
                   key={`${service.title}-${index}`}
                   src={service.image}
                   alt={index === active ? service.title : ''}
@@ -632,7 +635,9 @@ function ServiceRow({
             {service.desc}
           </p>
           <div className="mt-5 aspect-[16/10] overflow-hidden bg-ink-900 lg:hidden">
-            <img
+            <ServicePreviewImage
+              servicePath={service.path}
+              label={service.title}
               src={service.image}
               alt={service.title}
               loading="lazy"

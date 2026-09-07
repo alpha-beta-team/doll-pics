@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { useSiteData, type ServiceItem } from '../../contexts/SiteDataContext';
 import { useInView } from '../../hooks/useScroll';
-import { ResponsiveImage } from '../ResponsiveImage';
+import { ServicePreviewImage } from '../ServicePreviewImage';
 
 const iconMap: Record<string, LucideIcon> = {
   Heart,
@@ -40,7 +40,6 @@ const EARLY_REVEAL_OPTIONS: IntersectionObserverInit = {
 
 export function Services() {
   const { services } = useSiteData();
-  const { ref, inView } = useInView<HTMLDivElement>(EARLY_REVEAL_OPTIONS);
 
   return (
     <section
@@ -88,19 +87,7 @@ export function Services() {
         </header>
 
         {services.length > 0 ? (
-          <div
-            ref={ref}
-            className="mt-14 grid grid-cols-1 gap-x-5 gap-y-14 sm:grid-cols-2 md:mt-20 md:gap-y-20 lg:grid-cols-12 lg:gap-x-6 lg:gap-y-28"
-          >
-            {services.map((service, index) => (
-              <ServiceCard
-                key={`${service.title}-${service.path ?? index}`}
-                service={service}
-                index={index}
-                inView={inView}
-              />
-            ))}
-          </div>
+          <ServiceGrid services={services} />
         ) : (
           <div className="py-24 text-center">
             <Camera
@@ -143,6 +130,26 @@ export function Services() {
   );
 }
 
+function ServiceGrid({ services }: { services: ServiceItem[] }) {
+  // Mount the observer with the grid, after asynchronous CMS services arrive.
+  const { ref, inView } = useInView<HTMLDivElement>(EARLY_REVEAL_OPTIONS);
+  return (
+          <div
+            ref={ref}
+            className="mt-14 grid grid-cols-1 gap-x-5 gap-y-14 sm:grid-cols-2 md:mt-20 md:gap-y-20 lg:grid-cols-12 lg:gap-x-6 lg:gap-y-28"
+          >
+            {services.map((service, index) => (
+              <ServiceCard
+                key={`${service.title}-${service.path ?? index}`}
+                service={service}
+                index={index}
+                inView={inView}
+              />
+            ))}
+          </div>
+  );
+}
+
 function ServiceCard({
   service,
   index,
@@ -173,7 +180,9 @@ function ServiceCard({
             portrait ? 'aspect-[4/5]' : 'aspect-[16/11]'
           }`}
         >
-          <ResponsiveImage
+          <ServicePreviewImage
+            servicePath={service.path}
+            label={service.title}
             src={service.image}
             alt={`${service.title} photography`}
             sizes="(max-width: 639px) calc(100vw - 2.5rem), (max-width: 1023px) 48vw, 58vw"

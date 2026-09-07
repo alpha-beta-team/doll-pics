@@ -1,3 +1,4 @@
+import { photoLabels } from '../lib/photoLabels';
 import type { ServiceMediaSnapshot } from '../lib/serviceMedia';
 import { PublicRequestError, publicFailure } from '../lib/publicRequest';
 import {
@@ -59,6 +60,7 @@ const GALLERY_PHOTO_LIMIT = 24;
 type DataBucket = 'home' | 'reviews' | 'media' | 'packages' | 'about';
 
 export interface FeaturedWorkItem {
+  categorySlugs?: string[];
   title: string;
   category: string;
   image: string;
@@ -70,6 +72,7 @@ export interface FeaturedWorkItem {
 }
 
 export interface GalleryImageItem {
+  categorySlugs?: string[];
   src: string;
   alt: string;
   avifSrcSet?: string;
@@ -226,7 +229,7 @@ function isLegacyHeroSlide(slide: PublicHeroSlide): boolean {
 function featuredFromPhotos(photos: PublicPhoto[]): FeaturedWorkItem[] {
   return photos
     .filter((photo) => !isPlaceholderPhoto(photo))
-    .map((p) => {
+    .map<FeaturedWorkItem | null>((p) => {
       const sources = getPhotoSources(p);
       if (!sources) return null;
       const category =
@@ -235,28 +238,26 @@ function featuredFromPhotos(photos: PublicPhoto[]): FeaturedWorkItem[] {
         typeof p.categoryIds[0] === 'object'
           ? (p.categoryIds[0] as { name: string }).name
           : 'Photography';
-      return sourcesToFeatured(
-        p.title,
+      return { ...sourcesToFeatured(
+        photoLabels(p).title,
         category,
         p.location ?? '',
         p.year ?? '',
         sources,
-      );
+      ), categorySlugs: photoCategorySlugs(p) };
     })
     .filter((item): item is FeaturedWorkItem => item !== null);
 }
 
+function photoCategorySlugs(photo: PublicPhoto): string[] {
+  return (photo.categoryIds ?? []).flatMap(category => typeof category === 'object' && category?.slug ? [category.slug] : []);
+}
+
 function galleryFromPhotos(photos: PublicPhoto[]): GalleryImageItem[] {
-  return photos
-    .filter((photo) => !isPlaceholderPhoto(photo))
-    .map((p) => getPhotoSources(p))
-    .filter((s): s is PhotoSources => s !== null)
-    .map((s) => ({
-      src: s.src,
-      alt: s.alt,
-      avifSrcSet: s.avifSrcSet,
-      webpSrcSet: s.webpSrcSet,
-    }));
+  return photos.filter(photo => !isPlaceholderPhoto(photo)).flatMap(photo => {
+    const sources = getPhotoSources(photo);
+    return sources ? [{ ...sources, categorySlugs: photoCategorySlugs(photo) }] : [];
+  });
 }
 
 function bucketsForPath(
@@ -370,12 +371,12 @@ async function loadResource(resource: CmsResource, signal: AbortSignal, supplied
     }
     case 'categories': {
       const result = collection(supplied?.categories ?? await publicApi.getPackageCategories(init));
-      const categories = result.length ? result.map((c, index) => ({
-        name: c.name, slug: c.slug, path: c.path, description: c.description,
+      const categories = result.length ? result.filter(c => c.isPublished !== false).map((c, index) => ({
+        name: c.name, slug: c.slug, path: c.path, description: c.description, isPublished: c.isPublished,
         seoTitle: c.seoTitle, seoDescription: c.seoDescription, heading: c.heading, lead: c.lead,
         order: typeof c.order === 'number' ? c.order : index,
       })).sort((a, b) => a.order - b.order) : fallbackPackageCategories;
-      return { packageCategories: categories, packageNavLinks: getPublishedPackageNavLinks(categories) };
+      return { packageCategories: categories, packageNavLinks: categories.length ? getPublishedPackageNavLinks(categories) : [] };
     }
     case 'storyScenes': {
       const result = collection(await publicApi.getStoryScenes(init));

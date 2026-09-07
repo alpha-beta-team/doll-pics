@@ -1,3 +1,4 @@
+import { photoLabels } from './photoLabels';
 import { getPhotoSources } from './api';
 import type { PublicPhoto } from '../shared/types';
 import type { ServiceImage } from './serviceImages';
@@ -9,7 +10,7 @@ export interface ServiceMediaSnapshot {
   loaded: ('cover' | 'photos')[];
 }
 
-export function serviceImagesFromApi(photos: PublicPhoto[]): ServiceImage[] {
+export function serviceImagesFromApi(photos: PublicPhoto[], categoryName?: string): ServiceImage[] {
   return photos
     .filter(
       (photo) =>
@@ -17,7 +18,7 @@ export function serviceImagesFromApi(photos: PublicPhoto[]): ServiceImage[] {
         !photo.variants?.original?.url?.includes('picsum.photos'),
     )
     .flatMap<ServiceImage>((photo) => {
-      const sources = getPhotoSources(photo);
+      const sources = getPhotoSources(photo, categoryName);
       if (!sources) return [];
       const populatedCategory = photo.categoryIds?.find(
         (category): category is { name: string; slug: string } =>
@@ -28,7 +29,7 @@ export function serviceImagesFromApi(photos: PublicPhoto[]): ServiceImage[] {
         alt: sources.alt,
         avifSrcSet: sources.avifSrcSet,
         webpSrcSet: sources.webpSrcSet,
-        title: photo.title,
+        title: photoLabels(photo, categoryName).title,
         category: populatedCategory?.name,
       }];
     });
