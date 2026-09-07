@@ -1,0 +1,317 @@
+{
+  "/api/site-content": {
+    "serviceNavLinks": [
+      {
+        "label": "Newborn",
+        "path": "/newborn-baby-photography-erode",
+        "heading": "Newborn sessions from the build",
+        "description": "Newborn fixture description",
+        "sections": [
+          {
+            "heading": "A calm newborn session",
+            "body": "Genuine newborn fixture content."
+          }
+        ],
+        "lead": "Newborn safe text </script><script>window.snapshotInjected=true</script>",
+        "isPublished": true
+      },
+      {
+        "label": "Wedding",
+        "path": "/wedding-photography-erode",
+        "heading": "Wedding sessions from the build",
+        "description": "Wedding fixture description",
+        "sections": [
+          {
+            "heading": "A calm wedding session",
+            "body": "Genuine wedding fixture content."
+          }
+        ],
+        "lead": "Wedding safe text </script><script>window.snapshotInjected=true</script>",
+        "isPublished": true
+      },
+      {
+        "label": "Maternity",
+        "path": "/maternity-photography-erode",
+        "heading": "Maternity sessions from the build",
+        "description": "Maternity fixture description",
+        "sections": [
+          {
+            "heading": "A calm maternity session",
+            "body": "Genuine maternity fixture content."
+          }
+        ],
+        "lead": "Maternity safe text </script><script>window.snapshotInjected=true</script>",
+        "isPublished": true
+      },
+      {
+        "label": "PRIVATE_DRAFT_SENTINEL",
+        "path": "/private-draft",
+        "isPublished": false
+      }
+    ],
+    "internalSecret": "PRIVATE_FIELD_SENTINEL"
+  },
+  "/api/package-categories": [],
+  "/api/hero-slides": [],
+  "/api/categories/newborn": {
+    "name": "Newborn",
+    "slug": "newborn",
+    "coverPhotoId": {
+      "id": "newborn-0",
+      "title": "Newborn fixture portrait 0",
+      "variants": {
+        "original": {
+          "url": "http://127.0.0.1:4180/fixture-media/newborn-0.jpg"
+        }
+      }
+    }
+  },
+  "/api/photos?category=newborn&limit=30": [
+    {
+      "id": "newborn-0",
+      "title": "Newborn fixture portrait 0",
+      "variants": {
+        "original": {
+          "url": "http://127.0.0.1:4180/fixture-media/newborn-0.jpg"
+        }
+      }
+    },
+    {
+      "id": "newborn-1",
+      "title": "Newborn fixture portrait 1",
+      "variants": {
+        "original": {
+          "url": "http://127.0.0.1:4180/fixture-media/newborn-1.jpg"
+        }
+      }
+    },
+    {
+      "id": "newborn-2",
+      "title": "Newborn fixture portrait 2",
+      "variants": {
+        "original": {
+          "url": "http://127.0.0.1:4180/fixture-media/newborn-2.jpg"
+        }
+      }
+    },
+    {
+      "id": "newborn-3",
+      "title": "Newborn fixture portrait 3",
+      "variants": {
+        "original": {
+          "url": "http://127.0.0.1:4180/fixture-media/newborn-3.jpg"
+        }
+      }
+    },
+    {
+      "id": "newborn-4",
+      "title": "Newborn fixture portrait 4",
+      "variants": {
+        "original": {
+          "url": "http://127.0.0.1:4180/fixture-media/newborn-4.jpg"
+        }
+      }
+    },
+    {
+      "id": "newborn-5",
+      "title": "Newborn fixture portrait 5",
+      "variants": {
+        "original": {
+          "url": "http://127.0.0.1:4180/fixture-media/newborn-5.jpg"
+        }
+      }
+    },
+    {
+      "id": "newborn-6",
+      "title": "Newborn fixture portrait 6",
+      "variants": {
+        "original": {
+          "url": "http://127.0.0.1:4180/fixture-media/newborn-6.jpg"
+        }
+      }
+    },
+    {
+      "id": "newborn-7",
+      "title": "Newborn fixture portrait 7",
+      "variants": {
+        "original": {
+          "url": "http://127.0.0.1:4180/fixture-media/newborn-7.jpg"
+        }
+      }
+    }
+  ],
+  "/api/categories/wedding": {
+    "name": "Wedding",
+    "slug": "wedding",
+    "coverPhotoId": {
+      "id": "wedding-0",
+      "title": "Wedding fixture portrait 0",
+      "variants": {
+        "original": {
+          "url": "http://127.0.0.1:4180/fixture-media/wedding-0.jpg"
+        }
+      }
+    }
+  },
+  "/api/photos?category=wedding&limit=30": [
+    {
+      "id": "wedding-0",
+      "title": "Wedding fixture portrait 0",
+      "variants": {
+        "original": {
+          "url": "http://127.0.0.1:4180/fixture-media/wedding-0.jpg"
+        }
+      }
+    },
+    {
+      "id": "wedding-1",
+      "title": "Wedding fixture portrait 1",
+      "variants": {
+        "original": {
+          "url": "http://127.0.0.1:4180/fixture-media/wedding-1.jpg"
+        }
+      }
+    },
+    {
+      "id": "wedding-2",
+      "title": "Wedding fixture portrait 2",
+      "variants": {
+        "original": {
+          "url": "http://127.0.0.1:4180/fixture-media/wedding-2.jpg"
+        }
+      }
+    },
+    {
+      "id": "wedding-3",
+      "title": "Wedding fixture portrait 3",
+      "variants": {
+        "original": {
+          "url": "http://127.0.0.1:4180/fixture-media/wedding-3.jpg"
+        }
+      }
+    },
+    {
+      "id": "wedding-4",
+      "title": "Wedding fixture portrait 4",
+      "variants": {
+        "original": {
+          "url": "http://127.0.0.1:4180/fixture-media/wedding-4.jpg"
+        }
+      }
+    },
+    {
+      "id": "wedding-5",
+      "title": "Wedding fixture portrait 5",
+      "variants": {
+        "original": {
+          "url": "http://127.0.0.1:4180/fixture-media/wedding-5.jpg"
+        }
+      }
+    },
+    {
+      "id": "wedding-6",
+      "title": "Wedding fixture portrait 6",
+      "variants": {
+        "original": {
+          "url": "http://127.0.0.1:4180/fixture-media/wedding-6.jpg"
+        }
+      }
+    },
+    {
+      "id": "wedding-7",
+      "title": "Wedding fixture portrait 7",
+      "variants": {
+        "original": {
+          "url": "http://127.0.0.1:4180/fixture-media/wedding-7.jpg"
+        }
+      }
+    }
+  ],
+  "/api/categories/maternity": {
+    "name": "Maternity",
+    "slug": "maternity",
+    "coverPhotoId": {
+      "id": "maternity-0",
+      "title": "Maternity fixture portrait 0",
+      "variants": {
+        "original": {
+          "url": "http://127.0.0.1:4180/fixture-media/maternity-0.jpg"
+        }
+      }
+    }
+  },
+  "/api/photos?category=maternity&limit=30": [
+    {
+      "id": "maternity-0",
+      "title": "Maternity fixture portrait 0",
+      "variants": {
+        "original": {
+          "url": "http://127.0.0.1:4180/fixture-media/maternity-0.jpg"
+        }
+      }
+    },
+    {
+      "id": "maternity-1",
+      "title": "Maternity fixture portrait 1",
+      "variants": {
+        "original": {
+          "url": "http://127.0.0.1:4180/fixture-media/maternity-1.jpg"
+        }
+      }
+    },
+    {
+      "id": "maternity-2",
+      "title": "Maternity fixture portrait 2",
+      "variants": {
+        "original": {
+          "url": "http://127.0.0.1:4180/fixture-media/maternity-2.jpg"
+        }
+      }
+    },
+    {
+      "id": "maternity-3",
+      "title": "Maternity fixture portrait 3",
+      "variants": {
+        "original": {
+          "url": "http://127.0.0.1:4180/fixture-media/maternity-3.jpg"
+        }
+      }
+    },
+    {
+      "id": "maternity-4",
+      "title": "Maternity fixture portrait 4",
+      "variants": {
+        "original": {
+          "url": "http://127.0.0.1:4180/fixture-media/maternity-4.jpg"
+        }
+      }
+    },
+    {
+      "id": "maternity-5",
+      "title": "Maternity fixture portrait 5",
+      "variants": {
+        "original": {
+          "url": "http://127.0.0.1:4180/fixture-media/maternity-5.jpg"
+        }
+      }
+    },
+    {
+      "id": "maternity-6",
+      "title": "Maternity fixture portrait 6",
+      "variants": {
+        "original": {
+          "url": "http://127.0.0.1:4180/fixture-media/maternity-6.jpg"
+        }
+      }
+    },
+    {
+      "id": "maternity-7",
+      "title": "Maternity fixture portrait 7",
+      "variants": {
+        "original": {
+          "url": "http://127.0.0.1:4180/fixture-media/maternity-7.jpg"
+        }
+      }
+    }
+  ]
+}

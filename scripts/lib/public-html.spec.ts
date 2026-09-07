@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { JSDOM } from 'jsdom';
-import { serializeInlineJson, shouldRenderPublicPilot } from './public-html';
+import { serializeInlineJson, shouldRenderPublicService } from './public-html';
 
 test('CMS text survives embedding without terminating a JSON script', () => {
   const input = { text: '</script><script>globalThis.injected=true</script>&\u2028\u2029' };
@@ -11,10 +11,11 @@ test('CMS text survives embedding without terminating a JSON script', () => {
 });
 
 test('published CMS list gates the pilot while an unavailable list permits static fallback', () => {
-  const path = '/newborn-baby-photography-erode';
-  assert.equal(shouldRenderPublicPilot(path, true, new Map()), false);
-  assert.equal(shouldRenderPublicPilot(path, true, new Map([[path, {}]])), true);
-  assert.equal(shouldRenderPublicPilot(path, false, new Map()), true);
-  assert.equal(shouldRenderPublicPilot('/admin', false, new Map()), false);
-  assert.equal(shouldRenderPublicPilot('/wedding-photography-erode', false, new Map()), false);
+  for (const path of ['/newborn-baby-photography-erode', '/wedding-photography-erode', '/maternity-photography-erode']) {
+  assert.equal(shouldRenderPublicService(path, true, new Map()), false);
+  assert.equal(shouldRenderPublicService(path, true, new Map([[path, {}]])), true);
+  assert.equal(shouldRenderPublicService(path, false, new Map()), true);
+  }
+  assert.equal(shouldRenderPublicService('/admin', false, new Map()), false);
+  assert.equal(shouldRenderPublicService('/wedding-photography-erode', false, new Map()), true);
 });

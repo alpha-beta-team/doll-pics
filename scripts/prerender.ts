@@ -1,4 +1,5 @@
-import { serializeInlineJson, shouldRenderPublicPilot } from './lib/public-html';
+import { PUBLIC_HTML_ROUTES, SERVICE_GALLERY_LIMIT, type PublicHtmlPath } from '../src/lib/publicHtmlRoutes';
+import { serializeInlineJson, shouldRenderPublicService } from './lib/public-html';
 import { createServer } from 'vite';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -499,22 +500,29 @@ function inject404Html(template: string) {
 const template = splitAdminStyles(
   readFileSync(join(distDir, 'index.html'), 'utf8'),
 );
-// Render only the published pilot. The same Vite transforms serve browser and Node modules.
-const pilotPath = '/newborn-baby-photography-erode';
-let pilot: { html: string; snapshot: unknown } | undefined;
-if (pages[pilotPath] && shouldRenderPublicPilot(pilotPath, servicesLoaded, servicesByPath)) {
+// Share the CMS overlays and one Vite instance across the registered services.
+const rendered = new Map<string, { html: string; snapshot: unknown }>();
+const renderPaths = (Object.keys(PUBLIC_HTML_ROUTES) as PublicHtmlPath[])
+  .filter(path => pages[path] && shouldRenderPublicService(path, servicesLoaded, servicesByPath));
+if (renderPaths.length) {
   const loadOptional = async (path: string) => {
     if (!apiBase) return undefined;
     try { return await fetchJson(`${apiBase}${path}`); }
-    catch { console.warn('Public HTML: optional service media unavailable'); return undefined; }
+    catch { console.warn(`Public HTML: optional media unavailable for ${path}`); return undefined; }
   };
-  const [cover, photos] = await Promise.all([
-    loadOptional('/categories/newborn'), loadOptional('/photos?category=newborn&limit=30'),
-  ]);
   const server = await createServer({ server: { middlewareMode: true }, appType: 'custom' });
   try {
-    const { renderPublicPilot } = await server.ssrLoadModule('/src/entry-public-server.tsx');
-    pilot = await renderPublicPilot({ siteContent, categories: packageCategories, cover: cover && typeof cover === 'object' && !Array.isArray(cover) ? cover : undefined, photos: Array.isArray(photos) ? photos : undefined });
+    const { renderPublicService } = await server.ssrLoadModule('/src/entry-public-server.tsx');
+    for (const path of renderPaths) {
+      const category = PUBLIC_HTML_ROUTES[path];
+      const [cover, photos] = await Promise.all([
+        loadOptional(`/categories/${category}`),
+        loadOptional(`/photos?category=${category}&limit=${SERVICE_GALLERY_LIMIT}`),
+      ]);
+      rendered.set(path, await renderPublicService({ path, siteContent, categories: packageCategories,
+        cover: cover && typeof cover === 'object' && !Array.isArray(cover) ? cover : undefined,
+        photos: Array.isArray(photos) ? photos : undefined }));
+    }
   } finally { await server.close(); }
 }
 
@@ -523,10 +531,11 @@ const written: string[] = [];
 for (const page of Object.values(pages)) {
   if (!page?.path) continue;
   let html = injectRouteHtml(template, page);
-  if (page.path === pilotPath && pilot) {
-    const serialized = serializeInlineJson(pilot.snapshot);
+  const service = rendered.get(page.path);
+  if (service) {
+    const serialized = serializeInlineJson(service.snapshot);
     html = html.replace(/<noscript>[\s\S]*?<\/noscript>/g, '');
-    html = html.replace('<div id="root"></div>', () => `<div id="root" data-public-html="${pilotPath}">${pilot!.html}</div><script id="public-page-snapshot" type="application/json">${serialized}</script>`);
+    html = html.replace('<div id="root"></div>', () => `<div id="root" data-public-html="${page.path}">${service.html}</div><script id="public-page-snapshot" type="application/json">${serialized}</script>`);
     // Server-rendered gallery content must be visible without observer JavaScript.
     html = html.replace('</head>', '<style>[data-public-html] .services-editorial .reveal,[data-public-html] .services-editorial .reveal-blur{opacity:1;transform:none;filter:none}</style></head>');
   }
