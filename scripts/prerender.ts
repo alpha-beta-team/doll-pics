@@ -510,7 +510,7 @@ if (renderPaths.length) {
     try { return await fetchJson(`${apiBase}${path}`); }
     catch { console.warn(`Public HTML: optional media unavailable for ${path}`); return undefined; }
   };
-  const server = await createServer({ server: { middlewareMode: true }, appType: 'custom' });
+  const server = await createServer({ cacheDir: join(root, 'node_modules/.vite-prerender'), server: { middlewareMode: true }, appType: 'custom' });
   try {
     const { renderPublicService } = await server.ssrLoadModule('/src/entry-public-server.tsx');
     for (const path of renderPaths) {

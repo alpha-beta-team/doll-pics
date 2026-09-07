@@ -1,0 +1,273 @@
+{
+  "base": "https://doll-pictures-erode-1fc17bxrz-kaarmuhilans-projects.vercel.app",
+  "browserBase": "https://dollpictures.in",
+  "previewTransport": "Production-origin browser requests routed to hosted preview; live public CMS responses unchanged",
+  "smoke": [
+    {
+      "path": "/newborn-baby-photography-erode",
+      "failures": []
+    },
+    {
+      "path": "/wedding-photography-erode",
+      "failures": []
+    },
+    {
+      "path": "/maternity-photography-erode",
+      "failures": []
+    },
+    {
+      "path": "/",
+      "failures": []
+    },
+    {
+      "path": "/family-photography-erode",
+      "failures": []
+    },
+    {
+      "path": "/admin",
+      "failures": []
+    },
+    {
+      "path": "/admin/bookings",
+      "failures": []
+    },
+    {
+      "path": "/employee",
+      "failures": []
+    },
+    {
+      "path": "/employee/dashboard",
+      "failures": []
+    },
+    {
+      "path": "/kiosk",
+      "failures": []
+    },
+    {
+      "path": "/kiosk/check-in",
+      "failures": []
+    },
+    {
+      "path": "/quotation/html-smoke",
+      "failures": []
+    },
+    {
+      "path": "/__public-html-smoke-not-found",
+      "failures": []
+    }
+  ],
+  "observations": [
+    {
+      "path": "/newborn-baby-photography-erode",
+      "width": 390,
+      "javaScriptEnabled": false,
+      "heading": "Newborn baby photography in Erode",
+      "images": 16,
+      "overflow": false,
+      "canonical": "https://dollpictures.in/newborn-baby-photography-erode",
+      "sameHeading": false,
+      "errors": []
+    },
+    {
+      "path": "/wedding-photography-erode",
+      "width": 390,
+      "javaScriptEnabled": false,
+      "heading": "Wedding photography in Erode",
+      "images": 15,
+      "overflow": false,
+      "canonical": "https://dollpictures.in/wedding-photography-erode",
+      "sameHeading": false,
+      "errors": []
+    },
+    {
+      "path": "/maternity-photography-erode",
+      "width": 390,
+      "javaScriptEnabled": false,
+      "heading": "Maternity photography in Erode",
+      "images": 15,
+      "overflow": false,
+      "canonical": "https://dollpictures.in/maternity-photography-erode",
+      "sameHeading": false,
+      "errors": []
+    },
+    {
+      "path": "/newborn-baby-photography-erode",
+      "width": 390,
+      "javaScriptEnabled": true,
+      "heading": "Newborn baby photography in Erode",
+      "images": 17,
+      "overflow": false,
+      "canonical": "https://dollpictures.in/newborn-baby-photography-erode",
+      "sameHeading": true,
+      "errors": []
+    },
+    {
+      "path": "/wedding-photography-erode",
+      "width": 390,
+      "javaScriptEnabled": true,
+      "heading": "Wedding photography in Erode",
+      "images": 17,
+      "overflow": false,
+      "canonical": "https://dollpictures.in/wedding-photography-erode",
+      "sameHeading": true,
+      "errors": []
+    },
+    {
+      "path": "/maternity-photography-erode",
+      "width": 390,
+      "javaScriptEnabled": true,
+      "heading": "Maternity photography in Erode",
+      "images": 17,
+      "overflow": false,
+      "canonical": "https://dollpictures.in/maternity-photography-erode",
+      "sameHeading": true,
+      "errors": []
+    },
+    {
+      "path": "/",
+      "width": 390,
+      "javaScriptEnabled": true,
+      "overflow": false,
+      "emptyImages": 0,
+      "filenameLabels": 0,
+      "fallbacks": 4,
+      "errors": []
+    },
+    {
+      "path": "/services",
+      "width": 390,
+      "javaScriptEnabled": true,
+      "overflow": false,
+      "emptyImages": 0,
+      "filenameLabels": 0,
+      "fallbacks": 9,
+      "errors": []
+    },
+    {
+      "path": "/gallery",
+      "width": 390,
+      "javaScriptEnabled": true,
+      "overflow": false,
+      "emptyImages": 0,
+      "filenameLabels": 0,
+      "fallbacks": 0,
+      "errors": []
+    },
+    {
+      "path": "/toddler-baby-photography-erode",
+      "width": 390,
+      "javaScriptEnabled": true,
+      "overflow": false,
+      "emptyImages": 0,
+      "filenameLabels": 0,
+      "fallbacks": 5,
+      "errors": []
+    },
+    {
+      "path": "/newborn-baby-photography-erode",
+      "width": 1440,
+      "javaScriptEnabled": false,
+      "heading": "Newborn baby photography in Erode",
+      "images": 16,
+      "overflow": false,
+      "canonical": "https://dollpictures.in/newborn-baby-photography-erode",
+      "sameHeading": false,
+      "errors": []
+    },
+    {
+      "path": "/wedding-photography-erode",
+      "width": 1440,
+      "javaScriptEnabled": false,
+      "heading": "Wedding photography in Erode",
+      "images": 15,
+      "overflow": false,
+      "canonical": "https://dollpictures.in/wedding-photography-erode",
+      "sameHeading": false,
+      "errors": []
+    },
+    {
+      "path": "/maternity-photography-erode",
+      "width": 1440,
+      "javaScriptEnabled": false,
+      "heading": "Maternity photography in Erode",
+      "images": 15,
+      "overflow": false,
+      "canonical": "https://dollpictures.in/maternity-photography-erode",
+      "sameHeading": false,
+      "errors": []
+    },
+    {
+      "path": "/newborn-baby-photography-erode",
+      "width": 1440,
+      "javaScriptEnabled": true,
+      "heading": "Newborn baby photography in Erode",
+      "images": 17,
+      "overflow": false,
+      "canonical": "https://dollpictures.in/newborn-baby-photography-erode",
+      "sameHeading": true,
+      "errors": []
+    },
+    {
+      "path": "/wedding-photography-erode",
+      "width": 1440,
+      "javaScriptEnabled": true,
+      "heading": "Wedding photography in Erode",
+      "images": 17,
+      "overflow": false,
+      "canonical": "https://dollpictures.in/wedding-photography-erode",
+      "sameHeading": true,
+      "errors": []
+    },
+    {
+      "path": "/maternity-photography-erode",
+      "width": 1440,
+      "javaScriptEnabled": true,
+      "heading": "Maternity photography in Erode",
+      "images": 17,
+      "overflow": false,
+      "canonical": "https://dollpictures.in/maternity-photography-erode",
+      "sameHeading": true,
+      "errors": []
+    },
+    {
+      "path": "/",
+      "width": 1440,
+      "javaScriptEnabled": true,
+      "overflow": false,
+      "emptyImages": 0,
+      "filenameLabels": 0,
+      "fallbacks": 4,
+      "errors": []
+    },
+    {
+      "path": "/services",
+      "width": 1440,
+      "javaScriptEnabled": true,
+      "overflow": false,
+      "emptyImages": 0,
+      "filenameLabels": 0,
+      "fallbacks": 9,
+      "errors": []
+    },
+    {
+      "path": "/gallery",
+      "width": 1440,
+      "javaScriptEnabled": true,
+      "overflow": false,
+      "emptyImages": 0,
+      "filenameLabels": 0,
+      "fallbacks": 0,
+      "errors": []
+    },
+    {
+      "path": "/toddler-baby-photography-erode",
+      "width": 1440,
+      "javaScriptEnabled": true,
+      "overflow": false,
+      "emptyImages": 0,
+      "filenameLabels": 0,
+      "fallbacks": 6,
+      "errors": []
+    }
+  ]
+}

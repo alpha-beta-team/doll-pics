@@ -1,0 +1,5 @@
+
+> doll-pics@0.0.0 seo:html-smoke
+> tsx scripts/check-public-html-deployment.ts --require-cms
+
+Public HTML smoke passed: 3 rendered services, route snapshots, metadata, exclusions and true 404.

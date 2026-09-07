@@ -26,17 +26,29 @@ if (window.location.pathname !== '/') {
 
 captureAttribution();
 
-const rootElement = document.getElementById('root')!;
-const snapshot = readPublicSnapshot();
-if (snapshot && rootElement.hasChildNodes()) {
-  void import('./pages/ServicePage').then(({ ServicePage }) => {
-    hydrateRoot(rootElement, <StrictMode><App snapshot={snapshot} PilotPage={ServicePage} /></StrictMode>);
-  });
-} else {
-  createRoot(rootElement).render(<StrictMode><App /></StrictMode>);
-}
+async function startApp() {
+  if (import.meta.env.DEV) {
+    const { clearDevelopmentServiceWorker } = await import('./lib/devServiceWorker');
+    if (await clearDevelopmentServiceWorker()) {
+      // Discard modules already delivered by the old worker before it was removed.
+      window.location.reload();
+      return;
+    }
+  }
+  const rootElement = document.getElementById('root')!;
+  const snapshot = readPublicSnapshot();
+  if (snapshot && rootElement.hasChildNodes()) {
+    void import('./pages/ServicePage').then(({ ServicePage }) => {
+      hydrateRoot(rootElement, <StrictMode><App snapshot={snapshot} PilotPage={ServicePage} /></StrictMode>);
+    });
+  } else {
+    createRoot(rootElement).render(<StrictMode><App /></StrictMode>);
+  }
 
-if ('serviceWorker' in navigator && ['/admin', '/employee', '/kiosk'].some((prefix) => window.location.pathname.startsWith(prefix))) {
+}
+void startApp();
+
+if (import.meta.env.PROD && 'serviceWorker' in navigator && ['/admin', '/employee', '/kiosk'].some((prefix) => window.location.pathname.startsWith(prefix))) {
   window.addEventListener('load', () => {
     void navigator.serviceWorker.register('/admin-sw.js');
   });

@@ -19,7 +19,7 @@ export default defineConfig({
     command: 'npm run dev -- --host 127.0.0.1 --port 4173 --strictPort',
     url: 'http://127.0.0.1:4173',
     reuseExistingServer: false,
-    env: { VITE_API_URL: '/api', VITE_GA_MEASUREMENT_ID: 'G-LOCALTEST', VITE_META_PIXEL_ID: '1234567890' },
+    env: { DOLL_VITE_CACHE_DIR: 'node_modules/.vite-browser-tests', VITE_API_URL: '/api', VITE_GA_MEASUREMENT_ID: 'G-LOCALTEST', VITE_META_PIXEL_ID: '1234567890' },
   }, {
     command: 'node scripts/test-public-html-server.mjs',
     url: 'http://127.0.0.1:4180',

@@ -47,6 +47,8 @@ function inlineCss(): Plugin {
 
 export default defineConfig({
   plugins: [react(), inlineCss()],
+  // Test servers must not replace the optimizer cache used by a running dev tab.
+  cacheDir: process.env.DOLL_VITE_CACHE_DIR || 'node_modules/.vite',
   build: {
     cssCodeSplit: false,
   },

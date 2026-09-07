@@ -1,0 +1,5 @@
+
+> doll-pics@0.0.0 seo:smoke
+> node scripts/check-seo-deployment.mjs
+
+SEO smoke passed: 32 canonical URLs, static XML sitemap, robots reference, and true 404.

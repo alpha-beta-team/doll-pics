@@ -4,7 +4,7 @@ import { JSDOM } from 'jsdom';
 import { createServer } from 'vite';
 import type { renderPublicService } from '../../src/entry-public-server';
 
-const server = await createServer({ server: { middlewareMode: true }, appType: 'custom' });
+const server = await createServer({ cacheDir: 'node_modules/.vite-render-tests', server: { middlewareMode: true }, appType: 'custom' });
 after(() => server.close());
 const { renderPublicService: render } = await server.ssrLoadModule('/src/entry-public-server.tsx') as { renderPublicService: typeof renderPublicService };
 const photo = { id: 'fixture', title: 'Newborn fixture portrait', variants: { original: { url: '/og-share.jpg' } } };
