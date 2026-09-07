@@ -19,7 +19,8 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
     "test:browser": "playwright test",
-    "check:release": "npm run typecheck && npm run test:lib && npm run test:admin && npm run test:seo && npm run lint && npm run build"
+    "check:release": "npm run typecheck && npm run test:lib && npm run test:admin && npm run test:seo && npm run lint && npm run build",
+    "test:html": "playwright test --config playwright.public-html.config.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

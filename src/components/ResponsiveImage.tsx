@@ -55,7 +55,7 @@ export function ResponsiveImage({
       sizes={avifSrcSet || resolvedWebpSrcSet ? sizes : undefined}
       loading={loading}
       decoding={decoding}
-      fetchPriority={fetchPriority}
+      {...(fetchPriority ? { fetchpriority: fetchPriority } : {})}
       className={className}
       style={style}
       onLoad={onLoad}

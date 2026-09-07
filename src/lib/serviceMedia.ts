@@ -1,0 +1,36 @@
+import { getPhotoSources } from './api';
+import type { PublicPhoto } from '../shared/types';
+import type { ServiceImage } from './serviceImages';
+
+export interface ServiceMediaSnapshot {
+  path: string;
+  cover: ServiceImage[];
+  photos: ServiceImage[];
+  loaded: ('cover' | 'photos')[];
+}
+
+export function serviceImagesFromApi(photos: PublicPhoto[]): ServiceImage[] {
+  return photos
+    .filter(
+      (photo) =>
+        !photo.storageKey?.startsWith('seed/') &&
+        !photo.variants?.original?.url?.includes('picsum.photos'),
+    )
+    .flatMap<ServiceImage>((photo) => {
+      const sources = getPhotoSources(photo);
+      if (!sources) return [];
+      const populatedCategory = photo.categoryIds?.find(
+        (category): category is { name: string; slug: string } =>
+          typeof category === 'object' && category !== null,
+      );
+      return [{
+        src: sources.src,
+        alt: sources.alt,
+        avifSrcSet: sources.avifSrcSet,
+        webpSrcSet: sources.webpSrcSet,
+        title: photo.title,
+        category: populatedCategory?.name,
+      }];
+    });
+}
+

@@ -23,18 +23,21 @@ test('defines CMS and employee roles in their display order', () => {
   assert.deepEqual(getAccessSummary('employee'), []);
 });
 
-test('content managers can view enquiries and manage content and photos', () => {
+test('content managers manage bookings and view enquiries without content permissions', () => {
   const access = ROLE_CATALOG.content_manager.access;
-  assert.equal(access.dashboard, 'view');
+  assert.equal(access.dashboard, 'none');
   assert.equal(access.enquiries, 'view');
-  assert.equal(access.staff_profiles, 'manage');
-  assert.equal(access.photos, 'manage');
+  assert.equal(access.bookings, 'manage');
+  assert.equal(access.staff_profiles, 'none');
+  assert.equal(access.photos, 'none');
+  assert.equal(access.services, 'none');
+  assert.equal(access.site_content, 'none');
   assert.equal(access.payments, 'none');
 });
 
-test('site content access covers settings and service editor routes', () => {
-  assert.deepEqual(FEATURE_CATALOG.site_content.routes, [
-    '/admin/site-content',
+test('service editors and site settings have independent permissions', () => {
+  assert.deepEqual(FEATURE_CATALOG.site_content.routes, ['/admin/site-content']);
+  assert.deepEqual(FEATURE_CATALOG.services.routes, [
     '/admin/services',
     '/admin/services/new',
     '/admin/services/:id',
@@ -68,7 +71,7 @@ test('normalizes valid overrides and ignores unknown values', () => {
 });
 
 test('an override takes precedence over the role default', () => {
-  assert.equal(getEffectiveAccess('content_manager', 'bookings'), 'none');
+  assert.equal(getEffectiveAccess('content_manager', 'bookings'), 'manage');
   assert.equal(getEffectiveAccess('content_manager', 'bookings', { bookings: 'view' }), 'view');
   assert.equal(getEffectiveAccess('content_manager', 'photos', { photos: 'none' }), 'none');
 });

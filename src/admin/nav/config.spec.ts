@@ -18,19 +18,19 @@ const contentManager: StaffAccount = {
 };
 
 test('services and site settings are separate visible website destinations', () => {
-  const navigation = resolveNavigation(PRIMARY_NAVIGATION, contentManager);
+  const navigation = resolveNavigation(PRIMARY_NAVIGATION, { ...contentManager, role: 'owner' });
   const leaves = flattenNavigation(navigation);
   const services = leaves.find((item) => item.id === 'services');
   const settings = leaves.find((item) => item.id === 'site-content');
 
   assert.equal(services?.route, '/admin/services');
-  assert.equal(services?.access?.feature, 'site_content');
+  assert.equal(services?.access?.feature, 'services');
   assert.equal(settings?.label, 'Site Settings');
   assert.equal(settings?.route, '/admin/site-content');
 });
 
 test('nested service editor routes keep Services active in the sidebar', () => {
-  const navigation = resolveNavigation(PRIMARY_NAVIGATION, contentManager);
+  const navigation = resolveNavigation(PRIMARY_NAVIGATION, { ...contentManager, role: 'owner' });
   assert.equal(
     activeNavigationRoute(navigation, '/admin/services/507f1f77bcf86cd799439011'),
     '/admin/services',
@@ -39,4 +39,12 @@ test('nested service editor routes keep Services active in the sidebar', () => {
     activeNavigationRoute(navigation, '/admin/services/new'),
     '/admin/services',
   );
+});
+
+test('website navigation requires its own access grants', () => {
+  const leaves = flattenNavigation(resolveNavigation(PRIMARY_NAVIGATION, contentManager));
+  assert.equal(leaves.some(item => item.id === 'services' || item.id === 'site-content'), false);
+  const granted = flattenNavigation(resolveNavigation(PRIMARY_NAVIGATION, { ...contentManager, permissionOverrides: { services: 'view' } }));
+  assert.equal(granted.some(item => item.id === 'services'), true);
+  assert.equal(granted.some(item => item.id === 'site-content'), false);
 });

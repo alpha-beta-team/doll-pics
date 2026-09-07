@@ -1,6 +1,7 @@
+import { readPublicSnapshot } from './lib/publicSnapshot';
 import { captureAttribution } from './lib/attribution';
 import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
+import { createRoot, hydrateRoot } from 'react-dom/client';
 
 /* Critical self-hosted WOFF2 only (latin subset, font-display: swap).
    Dropped unused weights to cut render-blocking CSS. */
@@ -25,11 +26,15 @@ if (window.location.pathname !== '/') {
 
 captureAttribution();
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>
-);
+const rootElement = document.getElementById('root')!;
+const snapshot = readPublicSnapshot();
+if (snapshot && rootElement.hasChildNodes()) {
+  void import('./pages/ServicePage').then(({ ServicePage }) => {
+    hydrateRoot(rootElement, <StrictMode><App snapshot={snapshot} PilotPage={ServicePage} /></StrictMode>);
+  });
+} else {
+  createRoot(rootElement).render(<StrictMode><App /></StrictMode>);
+}
 
 if ('serviceWorker' in navigator && ['/admin', '/employee', '/kiosk'].some((prefix) => window.location.pathname.startsWith(prefix))) {
   window.addEventListener('load', () => {

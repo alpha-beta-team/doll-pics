@@ -14,6 +14,7 @@ import {
 function booking(overrides: Partial<Booking> = {}): Booking {
   return {
     id: 'booking-1',
+    source: '',
     customerName: 'Ananya Subramaniam',
     customerPhone: '+91 98765 43210',
     customerEmail: '',

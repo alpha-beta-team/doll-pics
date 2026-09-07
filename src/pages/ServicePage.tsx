@@ -29,8 +29,8 @@ import {
 } from '../lib/analytics';
 import { applyPageSeo, resolveServicePage } from '../lib/seo';
 import { selectServiceImages, type ServiceImage } from '../lib/serviceImages';
-import { getPhotoSources, publicApi } from '../lib/api';
-import type { PublicPhoto } from '../shared/types';
+import { publicApi } from '../lib/api';
+import { serviceImagesFromApi } from '../lib/serviceMedia';
 import { enquiryWhatsAppUrl, whatsappDigits } from '../lib/pricing';
 import {
   SHOOT_TYPE_OPTIONS,
@@ -115,35 +115,10 @@ function resolveApiServiceCategory(path: string, serviceLabel?: string): string 
     : undefined;
 }
 
-function serviceImagesFromApi(photos: PublicPhoto[]): ServiceImage[] {
-  return photos
-    .filter(
-      (photo) =>
-        !photo.storageKey?.startsWith('seed/') &&
-        !photo.variants?.original?.url?.includes('picsum.photos'),
-    )
-    .flatMap<ServiceImage>((photo) => {
-      const sources = getPhotoSources(photo);
-      if (!sources) return [];
-      const populatedCategory = photo.categoryIds?.find(
-        (category): category is { name: string; slug: string } =>
-          typeof category === 'object' && category !== null,
-      );
-      return [{
-        src: sources.src,
-        alt: sources.alt,
-        avifSrcSet: sources.avifSrcSet,
-        webpSrcSet: sources.webpSrcSet,
-        title: photo.title,
-        category: populatedCategory?.name,
-      }];
-    });
-}
-
 function ServicePageContent() {
   const { pathname } = useLocation();
   const path = normalizePathname(pathname);
-  const { siteContent } = useSiteData();
+  const { siteContent, serviceMedia } = useSiteData();
   const serviceLinks = getPublishedServiceNavLinks(
     siteContent.serviceNavLinks,
   );
@@ -155,33 +130,41 @@ function ServicePageContent() {
   const [apiServiceMedia, setApiServiceMedia] = useState<{
     path: string;
     images: ServiceImage[];
-  }>({ path: '', images: [] });
+  }>(() => ({
+    path: serviceMedia?.path ?? '',
+    images: serviceMedia
+      ? [...serviceMedia.cover, ...serviceMedia.photos.filter(
+          image => image.src.split('?')[0] !== serviceMedia.cover[0]?.src.split('?')[0],
+        )]
+      : [],
+  }));
   const lightboxTrigger = useRef<HTMLElement | null>(null);
   const otherServiceLinks = serviceLinks.filter((link) => link.path !== path);
   const apiServiceCategory = resolveApiServiceCategory(path, nav?.label);
 
   useEffect(() => {
     const controller = new AbortController();
-    setApiServiceMedia({ path, images: [] });
+    const initial = serviceMedia?.path === path ? serviceMedia : undefined;
+    if (!initial) setApiServiceMedia({ path, images: [] });
     if (!apiServiceCategory) return () => controller.abort();
-    let cover: ServiceImage[] = [];
-    let photos: ServiceImage[] = [];
+    let cover: ServiceImage[] = initial?.cover ?? [];
+    let photos: ServiceImage[] = initial?.photos ?? [];
     const commit = () => {
       if (controller.signal.aborted) return;
       const coverKey = cover[0]?.src.split('?')[0];
       setApiServiceMedia({ path, images: [...cover, ...photos.filter(image => !coverKey || image.src.split('?')[0] !== coverKey)] });
     };
-    void publicApi.getCategory(apiServiceCategory, { signal: controller.signal })
+    if (!initial?.loaded.includes('cover')) void publicApi.getCategory(apiServiceCategory, { signal: controller.signal })
       .then(category => {
         cover = category?.coverPhotoId && typeof category.coverPhotoId === 'object'
           ? serviceImagesFromApi([category.coverPhotoId]) : [];
         commit();
       }).catch(() => { /* Existing page imagery remains usable. */ });
-    void publicApi.getPhotos({ category: apiServiceCategory, limit: SERVICE_GALLERY_LIMIT }, { signal: controller.signal })
+    if (!initial?.loaded.includes('photos')) void publicApi.getPhotos({ category: apiServiceCategory, limit: SERVICE_GALLERY_LIMIT }, { signal: controller.signal })
       .then(result => { photos = serviceImagesFromApi(result); commit(); })
       .catch(() => { /* A failed gallery does not discard a successful category cover. */ });
     return () => controller.abort();
-  }, [apiServiceCategory, path]);
+  }, [apiServiceCategory, path, serviceMedia]);
 
   useEffect(() => {
     if (!page) return;

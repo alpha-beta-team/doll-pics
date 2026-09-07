@@ -1,3 +1,5 @@
+import { serializeInlineJson, shouldRenderPublicPilot } from './lib/public-html';
+import { createServer } from 'vite';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
@@ -31,13 +33,13 @@ import { buildSitemapXml } from './lib/sitemap.mjs';
 
 loadEnvFiles();
 
-const distDir = join(root, 'dist');
+const distDir = process.env.PRERENDER_DIST_DIR || join(root, 'dist');
 const siteUrl = getSiteUrl();
 const ogImage = `${siteUrl}/og-share.jpg`;
 
 const { seoPages, servicePages, packagePages, sitemapRoutes } =
   loadStaticSeoData();
-const { packagesByPath, servicesByPath, servicesLoaded, lastmodByPath, apiBase } =
+const { packagesByPath, servicesByPath, servicesLoaded, lastmodByPath, apiBase, siteContent, packageCategories } =
   await loadCmsOverlays();
 
 async function loadFirstHeroImage() {
@@ -222,24 +224,24 @@ function injectRouteHtml(template: string, page: CatalogPage) {
   const isService = page.kind === 'service';
   const isPackage = page.kind === 'package';
 
-  const businessJson = JSON.stringify(
+  const businessJson = serializeInlineJson(
     buildBusinessJsonLd(siteUrl, seoPages, { services: serviceCatalog }),
   );
-  const webpageJson = JSON.stringify(
+  const webpageJson = serializeInlineJson(
     buildWebPageJsonLd(siteUrl, { ...page, siteName }, url),
   );
   const extraScripts: string[] = [];
 
   if (path !== '/') {
     extraScripts.push(
-      `<script type="application/ld+json" id="seo-jsonld-breadcrumb">${JSON.stringify(buildBreadcrumbJsonLd(siteUrl, page))}</script>`,
+      `<script type="application/ld+json" id="seo-jsonld-breadcrumb">${serializeInlineJson(buildBreadcrumbJsonLd(siteUrl, page))}</script>`,
     );
   }
 
   const serviceLd = buildServiceOrPackageJsonLd(siteUrl, page, seoPages);
   if (serviceLd) {
     extraScripts.push(
-      `<script type="application/ld+json" id="seo-jsonld-service">${JSON.stringify(serviceLd)}</script>`,
+      `<script type="application/ld+json" id="seo-jsonld-service">${serializeInlineJson(serviceLd)}</script>`,
     );
   }
 
@@ -252,7 +254,7 @@ function injectRouteHtml(template: string, page: CatalogPage) {
   const faqLd = buildFaqPageJsonLd(faqs);
   if (faqLd) {
     extraScripts.push(
-      `<script type="application/ld+json" id="seo-jsonld-faq">${JSON.stringify(faqLd)}</script>`,
+      `<script type="application/ld+json" id="seo-jsonld-faq">${serializeInlineJson(faqLd)}</script>`,
     );
   }
 
@@ -497,11 +499,37 @@ function inject404Html(template: string) {
 const template = splitAdminStyles(
   readFileSync(join(distDir, 'index.html'), 'utf8'),
 );
+// Render only the published pilot. The same Vite transforms serve browser and Node modules.
+const pilotPath = '/newborn-baby-photography-erode';
+let pilot: { html: string; snapshot: unknown } | undefined;
+if (pages[pilotPath] && shouldRenderPublicPilot(pilotPath, servicesLoaded, servicesByPath)) {
+  const loadOptional = async (path: string) => {
+    if (!apiBase) return undefined;
+    try { return await fetchJson(`${apiBase}${path}`); }
+    catch { console.warn('Public HTML: optional service media unavailable'); return undefined; }
+  };
+  const [cover, photos] = await Promise.all([
+    loadOptional('/categories/newborn'), loadOptional('/photos?category=newborn&limit=30'),
+  ]);
+  const server = await createServer({ server: { middlewareMode: true }, appType: 'custom' });
+  try {
+    const { renderPublicPilot } = await server.ssrLoadModule('/src/entry-public-server.tsx');
+    pilot = await renderPublicPilot({ siteContent, categories: packageCategories, cover: cover && typeof cover === 'object' && !Array.isArray(cover) ? cover : undefined, photos: Array.isArray(photos) ? photos : undefined });
+  } finally { await server.close(); }
+}
+
 const written: string[] = [];
 
 for (const page of Object.values(pages)) {
   if (!page?.path) continue;
-  const html = injectRouteHtml(template, page);
+  let html = injectRouteHtml(template, page);
+  if (page.path === pilotPath && pilot) {
+    const serialized = serializeInlineJson(pilot.snapshot);
+    html = html.replace(/<noscript>[\s\S]*?<\/noscript>/g, '');
+    html = html.replace('<div id="root"></div>', () => `<div id="root" data-public-html="${pilotPath}">${pilot!.html}</div><script id="public-page-snapshot" type="application/json">${serialized}</script>`);
+    // Server-rendered gallery content must be visible without observer JavaScript.
+    html = html.replace('</head>', '<style>[data-public-html] .services-editorial .reveal,[data-public-html] .services-editorial .reveal-blur{opacity:1;transform:none;filter:none}</style></head>');
+  }
   written.push(writeRoute(page.path, html));
 }
 

@@ -1,3 +1,4 @@
+import type { ServiceMediaSnapshot } from '../lib/serviceMedia';
 import { PublicRequestError, publicFailure } from '../lib/publicRequest';
 import {
   createContext,
@@ -84,6 +85,7 @@ export interface ServiceItem {
 }
 
 export interface SiteData {
+  serviceMedia?: ServiceMediaSnapshot;
   siteContent: PublicSiteContent;
   heroSlides: PublicHeroSlide[];
   storyScenes: PublicStoryScene[];
@@ -322,7 +324,7 @@ function readBuildTimeHero(): PublicHeroSlide[] {
     : fallbackHeroSlides;
 }
 
-type CmsResource = 'siteContent' | 'hero' | 'categories' | 'storyScenes' | 'stats'
+export type CmsResource = 'siteContent' | 'hero' | 'categories' | 'storyScenes' | 'stats'
   | 'testimonials' | 'behindScenes' | 'featuredPhotos' | 'galleryPhotos' | 'packages' | 'staffProfiles';
 const CRITICAL_RESOURCES: CmsResource[] = ['siteContent', 'hero', 'categories'];
 const ROUTING_RESOURCES: CmsResource[] = ['siteContent', 'categories'];
@@ -341,11 +343,11 @@ function collection<T>(value: T[]): T[] {
 }
 
 /** Each resource produces its own patch; another endpoint cannot discard it. */
-async function loadResource(resource: CmsResource, signal: AbortSignal): Promise<SitePatch> {
+async function loadResource(resource: CmsResource, signal: AbortSignal, supplied?: { siteContent?: PublicSiteContent; categories?: PublicPackageCategory[] }): Promise<SitePatch> {
   const init = { signal };
   switch (resource) {
     case 'siteContent': {
-      const content = await publicApi.getSiteContent(init);
+      const content = supplied?.siteContent ?? await publicApi.getSiteContent(init);
       if (!content || typeof content !== 'object' || Array.isArray(content)) throw new PublicRequestError('invalid_response');
       const serviceNavLinks = normalizeServiceNavLinks(content.serviceNavLinks);
       return {
@@ -367,7 +369,7 @@ async function loadResource(resource: CmsResource, signal: AbortSignal): Promise
       return slides.length ? { heroSlides: slides } : {};
     }
     case 'categories': {
-      const result = collection(await publicApi.getPackageCategories(init));
+      const result = collection(supplied?.categories ?? await publicApi.getPackageCategories(init));
       const categories = result.length ? result.map((c, index) => ({
         name: c.name, slug: c.slug, path: c.path, description: c.description,
         seoTitle: c.seoTitle, seoDescription: c.seoDescription, heading: c.heading, lead: c.lead,
@@ -403,16 +405,34 @@ async function loadResource(resource: CmsResource, signal: AbortSignal): Promise
   }
 }
 
-export function SiteDataProvider({ children }: { children: ReactNode }) {
+export async function createPrerenderSiteData(content?: PublicSiteContent, categories?: PublicPackageCategory[]) {
+  let data: SiteData = { ...fallbackData, loading: false, fromApi: false };
+  const loaded: CmsResource[] = [];
+  const supplied = { siteContent: content, categories };
+  for (const resource of ['siteContent', 'categories'] as const) {
+    if (supplied[resource] === undefined) continue;
+    const patch = await loadResource(resource, new AbortController().signal, supplied);
+    data = { ...data, ...(typeof patch === 'function' ? patch(data) : patch), fromApi: true };
+    loaded.push(resource);
+  }
+  // Embed only the public view model, never the raw CMS response or metadata.
+  data.siteContent = Object.fromEntries(Object.keys(defaultSiteContent).map(key => [key, data.siteContent[key as keyof PublicSiteContent]])) as PublicSiteContent;
+  data.siteContent.serviceNavLinks = getPublishedServiceNavLinks(data.siteContent.serviceNavLinks);
+  return { data, loaded };
+}
+
+export function SiteDataProvider({ children, initialData, initialLoaded = [] }: {
+  children: ReactNode; initialData?: SiteData; initialLoaded?: CmsResource[];
+}) {
   const { pathname } = useLocation();
-  const [data, setData] = useState<SiteData>(() => ({
+  const [data, setData] = useState<SiteData>(() => initialData ?? ({
     ...fallbackData, heroSlides: readBuildTimeHero(), loading: true, fromApi: false,
   }));
   const mounted = useRef(false);
-  const loaded = useRef(new Set<CmsResource>());
+  const loaded = useRef(new Set<CmsResource>(initialLoaded));
   const failed = useRef(new Map<CmsResource, number>());
   const inflight = useRef(new Map<CmsResource, AbortController>());
-  const settled = useRef(new Set<CmsResource>());
+  const settled = useRef(new Set<CmsResource>(initialLoaded));
   const desired = useRef(new Set<CmsResource>(CRITICAL_RESOURCES));
   const lastPath = useRef(pathname);
 

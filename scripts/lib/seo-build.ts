@@ -1,3 +1,4 @@
+import type { PublicSiteContent, PublicPackageCategory } from '../../src/shared/types';
 /**
  * Build-time SEO — Node loaders + re-exports from shared seo-core.
  */
@@ -100,6 +101,8 @@ export function assertCatalogCoverage(
 }
 
 export interface CmsOverlays {
+  siteContent?: PublicSiteContent;
+  packageCategories?: PublicPackageCategory[];
   packagesByPath: Map<string, PackageNavLinkLike>;
   servicesByPath: Map<string, ServiceNavLinkLike>;
   servicesLoaded: boolean;
@@ -113,6 +116,8 @@ export async function loadCmsOverlays(): Promise<CmsOverlays> {
   const packagesByPath = new Map<string, PackageNavLinkLike>();
   const servicesByPath = new Map<string, ServiceNavLinkLike>();
   let servicesLoaded = false;
+  let publicContent: PublicSiteContent | undefined;
+  let packageCategories: PublicPackageCategory[] | undefined;
 
   if (!apiBase) {
     return { packagesByPath, servicesByPath, servicesLoaded, lastmodByPath, apiBase: '' };
@@ -121,6 +126,7 @@ export async function loadCmsOverlays(): Promise<CmsOverlays> {
   try {
     const categories = await fetchJson(`${apiBase}/package-categories`);
     if (Array.isArray(categories)) {
+      packageCategories = categories;
       for (const c of categories) {
         const path = normalizePath(c?.path);
         if (!path) continue;
@@ -144,6 +150,8 @@ export async function loadCmsOverlays(): Promise<CmsOverlays> {
 
   try {
     const siteContent = await fetchJson(`${apiBase}/site-content`);
+    if (!siteContent || typeof siteContent !== 'object' || Array.isArray(siteContent)) throw new Error('Invalid public site content');
+    publicContent = siteContent;
     const links = Array.isArray(siteContent?.serviceNavLinks)
       ? siteContent.serviceNavLinks
       : [];
@@ -180,7 +188,7 @@ export async function loadCmsOverlays(): Promise<CmsOverlays> {
     console.warn('SEO build: site-content services unavailable:', message);
   }
 
-  return { packagesByPath, servicesByPath, servicesLoaded, lastmodByPath, apiBase };
+  return { packagesByPath, servicesByPath, servicesLoaded, lastmodByPath, apiBase, siteContent: publicContent, packageCategories };
 }
 
 /** Validate the resolved catalog, including CMS-only routes, before emitting HTML. */

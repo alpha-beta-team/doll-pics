@@ -1,4 +1,5 @@
-import { Suspense, lazy } from 'react';
+import type { PublicSnapshot } from './lib/publicSnapshot';
+import { Suspense, lazy, type ComponentType } from 'react';
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import { GoogleAnalytics } from './components/GoogleAnalytics';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -58,10 +59,10 @@ function PublicBusinessSeo() {
   return null;
 }
 
-function PublicLayout() {
+function PublicLayout({ snapshot }: { snapshot?: PublicSnapshot }) {
   return (
-    <ThemeProvider>
-      <SiteDataProvider>
+    <ThemeProvider initialTheme={snapshot ? 'dark' : undefined}>
+      <SiteDataProvider initialData={snapshot?.data} initialLoaded={snapshot?.loaded}>
         <PublicBusinessSeo />
         <Outlet />
       </SiteDataProvider>
@@ -69,9 +70,11 @@ function PublicLayout() {
   );
 }
 
-function App() {
+interface AppProps { snapshot?: PublicSnapshot; PilotPage?: ComponentType }
+
+export function AppRoutes({ snapshot, PilotPage }: AppProps) {
   return (
-    <BrowserRouter>
+    <>
       <GoogleAnalytics />
       <Routes>
         <Route
@@ -106,7 +109,8 @@ function App() {
             </Suspense>
           }
         />
-        <Route element={<PublicLayout />}>
+        <Route element={<PublicLayout snapshot={snapshot} />}>
+          {snapshot && PilotPage ? <Route path={snapshot.path} element={<PilotPage />} /> : null}
           <Route path="/" element={<Site />} />
           <Route
             path="/packages"
@@ -169,8 +173,11 @@ function App() {
           />
         </Route>
       </Routes>
-    </BrowserRouter>
+    </>
   );
 }
 
+function App(props: AppProps) {
+  return <BrowserRouter><AppRoutes {...props} /></BrowserRouter>;
+}
 export default App;

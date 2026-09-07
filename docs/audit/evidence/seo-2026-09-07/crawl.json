@@ -1,0 +1,584 @@
+{
+  "date": "2026-09-07",
+  "method": "Anonymous HTTP GET of all sitemap URLs; HTML parsed without executing JavaScript; body metrics exclude script, style and noscript. Word counts are approximate diagnostics, not ranking scores.",
+  "pages": [
+    {
+      "url": "https://dollpictures.in",
+      "status": 200,
+      "canonical": "https://dollpictures.in/",
+      "title": "Wedding & Baby Photography in Erode | Doll Pictures",
+      "description": "Wedding, maternity, newborn, milestone and family photography in Erode. Capture your precious moments with Doll Pictures.",
+      "robots": "index, follow",
+      "h1": [],
+      "words": 1,
+      "noscriptWords": 59,
+      "rootChars": 0,
+      "schemaTypes": [
+        "LocalBusiness",
+        "WebPage"
+      ]
+    },
+    {
+      "url": "https://dollpictures.in/gallery",
+      "status": 200,
+      "canonical": "https://dollpictures.in/gallery",
+      "title": "Photography Gallery | Doll Pictures",
+      "description": "Browse the Doll Pictures gallery — cinematic stills from weddings, maternity, newborn and family sessions captured with emotion and craft.",
+      "robots": "index, follow",
+      "h1": [],
+      "words": 1,
+      "noscriptWords": 49,
+      "rootChars": 0,
+      "schemaTypes": [
+        "LocalBusiness",
+        "WebPage",
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "url": "https://dollpictures.in/work",
+      "status": 200,
+      "canonical": "https://dollpictures.in/work",
+      "title": "Featured Photography Work | Doll Pictures",
+      "description": "Explore cinematic wedding, maternity, newborn and family photography by Doll Pictures, with portfolio highlights from Erode and across Tamil Nadu.",
+      "robots": "index, follow",
+      "h1": [],
+      "words": 1,
+      "noscriptWords": 44,
+      "rootChars": 0,
+      "schemaTypes": [
+        "LocalBusiness",
+        "WebPage",
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "url": "https://dollpictures.in/services",
+      "status": 200,
+      "canonical": "https://dollpictures.in/services",
+      "title": "Photography Services in Erode | Doll Pictures",
+      "description": "Explore wedding, maternity, newborn, baby, toddler, cake smash, birthday and family photography services from Doll Pictures in Erode.",
+      "robots": "index, follow",
+      "h1": [],
+      "words": 1,
+      "noscriptWords": 87,
+      "rootChars": 0,
+      "schemaTypes": [
+        "LocalBusiness",
+        "WebPage",
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "url": "https://dollpictures.in/stories",
+      "status": 200,
+      "canonical": "https://dollpictures.in/stories",
+      "title": "Client Reviews & Stories | Doll Pictures",
+      "description": "Read honest reviews from couples and families who trusted Doll Pictures with weddings, maternity, newborn and celebration sessions.",
+      "robots": "index, follow",
+      "h1": [],
+      "words": 1,
+      "noscriptWords": 47,
+      "rootChars": 0,
+      "schemaTypes": [
+        "LocalBusiness",
+        "WebPage",
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "url": "https://dollpictures.in/packages",
+      "status": 200,
+      "canonical": "https://dollpictures.in/packages",
+      "title": "Photography Packages in Erode | Doll Pictures",
+      "description": "Browse wedding, maternity, newborn and family photography packages in Erode. Compare inclusions by category, then enquire with Doll Pictures.",
+      "robots": "index, follow",
+      "h1": [],
+      "words": 1,
+      "noscriptWords": 70,
+      "rootChars": 0,
+      "schemaTypes": [
+        "LocalBusiness",
+        "WebPage",
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "url": "https://dollpictures.in/contact",
+      "status": 200,
+      "canonical": "https://dollpictures.in/contact",
+      "title": "Contact Our Erode Photography Studio | Doll Pictures",
+      "description": "Contact Doll Pictures in Erode for wedding, maternity, newborn and family photography. Share your plans and receive a reply within 24 hours.",
+      "robots": "index, follow",
+      "h1": [],
+      "words": 1,
+      "noscriptWords": 57,
+      "rootChars": 0,
+      "schemaTypes": [
+        "LocalBusiness",
+        "WebPage",
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "url": "https://dollpictures.in/about",
+      "status": 200,
+      "canonical": "https://dollpictures.in/about",
+      "title": "Ramya Vignesh & Our Erode Studio | Doll Pictures",
+      "description": "Meet Ramya Vignesh and the Doll Pictures team at our Erode photography studio, serving couples and families across Tamil Nadu.",
+      "robots": "index, follow",
+      "h1": [],
+      "words": 1,
+      "noscriptWords": 51,
+      "rootChars": 0,
+      "schemaTypes": [
+        "LocalBusiness",
+        "WebPage",
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "url": "https://dollpictures.in/wedding-photography-erode",
+      "status": 200,
+      "canonical": "https://dollpictures.in/wedding-photography-erode",
+      "title": "Wedding Photographers in Erode | Doll Pictures",
+      "description": "Candid and cinematic wedding photography in Erode, with pre-wedding shoots, films, albums and personalized coverage across Tamil Nadu.",
+      "robots": "index, follow",
+      "h1": [],
+      "words": 1,
+      "noscriptWords": 216,
+      "rootChars": 0,
+      "schemaTypes": [
+        "LocalBusiness",
+        "WebPage",
+        "BreadcrumbList",
+        "Service",
+        "FAQPage"
+      ]
+    },
+    {
+      "url": "https://dollpictures.in/privacy",
+      "status": 200,
+      "canonical": "https://dollpictures.in/privacy",
+      "title": "Privacy Policy | Doll Pictures",
+      "description": "How Doll Pictures collects, uses, and protects personal information when you visit our website or enquire about photography services.",
+      "robots": "index, follow",
+      "h1": [],
+      "words": 1,
+      "noscriptWords": 38,
+      "rootChars": 0,
+      "schemaTypes": [
+        "LocalBusiness",
+        "WebPage",
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "url": "https://dollpictures.in/booking",
+      "status": 200,
+      "canonical": "https://dollpictures.in/booking",
+      "title": "Book a Photography Session in Erode | Doll Pictures",
+      "description": "Book wedding, maternity, newborn or family photography with Doll Pictures in Erode. Free consultation — travel across Tamil Nadu available.",
+      "robots": "index, follow",
+      "h1": [],
+      "words": 1,
+      "noscriptWords": 227,
+      "rootChars": 0,
+      "schemaTypes": [
+        "LocalBusiness",
+        "WebPage",
+        "BreadcrumbList",
+        "FAQPage"
+      ]
+    },
+    {
+      "url": "https://dollpictures.in/terms",
+      "status": 200,
+      "canonical": "https://dollpictures.in/terms",
+      "title": "Terms of Service | Doll Pictures",
+      "description": "Terms governing use of the Doll Pictures website and photography services provided in Erode, Tamil Nadu.",
+      "robots": "index, follow",
+      "h1": [],
+      "words": 1,
+      "noscriptWords": 38,
+      "rootChars": 0,
+      "schemaTypes": [
+        "LocalBusiness",
+        "WebPage",
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "url": "https://dollpictures.in/maternity-photography-erode",
+      "status": 200,
+      "canonical": "https://dollpictures.in/maternity-photography-erode",
+      "title": "Maternity Photoshoot in Erode | Doll Pictures",
+      "description": "Personalized maternity photography in Erode with studio and outdoor concepts, styling guidance and family portraits — available across Tamil Nadu.",
+      "robots": "index, follow",
+      "h1": [],
+      "words": 1,
+      "noscriptWords": 214,
+      "rootChars": 0,
+      "schemaTypes": [
+        "LocalBusiness",
+        "WebPage",
+        "BreadcrumbList",
+        "Service",
+        "FAQPage"
+      ]
+    },
+    {
+      "url": "https://dollpictures.in/newborn-baby-photography-erode",
+      "status": 200,
+      "canonical": "https://dollpictures.in/newborn-baby-photography-erode",
+      "title": "Newborn Baby Photography in Erode | Doll Pictures",
+      "description": "Safe, baby-friendly newborn sessions in the Erode studio with custom themes, gentle posing and professional editing — travel across Tamil Nadu available.",
+      "robots": "index, follow",
+      "h1": [],
+      "words": 1,
+      "noscriptWords": 209,
+      "rootChars": 0,
+      "schemaTypes": [
+        "LocalBusiness",
+        "WebPage",
+        "BreadcrumbList",
+        "Service",
+        "FAQPage"
+      ]
+    },
+    {
+      "url": "https://dollpictures.in/baby-milestone-photography-erode",
+      "status": 200,
+      "canonical": "https://dollpictures.in/baby-milestone-photography-erode",
+      "title": "Baby Milestone Photography in Erode | Doll Pictures",
+      "description": "Celebrate three-month, six-month and first-year milestones with baby photography in Erode — gentle sessions for families across Tamil Nadu.",
+      "robots": "index, follow",
+      "h1": [],
+      "words": 1,
+      "noscriptWords": 195,
+      "rootChars": 0,
+      "schemaTypes": [
+        "LocalBusiness",
+        "WebPage",
+        "BreadcrumbList",
+        "Service",
+        "FAQPage"
+      ]
+    },
+    {
+      "url": "https://dollpictures.in/cake-smash-photography-erode",
+      "status": 200,
+      "canonical": "https://dollpictures.in/cake-smash-photography-erode",
+      "title": "Cake Smash Photography in Erode | Doll Pictures",
+      "description": "Fun, styled cake smash photography in Erode for first birthdays — messy joy, clean portraits and memories for families across Tamil Nadu.",
+      "robots": "index, follow",
+      "h1": [],
+      "words": 1,
+      "noscriptWords": 209,
+      "rootChars": 0,
+      "schemaTypes": [
+        "LocalBusiness",
+        "WebPage",
+        "BreadcrumbList",
+        "Service",
+        "FAQPage"
+      ]
+    },
+    {
+      "url": "https://dollpictures.in/birthday-event-photography-erode",
+      "status": 200,
+      "canonical": "https://dollpictures.in/birthday-event-photography-erode",
+      "title": "Birthday Event Photography in Erode | Doll Pictures",
+      "description": "Birthday event photography in Erode covering décor, games, cake cutting, candid moments and family portraits, with professional editing and albums.",
+      "robots": "index, follow",
+      "h1": [],
+      "words": 1,
+      "noscriptWords": 95,
+      "rootChars": 0,
+      "schemaTypes": [
+        "LocalBusiness",
+        "WebPage",
+        "BreadcrumbList",
+        "Service"
+      ]
+    },
+    {
+      "url": "https://dollpictures.in/family-photography-erode",
+      "status": 200,
+      "canonical": "https://dollpictures.in/family-photography-erode",
+      "title": "Family Photography in Erode | Doll Pictures",
+      "description": "Warm, cinematic family photography in Erode — studio and outdoor sessions for parents, children and extended family across Tamil Nadu.",
+      "robots": "index, follow",
+      "h1": [],
+      "words": 1,
+      "noscriptWords": 205,
+      "rootChars": 0,
+      "schemaTypes": [
+        "LocalBusiness",
+        "WebPage",
+        "BreadcrumbList",
+        "Service",
+        "FAQPage"
+      ]
+    },
+    {
+      "url": "https://dollpictures.in/toddler-baby-photography-erode",
+      "status": 200,
+      "canonical": "https://dollpictures.in/toddler-baby-photography-erode",
+      "title": "Toddler Baby Photoshoot in Erode | Doll Pictures",
+      "description": "Capture your child’s playful personality with creative toddler baby photoshoots in Erode, featuring fun themes, candid moments and beautiful family portraits.",
+      "robots": "index, follow",
+      "h1": [],
+      "words": 1,
+      "noscriptWords": 93,
+      "rootChars": 0,
+      "schemaTypes": [
+        "LocalBusiness",
+        "WebPage",
+        "BreadcrumbList",
+        "Service"
+      ]
+    },
+    {
+      "url": "https://dollpictures.in/baby-shower-photography-erode",
+      "status": 200,
+      "canonical": "https://dollpictures.in/baby-shower-photography-erode",
+      "title": "Baby Shower Photography in Erode | Doll Pictures",
+      "description": "Baby shower photography in Erode with candid moments, traditional ceremony coverage, family portraits, professional editing and premium albums.",
+      "robots": "index, follow",
+      "h1": [],
+      "words": 1,
+      "noscriptWords": 134,
+      "rootChars": 0,
+      "schemaTypes": [
+        "LocalBusiness",
+        "WebPage",
+        "BreadcrumbList",
+        "Service"
+      ]
+    },
+    {
+      "url": "https://dollpictures.in/fashion-photography-erode",
+      "status": 200,
+      "canonical": "https://dollpictures.in/fashion-photography-erode",
+      "title": "Fashion Photography in Erode | Doll Pictures",
+      "description": "Fashion photography in Erode for models, designers, brands and creators, with creative concepts, guided posing, refined lighting and professional editing.",
+      "robots": "index, follow",
+      "h1": [],
+      "words": 1,
+      "noscriptWords": 93,
+      "rootChars": 0,
+      "schemaTypes": [
+        "LocalBusiness",
+        "WebPage",
+        "BreadcrumbList",
+        "Service"
+      ]
+    },
+    {
+      "url": "https://dollpictures.in/kids-photography-erode",
+      "status": 200,
+      "canonical": "https://dollpictures.in/kids-photography-erode",
+      "title": "Kids Photography in Erode | Doll Pictures",
+      "description": "Creative kids photography in Erode for growing children, with age-appropriate themes, candid portraits, relaxed direction and professional editing.",
+      "robots": "index, follow",
+      "h1": [],
+      "words": 1,
+      "noscriptWords": 92,
+      "rootChars": 0,
+      "schemaTypes": [
+        "LocalBusiness",
+        "WebPage",
+        "BreadcrumbList",
+        "Service"
+      ]
+    },
+    {
+      "url": "https://dollpictures.in/ear-piercing-photography-erode",
+      "status": 200,
+      "canonical": "https://dollpictures.in/ear-piercing-photography-erode",
+      "title": "Ear Piercing & Tonsure Photography in Erode | Doll Pictures",
+      "description": "Ear piercing and tonsure ceremony photography in Erode, capturing traditional rituals, family blessings, candid emotions and beautifully edited portraits.",
+      "robots": "index, follow",
+      "h1": [],
+      "words": 1,
+      "noscriptWords": 109,
+      "rootChars": 0,
+      "schemaTypes": [
+        "LocalBusiness",
+        "WebPage",
+        "BreadcrumbList",
+        "Service"
+      ]
+    },
+    {
+      "url": "https://dollpictures.in/wedding-packages-erode",
+      "status": 200,
+      "canonical": "https://dollpictures.in/wedding-packages-erode",
+      "title": "Wedding Photography Packages in Erode | Doll Pictures",
+      "description": "Compare wedding photography packages in Erode — cinematic coverage, films and albums. Transparent inclusions from DOLL PICTURES for couples across Tamil Nadu.",
+      "robots": "index, follow",
+      "h1": [],
+      "words": 1,
+      "noscriptWords": 408,
+      "rootChars": 0,
+      "schemaTypes": [
+        "LocalBusiness",
+        "WebPage",
+        "BreadcrumbList",
+        "Service",
+        "FAQPage"
+      ]
+    },
+    {
+      "url": "https://dollpictures.in/newborn-packages-erode",
+      "status": 200,
+      "canonical": "https://dollpictures.in/newborn-packages-erode",
+      "title": "Newborn Photography Packages in Erode | Doll Pictures",
+      "description": "Newborn photography packages in Erode — safe, baby-friendly studio sessions with gentle posing and soft editing. Book DOLL PICTURES.",
+      "robots": "index, follow",
+      "h1": [],
+      "words": 1,
+      "noscriptWords": 245,
+      "rootChars": 0,
+      "schemaTypes": [
+        "LocalBusiness",
+        "WebPage",
+        "BreadcrumbList",
+        "Service",
+        "FAQPage"
+      ]
+    },
+    {
+      "url": "https://dollpictures.in/baby-milestone-packages-erode",
+      "status": 200,
+      "canonical": "https://dollpictures.in/baby-milestone-packages-erode",
+      "title": "Baby Milestone Photography Packages in Erode | Doll Pictures",
+      "description": "Baby milestone photography packages in Erode — sitters, crawl and early celebration sessions. Clear inclusions from DOLL PICTURES.",
+      "robots": "index, follow",
+      "h1": [],
+      "words": 1,
+      "noscriptWords": 196,
+      "rootChars": 0,
+      "schemaTypes": [
+        "LocalBusiness",
+        "WebPage",
+        "BreadcrumbList",
+        "Service",
+        "FAQPage"
+      ]
+    },
+    {
+      "url": "https://dollpictures.in/pre-wedding-packages-erode",
+      "status": 200,
+      "canonical": "https://dollpictures.in/pre-wedding-packages-erode",
+      "title": "Pre-Wedding Photography Packages in Erode | Doll Pictures",
+      "description": "Pre-wedding photography packages in Erode — romantic sessions, cinematic films and styled locations. Book with DOLL PICTURES across Tamil Nadu.",
+      "robots": "index, follow",
+      "h1": [],
+      "words": 1,
+      "noscriptWords": 268,
+      "rootChars": 0,
+      "schemaTypes": [
+        "LocalBusiness",
+        "WebPage",
+        "BreadcrumbList",
+        "Service",
+        "FAQPage"
+      ]
+    },
+    {
+      "url": "https://dollpictures.in/maternity-packages-erode",
+      "status": 200,
+      "canonical": "https://dollpictures.in/maternity-packages-erode",
+      "title": "Maternity Photography Packages in Erode | Doll Pictures",
+      "description": "Maternity photography packages in Erode — tender studio and outdoor portraits celebrating new beginnings. Clear inclusions from DOLL PICTURES.",
+      "robots": "index, follow",
+      "h1": [],
+      "words": 1,
+      "noscriptWords": 228,
+      "rootChars": 0,
+      "schemaTypes": [
+        "LocalBusiness",
+        "WebPage",
+        "BreadcrumbList",
+        "Service",
+        "FAQPage"
+      ]
+    },
+    {
+      "url": "https://dollpictures.in/toddler-baby-shoot-packages-erode",
+      "status": 200,
+      "canonical": "https://dollpictures.in/toddler-baby-shoot-packages-erode",
+      "title": "Toddler Baby Photoshoot Packages in Erode | Doll Pictures",
+      "description": "Looking for the best toddler baby photoshoot in Erode? Explore affordable packages with creative themes, costumes, props & edited photos at Doll Pictures.",
+      "robots": "index, follow",
+      "h1": [],
+      "words": 1,
+      "noscriptWords": 123,
+      "rootChars": 0,
+      "schemaTypes": [
+        "LocalBusiness",
+        "WebPage",
+        "BreadcrumbList",
+        "Service"
+      ]
+    },
+    {
+      "url": "https://dollpictures.in/cake-smash-packages-erode",
+      "status": 200,
+      "canonical": "https://dollpictures.in/cake-smash-packages-erode",
+      "title": "Cake Smash Photography Packages in Erode | Doll Pictures",
+      "description": "Cake smash photography packages in Erode — playful first-birthday sessions full of colour and joy. Book DOLL PICTURES.",
+      "robots": "index, follow",
+      "h1": [],
+      "words": 1,
+      "noscriptWords": 192,
+      "rootChars": 0,
+      "schemaTypes": [
+        "LocalBusiness",
+        "WebPage",
+        "BreadcrumbList",
+        "Service",
+        "FAQPage"
+      ]
+    },
+    {
+      "url": "https://dollpictures.in/family-packages-erode",
+      "status": 200,
+      "canonical": "https://dollpictures.in/family-packages-erode",
+      "title": "Family Photography Packages in Erode | Doll Pictures",
+      "description": "Family photography packages in Erode — warm multi-generation portraits for studio and outdoor sessions. Book DOLL PICTURES across Tamil Nadu.",
+      "robots": "index, follow",
+      "h1": [],
+      "words": 1,
+      "noscriptWords": 213,
+      "rootChars": 0,
+      "schemaTypes": [
+        "LocalBusiness",
+        "WebPage",
+        "BreadcrumbList",
+        "Service",
+        "FAQPage"
+      ]
+    },
+    {
+      "url": "https://dollpictures.in/baby-shower-packages-erode",
+      "status": 200,
+      "canonical": "https://dollpictures.in/baby-shower-packages-erode",
+      "title": "Baby Shower Photography Packages in Erode | Doll Pictures",
+      "description": "Explore baby shower photography packages in Erode with candid coverage, edited photos, premium albums and cinematic memories from Doll Pictures.",
+      "robots": "index, follow",
+      "h1": [],
+      "words": 1,
+      "noscriptWords": 126,
+      "rootChars": 0,
+      "schemaTypes": [
+        "LocalBusiness",
+        "WebPage",
+        "BreadcrumbList",
+        "Service"
+      ]
+    }
+  ]
+}

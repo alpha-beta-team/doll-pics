@@ -1,8 +1,8 @@
 # Doll Pictures improvement roadmap
 
 Created: 2026-09-05
-Last updated: 2026-09-06
-Status: Enquiry email verification completed (user confirmed 2026-09-05). Release checks repaired and locally verified; pull-request CI added, hosted run pending. Marketing attribution is implemented locally; deployment and provider checks are pending. CMS failure handling is implemented locally; deployment and live QA are pending. Later workstreams remain pending.
+Last updated: 2026-09-07
+Status: Enquiry email verification completed (user confirmed 2026-09-05). Release checks repaired and locally verified; pull-request CI added, hosted run pending. Marketing attribution is implemented locally; deployment and provider checks are pending. CMS failure handling is implemented locally; deployment and live QA are pending. Public HTML rendering has a local newborn-service pilot; live QA and expansion remain pending. Later workstreams remain pending.
 
 ## Objective
 
@@ -23,7 +23,7 @@ This document captures the priorities from the project investigation and the ema
 | 2 | Dependable release checks | Local checks pass; PR CI and isolated browser smoke suite added | Relevant checks pass before changes are released |
 | 3 | Marketing attribution and analytics | Implemented locally; deployment and provider checks pending | Campaigns can be connected to enquiries and bookings |
 | 4 | CMS failure handling | Implemented locally; deployment and live QA pending | Partial content failures do not unnecessarily degrade the whole site |
-| 5 | Public HTML rendering | Planned | Important page content is available in the initial HTML |
+| 5 | Public HTML rendering | Newborn service pilot implemented locally; live QA and expansion pending | Important page content is available in the initial HTML |
 | 6 | Admin scalability and maintainability | Planned | Lists remain usable as records grow; changes are easier to review |
 | 7 | Customer conversion and mobile experience | Experiments planned after measurement repair | Visitors can understand the offer and enquire with less friction |
 
@@ -214,7 +214,7 @@ Current local validation: typecheck passed; library **23/23**, admin **78/78**, 
 
 Implementation details, test commands, scope, and manual QA: [Public CMS failure handling](cms-resilience.md). Browser coverage exercises the actual provider against intercepted APIs; it does not establish deployment or live delivery.
 
-## 5. Render meaningful public HTML
+## 5. Render meaningful public HTML — pilot implemented locally
 
 Audit finding: the existing prerender script produces metadata and `noscript` content while leaving the React root empty. Preserve its existing sitemap, canonical, and genuine-404 behaviour.
 
@@ -227,7 +227,19 @@ Audit finding: the existing prerender script produces metadata and `noscript` co
 
 Acceptance: meaningful content is visible without JavaScript; hydration has no warnings; navigation and enquiry forms work after hydration; metadata, sitemap, and 404 checks pass; no private content is exported.
 
-Choose the smallest compatible static-rendering approach after tracing browser-only hooks and data providers. This roadmap does not authorise an unbounded framework migration.
+### Pilot implementation — 2026-09-06
+
+- [x] Render the existing newborn service page into visible React HTML during the build.
+- [x] Share an escaped public-content snapshot between the build and hydration; reuse successful initial resources.
+- [x] Keep published content, available imagery, navigation and enquiry links visible without JavaScript.
+- [x] Verify mobile/desktop hydration, saved theme, enquiry submission and navigation against isolated production-build fixtures.
+- [x] Cover offline/partial-media rendering, serialization, publication guards, SEO metadata, and 404/private-route exclusions.
+- [ ] Deploy and verify genuine CMS content, publication/rebuild freshness, and host routing in QA.
+- [ ] Expand rendering to remaining service/package pages and homepage after pilot acceptance.
+
+Revalidated 2026-09-07: typecheck passed; library **15/15**, admin **79/79**, SEO **20/20** (including four rendering/serialization/publication checks); production-browser **6/6**; lint **0 errors, 6 warnings**; production build passed with **33 files** and visible React HTML for the pilot. These counts describe the current checkout; earlier recorded suites are historical.
+
+Implementation, commands and ordered rollout: [Public HTML rendering](public-html-rendering.md). The pilot uses Vite and React already in the repository; it introduces no server runtime or framework migration.
 
 ## 6. Scale admin lists and simplify large pages
 
