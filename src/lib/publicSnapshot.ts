@@ -1,18 +1,49 @@
 import type { SiteData, CmsResource } from '../contexts/SiteDataContext';
+import { isPublicHtmlPath, type PublicHtmlPath } from './publicHtmlRoutes';
 
-export const PUBLIC_HTML_PILOT_PATH = '/newborn-baby-photography-erode';
 export interface PublicSnapshot {
   version: 1;
-  path: typeof PUBLIC_HTML_PILOT_PATH;
+  path: PublicHtmlPath;
   data: SiteData;
   loaded: CmsResource[];
 }
 
+const record = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+const strings = (value: Record<string, unknown>, keys: string[]) =>
+  keys.every(key => typeof value[key] === 'string');
+const arrayOf = (value: unknown, check: (item: unknown) => boolean) =>
+  Array.isArray(value) && value.every(check);
+const image = (value: unknown) => record(value) && strings(value, ['src', 'alt']);
+
+/** Reject malformed or cross-route HTML before it can seed a public provider. */
+export function parsePublicSnapshot(text: string, pathname: string): PublicSnapshot | undefined {
+  const path = pathname.replace(/\/$/, '');
+  if (!isPublicHtmlPath(path)) return;
+  try {
+    const value: unknown = JSON.parse(text);
+    if (!record(value) || value.version !== 1 || value.path !== path || !record(value.data)) return;
+    const data = value.data;
+    const content = data.siteContent;
+    if (!record(content) || !strings(content, ['brandName', 'phone', 'whatsapp', 'contactEmail'])
+      || !record(content.socials)
+      || !arrayOf(content.serviceNavLinks, link => record(link) && strings(link, ['label', 'path', 'description'])
+        && typeof link.isPublished === 'boolean'
+        && arrayOf(link.sections, section => record(section) && strings(section, ['heading', 'body'])))) return;
+    const arrays = ['heroSlides', 'storyScenes', 'featuredWork', 'galleryImages', 'services', 'packages',
+      'packageCategories', 'packageNavLinks', 'stats', 'testimonials', 'behindScenes', 'staffProfiles'];
+    if (!arrays.every(key => arrayOf(data[key], record))
+      || typeof data.loading !== 'boolean' || typeof data.fromApi !== 'boolean') return;
+    // Build snapshots seed only these shared resources; others remain browser-loaded.
+    if (!arrayOf(value.loaded, key => key === 'siteContent' || key === 'categories')) return;
+    const media = data.serviceMedia;
+    if (!record(media) || media.path !== path || !arrayOf(media.cover, image) || !arrayOf(media.photos, image)
+      || !arrayOf(media.loaded, key => key === 'cover' || key === 'photos')) return;
+    return value as unknown as PublicSnapshot;
+  } catch { /* Invalid or stale HTML uses the normal client entry. */ }
+}
+
 export function readPublicSnapshot(): PublicSnapshot | undefined {
   const element = document.getElementById('public-page-snapshot');
-  if (!element || window.location.pathname.replace(/\/$/, '') !== PUBLIC_HTML_PILOT_PATH) return;
-  try {
-    const value = JSON.parse(element.textContent || '');
-    if (value.version === 1 && value.path === PUBLIC_HTML_PILOT_PATH && value.data?.siteContent && Array.isArray(value.loaded)) return value;
-  } catch { /* Invalid or stale HTML uses the normal client entry. */ }
+  if (element) return parsePublicSnapshot(element.textContent || '', window.location.pathname);
 }

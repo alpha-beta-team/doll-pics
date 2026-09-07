@@ -1,3 +1,4 @@
+import { PUBLIC_HTML_ROUTES, SERVICE_GALLERY_LIMIT } from '../lib/publicHtmlRoutes';
 import { Link, useLocation } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -48,7 +49,6 @@ const HERO_SIZES = '100vw';
 const GRID_SIZES =
   '(max-width: 639px) calc(100vw - 2.5rem), (max-width: 1023px) 48vw, 33vw';
 const INLINE_SIZES = '(max-width: 1023px) calc(100vw - 2.5rem), 48vw';
-const SERVICE_GALLERY_LIMIT = 30;
 const INITIAL_SERVICE_GALLERY_COUNT = 6;
 const EARLY_REVEAL_OPTIONS: IntersectionObserverInit = {
   threshold: 0.01,
@@ -65,9 +65,7 @@ const SERVICE_SHOOT_TYPES: Record<string, ShootTypeOption> = {
 };
 
 const API_ONLY_SERVICE_CATEGORIES: Record<string, string> = {
-  '/wedding-photography-erode': 'wedding',
-  '/newborn-baby-photography-erode': 'newborn',
-  '/maternity-photography-erode': 'maternity',
+  ...PUBLIC_HTML_ROUTES,
   '/baby-milestone-photography-erode': 'baby-milestone',
   '/baby-shower-photography-erode': 'baby-shower',
   '/cake-smash-photography-erode': 'cake-smash',
