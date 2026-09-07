@@ -20,5 +20,5 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src/vite-env.d.ts", "scripts/check-public-html-deployment.ts", "scripts/check-public-html-deployment.spec.ts", "vite.config.ts", "playwright.config.ts", "tests/browser/**/*.ts", "playwright.public-html.config.ts", "tests/public-html/**/*.ts"]
+  "include": ["src/vite-env.d.ts", "scripts/check-public-html-deployment.ts", "vite.config.ts", "playwright.config.ts", "tests/browser/**/*.ts", "playwright.public-html.config.ts", "tests/public-html/**/*.ts"]
 }

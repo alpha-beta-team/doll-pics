@@ -42,10 +42,11 @@ function PackageCategoryPageContent() {
     galleryImages,
     packages,
     packageNavLinks,
+    publicCatalog,
     loading,
   } = useSiteData();
   const nav = packageNavLinks.find((link) => link.path === path) ?? null;
-  const page = resolvePackagePage(path, nav);
+  const page = nav ? resolvePackagePage(path, nav) : null;
   const viewTrackedPath = useRef<string | null>(null);
 
   useEffect(() => {
@@ -264,7 +265,7 @@ function PackageCategoryPageContent() {
                 Explore more
               </h2>
               <ul className="flex flex-wrap gap-x-6 gap-y-3">
-                {page.related.map((link) => (
+                {page.related.filter(link => publicCatalog.paths.includes(link.path)).map((link) => (
                   <li key={link.path}>
                     <Link
                       to={link.path}

@@ -1,3 +1,5 @@
+import { serviceCatalogFromLinks } from '../src/lib/seo-core';
+import { removeRetiredCatalogPages } from './lib/catalog-output';
 import { PUBLIC_HTML_ROUTES, SERVICE_GALLERY_LIMIT, type PublicHtmlPath } from '../src/lib/publicHtmlRoutes';
 import { serializeInlineJson, shouldRenderPublicService } from './lib/public-html';
 import { createServer } from 'vite';
@@ -19,7 +21,6 @@ import {
   getSiteUrl,
   loadCmsOverlays,
   loadStaticSeoData,
-  resolveServiceCatalog,
 } from './lib/seo-build';
 import type { CatalogPage } from '../src/lib/seo-core';
 import {
@@ -38,9 +39,9 @@ const distDir = process.env.PRERENDER_DIST_DIR || join(root, 'dist');
 const siteUrl = getSiteUrl();
 const ogImage = `${siteUrl}/og-share.jpg`;
 
-const { seoPages, servicePages, packagePages, sitemapRoutes } =
+const { seoPages, servicePages, packagePages } =
   loadStaticSeoData();
-const { packagesByPath, servicesByPath, servicesLoaded, lastmodByPath, apiBase, siteContent, packageCategories } =
+const { publicCatalog, packagesByPath, servicesByPath, servicesLoaded, lastmodByPath, apiBase, siteContent, packageCategories } =
   await loadCmsOverlays();
 
 async function loadFirstHeroImage() {
@@ -65,21 +66,16 @@ async function loadFirstHeroImage() {
 }
 
 const firstHeroImage = await loadFirstHeroImage();
-const serviceCatalog = resolveServiceCatalog(
-  servicePages,
-  servicesByPath,
-  servicesLoaded,
-);
+const serviceCatalog = serviceCatalogFromLinks(publicCatalog.serviceLinks);
 const pages = buildPageCatalog({
   seoPages,
   servicePages,
   packagePages,
-  packagesByPath,
-  servicesByPath,
+  publicCatalog,
 });
 
 if (String(process.env.SEO_REQUIRE_CMS ?? '').toLowerCase() === 'true') {
-  assertCatalogCoverage(pages, sitemapRoutes);
+  assertCatalogCoverage(pages, publicCatalog.paths);
 }
 
 assertCatalogMetadata(pages);
@@ -497,10 +493,14 @@ function inject404Html(template: string) {
   return html;
 }
 
-const template = splitAdminStyles(
+const baseTemplate = splitAdminStyles(
   readFileSync(join(distDir, 'index.html'), 'utf8'),
 );
 // Share the CMS overlays and one Vite instance across the registered services.
+// Replace a previous seed when standalone prerender reuses the output directory.
+const template = baseTemplate.replace(/<script id="public-route-catalog"[^>]*>[\s\S]*?<\/script>/g, '')
+  .replace('</body>', () => `<script id="public-route-catalog" type="application/json">${serializeInlineJson(publicCatalog)}</script></body>`);
+
 const rendered = new Map<string, { html: string; snapshot: unknown }>();
 const renderPaths = (Object.keys(PUBLIC_HTML_ROUTES) as PublicHtmlPath[])
   .filter(path => pages[path] && shouldRenderPublicService(path, servicesLoaded, servicesByPath));
@@ -527,6 +527,7 @@ if (renderPaths.length) {
 }
 
 const written: string[] = [];
+removeRetiredCatalogPages(distDir, publicCatalog.paths);
 
 for (const page of Object.values(pages)) {
   if (!page?.path) continue;
@@ -548,6 +549,13 @@ writeFileSync(notFoundFile, notFoundHtml);
 written.push(notFoundFile);
 
 const sitemapPaths = Object.values(pages).map((page) => page.path);
+writeFileSync(join(distDir, 'public-catalog.json'), JSON.stringify({
+  version: 1,
+  sources: Object.fromEntries(Object.entries(publicCatalog.sources).map(([key, source]) => [key, {
+    status: source.status, ...(source.reason ? { reason: source.reason } : {}),
+  }])),
+  paths: sitemapPaths,
+}, null, 2));
 const sitemapFile = join(distDir, 'sitemap.xml');
 writeFileSync(sitemapFile, buildSitemapXml(siteUrl, sitemapPaths, lastmodByPath));
 

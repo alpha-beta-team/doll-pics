@@ -120,7 +120,17 @@ export function validateExcludedHtml(html: string, missing = false): string[] {
 export async function checkPublicHtmlDeployment({
   baseUrl = defaultOrigin, publicOrigin = defaultOrigin, fetchImpl = fetch, requireCms = false,
 }: { baseUrl?: string; publicOrigin?: string; fetchImpl?: typeof fetch; requireCms?: boolean } = {}) {
-  const excluded = ['/', '/family-photography-erode', '/admin', '/admin/bookings', '/employee', '/employee/dashboard',
+  let published: Set<string>;
+  try {
+    const response = await fetchImpl(new URL('/public-catalog.json', baseUrl), { signal: AbortSignal.timeout(20_000) });
+    const catalog: unknown = await response.json();
+    if (!response.ok || !record(catalog) || catalog.version !== 1 || !Array.isArray(catalog.paths)
+      || !catalog.paths.every(path => typeof path === 'string')) throw new Error('missing or malformed public catalog');
+    published = new Set(catalog.paths);
+  } catch (error) {
+    return [{ path: '/public-catalog.json', failures: [error instanceof Error ? error.message : String(error)] }];
+  }
+  const excluded = ['/', '/services', '/admin', '/admin/bookings', '/employee', '/employee/dashboard',
     '/kiosk', '/kiosk/check-in', '/quotation/html-smoke'];
   const missing = '/__public-html-smoke-not-found';
   const paths = [...Object.keys(PUBLIC_HTML_ROUTES), ...excluded, missing];
@@ -128,18 +138,19 @@ export async function checkPublicHtmlDeployment({
     try {
       const response = await fetchImpl(new URL(path, baseUrl), { signal: AbortSignal.timeout(20_000) });
       const failures: string[] = [];
-      const expectedStatus = path === missing ? 404 : 200;
+      const retired = Object.hasOwn(PUBLIC_HTML_ROUTES, path) && !published.has(path);
+      const expectedStatus = path === missing || retired ? 404 : 200;
       if (response.status !== expectedStatus) failures.push(`HTTP ${response.status}, expected ${expectedStatus}`);
       if (!response.headers.get('content-type')?.includes('text/html')) failures.push('response is not HTML');
       const html = await response.text();
-      if (Object.hasOwn(PUBLIC_HTML_ROUTES, path)) {
+      if (Object.hasOwn(PUBLIC_HTML_ROUTES, path) && !retired) {
         // Vercel deliberately sends noindex on preview hosts. Only the canonical
         // production origin must be indexable at the HTTP layer.
         if (new URL(baseUrl).origin === new URL(publicOrigin).origin
           && /\b(noindex|none)\b/i.test(response.headers.get('x-robots-tag') ?? '')) failures.push('HTTP robots header blocks indexing');
         if (new URL(response.url || new URL(path, baseUrl)).pathname.replace(/\/$/, '') !== path) failures.push('redirected to a different route');
         failures.push(...validatePublicHtml(html, path as PublicHtmlPath, publicOrigin, requireCms));
-      } else failures.push(...validateExcludedHtml(html, path === missing));
+      } else failures.push(...validateExcludedHtml(html, path === missing || retired));
       return { path, failures };
     } catch (error) {
       return { path, failures: [error instanceof Error ? error.message : String(error)] };

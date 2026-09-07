@@ -4,8 +4,8 @@
 **Audit date:** 7 September 2026  
 **Repository baseline:** `ff8e0ad`  
 **Source:** The complete React.js SEO audit in this conversation (68/100 implementation assessment)  
-**Program status:** Not started  
-**Completion:** **0 / 19 items complete**
+**Program status:** In progress\
+**Completion:** **1 / 19 items complete**
 
 ## Objective and boundaries
 
@@ -34,8 +34,8 @@ IDs F01–F16 preserve audit traceability. I01–I03 cover the additional improv
 
 | ID | Issue / plan file | Priority | Effort | Dependencies | Status |
 |---|---|---|---|---|---|
-| F01 | [Restore the /work route](./01-work-route.md) | High | Small | — | Not started |
-| F02 | [Unify publication state and public route catalogs](./02-publication-and-route-catalog.md) | High | Medium | [F01](./01-work-route.md) | Not started |
+| F01 | [Restore the /work route](./01-work-route.md) | High | Small | — | Complete |
+| F02 | [Unify publication state and public route catalogs](./02-publication-and-route-catalog.md) | High | Medium | [F01](./01-work-route.md) | Ready for verification |
 | F03 | [Preserve CMS service sections during generation](./03-cms-service-sections.md) | High | Small | — | Not started |
 | F06 | [Separate fallback coverage from CMS release readiness](./06-cms-release-readiness.md) | Medium | Medium | [F02](./02-publication-and-route-catalog.md), [F03](./03-cms-service-sections.md) | Not started |
 | F08 | [Normalize known public canonical paths](./08-canonical-path-normalization.md) | Medium | Small | [F02](./02-publication-and-route-catalog.md) | Not started |
@@ -60,11 +60,11 @@ Start with F01. Within a chunk, take ready items in the listed order; independen
 
 ### Chunk 1 — Routing and content correctness
 
-**Status:** Not started  
-**Completion:** 0 / 5
+**Status:** In progress\
+**Completion:** 1 / 5
 
-- [ ] [F01](./01-work-route.md) — Restore the /work route
-- [ ] [F02](./02-publication-and-route-catalog.md) — Unify publication state and public route catalogs
+- [x] [F01](./01-work-route.md) — Restore the /work route — Complete; implementation and local validation passed, deployment verification remains a follow-up
+- [ ] [F02](./02-publication-and-route-catalog.md) — Unify publication state and public route catalogs — Ready for verification; implementation/local gates passed, deployed acceptance pending
 - [ ] [F03](./03-cms-service-sections.md) — Preserve CMS service sections during generation
 - [ ] [F06](./06-cms-release-readiness.md) — Separate fallback coverage from CMS release readiness
 - [ ] [F08](./08-canonical-path-normalization.md) — Normalize known public canonical paths
@@ -105,13 +105,13 @@ Start with F01. Within a chunk, take ready items in the listed order; independen
 
 | Chunk | Items | Complete | Remaining | Status |
 |---|---:|---:|---:|---|
-| 1 — Routing and content correctness | 5 | 0 | 5 | Not started |
+| 1 — Routing and content correctness | 5 | 1 | 4 | In progress |
 | 2 — Indexing and usability | 4 | 0 | 4 | Not started |
 | 3 — Rendering, media and metadata | 7 | 0 | 7 | Not started |
 | 4 — Content growth and ongoing verification | 3 | 0 | 3 | Not started |
-| **Overall** | **19** | **0** | **19** | **Not started** |
+| **Overall** | **19** | **1** | **18** | **In progress** |
 
-**Recommended next task:** [F01](./01-work-route.md) — restore the existing `/work` section route without adding a navbar item. Begin **Chunk 1 — Routing and content correctness**.
+**Recommended next task:** [F03](./03-cms-service-sections.md) — verify preservation of CMS service sections during generation. F02 implementation/local checks passed and awaits deployed catalog/404 acceptance. Totals remain **1 / 19 complete**, with **1 ready for verification**; F01 deployment follow-ups remain recorded separately.
 
 ## Execution defaults and dependency rules
 
@@ -191,4 +191,6 @@ The creator validates these separately from remediation completion:
 | Date | Event | Completed remediation | Next action |
 |---|---|---:|---|
 | 2026-09-07 | Created master and 19 linked issue/improvement plans from the conversation audit | 0 / 19 | Assign F01 and begin Chunk 1 after baseline recheck |
-
+| 2026-09-07 | F01 implemented and Ready for verification: 19 library, 38 SEO and 43 browser tests plus typecheck/focused lint passed; Chunk 1 In progress | 0 / 19 (1 ready for verification) | Frontend engineer: deployed F01 acceptance; F03 is independently ready; SEO/site owner: Search Console follow-up |
+| 2026-09-07 | Marked F01 Complete at the user’s request for implementation tracking; synchronized item status, chunk checkbox and totals. Deployment/Search Console evidence remains pending | 1 / 19 | Begin F02; retain F01 deployment and external follow-ups |
+| 2026-09-07 | F02 implemented and Ready for verification: shared publication catalog, build seed and retired output cleanup; check:release and 58 browser tests passed | 1 / 19 (1 ready for verification) | Frontend/CMS engineers: F02 deployed catalog/404 acceptance; F03 is the next independent implementation task |

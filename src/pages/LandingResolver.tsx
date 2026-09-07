@@ -2,10 +2,8 @@ import { Suspense, lazy } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useSiteData } from '../contexts/SiteDataContext';
 import {
-  getPublishedServiceNavLinks,
   normalizePathname,
 } from '../lib/navigation';
-import { getPackagePage, getServicePage } from '../lib/seo';
 
 const ServicePage = lazy(() =>
   import('./ServicePage').then((m) => ({ default: m.ServicePage })),
@@ -34,16 +32,12 @@ function LandingLoading() {
 export function LandingResolver() {
   const { pathname } = useLocation();
   const path = normalizePathname(pathname);
-  const { siteContent, packageNavLinks, loading } = useSiteData();
+  const { publicCatalog, loading } = useSiteData();
 
   if (loading) return <LandingLoading />;
 
-  const serviceLinks = getPublishedServiceNavLinks(siteContent.serviceNavLinks);
-  const isService =
-    serviceLinks.some((link) => link.path === path) || Boolean(getServicePage(path));
-  const isPackage =
-    packageNavLinks.some((link) => link.path === path) ||
-    Boolean(getPackagePage(path));
+  const isService = publicCatalog.serviceLinks.some(link => link.path === path);
+  const isPackage = publicCatalog.packageLinks.some(link => link.path === path);
 
   return (
     <Suspense fallback={<LandingLoading />}>

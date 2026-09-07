@@ -1,3 +1,4 @@
+import { packageCatalogSource, publicPackageCategories, readBuildPublicCatalog, resolvePublicCatalog, serviceCatalogSource, type PublicRouteCatalog } from '../lib/publicCatalog';
 import { photoLabels } from '../lib/photoLabels';
 import type { ServiceMediaSnapshot } from '../lib/serviceMedia';
 import { PublicRequestError, publicFailure } from '../lib/publicRequest';
@@ -39,11 +40,8 @@ import {
   staffProfiles as fallbackStaffProfiles,
 } from '../data/content';
 import {
-  DEFAULT_PACKAGE_NAV_LINKS,
-  getPublishedPackageNavLinks,
   getPublishedServiceNavLinks,
   normalizePathname,
-  normalizeServiceNavLinks,
   type PackageNavLink,
 } from '../lib/navigation';
 import {
@@ -88,6 +86,7 @@ export interface ServiceItem {
 }
 
 export interface SiteData {
+  publicCatalog: PublicRouteCatalog;
   serviceMedia?: ServiceMediaSnapshot;
   siteContent: PublicSiteContent;
   heroSlides: PublicHeroSlide[];
@@ -125,14 +124,7 @@ function sourcesToFeatured(
   };
 }
 
-const fallbackPackageCategories: PublicPackageCategory[] =
-  DEFAULT_PACKAGE_NAV_LINKS.map((link) => ({
-    name: link.label,
-    slug: link.categorySlug,
-    path: link.path,
-    description: link.description,
-    order: link.order,
-  }));
+const fallbackCatalog = resolvePublicCatalog();
 
 const defaultSiteContent: PublicSiteContent = {
   brandName: BUSINESS_NAME,
@@ -293,15 +285,16 @@ function bucketsForPath(
 }
 
 const fallbackData: Omit<SiteData, 'loading' | 'fromApi'> = {
-  siteContent: defaultSiteContent,
+  publicCatalog: fallbackCatalog,
+  siteContent: { ...defaultSiteContent, serviceNavLinks: fallbackCatalog.serviceLinks },
   heroSlides: fallbackHeroSlides,
   storyScenes: fallbackStoryScenes,
   featuredWork: normalizedFallbackFeatured,
   galleryImages: normalizedFallbackGallery,
-  services: [],
+  services: servicesFromNavLinks(fallbackCatalog.serviceLinks),
   packages: [],
-  packageCategories: fallbackPackageCategories,
-  packageNavLinks: getPublishedPackageNavLinks(fallbackPackageCategories),
+  packageCategories: publicPackageCategories(fallbackCatalog),
+  packageNavLinks: fallbackCatalog.packageLinks,
   stats: fallbackStats,
   testimonials: fallbackTestimonials,
   behindScenes: fallbackBehindScenes,
@@ -343,6 +336,17 @@ function collection<T>(value: T[]): T[] {
   return value;
 }
 
+function catalogPatch(previous: SiteData, sources: Partial<PublicRouteCatalog['sources']>, patch: Partial<SiteData> = {}): Partial<SiteData> {
+  const publicCatalog = resolvePublicCatalog({ ...previous.publicCatalog.sources, ...sources });
+  return {
+    ...patch, publicCatalog,
+    siteContent: { ...(patch.siteContent ?? previous.siteContent), serviceNavLinks: publicCatalog.serviceLinks },
+    services: servicesFromNavLinks(publicCatalog.serviceLinks),
+    packageCategories: publicPackageCategories(publicCatalog),
+    packageNavLinks: publicCatalog.packageLinks,
+  };
+}
+
 /** Each resource produces its own patch; another endpoint cannot discard it. */
 async function loadResource(resource: CmsResource, signal: AbortSignal, supplied?: { siteContent?: PublicSiteContent; categories?: PublicPackageCategory[] }): Promise<SitePatch> {
   const init = { signal };
@@ -350,8 +354,9 @@ async function loadResource(resource: CmsResource, signal: AbortSignal, supplied
     case 'siteContent': {
       const content = supplied?.siteContent ?? await publicApi.getSiteContent(init);
       if (!content || typeof content !== 'object' || Array.isArray(content)) throw new PublicRequestError('invalid_response');
-      const serviceNavLinks = normalizeServiceNavLinks(content.serviceNavLinks);
-      return {
+      const source = serviceCatalogSource(content);
+      if (source.status !== 'cms') throw new PublicRequestError('invalid_response');
+      return previous => catalogPatch(previous, { services: source }, {
         siteContent: {
           ...defaultSiteContent, ...content,
           brandName: BUSINESS_NAME, contactEmail: BUSINESS_EMAIL,
@@ -359,10 +364,8 @@ async function loadResource(resource: CmsResource, signal: AbortSignal, supplied
           ourStory: content.ourStory || defaultSiteContent.ourStory,
           mission: content.mission || defaultSiteContent.mission,
           aboutHeroSubtext: content.aboutHeroSubtext || defaultSiteContent.aboutHeroSubtext,
-          serviceNavLinks,
         },
-        services: servicesFromNavLinks(getPublishedServiceNavLinks(serviceNavLinks)),
-      };
+      });
     }
     case 'hero': {
       const slides = collection(await publicApi.getHeroSlides(init)).filter(slide => !isLegacyHeroSlide(slide));
@@ -370,13 +373,10 @@ async function loadResource(resource: CmsResource, signal: AbortSignal, supplied
       return slides.length ? { heroSlides: slides } : {};
     }
     case 'categories': {
-      const result = collection(supplied?.categories ?? await publicApi.getPackageCategories(init));
-      const categories = result.length ? result.filter(c => c.isPublished !== false).map((c, index) => ({
-        name: c.name, slug: c.slug, path: c.path, description: c.description, isPublished: c.isPublished,
-        seoTitle: c.seoTitle, seoDescription: c.seoDescription, heading: c.heading, lead: c.lead,
-        order: typeof c.order === 'number' ? c.order : index,
-      })).sort((a, b) => a.order - b.order) : fallbackPackageCategories;
-      return { packageCategories: categories, packageNavLinks: categories.length ? getPublishedPackageNavLinks(categories) : [] };
+      const result = supplied?.categories ?? await publicApi.getPackageCategories(init);
+      const source = packageCatalogSource(result);
+      if (source.status !== 'cms') throw new PublicRequestError('invalid_response');
+      return previous => catalogPatch(previous, { packages: source });
     }
     case 'storyScenes': {
       const result = collection(await publicApi.getStoryScenes(init));
@@ -426,9 +426,12 @@ export function SiteDataProvider({ children, initialData, initialLoaded = [] }: 
   children: ReactNode; initialData?: SiteData; initialLoaded?: CmsResource[];
 }) {
   const { pathname } = useLocation();
-  const [data, setData] = useState<SiteData>(() => initialData ?? ({
-    ...fallbackData, heroSlides: readBuildTimeHero(), loading: true, fromApi: false,
-  }));
+  const [data, setData] = useState<SiteData>(() => {
+    if (initialData) return initialData;
+    const initial = { ...fallbackData, heroSlides: readBuildTimeHero(), loading: true, fromApi: false };
+    const catalog = readBuildPublicCatalog();
+    return catalog ? { ...initial, ...catalogPatch(initial, catalog.sources) } : initial;
+  });
   const mounted = useRef(false);
   const loaded = useRef(new Set<CmsResource>(initialLoaded));
   const failed = useRef(new Map<CmsResource, number>());
@@ -452,6 +455,16 @@ export function SiteDataProvider({ children, initialData, initialLoaded = [] }: 
       if (!isCurrent()) return;
       failed.current.set(resource, Date.now());
       console.warn('Public CMS resource unavailable', { resource, ...publicFailure(error) });
+      if (resource === 'siteContent' || resource === 'categories') {
+        const key = resource === 'siteContent' ? 'services' : 'packages';
+        setData(previous => {
+          const source = previous.publicCatalog.sources[key];
+          if (source.status === 'cms') return previous;
+          return { ...previous, ...catalogPatch(previous, { [key]: {
+            ...source, reason: publicFailure(error).kind === 'invalid_response' ? 'invalid-response' : 'unavailable',
+          } }) };
+        });
+      }
       // Initial fallback or a previously successful response remains untouched.
     } finally {
       if (isCurrent()) {

@@ -24,6 +24,15 @@ export function parsePublicSnapshot(text: string, pathname: string): PublicSnaps
     const value: unknown = JSON.parse(text);
     if (!record(value) || value.version !== 1 || value.path !== path || !record(value.data)) return;
     const data = value.data;
+    const catalog = data.publicCatalog;
+    if (!record(catalog) || !record(catalog.sources)
+      || !['services', 'packages'].every(key => {
+        const source = (catalog.sources as Record<string, unknown>)[key];
+        return record(source) && ['cms', 'fallback'].includes(String(source.status)) && arrayOf(source.records, record);
+      })
+      || !arrayOf(catalog.serviceLinks, link => record(link) && strings(link, ['label', 'path']))
+      || !arrayOf(catalog.packageLinks, link => record(link) && strings(link, ['label', 'path', 'categorySlug']))
+      || !arrayOf(catalog.paths, path => typeof path === 'string')) return;
     const content = data.siteContent;
     if (!record(content) || !strings(content, ['brandName', 'phone', 'whatsapp', 'contactEmail'])
       || !record(content.socials)

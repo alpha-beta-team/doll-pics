@@ -41,13 +41,7 @@ export function validateLocations(locations, requiredPaths) {
     if (parsed.search || parsed.hash) {
       failures.push(`Parameters or fragment in <loc>: ${location}`);
     }
-    if (
-      parsed.pathname === '/admin' ||
-      parsed.pathname.startsWith('/admin/') ||
-      parsed.pathname === '/api' ||
-      parsed.pathname.startsWith('/api/') ||
-      parsed.pathname.startsWith('/preview')
-    ) {
+    if (/^\/(admin|employee|kiosk|quotation|api|preview)(\/|$)/.test(parsed.pathname)) {
       failures.push(`Private route in <loc>: ${location}`);
     }
     if (seen.has(location)) {
@@ -63,6 +57,21 @@ export function validateLocations(locations, requiredPaths) {
     }
   }
 
+  return failures;
+}
+
+export function validateCatalogLocations(locations, catalog, corePaths) {
+  if (!catalog || catalog.version !== 1 || !Array.isArray(catalog.paths)
+    || !catalog.paths.every(path => typeof path === 'string' && /^\/(?:[a-z0-9_-]+(?:\/[a-z0-9_-]+)*)?$/.test(path))
+    || !['services', 'packages'].every(key => ['cms', 'fallback'].includes(catalog.sources?.[key]?.status))) {
+    return ['Missing or malformed public catalog manifest'];
+  }
+  const failures = validateLocations(locations, [...corePaths, ...catalog.paths]);
+  if (new Set(catalog.paths).size !== catalog.paths.length) failures.push('Duplicate public catalog paths');
+  const expected = new Set(catalog.paths.map(path => path === '/' ? canonicalOrigin : `${canonicalOrigin}${path}`));
+  for (const location of locations) {
+    if (!expected.has(location)) failures.push(`URL not in public catalog: ${location}`);
+  }
   return failures;
 }
 
@@ -199,16 +208,17 @@ export async function fetchText(
 
 async function main() {
   const { publicUrl, upstreamUrl } = parseArguments(process.argv.slice(2));
-  const requiredPaths = JSON.parse(
-    readFileSync(join(root, 'src/data/sitemap-routes.json'), 'utf8'),
-  );
+  const corePaths = Object.keys(JSON.parse(
+    readFileSync(join(root, 'src/data/seo-pages.json'), 'utf8'),
+  ).pages);
   const publicSitemapUrl = `${publicUrl}/sitemap.xml`;
 
-  const [publicSitemap, upstreamSitemap, robots, notFound] = await Promise.all([
+  const [publicSitemap, upstreamSitemap, robots, notFound, manifest] = await Promise.all([
     fetchText(publicSitemapUrl),
     upstreamUrl ? fetchText(upstreamUrl) : Promise.resolve(null),
     fetchText(`${publicUrl}/robots.txt`),
     fetchText(`${publicUrl}/__seo-smoke-not-found-${Date.now()}`, 404),
+    fetchText(`${publicUrl}/public-catalog.json`),
   ]);
 
   const failures = [];
@@ -224,7 +234,7 @@ async function main() {
   }
 
   const publicLocations = extractLocations(publicSitemap.text);
-  failures.push(...validateLocations(publicLocations, requiredPaths));
+  failures.push(...validateCatalogLocations(publicLocations, JSON.parse(manifest.text), corePaths));
 
   const routeChecks = await Promise.all(
     publicLocations.map(async (location) => {

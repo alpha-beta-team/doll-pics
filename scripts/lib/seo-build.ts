@@ -1,3 +1,5 @@
+import { packageCatalogSource, resolvePublicCatalog, serviceCatalogSource, type PublicRouteCatalog } from '../../src/lib/publicCatalog';
+import { getPublishedPackageNavLinks, getPublishedServiceNavLinks } from '../../src/lib/navigation';
 import type { PublicSiteContent, PublicPackageCategory } from '../../src/shared/types';
 /**
  * Build-time SEO — Node loaders + re-exports from shared seo-core.
@@ -12,12 +14,9 @@ import {
   buildPageCatalog,
   buildServiceOrPackageJsonLd,
   buildWebPageJsonLd,
-  serviceCatalogFromLinks,
-  serviceCatalogFromPages,
   type CatalogPage,
   type PackageNavLinkLike,
   type SeoPagesData,
-  type ServiceCatalogItem,
   type ServiceNavLinkLike,
 } from '../../src/lib/seo-core';
 import { withCanonicalBusinessIdentity } from '../../src/lib/businessIdentity';
@@ -72,19 +71,6 @@ export function loadStaticSeoData() {
   return { seoPages, servicePages, packagePages, sitemapRoutes };
 }
 
-export function resolveServiceCatalog(
-  servicePages: Record<
-    string,
-    { label?: string; serviceName?: string; heading?: string }
-  >,
-  servicesByPath: Map<string, ServiceNavLinkLike>,
-  servicesLoaded: boolean,
-): ServiceCatalogItem[] {
-  return servicesLoaded
-    ? serviceCatalogFromLinks([...servicesByPath.values()])
-    : serviceCatalogFromPages(servicePages);
-}
-
 export function assertCatalogCoverage(
   pages: Record<string, CatalogPage>,
   requiredPaths: string[],
@@ -101,6 +87,8 @@ export function assertCatalogCoverage(
 }
 
 export interface CmsOverlays {
+  publicCatalog: PublicRouteCatalog;
+  packagesLoaded: boolean;
   siteContent?: PublicSiteContent;
   packageCategories?: PublicPackageCategory[];
   packagesByPath: Map<string, PackageNavLinkLike>;
@@ -112,83 +100,31 @@ export interface CmsOverlays {
 
 export async function loadCmsOverlays(): Promise<CmsOverlays> {
   const apiBase = getApiBase();
+  const read = async (path: string): Promise<unknown> => {
+    if (!apiBase) return undefined;
+    try { return await fetchJson(`${apiBase}${path}`); }
+    catch { console.warn(`SEO build: ${path} unavailable; using static fallback`); return undefined; }
+  };
+  const [rawCategories, rawContent] = await Promise.all([read('/package-categories'), read('/site-content')]);
+  const publicCatalog = resolvePublicCatalog({
+    services: serviceCatalogSource(rawContent), packages: packageCatalogSource(rawCategories),
+  });
+  const servicesLoaded = publicCatalog.sources.services.status === 'cms';
+  const packagesLoaded = publicCatalog.sources.packages.status === 'cms';
+  const siteContent = servicesLoaded ? rawContent as PublicSiteContent : undefined;
+  const packageCategories = packagesLoaded ? rawCategories as PublicPackageCategory[] : undefined;
+  const servicesByPath = new Map(publicCatalog.serviceLinks.map(link => [link.path, link]));
+  const packagesByPath = new Map(publicCatalog.packageLinks.map(link => [link.path, link]));
   const lastmodByPath: Record<string, string> = {};
-  const packagesByPath = new Map<string, PackageNavLinkLike>();
-  const servicesByPath = new Map<string, ServiceNavLinkLike>();
-  let servicesLoaded = false;
-  let publicContent: PublicSiteContent | undefined;
-  let packageCategories: PublicPackageCategory[] | undefined;
-
-  if (!apiBase) {
-    return { packagesByPath, servicesByPath, servicesLoaded, lastmodByPath, apiBase: '' };
+  for (const raw of packageCategories ?? []) {
+    const link = getPublishedPackageNavLinks([raw])[0];
+    if (link && packagesByPath.has(link.path) && typeof raw.contentUpdatedAt === 'string') lastmodByPath[link.path] = raw.contentUpdatedAt;
   }
-
-  try {
-    const categories = await fetchJson(`${apiBase}/package-categories`);
-    if (Array.isArray(categories)) {
-      packageCategories = categories;
-      for (const c of categories) {
-        const path = normalizePath(c?.path);
-        if (!path) continue;
-        if (c.contentUpdatedAt) lastmodByPath[path] = c.contentUpdatedAt;
-        packagesByPath.set(path, {
-          label: c.name || 'Packages',
-          path,
-          categorySlug: String(c.slug || '').toLowerCase(),
-          description: c.description || '',
-          seoTitle: c.seoTitle || '',
-          seoDescription: c.seoDescription || '',
-          heading: c.heading || '',
-          lead: c.lead || '',
-        });
-      }
-    }
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    console.warn('SEO build: package categories unavailable:', message);
+  for (const raw of siteContent?.serviceNavLinks ?? []) {
+    const link = getPublishedServiceNavLinks([raw])[0];
+    if (link && servicesByPath.has(link.path) && typeof raw.contentUpdatedAt === 'string') lastmodByPath[link.path] = raw.contentUpdatedAt;
   }
-
-  try {
-    const siteContent = await fetchJson(`${apiBase}/site-content`);
-    if (!siteContent || typeof siteContent !== 'object' || Array.isArray(siteContent)) throw new Error('Invalid public site content');
-    publicContent = siteContent;
-    const links = Array.isArray(siteContent?.serviceNavLinks)
-      ? siteContent.serviceNavLinks
-      : [];
-    servicesLoaded = true;
-    const orderedLinks = links
-      .map((link, index) => ({
-        link,
-        index,
-        order:
-          typeof link?.order === 'number' && Number.isFinite(link.order)
-            ? link.order
-            : index,
-      }))
-      .sort((a, b) => a.order - b.order || a.index - b.index);
-
-    for (const { link, order } of orderedLinks) {
-      if (link?.isPublished === false) continue;
-      const path = normalizePath(link?.path);
-      if (!path || path === '/services' || servicesByPath.has(path)) continue;
-      if (link.contentUpdatedAt) lastmodByPath[path] = link.contentUpdatedAt;
-      servicesByPath.set(path, {
-        label: String(link.label ?? '').trim() || 'Service',
-        path,
-        description: link.description || '',
-        order,
-        seoTitle: link.seoTitle || '',
-        seoDescription: link.seoDescription || '',
-        heading: link.heading || '',
-        lead: link.lead || '',
-      });
-    }
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    console.warn('SEO build: site-content services unavailable:', message);
-  }
-
-  return { packagesByPath, servicesByPath, servicesLoaded, lastmodByPath, apiBase, siteContent: publicContent, packageCategories };
+  return { publicCatalog, packagesByPath, servicesByPath, servicesLoaded, packagesLoaded, lastmodByPath, apiBase, siteContent, packageCategories };
 }
 
 /** Validate the resolved catalog, including CMS-only routes, before emitting HTML. */
