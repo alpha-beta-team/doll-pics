@@ -17,11 +17,12 @@ export async function renderPublicService(input: {
   photos?: PublicPhoto[];
 }) {
   const { data, loaded } = await createPrerenderSiteData(input.siteContent, input.categories);
+  const categoryName = data.siteContent.serviceNavLinks?.find(link => link.path === input.path)?.label;
   data.serviceMedia = {
     path: input.path,
     cover: input.cover?.coverPhotoId && typeof input.cover.coverPhotoId === 'object'
-      ? serviceImagesFromApi([input.cover.coverPhotoId]) : [],
-    photos: input.photos ? serviceImagesFromApi(input.photos) : [],
+      ? serviceImagesFromApi([input.cover.coverPhotoId], categoryName) : [],
+    photos: input.photos ? serviceImagesFromApi(input.photos, categoryName) : [],
     loaded: [...(input.cover ? ['cover' as const] : []), ...(input.photos ? ['photos' as const] : [])],
   };
   const snapshot: PublicSnapshot = { version: 1, path: input.path, data, loaded };

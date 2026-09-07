@@ -52,3 +52,30 @@ for (const path of ['/newborn-baby-photography-erode', '/wedding-photography-ero
     assert.deepEqual(empty.snapshot.data.serviceMedia?.photos, []);
   });
 }
+
+for (const [path, label] of [['/newborn-baby-photography-erode', 'Newborn'], ['/wedding-photography-erode', 'Wedding'], ['/maternity-photography-erode', 'Maternity']] as const) {
+  test(`${label}: initial HTML uses clean photo labels and a published package destination`, async () => {
+    const category = label.toLowerCase();
+    const { html, snapshot } = await render({
+      path,
+      siteContent: { serviceNavLinks: [{ label, path, isPublished: true }] },
+      categories: [{ name: label, slug: category, path: `/custom-${category}`, isPublished: true }, { name: 'Hidden', slug: 'hidden', isPublished: false }],
+      photos: [{ ...photo, title: 'DSC01131', altText: 'IMG_1234.JPG' }],
+    });
+    const document = new JSDOM(html).window.document;
+    assert.ok(document.querySelector(`#contact a[href="/custom-${category}"]`));
+    assert.equal(document.querySelectorAll(`main a[href="/custom-${category}"]`).length, 1);
+    assert.equal(snapshot.data.serviceMedia?.photos[0].title, `${label} photography`);
+    assert.equal(document.querySelector('main img')?.getAttribute('alt'), `${label} photography`);
+    assert.equal(snapshot.data.packageNavLinks.some(link => link.categorySlug === 'hidden'), false);
+    assert.equal(snapshot.data.packageCategories.some(item => item.slug === 'hidden'), false);
+    assert.equal(/DSC01131|IMG_1234/.test(html), false);
+  });
+}
+
+test('an entirely unpublished package response does not restore default package links', async () => {
+  const { snapshot, html } = await render({ path: '/newborn-baby-photography-erode', categories: [{ name: 'Newborn', slug: 'newborn', isPublished: false }] });
+  assert.deepEqual(snapshot.data.packageCategories, []);
+  assert.deepEqual(snapshot.data.packageNavLinks, []);
+  assert.ok(new JSDOM(html).window.document.querySelector('#contact a[href="/packages"]'));
+});

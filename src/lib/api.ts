@@ -1,3 +1,4 @@
+import { photoLabels } from './photoLabels';
 import { createPublicFetch } from './publicRequest';
 export { ApiError } from './publicRequest';
 import { captureAttribution } from './attribution';
@@ -114,6 +115,7 @@ export type PhotoSources = {
 
 /** Build responsive sources (AVIF/WebP srcsets) from CMS photo variants. */
 export function getPhotoSources(photo: {
+  categoryIds?: Array<{ name: string; slug: string } | string>;
   title?: string;
   altText?: string;
   storageKey?: string;
@@ -122,7 +124,7 @@ export function getPhotoSources(photo: {
     avif?: PhotoVariantList;
     original?: { url: string };
   };
-}): PhotoSources | null {
+}, categoryName?: string): PhotoSources | null {
   // Seed keys are database placeholders, not real R2 objects. Sending them to
   // ImageKit produces a 404 and hides the usable original/fallback URL.
   const storageKey = photo.storageKey?.trim();
@@ -132,7 +134,7 @@ export function getPhotoSources(photo: {
       imageKitPhotoUrl(storageKey, width);
     return {
       src: transformed(1200),
-      alt: photo.altText?.trim() || photo.title?.trim() || 'Photography by Doll Pictures',
+      alt: photoLabels(photo, categoryName).alt,
       webpSrcSet: IMAGEKIT_WIDTHS.map(width => `${transformed(width)} ${width}w`).join(', '),
     };
   }
@@ -146,7 +148,7 @@ export function getPhotoSources(photo: {
 
   return {
     src,
-    alt: photo.altText?.trim() || photo.title?.trim() || 'Photography by Doll Pictures',
+    alt: photoLabels(photo, categoryName).alt,
     avifSrcSet,
     webpSrcSet,
   };

@@ -51,6 +51,7 @@ for (const service of services) {
         const response = await page.goto(`http://127.0.0.1:4180${pilot}`);
         expect(response?.status()).toBe(200);
         await expect(page.locator('#root h1')).toHaveText(heading);
+        await expect(page.locator(`#contact a[href="/${service.category}-packages-erode"]`)).toHaveText(`View ${service.category} packages`);
         await expect(page.getByText(`A calm ${service.category} session`, { exact: true })).toBeVisible();
         const image = page.locator('#root img[src*="fixture-media/"]').first();
         await expect(image).toBeVisible();
@@ -93,6 +94,7 @@ for (const service of services) {
       });
       await page.goto(`${pilot}/`);
       await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+      await expect(page.locator(`#contact a[href="/${service.category}-packages-erode"]`)).toHaveText(`View ${service.category} packages`);
       await page.getByRole('button', { name: 'Book a consultation', exact: true }).first().click();
       await expect(page.getByRole('dialog')).toBeVisible();
       expect(await page.evaluate(() => document.querySelector('#root h1') === (window as unknown as { originalHeading: Element }).originalHeading)).toBe(true);

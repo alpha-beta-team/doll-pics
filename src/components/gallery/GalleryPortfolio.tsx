@@ -1,3 +1,4 @@
+import { photoLabels } from '../../lib/photoLabels';
 import { PublicRequestError } from '../../lib/publicRequest';
 import {
   useCallback,
@@ -53,7 +54,7 @@ function normalizePhotos(photos: PublicPhoto[]): PortfolioPhoto[] {
 
       return {
         id: photoId(photo, index),
-        title: photo.title?.trim() || sources.alt,
+        title: photoLabels(photo).title,
         width: photo.width && photo.width > 0 ? photo.width : 1200,
         height: photo.height && photo.height > 0 ? photo.height : 800,
         location: photo.location?.trim() || '',

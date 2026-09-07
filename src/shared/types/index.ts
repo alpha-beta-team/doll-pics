@@ -204,6 +204,7 @@ export type PackageCategory = CmsMeta & {
 };
 
 export type PublicPackageCategory = {
+  isPublished?: boolean;
   name: string;
   slug: string;
   path?: string;
