@@ -77,3 +77,22 @@ for (const path of ['/', '/gallery']) {
     }
   });
 }
+
+test('service cards reveal when CMS navigation arrives after the listing mounts', async ({ page }) => {
+  let release!: () => void;
+  const ready = new Promise<void>(resolve => { release = resolve; });
+  await page.route('**/api/**', async route => {
+    const url = new URL(route.request().url());
+    if (url.pathname === '/api/site-content') await ready;
+    await route.fulfill({ json: fixtures[url.pathname] ?? [] });
+  });
+  try {
+    await page.goto('/services');
+    await expect(page.getByRole('heading', { name: 'New experiences are on their way' })).toBeVisible();
+    release();
+    const card = page.locator('#services article').first();
+    await card.scrollIntoViewIfNeeded();
+    await expect(card).toHaveCSS('opacity', '1');
+    await expect(card.getByRole('heading', { name: 'Newborn' })).toBeVisible();
+  } finally { release(); }
+});
