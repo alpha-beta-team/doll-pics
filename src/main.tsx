@@ -39,7 +39,7 @@ async function startApp() {
   const rootElement = document.getElementById('root')!;
   const snapshot = readPublicSnapshot();
   if (snapshot && rootElement.hasChildNodes()) {
-    const pageModule = snapshot.path === '/gallery' ? import('./pages/GalleryPage').then(module => module.GalleryPage) : snapshot.path === '/'
+    const pageModule = snapshot.path === '/work' ? import('./pages/WorkPage').then(module => module.WorkPage) : snapshot.path === '/gallery' ? import('./pages/GalleryPage').then(module => module.GalleryPage) : snapshot.path === '/'
       ? import('./pages/Site').then(module => module.Site)
       : snapshot.path === '/services' ? import('./pages/ServicesHub').then(module => module.ServicesHub)
       : snapshot.path === '/packages' ? import('./pages/Packages').then(module => module.Packages)

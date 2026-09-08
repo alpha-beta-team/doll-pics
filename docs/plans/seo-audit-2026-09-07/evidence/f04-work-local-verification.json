@@ -1,0 +1,108 @@
+{
+  "date": "2026-09-08",
+  "baseCommit": "bea646194b1fc179ac0c4aa7b1be7806a3ffe49d",
+  "scope": "Local uncommitted Work initial HTML with synthetic CMS and fixture images; no deployment or external writes",
+  "checks": {
+    "release": "passed; existing lint/chunk warnings",
+    "strictHtmlSmoke": "passed populated, empty and edited; optional unavailable output passed without require-cms",
+    "browser": [
+      {
+        "javaScriptEnabled": false,
+        "width": 390,
+        "theme": "light",
+        "passed": true,
+        "featuredRequests": 0
+      },
+      {
+        "javaScriptEnabled": false,
+        "width": 390,
+        "theme": "dark",
+        "passed": true,
+        "featuredRequests": 0
+      },
+      {
+        "javaScriptEnabled": false,
+        "width": 1440,
+        "theme": "light",
+        "passed": true,
+        "featuredRequests": 0
+      },
+      {
+        "javaScriptEnabled": false,
+        "width": 1440,
+        "theme": "dark",
+        "passed": true,
+        "featuredRequests": 0
+      },
+      {
+        "javaScriptEnabled": true,
+        "width": 390,
+        "theme": "light",
+        "passed": true,
+        "featuredRequests": 0
+      },
+      {
+        "javaScriptEnabled": true,
+        "width": 390,
+        "theme": "dark",
+        "passed": true,
+        "featuredRequests": 0
+      },
+      {
+        "javaScriptEnabled": true,
+        "width": 1440,
+        "theme": "light",
+        "passed": true,
+        "featuredRequests": 0
+      },
+      {
+        "javaScriptEnabled": true,
+        "width": 1440,
+        "theme": "dark",
+        "passed": true,
+        "featuredRequests": 0
+      }
+    ],
+    "rebuildStates": [
+      {
+        "phase": "empty",
+        "passed": true
+      },
+      {
+        "phase": "unavailable",
+        "passed": true,
+        "strictRejected": true
+      },
+      {
+        "phase": "edited",
+        "passed": true
+      }
+    ],
+    "snapshotRejection": {
+      "passed": true,
+      "cases": [
+        "cross-route",
+        "version",
+        "missing title",
+        "invalid source",
+        "invalid srcset",
+        "unloaded with photos",
+        "foreign media",
+        "wrong resource"
+      ]
+    },
+    "visual": "Mobile no-JavaScript screenshot inspected; Work heading, photo and title visible"
+  },
+  "behavior": [
+    "Existing FeaturedWork component and public photo mapping shared between build and browser",
+    "Featured photos, source/alt, captions and navigation in initial HTML",
+    "No repeated featured photo fetch during successful hydration",
+    "Empty or unavailable data has honest empty state; strict CMS builds reject unavailable response",
+    "Existing lightbox previous/next/Escape and navigation preserved"
+  ],
+  "pending": [
+    "Deployment and both production smoke tools",
+    "Actual featured media, metadata, no-JavaScript, themes and enquiry review",
+    "Remaining F04 About/Stories/Contact/legal families"
+  ]
+}

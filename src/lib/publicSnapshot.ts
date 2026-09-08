@@ -53,7 +53,7 @@ export function parsePublicSnapshot(text: string, pathname: string): PublicSnaps
     if (!arrays.every(key => arrayOf(data[key], record))
       || typeof data.loading !== 'boolean' || typeof data.fromApi !== 'boolean') return;
     // Build snapshots seed only these shared resources; others remain browser-loaded.
-    if (!arrayOf(value.loaded, key => key === 'siteContent' || key === 'categories' || (packagePage && key === 'packages') || (path === '/' && ['hero', 'featuredPhotos', 'galleryPhotos'].includes(String(key))))) return;
+    if (!arrayOf(value.loaded, key => key === 'siteContent' || key === 'categories' || (packagePage && key === 'packages') || (path === '/work' && key === 'featuredPhotos') || (path === '/' && ['hero', 'featuredPhotos', 'galleryPhotos'].includes(String(key))))) return;
     for (const [sourceName, resource] of [['services', 'siteContent'], ['packages', 'categories']]) {
       const source = (catalog.sources as Record<string, Record<string, unknown>>)[sourceName];
       if ((source.status === 'cms') !== (value.loaded as string[]).includes(resource)
@@ -69,6 +69,9 @@ export function parsePublicSnapshot(text: string, pathname: string): PublicSnaps
       && ['notes', 'slotTimings'].every(key => item[key] === undefined || arrayOf(item[key], entry => typeof entry === 'string'))
       && ['price', 'advanceAmount'].every(key => item[key] === undefined || item[key] === null || (typeof item[key] === 'number' && Number.isFinite(item[key])))
       && ['categorySlug', 'categoryName', 'shootType', 'durationLabel', 'themeGuideUrl', 'locationType'].every(key => item[key] === undefined || typeof item[key] === 'string'))) return;
+    if (path === '/work' && !arrayOf(data.featuredWork, item => record(item)
+      && ['avifSrcSet', 'webpSrcSet'].every(key => item[key] === undefined || typeof item[key] === 'string'))) return;
+    if (path === '/work' && !(value.loaded as string[]).includes('featuredPhotos') && (data.featuredWork as unknown[]).length) return;
     const portfolio = data.galleryPortfolio;
     if (path === '/gallery') {
       if (!record(portfolio) || typeof portfolio.loaded !== 'boolean'
@@ -80,7 +83,7 @@ export function parsePublicSnapshot(text: string, pathname: string): PublicSnaps
         || (!portfolio.loaded && (portfolio.photos as unknown[]).length > 0)) return;
     } else if (portfolio !== undefined) return;
     const media = data.serviceMedia;
-    if (['/', '/gallery', '/services', '/packages'].includes(path)) {
+    if (['/', '/work', '/gallery', '/services', '/packages'].includes(path)) {
       if (media !== undefined || !arrayOf(data.heroSlides, item => record(item) && strings(item, ['image', 'label']))
         || !arrayOf(data.featuredWork, item => record(item) && strings(item, ['image', 'alt', 'title', 'category', 'location', 'year']) && (item.categorySlugs === undefined || arrayOf(item.categorySlugs, slug => typeof slug === 'string')))
         || !arrayOf(data.galleryImages, item => image(item) && record(item) && (item.categorySlugs === undefined || arrayOf(item.categorySlugs, slug => typeof slug === 'string')))) return;

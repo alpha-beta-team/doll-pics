@@ -555,19 +555,20 @@ if (renderPaths.length) {
         category ? loadOptional(`/categories/${category}`) : undefined,
         category ? loadOptional(`/photos?category=${category}&limit=${SERVICE_GALLERY_LIMIT}`) : undefined,
         path === '/' ? buildHeroSlides : undefined,
-        path === '/' ? loadOptional('/photos?featured=true') : undefined,
+        ['/', '/work'].includes(path) ? loadOptional('/photos?featured=true') : undefined,
         path === '/' ? loadOptional('/photos?limit=24') : undefined,
         packagePage ? loadOptional('/packages') : undefined,
         path === '/gallery' ? loadOptional(`/photos?limit=${PORTFOLIO_PHOTO_LIMIT}`) : undefined,
       ]);
       if (packagePage && String(process.env.SEO_REQUIRE_CMS).toLowerCase() === 'true' && !Array.isArray(offers)) throw new Error(`CMS packages unavailable for ${path}`);
       if (path === '/gallery' && String(process.env.SEO_REQUIRE_CMS).toLowerCase() === 'true' && !Array.isArray(portfolio)) throw new Error('CMS gallery photos unavailable for /gallery');
+      if (path === '/work' && String(process.env.SEO_REQUIRE_CMS).toLowerCase() === 'true' && !Array.isArray(featured)) throw new Error('CMS featured photos unavailable for /work');
       rendered.set(path, await renderPublicPage({ path, siteContent, publicCatalog, categories: packageCategories,
         cover: cover && typeof cover === 'object' && !Array.isArray(cover) ? cover : undefined,
         photos: Array.isArray(photos) ? photos : undefined,
         offers: Array.isArray(offers) ? offers : undefined,
         portfolio: Array.isArray(portfolio) ? portfolio : undefined,
-        home: path === '/' ? { hero: Array.isArray(hero) ? hero : undefined, featured: Array.isArray(featured) ? featured : undefined, gallery: Array.isArray(gallery) ? gallery : undefined } : undefined }));
+        home: path === '/' ? { hero: Array.isArray(hero) ? hero : undefined, featured: Array.isArray(featured) ? featured : undefined, gallery: Array.isArray(gallery) ? gallery : undefined } : path === '/work' ? { featured: Array.isArray(featured) ? featured : undefined } : undefined }));
     }
   } finally { await server.close(); }
 }
@@ -583,6 +584,7 @@ for (const page of Object.values(pages)) {
   if (service) {
     if (page.path === '/') html = html.replace(/<div id="home-hero-poster"[\s\S]*?<\/picture><\/div>/g, '').replace(/<style id="home-hero-poster-style">[\s\S]*?<\/style>/g, '');
     if (page.path === '/gallery') html = html.replace('</head>', '<style>[data-public-html="/gallery"] #gallery img{opacity:1}[data-public-html="/gallery"] [data-gallery-placeholder]{display:none}</style></head>');
+    if (page.path === '/work') html = html.replace('</head>', '<style>[data-public-html="/work"] #work .reveal,[data-public-html="/work"] #work .reveal-blur{opacity:1;transform:none;filter:none}</style></head>');
     const serialized = serializeInlineJson(service.snapshot);
     if (!parsePublicSnapshot(serialized, page.path)) throw new Error(`Invalid public snapshot for ${page.path}`);
     html = html.replace(/<noscript>[\s\S]*?<\/noscript>/g, '');
