@@ -127,3 +127,10 @@ The user supplied Vercel build diagnostics TS2835/TS2339/TS2732 plus an Edge run
 Added explicit ESNext/bundler and JSON module options to the root config. Added `tsconfig.middleware.json` extending those root settings and included it in `npm run typecheck`, so release checks exercise the middleware's configuration. Set middleware `config.runtime` to `nodejs` following [Vercel's API](https://vercel.com/docs/routing-middleware/api#specify-runtime); matching, canonical resolution, query preservation and exclusions remain unchanged.
 
 Local validation: reproduced six fallback import/type diagnostics, then zero with root compiler options; all 27 direct GET/HEAD/POST, public/private, invalid-catalog and unavailable-catalog cases passed. Full `check:release` passed with existing lint/chunk warnings. No spec files, deployment or production verification. Next gate: redeploy, confirm middleware diagnostics/deprecation warning are absent, then run both production smoke tools. Implementation count remains unchanged.
+
+
+### Runtime follow-up — 8 September 2026
+
+Production verification subsequently returned `MIDDLEWARE_INVOCATION_FAILED` HTTP 500. The prior bundler-mode compiler check cleared diagnostics but did not exercise emitted Node JavaScript. A direct local emitted-module import reproduced `ERR_MODULE_NOT_FOUND` on the extensionless middleware import. The import graph now uses `.js` extensions and the JSON `with { type: 'json' }` attribute required by [Node ESM](https://nodejs.org/api/esm.html); root settings use NodeNext with JSON support. The child Vite configs retain bundler mode.
+
+Added `npm run check:middleware` to `check:release`; it compiles, loads and exercises native emitted ESM without tsx/Vite resolution hooks. All 27 cases and full release passed locally. [Live failure and local-repair evidence](./evidence/f04-production-verification-2026-09-08.json). Exact provider logs and deployment recovery remain unverified; redeploy and run both production smoke tools. Prior local-only success is not evidence of live runtime compatibility.

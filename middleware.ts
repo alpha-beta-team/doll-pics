@@ -1,5 +1,5 @@
-import { publicCanonicalPath } from './src/lib/publicCanonicalPath';
-import { CORE_PUBLIC_PATHS, isRecord, normalizePublicLandingPath } from './src/lib/publicRoutePath';
+import { publicCanonicalPath } from './src/lib/publicCanonicalPath.js';
+import { CORE_PUBLIC_PATHS, isRecord, normalizePublicLandingPath } from './src/lib/publicRoutePath.js';
 
 // Assets and the catalog itself never need canonical-path middleware.
 export const config = { runtime: 'nodejs', matcher: ['/((?!.*\\.).*)'] };

@@ -103,7 +103,7 @@ Promote through the existing release workflow only when this item's applicable g
 |---|---|---|
 | Remediation implementation | In progress | Homepage, hubs, gallery, work, about and catalog-driven service/package categories implemented. Remaining core public families are pending |
 | Local remediation validation | Implemented families passed | Earlier family evidence below; [About evidence](./evidence/f04-about-local-verification.json) records release, strict HTML smoke, 16 browser cases, snapshot rejection and controlled rebuilds |
-| Preview/production acceptance | Latest increment pending | User reported both production smoke checks passed after Gallery/middleware deployment; Work and About require deployment and manual acceptance, and earlier manual/external follow-ups remain separate |
+| Preview/production acceptance | Failed latest live check | [Production evidence](./evidence/f04-production-verification-2026-09-08.json): middleware HTTP 500 persists after deployment changed from Work `5b3a6e4` to About `881e48c`. Node ESM repair verified locally; redeployment and manual acceptance pending |
 | External checks | Pending | Apply the requirements above; label non-applicable checks explicitly |
 
 Update this header, this record, the master row, chunk checkbox and totals together. Use `Ready for verification` when implementation and required local checks pass but applicable deployment/manual checks remain. Use `Complete` only after this item's acceptance criteria pass; record non-gating ongoing observations separately. `Blocked` requires a blocker, responsible role and concrete next action.
@@ -219,3 +219,13 @@ User authorized the next F04 increment after About was identified as the next pa
 - Release check passed with existing warnings. Eight populated browser cases cover JS/no-JS, mobile/desktop, both stored themes, video-dialog open/Escape/focus return and navigation. Eight further cases cover empty collections, each independent failure and edited story/biography rebuilds. Nine malformed/cross-route/resource snapshots rejected. Private-field sentinels absent. Mobile no-JavaScript screenshot inspected. [Evidence](./evidence/f04-about-local-verification.json).
 
 **Next gate:** deploy and run both smoke tools; review approved biographies, photos, story, headings, no-JavaScript visibility, themes, enquiry and real video playback. Fixture dialog checks do not prove playback. Continue Stories, Contact and legal pages afterward. F04 remains In progress; total stays 10 / 19. No spec files or external writes.
+
+### Production verification attempt — 8 September 2026
+
+At the user's request, ran both smoke tools directly against `https://dollpictures.in`. Both failed. The public catalog remained accessible and identified build commit `5b3a6e43a522a6820e2b6923a7fbc4b61e056bab` (Work), created `2026-09-08T15:11:00.404Z`, with 32 paths and successful CMS provenance. Local HEAD `881e48c3a18cd32b96556882c4e5a9fedc7c612c` includes About and was not deployed. Direct Work/About/Gallery requests returned HTTP 500 with `MIDDLEWARE_INVOCATION_FAILED`; canonical variants and true-404 checks also failed. No deployed HTML/browser acceptance is claimed.
+
+A local emitted-JavaScript reproduction failed to import the middleware's extensionless module path. Corrected middleware/shared imports for native Node ESM, added the required JSON import attribute, and switched root compilation to NodeNext. `check:release` now executes a durable emitted-runtime check: 27 redirect/exclusion/failure cases and the full release passed. This repairs a demonstrated local startup failure consistent with the production symptom; the provider runtime stack was unavailable and deployment is still required to confirm recovery. [Evidence](./evidence/f04-production-verification-2026-09-08.json).
+
+**Immediate next gate:** deploy the middleware repair, confirm the served commit, rerun both smoke commands and then perform browser/no-JavaScript review. Keep F04 In progress. No deployment was performed during this verification.
+
+**Same-session deployment update:** a recheck at `2026-09-08T15:40:34.947Z` identified About commit `881e48c3a18cd32b96556882c4e5a9fedc7c612c`, built `2026-09-08T15:37:51.342Z`. About is now deployed, but its response still returns HTTP 500 / `MIDDLEWARE_INVOCATION_FAILED`. Both smoke tools were rerun against this newer deployment and failed. The runtime repair remains local.

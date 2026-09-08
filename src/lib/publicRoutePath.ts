@@ -1,4 +1,4 @@
-import seoPages from '../data/seo-pages.json';
+import seoPages from '../data/seo-pages.json' with { type: 'json' };
 
 export const CORE_PUBLIC_PATHS = Object.keys(seoPages.pages);
 const reservedRoots = new Set([

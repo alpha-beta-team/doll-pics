@@ -1,4 +1,4 @@
-import { CORE_PUBLIC_PATHS, normalizePublicLandingPath } from './publicRoutePath';
+import { CORE_PUBLIC_PATHS, normalizePublicLandingPath } from './publicRoutePath.js';
 
 /** Resolve variants only when the destination is in the authoritative public catalog. */
 export function publicCanonicalPath(pathname: string, paths: readonly string[]): string | undefined {

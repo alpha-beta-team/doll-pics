@@ -111,7 +111,7 @@ Start with F01. Within a chunk, take ready items in the listed order; independen
 | 4 — Content growth and ongoing verification | 3 | 0 | 3 | Not started |
 | **Overall** | **19** | **10** | **9** | **In progress: 2 active, 7 not started** |
 
-**Recommended next task:** deploy/verify [F04 Work/About rendering](./04-public-html-expansion.md) and the [F13 Booking fix](./13-performance-and-core-web-vitals.md). Run both deployed smoke tools, check CMS publication/rebuild behavior and repeat Booking performance measurements. After About acceptance, continue Stories/Contact/legal families. Totals are **10 / 19 complete** for implementation tracking; deployment/external follow-ups remain recorded separately.
+**Recommended next task:** deploy the middleware runtime repair. Latest [F04 production verification](./evidence/f04-production-verification-2026-09-08.json) failed with middleware HTTP 500, which persisted after production advanced to the About commit. Rerun both smoke tools and browser acceptance before continuing Stories/Contact/legal families. F13 production comparisons also await a healthy deployment. Totals remain **10 / 19 complete** for implementation tracking.
 
 ## Parallel execution
 
@@ -229,3 +229,4 @@ The creator validates these separately from remediation completion:
 | 2026-09-08 | F04 Gallery initial HTML implemented locally with shared portfolio snapshot, visible no-JS images and empty/unavailable handling | 10 / 19 | Deploy/verify Gallery with both smoke tools and manual media/lightbox checks; then continue remaining core public families |
 | 2026-09-08 | User reported both production smoke checks passed after Gallery/middleware deployment; F04 Work HTML implemented and verified locally | 10 / 19 | Deploy/verify Work and review actual featured photos/lightbox; then continue About/Stories/Contact/legal families |
 | 2026-09-08 | F04 About initial HTML implemented with public staff/process snapshots and preserved heading hierarchy; local release, browser and failure checks passed | 10 / 19 | Deploy/verify Work/About and review real content/media; then continue Stories/Contact/legal families |
+| 2026-09-08 | Direct F04 production verification failed: middleware HTTP 500 persisted across Work and About deployments; emitted Node ESM import bug reproduced and repaired locally | 10 / 19 | Deploy runtime repair, verify served commit and rerun both smoke tools before browser acceptance |
