@@ -278,6 +278,12 @@ export function applyPageSeo(
     seo.noindex ? 'noindex, nofollow' : 'index, follow',
   );
 
+  if (seo.noindex) {
+    document.querySelectorAll('link[rel="canonical"], meta[property^="og:"], meta[name^="twitter:"], script[id^="seo-jsonld-"]')
+      .forEach(element => element.remove());
+    return;
+  }
+
   upsertMeta('property', 'og:title', seo.title);
   upsertMeta('property', 'og:description', seo.description);
   upsertMeta('property', 'og:type', type);

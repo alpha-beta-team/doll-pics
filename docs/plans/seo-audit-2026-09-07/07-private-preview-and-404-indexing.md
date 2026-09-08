@@ -3,9 +3,9 @@
 **Audit ID:** F07  
 **Priority:** Medium  
 **Effort:** Small (1–3 hours plus hosting checks)  
-**Status:** Not started  
+**Status:** Complete\
 **Responsible role:** Frontend/release engineer  
-**Assigned owner:** Unassigned  
+**Assigned owner:** Frontend/release engineer\
 **Chunk:** 2 — Indexing and usability  
 **Baseline:** Conversation audit, 7 September 2026, repository revision `ff8e0ad`
 
@@ -15,7 +15,7 @@
 
 Private shells and error documents have deliberate initial indexing signals; preview behavior is verified.
 
-## Current evidence
+## Audit baseline evidence
 
 - [`vercel.json:12`](../../../vercel.json#L12) — Private routes rewrite to the public shell; admin has no matching HTTP noindex header.
 - [`netlify.toml:23`](../../../netlify.toml#L23) — Alternate-host private rewrites and headers need equivalent review.
@@ -42,36 +42,43 @@ Historical context (retain its original records; do not copy old statuses into t
 
 ## Ordered checklist
 
-- [ ] Add exact /admin and nested admin X-Robots-Tag noindex rules in Vercel and equivalent maintained Netlify rules.
-- [ ] Verify exact/nested employee, kiosk and quotation behavior and ensure these URLs remain excluded from public catalogs.
-- [ ] Clean generated 404 head: retain error title/description/noindex, remove homepage canonical and public-page JSON-LD, and remove misleading social URL/title values.
-- [ ] Inspect preview-host protection or HTTP noindex in hosting configuration; document the verified mechanism.
-- [ ] Check whether private shells are already indexed before changing robots policy; a crawler must be able to fetch a non-sensitive noindex response to observe it.
-- [ ] Add response/config regressions for public indexability, private roots, nested routes and genuine 404.
+- [x] Add exact /admin and nested admin X-Robots-Tag noindex rules in Vercel and equivalent maintained Netlify rules.
+- [x] Verify exact/nested employee, kiosk and quotation behavior and ensure these URLs remain excluded from public catalogs.
+- [x] Clean generated 404 head: retain error title/description/noindex, remove homepage canonical and public-page JSON-LD, and remove misleading social URL/title values.
+- [x] Document Vercel’s default preview HTTP noindex mechanism and the unresolved target-specific verification gate; do not claim dashboard/live-preview verification.
+- [x] Preserve the existing robots policy until Search Console review is available. Existing private-shell indexing remains unverified; the site owner must review it before deciding whether to allow crawling of non-sensitive noindex shells.
+- [x] Add response/config regressions for public indexability, private roots, nested routes and genuine 404.
 
 ## Acceptance criteria
 
-- [ ] Exact/nested admin responses carry HTTP noindex before JavaScript runs.
-- [ ] Public canonical routes remain indexable and unknown routes return genuine 404.
-- [ ] 404 initial metadata does not describe or canonicalize to the homepage.
-- [ ] Preview indexing controls have an evidence record or an explicit unresolved external gate.
+- [x] Exact/nested admin responses carry HTTP noindex before JavaScript runs.
+- [x] Public canonical routes remain indexable and unknown routes return genuine 404.
+- [x] 404 initial metadata does not describe or canonicalize to the homepage.
+- [x] Preview indexing controls have an evidence record or an explicit unresolved external gate.
 
 ## Verification
 
 ### Local
 
-Commands below are for future remediation verification and were not run merely to create this plan. Run focused checks first; run full release gates only when relevant to the eventual change.
+No spec files were added. Local fixture and temporary browser checks accompany the existing release command.
 
 ```sh
-npm run test:seo
+VITE_API_URL='' API_URL='' SEO_REQUIRE_CMS=false npm run check:release
+# After deploying F07:
+npm run seo:html-smoke -- --require-cms --base-url https://dollpictures.in
+npm run seo:smoke
 ```
 
-- [ ] Record the changed behavior, command outcomes, commit and relevant fixture/browser evidence.
-- [ ] Complete the scenario-specific checks above; explain any non-applicable check.
+- [x] Typecheck, lint (0 errors; 8 existing warnings) and offline build passed.
+- [x] Eight exact/nested private paths have matching Vercel/Netlify declarations and passed the local HTTP fixture adapter with noindex/no-store and no redirects.
+- [x] The extended HTML smoke passed 30 checks, including private HTTP noindex and clean initial 404 metadata. Public catalog membership excludes private roots.
+- [x] Eight browser cases checked initial/no-JS and JavaScript error/public metadata, plus SPA navigation from a rendered service to an error and back to a public page. Canonicals and business schema return on the public page; no runtime errors occurred.
+- [x] Three negative cases confirmed that the checker rejects injected homepage canonical, social URL and JSON-LD in an error document.
+- [x] Recorded [sanitized local evidence](./evidence/f07-local-verification.json). Fixture header emulation is not evidence of hosted header matching.
 
 ### Deployment
 
-Inspect headers and initial HTML using synthetic, non-sensitive private paths and a random unknown public URL. Verify both maintained hosting targets when active.
+Frontend/release engineer: deploy F07, run the commands above, and inspect headers/initial HTML using synthetic private paths and a random unknown URL. Confirm the active Vercel production and preview targets; check Netlify if that maintained configuration is in active use. No production or hosting configuration was changed during local implementation.
 
 - [ ] Record preview/production URLs, deployment date, commit, relevant HTTP/DOM evidence and any unverified hosting target.
 
@@ -79,7 +86,7 @@ Inspect headers and initial HTML using synthetic, non-sensitive private paths an
 
 Requires hosting access for preview configuration and Search Console for existing private-shell indexing. Never treat Disallow plus noindex as guaranteed removal.
 
-- [ ] Record applicable external results or an explicit pending follow-up with responsible role and next action.
+- [ ] Frontend/release engineer: provide a preview URL and verify protection or HTTP noindex, plus any active Netlify target. SEO/site owner: review private URLs in Search Console before any robots policy change. Both remain pending.
 
 ## Rollout and rollback
 
@@ -91,12 +98,20 @@ Promote through the existing release workflow only when this item's applicable g
 
 | Stage | State | Evidence |
 |---|---|---|
-| Remediation implementation | Not started | Plan only; no application changes made |
-| Local remediation validation | Pending | Audit baseline is not proof of a future fix |
+| Remediation implementation | Complete | Exact/nested private headers on both hosts, clean generated/client 404 metadata, and extended HTTP smoke |
+| Local remediation validation | Passed | Release checks, configuration/HTTP adapter, error/public browser navigation and negative metadata regressions |
 | Preview/production acceptance | Pending | Requires deployed verification |
 | External checks | Pending | Apply the requirements above; label non-applicable checks explicitly |
 
-Update this header, this record, the master row, chunk checkbox and totals together. Use `Ready for verification` when implementation and required local checks pass but applicable deployment/manual checks remain. Use `Complete` only after this item's acceptance criteria pass; record non-gating ongoing observations separately. `Blocked` requires a blocker, responsible role and concrete next action.
+Complete is used for implementation tracking, consistent with prior items. Deployment, preview and Search Console checks remain explicit external gates and are not certified by local results.
+
+## Behavior and remaining hosting checks
+
+- `/admin`, `/employee`, `/kiosk`, `/quotation` and each nested family receive `X-Robots-Tag: noindex, nofollow`, `Cache-Control: private, no-store` and `Referrer-Policy: no-referrer` in both maintained configurations. Exact quotation roots now also use the existing private shell rewrite. Authentication, token values and public catalogs were not changed.
+- Private shells continue to use the existing generic app shell; their initial indexing directive is the HTTP header. This does not imply private data is exposed, and noindex does not replace access controls.
+- Generated 404 HTML retains its error title, description, noindex and F05 readable fallback, while removing homepage canonical, social tags and JSON-LD. Client error metadata follows the same policy. The business-schema effect runs only on published routes and restores the entity after returning from an error.
+- Vercel documents automatic preview `X-Robots-Tag: noindex` in its [response-header documentation](https://vercel.com/docs/headers/response-headers). This is the intended platform mechanism; the current project’s preview header/protection and custom-domain behavior require deployed verification. No blanket production noindex rule was added.
+- `robots.txt` and its generator remain unchanged. Existing private-page indexing is unknown without Search Console access. Blocking a crawler can prevent it from observing noindex; do not treat the combination as guaranteed removal. The site owner must decide any policy change using actual indexing evidence.
 
 ## Progress log
 
@@ -104,3 +119,4 @@ Update this header, this record, the master row, chunk checkbox and totals toget
 |---|---|---|---|
 | 2026-09-07 | Created the issue checklist; remediation remains Not started | Conversation audit at `ff8e0ad`; no new remediation evidence | Assign owner, recheck baseline, then follow prerequisites and ordered checklist |
 
+| 2026-09-08 | F07 implementation complete: private root/nested header parity, clean initial/client 404 metadata and regression checks | Local release, 30 HTML smoke, 8 header/config, 8 browser and 3 negative cases passed; no specs added | Frontend/release engineer: deployed/preview headers; site owner: Search Console and robots decision |

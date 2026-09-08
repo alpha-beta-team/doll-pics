@@ -1,0 +1,464 @@
+{
+  "date": "2026-09-08T03:32:37.444Z",
+  "commit": "42d896f457cf1346cbef915ef67fede6c8bc02ab",
+  "scope": "Local F05 changes, mocked CMS with homepage hero; no production writes/deployment",
+  "results": [
+    {
+      "path": "/",
+      "width": 390,
+      "javaScriptEnabled": false,
+      "pilot": false,
+      "passed": true,
+      "styles": {
+        "color": "rgb(17, 17, 17)",
+        "background": "rgb(255, 255, 255)",
+        "linkColor": "rgb(23, 78, 166)",
+        "underline": "underline",
+        "userSelect": "text",
+        "bodyBackground": "rgb(255, 255, 255)",
+        "poster": "none",
+        "overflow": false,
+        "headingOnTop": true
+      },
+      "contrast": {
+        "text": 18.883060964594996,
+        "link": 7.845123434042659
+      },
+      "focus": {
+        "tag": "A",
+        "inFallback": true,
+        "style": "solid",
+        "width": "3px",
+        "color": "rgb(23, 78, 166)"
+      }
+    },
+    {
+      "path": "/about",
+      "width": 390,
+      "javaScriptEnabled": false,
+      "pilot": false,
+      "passed": true,
+      "styles": {
+        "color": "rgb(17, 17, 17)",
+        "background": "rgb(255, 255, 255)",
+        "linkColor": "rgb(23, 78, 166)",
+        "underline": "underline",
+        "userSelect": "text",
+        "bodyBackground": "rgb(255, 255, 255)",
+        "poster": null,
+        "overflow": false,
+        "headingOnTop": true
+      },
+      "contrast": {
+        "text": 18.883060964594996,
+        "link": 7.845123434042659
+      },
+      "focus": {
+        "tag": "A",
+        "inFallback": true,
+        "style": "solid",
+        "width": "3px",
+        "color": "rgb(23, 78, 166)"
+      }
+    },
+    {
+      "path": "/custom-packages-erode",
+      "width": 390,
+      "javaScriptEnabled": false,
+      "pilot": false,
+      "passed": true,
+      "styles": {
+        "color": "rgb(17, 17, 17)",
+        "background": "rgb(255, 255, 255)",
+        "linkColor": "rgb(23, 78, 166)",
+        "underline": "underline",
+        "userSelect": "text",
+        "bodyBackground": "rgb(255, 255, 255)",
+        "poster": null,
+        "overflow": false,
+        "headingOnTop": true
+      },
+      "contrast": {
+        "text": 18.883060964594996,
+        "link": 7.845123434042659
+      },
+      "focus": {
+        "tag": "A",
+        "inFallback": true,
+        "style": "solid",
+        "width": "3px",
+        "color": "rgb(23, 78, 166)"
+      }
+    },
+    {
+      "path": "/editorial-photography",
+      "width": 390,
+      "javaScriptEnabled": false,
+      "pilot": false,
+      "passed": true,
+      "styles": {
+        "color": "rgb(17, 17, 17)",
+        "background": "rgb(255, 255, 255)",
+        "linkColor": "rgb(23, 78, 166)",
+        "underline": "underline",
+        "userSelect": "text",
+        "bodyBackground": "rgb(255, 255, 255)",
+        "poster": null,
+        "overflow": false,
+        "headingOnTop": true
+      },
+      "contrast": {
+        "text": 18.883060964594996,
+        "link": 7.845123434042659
+      },
+      "focus": {
+        "tag": "A",
+        "inFallback": true,
+        "style": "solid",
+        "width": "3px",
+        "color": "rgb(23, 78, 166)"
+      }
+    },
+    {
+      "path": "/f05-not-found",
+      "width": 390,
+      "javaScriptEnabled": false,
+      "pilot": false,
+      "passed": true,
+      "styles": {
+        "color": "rgb(17, 17, 17)",
+        "background": "rgb(255, 255, 255)",
+        "linkColor": "rgb(23, 78, 166)",
+        "underline": "underline",
+        "userSelect": "text",
+        "bodyBackground": "rgb(255, 255, 255)",
+        "poster": null,
+        "overflow": false,
+        "headingOnTop": true
+      },
+      "contrast": {
+        "text": 18.883060964594996,
+        "link": 7.845123434042659
+      },
+      "focus": {
+        "tag": "A",
+        "inFallback": true,
+        "style": "solid",
+        "width": "3px",
+        "color": "rgb(23, 78, 166)"
+      }
+    },
+    {
+      "path": "/newborn-baby-photography-erode",
+      "width": 390,
+      "javaScriptEnabled": false,
+      "pilot": true,
+      "passed": true
+    },
+    {
+      "path": "/wedding-photography-erode",
+      "width": 390,
+      "javaScriptEnabled": false,
+      "pilot": true,
+      "passed": true
+    },
+    {
+      "path": "/maternity-photography-erode",
+      "width": 390,
+      "javaScriptEnabled": false,
+      "pilot": true,
+      "passed": true
+    },
+    {
+      "path": "/",
+      "width": 1440,
+      "javaScriptEnabled": false,
+      "pilot": false,
+      "passed": true,
+      "styles": {
+        "color": "rgb(17, 17, 17)",
+        "background": "rgb(255, 255, 255)",
+        "linkColor": "rgb(23, 78, 166)",
+        "underline": "underline",
+        "userSelect": "text",
+        "bodyBackground": "rgb(255, 255, 255)",
+        "poster": "none",
+        "overflow": false,
+        "headingOnTop": true
+      },
+      "contrast": {
+        "text": 18.883060964594996,
+        "link": 7.845123434042659
+      },
+      "focus": {
+        "tag": "A",
+        "inFallback": true,
+        "style": "solid",
+        "width": "3px",
+        "color": "rgb(23, 78, 166)"
+      }
+    },
+    {
+      "path": "/about",
+      "width": 1440,
+      "javaScriptEnabled": false,
+      "pilot": false,
+      "passed": true,
+      "styles": {
+        "color": "rgb(17, 17, 17)",
+        "background": "rgb(255, 255, 255)",
+        "linkColor": "rgb(23, 78, 166)",
+        "underline": "underline",
+        "userSelect": "text",
+        "bodyBackground": "rgb(255, 255, 255)",
+        "poster": null,
+        "overflow": false,
+        "headingOnTop": true
+      },
+      "contrast": {
+        "text": 18.883060964594996,
+        "link": 7.845123434042659
+      },
+      "focus": {
+        "tag": "A",
+        "inFallback": true,
+        "style": "solid",
+        "width": "3px",
+        "color": "rgb(23, 78, 166)"
+      }
+    },
+    {
+      "path": "/custom-packages-erode",
+      "width": 1440,
+      "javaScriptEnabled": false,
+      "pilot": false,
+      "passed": true,
+      "styles": {
+        "color": "rgb(17, 17, 17)",
+        "background": "rgb(255, 255, 255)",
+        "linkColor": "rgb(23, 78, 166)",
+        "underline": "underline",
+        "userSelect": "text",
+        "bodyBackground": "rgb(255, 255, 255)",
+        "poster": null,
+        "overflow": false,
+        "headingOnTop": true
+      },
+      "contrast": {
+        "text": 18.883060964594996,
+        "link": 7.845123434042659
+      },
+      "focus": {
+        "tag": "A",
+        "inFallback": true,
+        "style": "solid",
+        "width": "3px",
+        "color": "rgb(23, 78, 166)"
+      }
+    },
+    {
+      "path": "/editorial-photography",
+      "width": 1440,
+      "javaScriptEnabled": false,
+      "pilot": false,
+      "passed": true,
+      "styles": {
+        "color": "rgb(17, 17, 17)",
+        "background": "rgb(255, 255, 255)",
+        "linkColor": "rgb(23, 78, 166)",
+        "underline": "underline",
+        "userSelect": "text",
+        "bodyBackground": "rgb(255, 255, 255)",
+        "poster": null,
+        "overflow": false,
+        "headingOnTop": true
+      },
+      "contrast": {
+        "text": 18.883060964594996,
+        "link": 7.845123434042659
+      },
+      "focus": {
+        "tag": "A",
+        "inFallback": true,
+        "style": "solid",
+        "width": "3px",
+        "color": "rgb(23, 78, 166)"
+      }
+    },
+    {
+      "path": "/f05-not-found",
+      "width": 1440,
+      "javaScriptEnabled": false,
+      "pilot": false,
+      "passed": true,
+      "styles": {
+        "color": "rgb(17, 17, 17)",
+        "background": "rgb(255, 255, 255)",
+        "linkColor": "rgb(23, 78, 166)",
+        "underline": "underline",
+        "userSelect": "text",
+        "bodyBackground": "rgb(255, 255, 255)",
+        "poster": null,
+        "overflow": false,
+        "headingOnTop": true
+      },
+      "contrast": {
+        "text": 18.883060964594996,
+        "link": 7.845123434042659
+      },
+      "focus": {
+        "tag": "A",
+        "inFallback": true,
+        "style": "solid",
+        "width": "3px",
+        "color": "rgb(23, 78, 166)"
+      }
+    },
+    {
+      "path": "/newborn-baby-photography-erode",
+      "width": 1440,
+      "javaScriptEnabled": false,
+      "pilot": true,
+      "passed": true
+    },
+    {
+      "path": "/wedding-photography-erode",
+      "width": 1440,
+      "javaScriptEnabled": false,
+      "pilot": true,
+      "passed": true
+    },
+    {
+      "path": "/maternity-photography-erode",
+      "width": 1440,
+      "javaScriptEnabled": false,
+      "pilot": true,
+      "passed": true
+    },
+    {
+      "path": "/",
+      "width": 390,
+      "javaScriptEnabled": true,
+      "pilot": false,
+      "passed": true
+    },
+    {
+      "path": "/about",
+      "width": 390,
+      "javaScriptEnabled": true,
+      "pilot": false,
+      "passed": true
+    },
+    {
+      "path": "/custom-packages-erode",
+      "width": 390,
+      "javaScriptEnabled": true,
+      "pilot": false,
+      "passed": true
+    },
+    {
+      "path": "/editorial-photography",
+      "width": 390,
+      "javaScriptEnabled": true,
+      "pilot": false,
+      "passed": true
+    },
+    {
+      "path": "/f05-not-found",
+      "width": 390,
+      "javaScriptEnabled": true,
+      "pilot": false,
+      "passed": true
+    },
+    {
+      "path": "/newborn-baby-photography-erode",
+      "width": 390,
+      "javaScriptEnabled": true,
+      "pilot": true,
+      "passed": true
+    },
+    {
+      "path": "/wedding-photography-erode",
+      "width": 390,
+      "javaScriptEnabled": true,
+      "pilot": true,
+      "passed": true
+    },
+    {
+      "path": "/maternity-photography-erode",
+      "width": 390,
+      "javaScriptEnabled": true,
+      "pilot": true,
+      "passed": true
+    },
+    {
+      "path": "/",
+      "width": 1440,
+      "javaScriptEnabled": true,
+      "pilot": false,
+      "passed": true
+    },
+    {
+      "path": "/about",
+      "width": 1440,
+      "javaScriptEnabled": true,
+      "pilot": false,
+      "passed": true
+    },
+    {
+      "path": "/custom-packages-erode",
+      "width": 1440,
+      "javaScriptEnabled": true,
+      "pilot": false,
+      "passed": true
+    },
+    {
+      "path": "/editorial-photography",
+      "width": 1440,
+      "javaScriptEnabled": true,
+      "pilot": false,
+      "passed": true
+    },
+    {
+      "path": "/f05-not-found",
+      "width": 1440,
+      "javaScriptEnabled": true,
+      "pilot": false,
+      "passed": true
+    },
+    {
+      "path": "/newborn-baby-photography-erode",
+      "width": 1440,
+      "javaScriptEnabled": true,
+      "pilot": true,
+      "passed": true
+    },
+    {
+      "path": "/wedding-photography-erode",
+      "width": 1440,
+      "javaScriptEnabled": true,
+      "pilot": true,
+      "passed": true
+    },
+    {
+      "path": "/maternity-photography-erode",
+      "width": 1440,
+      "javaScriptEnabled": true,
+      "pilot": true,
+      "passed": true
+    }
+  ],
+  "releaseChecks": {
+    "passed": true,
+    "typecheck": "passed",
+    "lint": "0 errors; 8 existing warnings",
+    "offlineBuild": "passed",
+    "specFilesAdded": 0,
+    "fixtureHtmlSmoke": "passed"
+  },
+  "visualInspection": [
+    "home mobile",
+    "package mobile",
+    "404 desktop"
+  ]
+}

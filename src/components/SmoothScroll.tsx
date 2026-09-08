@@ -42,20 +42,14 @@ export function SmoothScroll({ children }: { children: ReactNode }) {
   const reduced = useReducedMotion();
   const { pathname } = useLocation();
 
-  // Always jump to top on route change (SPA keeps prior scroll otherwise).
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
-
   useEffect(() => {
     if (reduced || shouldDisableSmoothScroll()) return;
 
-    let target = 0;
-    let current = 0;
+    let target = window.scrollY;
+    let current = window.scrollY;
     let raf = 0;
     let isAnimating = false;
 
-    window.scrollTo(0, 0);
 
     const lerp = () => {
       const diff = target - current;

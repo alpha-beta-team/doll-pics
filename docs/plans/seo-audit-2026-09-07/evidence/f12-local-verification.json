@@ -1,0 +1,76 @@
+{
+  "date": "2026-09-08T03:54:06.222Z",
+  "scope": "Local fixture Chromium; uncommitted implementation. Manual VoiceOver and deployment pending.",
+  "results": [
+    {
+      "theme": "dark",
+      "reducedMotion": "reduce",
+      "passed": true,
+      "checks": [
+        "44px toggle",
+        "initial focus",
+        "Tab wrap",
+        "background inert",
+        "Escape restore",
+        "lazy route focus",
+        "enquiry handoff",
+        "desktop resize",
+        "back scroll"
+      ]
+    },
+    {
+      "theme": "dark",
+      "reducedMotion": "no-preference",
+      "passed": true,
+      "checks": [
+        "44px toggle",
+        "initial focus",
+        "Tab wrap",
+        "background inert",
+        "Escape restore",
+        "lazy route focus",
+        "enquiry handoff",
+        "desktop resize",
+        "back scroll"
+      ]
+    },
+    {
+      "theme": "light",
+      "reducedMotion": "reduce",
+      "passed": true,
+      "checks": [
+        "44px toggle",
+        "initial focus",
+        "Tab wrap",
+        "background inert",
+        "Escape restore",
+        "lazy route focus",
+        "enquiry handoff",
+        "desktop resize",
+        "back scroll"
+      ]
+    },
+    {
+      "theme": "light",
+      "reducedMotion": "no-preference",
+      "passed": true,
+      "checks": [
+        "44px toggle",
+        "initial focus",
+        "Tab wrap",
+        "background inert",
+        "Escape restore",
+        "lazy route focus",
+        "enquiry handoff",
+        "desktop resize",
+        "back scroll"
+      ]
+    }
+  ],
+  "additionalChecks": [
+    "320x450 touch expanded-menu and sticky close reachability",
+    "hash target focus",
+    "no focus theft after DOM mutation"
+  ],
+  "release": "check:release passed; existing lint warnings"
+}

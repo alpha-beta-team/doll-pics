@@ -1,4 +1,6 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { containDialogFocus } from '../lib/dialogFocus';
 import { Link, useLocation } from 'react-router-dom';
 import { ChevronDown, Menu, Moon, Sun, X } from 'lucide-react';
 import { useSiteData } from '../contexts/SiteDataContext';
@@ -22,6 +24,37 @@ export function Navbar() {
   const brand = DISPLAY_BRAND_NAME;
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const dialog = menuRef.current;
+    if (!open || !dialog) return;
+    const background = Array.from(document.body.children)
+      .filter((node): node is HTMLElement => node instanceof HTMLElement && node !== dialog);
+    const previousInert = background.map((node) => node.inert);
+    background.forEach((node) => { node.inert = true; });
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const releaseFocus = containDialogFocus(dialog);
+    const dismiss = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { event.preventDefault(); setOpen(false); }
+    };
+    const desktop = window.matchMedia('(min-width: 1024px)');
+    const resize = () => {
+      if (desktop.matches) setOpen(false);
+    };
+    document.addEventListener('keydown', dismiss);
+    desktop.addEventListener('change', resize);
+    return () => {
+      background.forEach((node, index) => { node.inert = previousInert[index]; });
+      document.body.style.overflow = overflow;
+      releaseFocus();
+      if (desktop.matches) document.querySelector<HTMLElement>('header nav a')?.focus();
+      document.removeEventListener('keydown', dismiss);
+      desktop.removeEventListener('change', resize);
+    };
+  }, [open]);
   const [servicesOpen, setServicesOpen] = useState(false);
   const [packagesOpen, setPackagesOpen] = useState(false);
   const [mobileServicesOpen, setMobileServicesOpen] = useState(false);
@@ -270,11 +303,14 @@ export function Navbar() {
               </button>
               <button
                 type="button"
-                onClick={() => setOpen(!open)}
-                className="lg:hidden text-ink-50"
+                ref={toggleRef}
+                onClick={() => { toggleRef.current?.focus(); setOpen(!open); }}
+                className="flex h-11 w-11 shrink-0 items-center justify-center lg:hidden text-ink-50"
                 data-cursor="hover"
                 aria-label={open ? 'Close menu' : 'Open menu'}
                 aria-expanded={open}
+                aria-controls="mobile-navigation"
+                aria-haspopup="dialog"
               >
                 {open ? <X className="w-6 h-6" aria-hidden="true" /> : <Menu className="w-6 h-6" aria-hidden="true" />}
               </button>
@@ -283,8 +319,12 @@ export function Navbar() {
         </div>
       </header>
 
-      {open && (
-        <div className="fixed inset-0 z-[999] lg:hidden bg-ink-950/95 backdrop-blur-2xl flex flex-col items-center justify-center gap-6 fade-in overflow-y-auto py-24">
+      {open && createPortal(
+        <div ref={menuRef} id="mobile-navigation" role="dialog" aria-modal="true" aria-label="Main navigation" tabIndex={-1} data-smooth-scroll-ignore className="fixed inset-0 z-[1100] bg-ink-950/95 backdrop-blur-2xl overflow-y-auto">
+          <div className="sticky top-0 z-10 flex justify-end bg-ink-950/95 px-6 py-4">
+            <button type="button" onClick={() => setOpen(false)} aria-label="Close menu" className="flex h-11 w-11 items-center justify-center text-ink-50"><X aria-hidden="true" /></button>
+          </div>
+          <div className="flex min-h-full flex-col items-center justify-center gap-6 px-6 pb-16 pt-6">
           {NAV_LINKS.map((link, i) => {
             if (link.path === '/services') {
               return (
@@ -407,7 +447,8 @@ export function Navbar() {
           >
             Book Now
           </button>
-        </div>
+          </div>
+        </div>, document.body,
       )}
 
       {showBookingModal ? (

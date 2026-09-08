@@ -120,6 +120,9 @@ export function validateExcludedHtml(html: string, missing = false): string[] {
     const document = dom.window.document;
     const failures: string[] = [];
     if (document.querySelector('#public-page-snapshot, [data-public-html]')) failures.push('service snapshot or rendered marker leaked onto an excluded route');
+    if (missing && document.querySelector('link[rel="canonical"], script[type="application/ld+json"], meta[property^="og:"], meta[name^="twitter:"]')) {
+      failures.push('404 retains public canonical, structured data or social metadata');
+    }
     if (missing && !/\bnoindex\b/i.test(document.querySelector('meta[name="robots"]')?.getAttribute('content') ?? '')) {
       failures.push('404 page lacks noindex metadata');
     }
@@ -205,7 +208,7 @@ export async function checkPublicHtmlDeployment({
     return finish([{ path: '/public-catalog.json', failures: [error instanceof Error ? error.message : String(error)] }]);
   }
   const excluded = ['/', '/services', '/admin', '/admin/bookings', '/employee', '/employee/dashboard',
-    '/kiosk', '/kiosk/check-in', '/quotation/html-smoke'];
+    '/kiosk', '/kiosk/check-in', '/quotation', '/quotation/html-smoke'];
   const missing = '/__public-html-smoke-not-found';
   const paths = [...new Set([...published, ...Object.keys(PUBLIC_HTML_ROUTES), ...excluded, missing])];
   const results = await Promise.all(paths.map(async path => {
@@ -217,6 +220,8 @@ export async function checkPublicHtmlDeployment({
       if (response.status !== expectedStatus) failures.push(`HTTP ${response.status}, expected ${expectedStatus}`);
       if (!response.headers.get('content-type')?.includes('text/html')) failures.push('response is not HTML');
       const html = await response.text();
+      if (/^\/(admin|employee|kiosk|quotation)(\/|$)/.test(path)
+        && !/\bnoindex\b/i.test(response.headers.get('x-robots-tag') ?? '')) failures.push('private response lacks HTTP noindex before JavaScript');
       if (published.has(path)) {
         failures.push(...validateCatalogHtml(html, path, publicOrigin));
         if (requireCms && createHash('sha256').update(html).digest('hex') !== catalog?.htmlSha256?.[path]) failures.push('initial HTML differs from build content fingerprint');

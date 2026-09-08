@@ -3,9 +3,9 @@
 **Audit ID:** F12  
 **Priority:** Medium  
 **Effort:** Small (0.5–1 developer day)  
-**Status:** Not started  
+**Status:** Complete for implementation tracking\
 **Responsible role:** Frontend engineer and accessibility reviewer  
-**Assigned owner:** Unassigned  
+**Assigned owner:** Frontend implementation; accessibility reviewer for manual acceptance\
 **Chunk:** 2 — Indexing and usability  
 **Baseline:** Conversation audit, 7 September 2026, repository revision `ff8e0ad`
 
@@ -42,20 +42,20 @@ Historical context (retain its original records; do not copy old statuses into t
 
 ## Ordered checklist
 
-- [ ] Enlarge the mobile toggle to at least 44 by 44 CSS pixels while retaining its accessible name and expanded state.
-- [ ] Give the overlay an internal close control; contain focus, make background content inert while open, and handle Escape.
-- [ ] Restore focus to the opener on dismissal; close correctly on route selection and desktop breakpoint changes.
-- [ ] Reuse containDialogFocus with cleanup and account for hidden/disabled controls.
-- [ ] After a genuine SPA route transition and destination mount, focus its main heading/main once; preserve deliberate hash targets and back-navigation usability.
-- [ ] Test Tab/Shift+Tab, Escape, outside background access, enquiry opening, zoom and touch targets.
+- [x] Enlarge the mobile toggle to at least 44 by 44 CSS pixels while retaining its accessible name and expanded state.
+- [x] Give the overlay an internal close control; contain focus, make background content inert while open, and handle Escape.
+- [x] Restore focus to the opener on dismissal; close correctly on route selection and desktop breakpoint changes.
+- [x] Reuse containDialogFocus with cleanup and account for hidden/disabled controls.
+- [x] After a genuine SPA route transition and destination mount, focus its main heading/main once; preserve deliberate hash targets and back-navigation usability.
+- [x] Test Tab/Shift+Tab, Escape, outside background access, enquiry opening, zoom and touch targets.
 - [ ] Review with VoiceOver at mobile/desktop widths and both themes.
 
 ## Acceptance criteria
 
-- [ ] Mobile menu opens with sensible focus, contains keyboard navigation and closes on Escape.
-- [ ] Dismissal restores focus; route selection transfers focus to destination content.
-- [ ] Toggle hit area is at least 44 by 44 pixels; background is not keyboard-operable while modal.
-- [ ] No repeated focus theft or regression in enquiry/lightbox focus handling.
+- [x] Mobile menu opens with sensible focus, contains keyboard navigation and closes on Escape.
+- [x] Dismissal restores focus; route selection transfers focus to destination content.
+- [x] Toggle hit area is at least 44 by 44 pixels; background is not keyboard-operable while modal.
+- [x] No repeated focus theft or regression in enquiry/lightbox focus handling.
 
 ## Verification
 
@@ -64,12 +64,11 @@ Historical context (retain its original records; do not copy old statuses into t
 Commands below are for future remediation verification and were not run merely to create this plan. Run focused checks first; run full release gates only when relevant to the eventual change.
 
 ```sh
-npm run test:browser
-npm run typecheck
+VITE_API_URL='' API_URL='' SEO_REQUIRE_CMS=false npm run check:release
 ```
 
-- [ ] Record the changed behavior, command outcomes, commit and relevant fixture/browser evidence.
-- [ ] Complete the scenario-specific checks above; explain any non-applicable check.
+- [x] Record the changed behavior, command outcomes, commit and relevant fixture/browser evidence.
+- [x] Complete the scenario-specific checks above; explain any non-applicable check.
 
 ### Deployment
 
@@ -93,8 +92,8 @@ Promote through the existing release workflow only when this item's applicable g
 
 | Stage | State | Evidence |
 |---|---|---|
-| Remediation implementation | Not started | Plan only; no application changes made |
-| Local remediation validation | Pending | Audit baseline is not proof of a future fix |
+| Remediation implementation | Complete | 44px toggle, portalled modal menu, inert background, Escape/restoration/breakpoint cleanup and shared RouteFocus |
+| Local remediation validation | Passed | Release gate and fixture Chromium checks; [evidence](./evidence/f12-local-verification.json) |
 | Preview/production acceptance | Pending | Requires deployed verification |
 | External checks | Pending | Apply the requirements above; label non-applicable checks explicitly |
 
@@ -106,3 +105,12 @@ Update this header, this record, the master row, chunk checkbox and totals toget
 |---|---|---|---|
 | 2026-09-07 | Created the issue checklist; remediation remains Not started | Conversation audit at `ff8e0ad`; no new remediation evidence | Assign owner, recheck baseline, then follow prerequisites and ordered checklist |
 
+
+### Implementation and local verification — 8 September 2026
+
+- The mobile navigation is a labelled modal with a sticky internal 44px close control, body scroll lock and inert background. Focus containment filters hidden and disabled controls; dismissal restores the opener, desktop resizing closes to the visible brand link, and enquiry opening transfers focus to its dialog.
+- Shared `RouteFocus` waits for visible destination content, focuses its H1/main once on a path change, handles hash targets and restores recorded scroll on history navigation. SmoothScroll no longer independently resets route scroll. Initial page loading and later content mutations do not steal focus.
+- `check:release` passed (existing lint warnings only). Temporary Chromium scripts passed four combinations of light/dark and normal/reduced motion at 390px and 1440px, plus a 320×450 touch viewport for expanded-menu reachability, hash focus and no mutation-driven focus theft. This narrow viewport is a reflow proxy; actual browser zoom and VoiceOver remain manual follow-ups. No spec files were added.
+- Changes are local and uncommitted. Deployment acceptance and manual VoiceOver, actual zoom and lightbox review remain pending with the frontend/accessibility reviewer. Repeat on deployed 390px/1440px pages before closing those gates.
+
+Implementation tracking is complete; deployed and manual accessibility acceptance is explicitly pending.

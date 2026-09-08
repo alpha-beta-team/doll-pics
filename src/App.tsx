@@ -1,6 +1,7 @@
 import type { PublicSnapshot } from './lib/publicSnapshot';
 import { Suspense, lazy, type ComponentType } from 'react';
 import { BrowserRouter, Routes, Route, Outlet, Navigate, useLocation } from 'react-router-dom';
+import { RouteFocus } from './components/RouteFocus';
 import { GoogleAnalytics } from './components/GoogleAnalytics';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { SiteDataProvider, useSiteData } from './contexts/SiteDataContext';
@@ -77,6 +78,7 @@ function PublicLayout({ snapshot }: { snapshot?: PublicSnapshot }) {
   return (
     <ThemeProvider initialTheme={snapshot ? 'dark' : undefined}>
       <SiteDataProvider initialData={snapshot?.data} initialLoaded={snapshot?.loaded}>
+        <RouteFocus />
         <PublicCanonicalRoute />
       </SiteDataProvider>
     </ThemeProvider>

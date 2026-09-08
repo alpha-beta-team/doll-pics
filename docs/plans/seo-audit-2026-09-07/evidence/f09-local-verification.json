@@ -1,0 +1,601 @@
+{
+  "date": "2026-09-08T03:45:47.317Z",
+  "commit": "42d896f457cf1346cbef915ef67fede6c8bc02ab",
+  "scope": "Local uncommitted F09 UI; fixture CMS, no spec files or production changes",
+  "results": [
+    {
+      "width": 390,
+      "reducedMotion": "no-preference",
+      "observer": "normal",
+      "content": "populated",
+      "state": {
+        "opacity": "1",
+        "visibility": "visible",
+        "width": 342,
+        "top": 144,
+        "bottom": 324,
+        "overflow": false,
+        "beforeStory": true,
+        "onTop": true
+      },
+      "headings": [
+        {
+          "level": "H1",
+          "text": "About Doll Pictures and our Erode studio"
+        },
+        {
+          "level": "H2",
+          "text": "Where every frame begins."
+        },
+        {
+          "level": "H2",
+          "text": "Behind the scenes."
+        },
+        {
+          "level": "H3",
+          "text": "QA Process"
+        },
+        {
+          "level": "H2",
+          "text": "The hearts behind the camera."
+        },
+        {
+          "level": "H3",
+          "text": "QA Photographer"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "width": 390,
+      "reducedMotion": "no-preference",
+      "observer": "normal",
+      "content": "empty",
+      "state": {
+        "opacity": "1",
+        "visibility": "visible",
+        "width": 342,
+        "top": 144,
+        "bottom": 324,
+        "overflow": false,
+        "beforeStory": true,
+        "onTop": true
+      },
+      "headings": [
+        {
+          "level": "H1",
+          "text": "About Doll Pictures and our Erode studio"
+        },
+        {
+          "level": "H2",
+          "text": "Where every frame begins."
+        }
+      ],
+      "passed": true
+    },
+    {
+      "width": 390,
+      "reducedMotion": "no-preference",
+      "observer": "inactive",
+      "content": "populated",
+      "state": {
+        "opacity": "1",
+        "visibility": "visible",
+        "width": 342,
+        "top": 144,
+        "bottom": 324,
+        "overflow": false,
+        "beforeStory": true,
+        "onTop": true
+      },
+      "headings": [
+        {
+          "level": "H1",
+          "text": "About Doll Pictures and our Erode studio"
+        },
+        {
+          "level": "H2",
+          "text": "Where every frame begins."
+        },
+        {
+          "level": "H2",
+          "text": "Behind the scenes."
+        },
+        {
+          "level": "H3",
+          "text": "QA Process"
+        },
+        {
+          "level": "H2",
+          "text": "The hearts behind the camera."
+        },
+        {
+          "level": "H3",
+          "text": "QA Photographer"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "width": 390,
+      "reducedMotion": "no-preference",
+      "observer": "inactive",
+      "content": "empty",
+      "state": {
+        "opacity": "1",
+        "visibility": "visible",
+        "width": 342,
+        "top": 144,
+        "bottom": 324,
+        "overflow": false,
+        "beforeStory": true,
+        "onTop": true
+      },
+      "headings": [
+        {
+          "level": "H1",
+          "text": "About Doll Pictures and our Erode studio"
+        },
+        {
+          "level": "H2",
+          "text": "Where every frame begins."
+        }
+      ],
+      "passed": true
+    },
+    {
+      "width": 390,
+      "reducedMotion": "reduce",
+      "observer": "normal",
+      "content": "populated",
+      "state": {
+        "opacity": "1",
+        "visibility": "visible",
+        "width": 342,
+        "top": 144,
+        "bottom": 324,
+        "overflow": false,
+        "beforeStory": true,
+        "onTop": true
+      },
+      "headings": [
+        {
+          "level": "H1",
+          "text": "About Doll Pictures and our Erode studio"
+        },
+        {
+          "level": "H2",
+          "text": "Where every frame begins."
+        },
+        {
+          "level": "H2",
+          "text": "Behind the scenes."
+        },
+        {
+          "level": "H3",
+          "text": "QA Process"
+        },
+        {
+          "level": "H2",
+          "text": "The hearts behind the camera."
+        },
+        {
+          "level": "H3",
+          "text": "QA Photographer"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "width": 390,
+      "reducedMotion": "reduce",
+      "observer": "normal",
+      "content": "empty",
+      "state": {
+        "opacity": "1",
+        "visibility": "visible",
+        "width": 342,
+        "top": 144,
+        "bottom": 324,
+        "overflow": false,
+        "beforeStory": true,
+        "onTop": true
+      },
+      "headings": [
+        {
+          "level": "H1",
+          "text": "About Doll Pictures and our Erode studio"
+        },
+        {
+          "level": "H2",
+          "text": "Where every frame begins."
+        }
+      ],
+      "passed": true
+    },
+    {
+      "width": 390,
+      "reducedMotion": "reduce",
+      "observer": "inactive",
+      "content": "populated",
+      "state": {
+        "opacity": "1",
+        "visibility": "visible",
+        "width": 342,
+        "top": 144,
+        "bottom": 324,
+        "overflow": false,
+        "beforeStory": true,
+        "onTop": true
+      },
+      "headings": [
+        {
+          "level": "H1",
+          "text": "About Doll Pictures and our Erode studio"
+        },
+        {
+          "level": "H2",
+          "text": "Where every frame begins."
+        },
+        {
+          "level": "H2",
+          "text": "Behind the scenes."
+        },
+        {
+          "level": "H3",
+          "text": "QA Process"
+        },
+        {
+          "level": "H2",
+          "text": "The hearts behind the camera."
+        },
+        {
+          "level": "H3",
+          "text": "QA Photographer"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "width": 390,
+      "reducedMotion": "reduce",
+      "observer": "inactive",
+      "content": "empty",
+      "state": {
+        "opacity": "1",
+        "visibility": "visible",
+        "width": 342,
+        "top": 144,
+        "bottom": 324,
+        "overflow": false,
+        "beforeStory": true,
+        "onTop": true
+      },
+      "headings": [
+        {
+          "level": "H1",
+          "text": "About Doll Pictures and our Erode studio"
+        },
+        {
+          "level": "H2",
+          "text": "Where every frame begins."
+        }
+      ],
+      "passed": true
+    },
+    {
+      "width": 1440,
+      "reducedMotion": "no-preference",
+      "observer": "normal",
+      "content": "populated",
+      "state": {
+        "opacity": "1",
+        "visibility": "visible",
+        "width": 768,
+        "top": 144,
+        "bottom": 288,
+        "overflow": false,
+        "beforeStory": true,
+        "onTop": true
+      },
+      "headings": [
+        {
+          "level": "H1",
+          "text": "About Doll Pictures and our Erode studio"
+        },
+        {
+          "level": "H2",
+          "text": "Where every frame begins."
+        },
+        {
+          "level": "H2",
+          "text": "Behind the scenes."
+        },
+        {
+          "level": "H3",
+          "text": "QA Process"
+        },
+        {
+          "level": "H2",
+          "text": "The hearts behind the camera."
+        },
+        {
+          "level": "H3",
+          "text": "QA Photographer"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "width": 1440,
+      "reducedMotion": "no-preference",
+      "observer": "normal",
+      "content": "empty",
+      "state": {
+        "opacity": "1",
+        "visibility": "visible",
+        "width": 768,
+        "top": 144,
+        "bottom": 288,
+        "overflow": false,
+        "beforeStory": true,
+        "onTop": true
+      },
+      "headings": [
+        {
+          "level": "H1",
+          "text": "About Doll Pictures and our Erode studio"
+        },
+        {
+          "level": "H2",
+          "text": "Where every frame begins."
+        }
+      ],
+      "passed": true
+    },
+    {
+      "width": 1440,
+      "reducedMotion": "no-preference",
+      "observer": "inactive",
+      "content": "populated",
+      "state": {
+        "opacity": "1",
+        "visibility": "visible",
+        "width": 768,
+        "top": 144,
+        "bottom": 288,
+        "overflow": false,
+        "beforeStory": true,
+        "onTop": true
+      },
+      "headings": [
+        {
+          "level": "H1",
+          "text": "About Doll Pictures and our Erode studio"
+        },
+        {
+          "level": "H2",
+          "text": "Where every frame begins."
+        },
+        {
+          "level": "H2",
+          "text": "Behind the scenes."
+        },
+        {
+          "level": "H3",
+          "text": "QA Process"
+        },
+        {
+          "level": "H2",
+          "text": "The hearts behind the camera."
+        },
+        {
+          "level": "H3",
+          "text": "QA Photographer"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "width": 1440,
+      "reducedMotion": "no-preference",
+      "observer": "inactive",
+      "content": "empty",
+      "state": {
+        "opacity": "1",
+        "visibility": "visible",
+        "width": 768,
+        "top": 144,
+        "bottom": 288,
+        "overflow": false,
+        "beforeStory": true,
+        "onTop": true
+      },
+      "headings": [
+        {
+          "level": "H1",
+          "text": "About Doll Pictures and our Erode studio"
+        },
+        {
+          "level": "H2",
+          "text": "Where every frame begins."
+        }
+      ],
+      "passed": true
+    },
+    {
+      "width": 1440,
+      "reducedMotion": "reduce",
+      "observer": "normal",
+      "content": "populated",
+      "state": {
+        "opacity": "1",
+        "visibility": "visible",
+        "width": 768,
+        "top": 144,
+        "bottom": 288,
+        "overflow": false,
+        "beforeStory": true,
+        "onTop": true
+      },
+      "headings": [
+        {
+          "level": "H1",
+          "text": "About Doll Pictures and our Erode studio"
+        },
+        {
+          "level": "H2",
+          "text": "Where every frame begins."
+        },
+        {
+          "level": "H2",
+          "text": "Behind the scenes."
+        },
+        {
+          "level": "H3",
+          "text": "QA Process"
+        },
+        {
+          "level": "H2",
+          "text": "The hearts behind the camera."
+        },
+        {
+          "level": "H3",
+          "text": "QA Photographer"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "width": 1440,
+      "reducedMotion": "reduce",
+      "observer": "normal",
+      "content": "empty",
+      "state": {
+        "opacity": "1",
+        "visibility": "visible",
+        "width": 768,
+        "top": 144,
+        "bottom": 288,
+        "overflow": false,
+        "beforeStory": true,
+        "onTop": true
+      },
+      "headings": [
+        {
+          "level": "H1",
+          "text": "About Doll Pictures and our Erode studio"
+        },
+        {
+          "level": "H2",
+          "text": "Where every frame begins."
+        }
+      ],
+      "passed": true
+    },
+    {
+      "width": 1440,
+      "reducedMotion": "reduce",
+      "observer": "inactive",
+      "content": "populated",
+      "state": {
+        "opacity": "1",
+        "visibility": "visible",
+        "width": 768,
+        "top": 144,
+        "bottom": 288,
+        "overflow": false,
+        "beforeStory": true,
+        "onTop": true
+      },
+      "headings": [
+        {
+          "level": "H1",
+          "text": "About Doll Pictures and our Erode studio"
+        },
+        {
+          "level": "H2",
+          "text": "Where every frame begins."
+        },
+        {
+          "level": "H2",
+          "text": "Behind the scenes."
+        },
+        {
+          "level": "H3",
+          "text": "QA Process"
+        },
+        {
+          "level": "H2",
+          "text": "The hearts behind the camera."
+        },
+        {
+          "level": "H3",
+          "text": "QA Photographer"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "width": 1440,
+      "reducedMotion": "reduce",
+      "observer": "inactive",
+      "content": "empty",
+      "state": {
+        "opacity": "1",
+        "visibility": "visible",
+        "width": 768,
+        "top": 144,
+        "bottom": 288,
+        "overflow": false,
+        "beforeStory": true,
+        "onTop": true
+      },
+      "headings": [
+        {
+          "level": "H1",
+          "text": "About Doll Pictures and our Erode studio"
+        },
+        {
+          "level": "H2",
+          "text": "Where every frame begins."
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "families": [
+    {
+      "path": "/",
+      "h1": "We don\u2019t just take photos \u2014 we preserve emotions.",
+      "passed": true
+    },
+    {
+      "path": "/contact",
+      "h1": "Let's create\nsomething timeless.",
+      "passed": true
+    },
+    {
+      "path": "/packages",
+      "h1": "Packages for every celebration.",
+      "passed": true
+    },
+    {
+      "path": "/newborn-baby-photography-erode",
+      "h1": "Newborn sessions from the build",
+      "passed": true
+    },
+    {
+      "path": "/custom-packages-erode",
+      "h1": "Custom packages",
+      "passed": true
+    }
+  ],
+  "checks": {
+    "typecheck": "passed",
+    "focusedLint": "passed",
+    "visualInspection": "390px and 1440px screenshots inspected",
+    "specFilesAdded": 0,
+    "fullBuild": "Not repeated for isolated heading/spacing change; F07 release build passed earlier."
+  }
+}

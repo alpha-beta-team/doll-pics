@@ -10,7 +10,7 @@ export function OurStory() {
     .filter(Boolean);
 
   return (
-    <section className="relative bg-ink-950 px-6 py-32 lg:px-10">
+    <section className="relative bg-ink-950 px-6 pb-32 pt-16 lg:px-10">
       <div
         ref={ref}
         className={`mx-auto grid max-w-7xl gap-14 lg:grid-cols-2 lg:gap-20 reveal ${inView ? 'in' : ''}`}

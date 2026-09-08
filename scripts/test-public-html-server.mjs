@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve, extname } from 'node:path';
 import { spawn } from 'node:child_process';
 
+const hostingHeaders = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url), 'utf8')).headers;
 const output = mkdtempSync(join(tmpdir(), 'doll-public-html-'));
 // An optional temporary fixture supports controlled CMS-edit/rebuild acceptance
 // without editing tracked fixtures or writing to a live CMS.
@@ -41,6 +42,13 @@ try {
   // the SPA home shell for an extensionless path without a trailing slash.
   frontend = createServer(async (req, res) => {
     const pathname = new URL(req.url, 'http://localhost').pathname;
+    // Fixture adapter for declared headers; actual hosting acceptance is separate.
+    for (const rule of hostingHeaders) {
+      const prefix = rule.source.replace('/:path*', '');
+      if (pathname === rule.source || (rule.source.endsWith('/:path*') && pathname.startsWith(prefix + '/'))) {
+        for (const header of rule.headers) res.setHeader(header.key, header.value);
+      }
+    }
     let file = pathname.startsWith('/fixture-media/') ? join(output, 'og-share.jpg') : resolve(output, '.' + decodeURIComponent(pathname));
     if (!file.startsWith(output + '/') && file !== output) { res.writeHead(403).end(); return; }
     if (existsSync(file) && statSync(file).isDirectory()) file = join(file, 'index.html');

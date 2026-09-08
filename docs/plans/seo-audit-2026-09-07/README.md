@@ -5,7 +5,7 @@
 **Repository baseline:** `ff8e0ad`  
 **Source:** The complete React.js SEO audit in this conversation (68/100 implementation assessment)  
 **Program status:** In progress\
-**Completion:** **5 / 19 items complete**
+**Completion:** **8 / 19 items complete**
 
 ## Objective and boundaries
 
@@ -39,10 +39,10 @@ IDs F01–F16 preserve audit traceability. I01–I03 cover the additional improv
 | F03 | [Preserve CMS service sections during generation](./03-cms-service-sections.md) | High | Small | — | Complete |
 | F06 | [Separate fallback coverage from CMS release readiness](./06-cms-release-readiness.md) | Medium | Medium | [F02](./02-publication-and-route-catalog.md), [F03](./03-cms-service-sections.md) | Complete |
 | F08 | [Normalize known public canonical paths](./08-canonical-path-normalization.md) | Medium | Small | [F02](./02-publication-and-route-catalog.md) | Complete |
-| F05 | [Make no-JavaScript fallbacks readable](./05-noscript-contrast.md) | Medium | Small | — | Not started |
-| F07 | [Clarify private, preview and error-page indexing](./07-private-preview-and-404-indexing.md) | Medium | Small | — | Not started |
-| F09 | [Restore About page heading structure](./09-about-heading-and-semantics.md) | Medium | Small | — | Not started |
-| F12 | [Complete mobile menu and route focus behavior](./12-mobile-navigation-and-focus.md) | Medium | Small | — | Not started |
+| F05 | [Make no-JavaScript fallbacks readable](./05-noscript-contrast.md) | Medium | Small | — | Complete |
+| F07 | [Clarify private, preview and error-page indexing](./07-private-preview-and-404-indexing.md) | Medium | Small | — | Complete |
+| F09 | [Restore About page heading structure](./09-about-heading-and-semantics.md) | Medium | Small | — | Complete |
+| F12 | [Complete mobile menu and route focus behavior](./12-mobile-navigation-and-focus.md) | Medium | Small | — | Complete |
 | F10 | [Use authentic and category-relevant portfolio media](./10-authentic-category-media.md) | Medium | Medium | — | Not started |
 | F04 | [Expand public HTML rendering incrementally](./04-public-html-expansion.md) | High | Large | [F02](./02-publication-and-route-catalog.md), [F03](./03-cms-service-sections.md), [F05](./05-noscript-contrast.md), [F06](./06-cms-release-readiness.md), [F10](./10-authentic-category-media.md) | Not started |
 | F11 | [Provide crawlable discovery for intended photography](./11-image-discovery.md) | Medium | Medium | [F02](./02-publication-and-route-catalog.md), [F04](./04-public-html-expansion.md), [F10](./10-authentic-category-media.md) | Not started |
@@ -71,13 +71,13 @@ Start with F01. Within a chunk, take ready items in the listed order; independen
 
 ### Chunk 2 — Indexing and usability
 
-**Status:** Not started  
-**Completion:** 0 / 4
+**Status:** Complete for implementation tracking\
+**Completion:** 4 / 4
 
-- [ ] [F05](./05-noscript-contrast.md) — Make no-JavaScript fallbacks readable
-- [ ] [F07](./07-private-preview-and-404-indexing.md) — Clarify private, preview and error-page indexing
-- [ ] [F09](./09-about-heading-and-semantics.md) — Restore About page heading structure
-- [ ] [F12](./12-mobile-navigation-and-focus.md) — Complete mobile menu and route focus behavior
+- [x] [F05](./05-noscript-contrast.md) — Make no-JavaScript fallbacks readable — Complete for implementation tracking; deployed visual/keyboard checks remain a follow-up
+- [x] [F07](./07-private-preview-and-404-indexing.md) — Clarify private, preview and error-page indexing — Complete for implementation tracking; deployed/preview headers and Search Console remain follow-ups
+- [x] [F09](./09-about-heading-and-semantics.md) — Restore About page heading structure — Complete for implementation tracking; deployed/screen-reader checks remain a follow-up
+- [x] [F12](./12-mobile-navigation-and-focus.md) — Complete mobile menu and route focus behavior — Complete for implementation tracking; deployed and manual accessibility review remain follow-ups
 
 ### Chunk 3 — Rendering, media and metadata
 
@@ -106,12 +106,12 @@ Start with F01. Within a chunk, take ready items in the listed order; independen
 | Chunk | Items | Complete | Remaining | Status |
 |---|---:|---:|---:|---|
 | 1 — Routing and content correctness | 5 | 5 | 0 | Complete for implementation tracking |
-| 2 — Indexing and usability | 4 | 0 | 4 | Not started |
+| 2 — Indexing and usability | 4 | 3 | 1 | In progress |
 | 3 — Rendering, media and metadata | 7 | 0 | 7 | Not started |
 | 4 — Content growth and ongoing verification | 3 | 0 | 3 | Not started |
-| **Overall** | **19** | **5** | **14** | **In progress** |
+| **Overall** | **19** | **8** | **11** | **In progress** |
 
-**Recommended next task:** [F05](./05-noscript-contrast.md) — make no-JavaScript fallbacks readable. Totals are **5 / 19 complete** for implementation tracking; deployment/external follow-ups remain recorded separately.
+**Recommended next task:** [F10](./10-authentic-category-media.md) — use authentic and category-relevant portfolio media. Totals are **9 / 19 complete** for implementation tracking; deployment/external follow-ups remain recorded separately.
 
 ## Execution defaults and dependency rules
 
@@ -198,3 +198,7 @@ The creator validates these separately from remediation completion:
 | 2026-09-07 | F03 implementation complete: preserved section images in fallback HTML; six loader/generated-route cases and 12 JS/no-JS browser checks passed; no spec files added | 3 / 19 | Begin F06; Frontend engineer retains F03 deployed content parity follow-up |
 | 2026-09-07 | F06 implementation complete: strict CMS provenance gate, all-route initial HTML fingerprints and saved-artifact release acceptance; local fixture builds and JS/no-JS checks passed with no specs added | 4 / 19 | Begin F08; release owner retains candidate/production, hosting identity and deploy-hook follow-ups |
 | 2026-09-08 | F08 implementation complete: catalog-scoped public redirects and client replacement; release checks and 120 local cases passed. Chunk 1 implementation complete | 5 / 19 | Begin F05; retain F08 deployed middleware/redirect and external canonical follow-ups |
+| 2026-09-08 | F05 implementation complete: readable no-JS normal/404 pages, focus styling and poster layering; release/browser/visual checks passed | 6 / 19 | Begin F07; retain F05 deployed visual/keyboard follow-up |
+| 2026-09-08 | F07 implementation complete: private noindex headers and clean 404 metadata; release/config/HTTP/browser checks passed, robots policy preserved pending indexing review | 7 / 19 | Begin F09; retain F07 deployed/preview and Search Console gates |
+| 2026-09-08 | F09 implementation complete: visible About H1 with preserved H2/H3 sections; typecheck/lint and 21 browser cases passed | 8 / 19 | Begin F12; retain F09 deployed and screen-reader review |
+| 2026-09-08 | F12 implementation complete: modal mobile menu and destination route focus; release and fixture browser checks passed | 9 / 19 | Begin F10; retain F12 deployment and manual accessibility gates |

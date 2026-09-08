@@ -4,7 +4,12 @@
   "redirects": [
     {
       "source": "/:path*",
-      "has": [{ "type": "host", "value": "www.dollpictures.in" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "www.dollpictures.in"
+        }
+      ],
       "destination": "https://dollpictures.in/:path*",
       "permanent": true
     }
@@ -35,11 +40,39 @@
       "destination": "/"
     },
     {
+      "source": "/quotation",
+      "destination": "/"
+    },
+    {
       "source": "/quotation/:path*",
       "destination": "/"
     }
   ],
   "headers": [
+    {
+      "source": "/admin",
+      "headers": [
+        { "key": "Cache-Control", "value": "private, no-store" },
+        { "key": "Referrer-Policy", "value": "no-referrer" },
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/admin/:path*",
+      "headers": [
+        { "key": "Cache-Control", "value": "private, no-store" },
+        { "key": "Referrer-Policy", "value": "no-referrer" },
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/employee",
+      "headers": [
+        { "key": "Cache-Control", "value": "private, no-store" },
+        { "key": "Referrer-Policy", "value": "no-referrer" },
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
     {
       "source": "/employee/:path*",
       "headers": [
@@ -49,7 +82,23 @@
       ]
     },
     {
+      "source": "/kiosk",
+      "headers": [
+        { "key": "Cache-Control", "value": "private, no-store" },
+        { "key": "Referrer-Policy", "value": "no-referrer" },
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
       "source": "/kiosk/:path*",
+      "headers": [
+        { "key": "Cache-Control", "value": "private, no-store" },
+        { "key": "Referrer-Policy", "value": "no-referrer" },
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/quotation",
       "headers": [
         { "key": "Cache-Control", "value": "private, no-store" },
         { "key": "Referrer-Policy", "value": "no-referrer" },

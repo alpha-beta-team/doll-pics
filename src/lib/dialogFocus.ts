@@ -3,7 +3,8 @@ export function containDialogFocus(dialog: HTMLElement) {
   const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   const controls = () => Array.from(dialog.querySelectorAll<HTMLElement>(
     'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-  )).filter((element) => !element.closest('[hidden], [inert], [aria-hidden="true"]'));
+  )).filter((element) => !element.matches(':disabled') && !element.closest('[hidden], [inert], [aria-hidden="true"]') &&
+    element.getClientRects().length > 0 && getComputedStyle(element).visibility !== 'hidden');
   const focusFirst = () => (controls()[0] ?? dialog).focus();
   focusFirst();
   const onFocus = (event: FocusEvent) => {

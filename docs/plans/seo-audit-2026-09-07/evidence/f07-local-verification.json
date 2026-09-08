@@ -1,0 +1,121 @@
+{
+  "date": "2026-09-08T03:41:29.453Z",
+  "commit": "42d896f457cf1346cbef915ef67fede6c8bc02ab",
+  "scope": "Local uncommitted F05/F07 changes and fixture adapter; hosted previews, production and Search Console unverified",
+  "headers": [
+    {
+      "path": "/admin",
+      "status": 200,
+      "noindex": true,
+      "vercelAndNetlifyConfig": true
+    },
+    {
+      "path": "/admin/F07_AbC-Xy9",
+      "status": 200,
+      "noindex": true,
+      "vercelAndNetlifyConfig": true
+    },
+    {
+      "path": "/employee",
+      "status": 200,
+      "noindex": true,
+      "vercelAndNetlifyConfig": true
+    },
+    {
+      "path": "/employee/F07_AbC-Xy9",
+      "status": 200,
+      "noindex": true,
+      "vercelAndNetlifyConfig": true
+    },
+    {
+      "path": "/kiosk",
+      "status": 200,
+      "noindex": true,
+      "vercelAndNetlifyConfig": true
+    },
+    {
+      "path": "/kiosk/F07_AbC-Xy9",
+      "status": 200,
+      "noindex": true,
+      "vercelAndNetlifyConfig": true
+    },
+    {
+      "path": "/quotation",
+      "status": 200,
+      "noindex": true,
+      "vercelAndNetlifyConfig": true
+    },
+    {
+      "path": "/quotation/F07_AbC-Xy9",
+      "status": 200,
+      "noindex": true,
+      "vercelAndNetlifyConfig": true
+    }
+  ],
+  "browser": [
+    {
+      "path": "/F07-Unknown",
+      "javaScriptEnabled": false,
+      "passed": true
+    },
+    {
+      "path": "/about",
+      "javaScriptEnabled": false,
+      "passed": true
+    },
+    {
+      "path": "/newborn-baby-photography-erode",
+      "javaScriptEnabled": false,
+      "passed": true
+    },
+    {
+      "path": "/F07-Unknown",
+      "javaScriptEnabled": true,
+      "passed": true
+    },
+    {
+      "path": "/about",
+      "javaScriptEnabled": true,
+      "passed": true
+    },
+    {
+      "path": "/newborn-baby-photography-erode",
+      "javaScriptEnabled": true,
+      "passed": true
+    },
+    {
+      "path": "/F07-Unknown",
+      "javaScriptEnabled": true,
+      "mode": "SPA navigation",
+      "passed": true
+    },
+    {
+      "path": "/about",
+      "javaScriptEnabled": true,
+      "mode": "SPA navigation",
+      "passed": true
+    }
+  ],
+  "regressions": [
+    "rejects <link rel=\"canonical\" href=\"https://dollpictures.in\">",
+    "rejects <meta property=\"og:url\" content=\"https://dollpictures.in\">",
+    "rejects <script type=\"application/ld+json\">"
+  ],
+  "htmlSmoke": {
+    "checked": 30,
+    "passed": true
+  },
+  "robotsPolicy": "Unchanged pending Search Console existing-indexing review",
+  "external": {
+    "production": "pending deployment",
+    "vercelPreview": "default platform noindex documented; actual target/header or protection not verified",
+    "netlify": "configuration parity checked; active target unknown",
+    "searchConsole": "pending owner review"
+  },
+  "releaseChecks": {
+    "passed": true,
+    "command": "VITE_API_URL='' API_URL='' SEO_REQUIRE_CMS=false npm run check:release",
+    "lint": "0 errors; 8 existing warnings",
+    "specFilesAdded": 0
+  }
+}

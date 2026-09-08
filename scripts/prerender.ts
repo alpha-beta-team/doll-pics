@@ -85,6 +85,24 @@ assertCatalogMetadata(pages);
 
 const siteName = seoPages.siteName;
 
+// Parsed as CSS only when scripting is disabled; React and the LCP poster keep
+// their existing presentation when JavaScript is enabled.
+const fallbackStyle = `<style>
+  body{background:#fff;color:#111}
+  #home-hero-poster{display:none!important}
+  .public-fallback{box-sizing:border-box;max-width:48rem;margin:0 auto;padding:2rem 1.25rem 3rem;background:#fff;color:#111;color-scheme:light;font:1rem/1.65 Georgia,serif;overflow-wrap:anywhere;cursor:auto;user-select:text}
+  .public-fallback h1{font-size:clamp(2rem,6vw,3rem);line-height:1.2;font-weight:700;margin:0 0 1.25rem}
+  .public-fallback h2{font-size:1.5rem;line-height:1.3;font-weight:700;margin:2rem 0 .75rem}
+  .public-fallback p,.public-fallback ul{margin:.75rem 0}
+  .public-fallback ul{padding-left:1.5rem;list-style:disc}
+  .public-fallback li{margin:.5rem 0}
+  .public-fallback a{color:#174ea6;text-decoration:underline;text-underline-offset:.15em;font-weight:600}
+  .public-fallback a:visited{color:#633394}
+  .public-fallback a:focus-visible{outline:3px solid #174ea6;outline-offset:4px;border-radius:2px}
+  .public-fallback img{display:block;max-width:100%;height:auto;margin:1rem 0}
+  .public-fallback ::selection{color:#fff;background:#174ea6}
+</style>`;
+
 type FallbackLink = { label: string; path: string };
 
 const coreFallbackLinks: FallbackLink[] = [
@@ -417,7 +435,8 @@ function injectRouteHtml(template: string, page: CatalogPage) {
 
   const noscript = [
     '<noscript>',
-    '  <main style="font-family:Georgia,serif;max-width:42rem;margin:2rem auto;padding:0 1.25rem;line-height:1.6;color:#111">',
+    fallbackStyle,
+    '  <main class="public-fallback">',
     `    <h1>${heading}</h1>`,
     leadNoscript,
     `    <p>${body}</p>`,
@@ -463,7 +482,12 @@ function inject404Html(template: string) {
     'The page you are looking for does not exist or has been moved.',
   );
 
-  let html = template;
+  // The base template is a public homepage. An error document must not inherit
+  // its canonical, social card or structured-data identity.
+  let html = template
+    .replace(/<link\b(?=[^>]*\brel=["']canonical["'])[^>]*>/gi, '')
+    .replace(/<meta\b(?=[^>]*(?:name|property)=["'](?:og:|twitter:)[^"']*["'])[^>]*>/gi, '')
+    .replace(/<script\b(?=[^>]*\btype=["']application\/ld\+json["'])[^>]*>[\s\S]*?<\/script>/gi, '');
   html = html.replace(/<title>[\s\S]*?<\/title>/, `<title>${title}</title>`);
   html = html.replace(
     /<meta name="description" content="[^"]*"\s*\/?>/,
@@ -483,7 +507,8 @@ function inject404Html(template: string) {
 
   const noscript = [
     '<noscript>',
-    '  <main style="font-family:Georgia,serif;max-width:42rem;margin:2rem auto;padding:0 1.25rem;line-height:1.6;color:#111">',
+    fallbackStyle,
+    '  <main class="public-fallback">',
     `    <h1>${heading}</h1>`,
     `    <p>${body}</p>`,
     `    <p><a href="${siteUrl}/">${escapeHtml(siteName)}</a></p>`,
