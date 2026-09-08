@@ -5,7 +5,14 @@ import { tmpdir } from 'node:os';
 import { join, resolve, extname } from 'node:path';
 import { spawn } from 'node:child_process';
 
-const hostingHeaders = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url), 'utf8')).headers;
+const hosting = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url), 'utf8'));
+const hostingHeaders = hosting.headers;
+// Vercel cleanUrls rewrites target the served URL, not the on-disk HTML filename.
+if (hosting.cleanUrls && hosting.rewrites.some(rule => /\.html(?:$|[?#])/.test(rule.destination))) {
+  throw new Error('cleanUrls requires extensionless rewrite destinations');
+}
+const matchesRoute = (source, pathname) => pathname === source ||
+  (source.endsWith('/:path*') && pathname.startsWith(source.replace('/:path*', '') + '/'));
 const output = mkdtempSync(join(tmpdir(), 'doll-public-html-'));
 // An optional temporary fixture supports controlled CMS-edit/rebuild acceptance
 // without editing tracked fixtures or writing to a live CMS.
@@ -53,9 +60,15 @@ try {
     if (!file.startsWith(output + '/') && file !== output) { res.writeHead(403).end(); return; }
     if (existsSync(file) && statSync(file).isDirectory()) file = join(file, 'index.html');
     if (!existsSync(file)) {
-      const privateRoute = /^\/(admin|employee|kiosk|quotation)(\/|$)/.test(pathname);
-      file = join(output, privateRoute ? 'app-shell.html' : '404.html');
-      res.statusCode = privateRoute ? 200 : 404;
+      const rewrite = hosting.rewrites.find(rule => matchesRoute(rule.source, pathname));
+      const destination = rewrite?.destination;
+      const target = destination && resolve(output, '.' + destination + (hosting.cleanUrls ? '.html' : ''));
+      if (target && target.startsWith(output + '/') && existsSync(target)) {
+        file = target;
+      } else {
+        file = join(output, '404.html');
+        res.statusCode = 404;
+      }
     }
     const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.jpg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.woff2': 'font/woff2' };
     res.setHeader('Content-Type', types[extname(file)] || 'application/octet-stream');

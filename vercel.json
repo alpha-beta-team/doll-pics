@@ -17,35 +17,35 @@
   "rewrites": [
     {
       "source": "/admin",
-      "destination": "/app-shell.html"
+      "destination": "/app-shell"
     },
     {
       "source": "/admin/:path*",
-      "destination": "/app-shell.html"
+      "destination": "/app-shell"
     },
     {
       "source": "/employee",
-      "destination": "/app-shell.html"
+      "destination": "/app-shell"
     },
     {
       "source": "/employee/:path*",
-      "destination": "/app-shell.html"
+      "destination": "/app-shell"
     },
     {
       "source": "/kiosk",
-      "destination": "/app-shell.html"
+      "destination": "/app-shell"
     },
     {
       "source": "/kiosk/:path*",
-      "destination": "/app-shell.html"
+      "destination": "/app-shell"
     },
     {
       "source": "/quotation",
-      "destination": "/app-shell.html"
+      "destination": "/app-shell"
     },
     {
       "source": "/quotation/:path*",
-      "destination": "/app-shell.html"
+      "destination": "/app-shell"
     }
   ],
   "headers": [

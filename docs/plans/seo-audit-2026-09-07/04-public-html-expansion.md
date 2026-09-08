@@ -118,3 +118,11 @@ Update this header, this record, the master row, chunk checkbox and totals toget
 - Local evidence: empty-media and edited-CMS fixture production builds; eight JS/no-JS mobile/desktop light/dark cases; five failure/navigation modes; three existing service hydration checks; snapshot rejection; mocked enquiry submission; raw HTML smoke including exclusions and repeated prerender. Malformed snapshots use normal client mounting and may show fallback copy while the CMS is unavailable. Missing entry assets retain readable initial HTML but cannot provide JavaScript interactions.
 
 **Release boundary:** The homepage is the only newly added family. This plan requires preview/production acceptance for each family before expanding the next. Frontend reviewer: deploy the candidate, record its commit/deployment ID, run both smoke tools, and verify home content/hydration with actual approved CMS media. Content reviewer: confirm the published images. Then proceed to `/services` and `/packages` hubs. Search Console observation follows release. Overall F04 stays In progress; the master completion total does not increase.
+
+### Deployment correction — 8 September 2026
+
+Production smoke reported 404 for all eight private root/nested probes. Read-only verification confirmed `/app-shell` returns 200. The Vercel rewrite destinations incorrectly used `/app-shell.html` with `cleanUrls: true`; [Vercel documentation](https://vercel.com/docs/project-configuration/vercel-json#rewrites) requires extensionless destinations. All eight destinations now use `/app-shell`. Netlify retains its file destinations.
+
+The local fixture adapter previously hardcoded the private shell and therefore missed this configuration error. It now resolves declared rewrite destinations and rejects HTML-extension destinations under cleanUrls. Production acceptance remains pending redeployment and both smoke checks; the observed private-route regression does not count as a passed deployment gate.
+
+Correction validation: fixture production build, script syntax check, diff check and HTML smoke passed, including all eight private probes. No deployment performed.
