@@ -20,43 +20,43 @@
 # Admin SPA: client routes need the app shell.
 [[redirects]]
   from = "/admin"
-  to = "/index.html"
+  to = "/app-shell.html"
   status = 200
 
 [[redirects]]
   from = "/admin/*"
-  to = "/index.html"
+  to = "/app-shell.html"
   status = 200
 
 [[redirects]]
   from = "/employee"
-  to = "/index.html"
+  to = "/app-shell.html"
   status = 200
 
 [[redirects]]
   from = "/employee/*"
-  to = "/index.html"
+  to = "/app-shell.html"
   status = 200
 
 [[redirects]]
   from = "/kiosk"
-  to = "/index.html"
+  to = "/app-shell.html"
   status = 200
 
 [[redirects]]
   from = "/kiosk/*"
-  to = "/index.html"
+  to = "/app-shell.html"
   status = 200
 
 [[redirects]]
   from = "/quotation"
-  to = "/index.html"
+  to = "/app-shell.html"
   status = 200
 
 # Private customer quotations: SPA route with no caching, indexing or referrer leakage.
 [[redirects]]
   from = "/quotation/*"
-  to = "/index.html"
+  to = "/app-shell.html"
   status = 200
 
 [[headers]]

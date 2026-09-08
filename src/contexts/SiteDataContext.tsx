@@ -398,7 +398,7 @@ async function loadResource(resource: CmsResource, signal: AbortSignal, supplied
   }
 }
 
-export async function createPrerenderSiteData(content?: PublicSiteContent, categories?: PublicPackageCategory[]) {
+export async function createPrerenderSiteData(content?: PublicSiteContent, categories?: PublicPackageCategory[], home?: { hero?: PublicHeroSlide[]; featured?: PublicPhoto[]; gallery?: PublicPhoto[] }) {
   let data: SiteData = { ...fallbackData, loading: false, fromApi: false };
   const loaded: CmsResource[] = [];
   const supplied = { siteContent: content, categories };
@@ -408,6 +408,13 @@ export async function createPrerenderSiteData(content?: PublicSiteContent, categ
     data = { ...data, ...(typeof patch === 'function' ? patch(data) : patch), fromApi: true };
     loaded.push(resource);
   }
+  if (home?.hero) {
+    data.heroSlides = home.hero.filter(slide => typeof slide.image === 'string' && !isLegacyHeroSlide(slide))
+      .map(slide => ({ image: slide.image, label: typeof slide.label === 'string' ? slide.label : '' }));
+    loaded.push('hero');
+  }
+  if (home?.featured) { data.featuredWork = featuredFromPhotos(home.featured); loaded.push('featuredPhotos'); }
+  if (home?.gallery) { data.galleryImages = galleryFromPhotos(home.gallery); loaded.push('galleryPhotos'); }
   // Embed only the public view model, never the raw CMS response or metadata.
   data.siteContent = Object.fromEntries(Object.keys(defaultSiteContent).map(key => [key, data.siteContent[key as keyof PublicSiteContent]])) as PublicSiteContent;
   data.siteContent.serviceNavLinks = getPublishedServiceNavLinks(data.siteContent.serviceNavLinks);

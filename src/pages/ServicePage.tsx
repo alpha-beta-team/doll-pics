@@ -1,6 +1,6 @@
 import { ServicePreviewImage } from '../components/ServicePreviewImage';
 import { servicePackageLink } from '../lib/serviceDiscovery';
-import { PUBLIC_HTML_ROUTES, SERVICE_GALLERY_LIMIT } from '../lib/publicHtmlRoutes';
+import { PUBLIC_SERVICE_HTML_ROUTES, SERVICE_GALLERY_LIMIT } from '../lib/publicHtmlRoutes';
 import { Link, useLocation } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -67,7 +67,7 @@ const SERVICE_SHOOT_TYPES: Record<string, ShootTypeOption> = {
 };
 
 const API_ONLY_SERVICE_CATEGORIES: Record<string, string> = {
-  ...PUBLIC_HTML_ROUTES,
+  ...PUBLIC_SERVICE_HTML_ROUTES,
   '/baby-milestone-photography-erode': 'baby-milestone',
   '/baby-shower-photography-erode': 'baby-shower',
   '/cake-smash-photography-erode': 'cake-smash',

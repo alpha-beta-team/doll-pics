@@ -18,7 +18,7 @@ const image = (value: unknown) => record(value) && strings(value, ['src', 'alt']
 
 /** Reject malformed or cross-route HTML before it can seed a public provider. */
 export function parsePublicSnapshot(text: string, pathname: string): PublicSnapshot | undefined {
-  const path = pathname.replace(/\/$/, '');
+  const path = pathname.replace(/\/$/, '') || '/';
   if (!isPublicHtmlPath(path)) return;
   try {
     const value: unknown = JSON.parse(text);
@@ -46,14 +46,18 @@ export function parsePublicSnapshot(text: string, pathname: string): PublicSnaps
     if (!arrays.every(key => arrayOf(data[key], record))
       || typeof data.loading !== 'boolean' || typeof data.fromApi !== 'boolean') return;
     // Build snapshots seed only these shared resources; others remain browser-loaded.
-    if (!arrayOf(value.loaded, key => key === 'siteContent' || key === 'categories')) return;
+    if (!arrayOf(value.loaded, key => key === 'siteContent' || key === 'categories' || (path === '/' && ['hero', 'featuredPhotos', 'galleryPhotos'].includes(String(key))))) return;
     for (const [sourceName, resource] of [['services', 'siteContent'], ['packages', 'categories']]) {
       const source = (catalog.sources as Record<string, Record<string, unknown>>)[sourceName];
       if ((source.status === 'cms') !== (value.loaded as string[]).includes(resource)
         || (source.status === 'cms' && source.reason !== undefined)) return;
     }
     const media = data.serviceMedia;
-    if (!record(media) || media.path !== path || !arrayOf(media.cover, image) || !arrayOf(media.photos, image)
+    if (path === '/') {
+      if (media !== undefined || !arrayOf(data.heroSlides, item => record(item) && strings(item, ['image', 'label']))
+        || !arrayOf(data.featuredWork, item => record(item) && strings(item, ['image', 'alt', 'title', 'category', 'location', 'year']) && (item.categorySlugs === undefined || arrayOf(item.categorySlugs, slug => typeof slug === 'string')))
+        || !arrayOf(data.galleryImages, item => image(item) && record(item) && (item.categorySlugs === undefined || arrayOf(item.categorySlugs, slug => typeof slug === 'string')))) return;
+    } else if (!record(media) || media.path !== path || !arrayOf(media.cover, image) || !arrayOf(media.photos, image)
       || !arrayOf(media.loaded, key => key === 'cover' || key === 'photos')) return;
     return value as unknown as PublicSnapshot;
   } catch { /* Invalid or stale HTML uses the normal client entry. */ }

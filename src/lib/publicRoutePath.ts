@@ -3,7 +3,7 @@ import seoPages from '../data/seo-pages.json';
 export const CORE_PUBLIC_PATHS = Object.keys(seoPages.pages);
 const reservedRoots = new Set([
   ...CORE_PUBLIC_PATHS.map(path => path.split('/')[1]),
-  'admin', 'employee', 'kiosk', 'quotation', 'api', 'preview', 'assets',
+  'admin', 'employee', 'kiosk', 'quotation', 'api', 'preview', 'assets', 'app-shell',
   'tests', 'src', 'node_modules', '.well-known',
 ]);
 

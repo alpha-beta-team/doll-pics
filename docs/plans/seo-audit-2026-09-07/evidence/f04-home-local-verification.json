@@ -1,0 +1,109 @@
+{
+  "date": "2026-09-08",
+  "commit": "7cae0fca3e3f7b618dd29397a8c5cc2c6496e67a",
+  "scope": "Local uncommitted homepage increment; fixture CMS only. No deployment or content approval claimed.",
+  "homeCases": [
+    {
+      "javaScriptEnabled": false,
+      "width": 390,
+      "theme": "light",
+      "passed": true
+    },
+    {
+      "javaScriptEnabled": false,
+      "width": 390,
+      "theme": "dark",
+      "passed": true
+    },
+    {
+      "javaScriptEnabled": false,
+      "width": 1440,
+      "theme": "light",
+      "passed": true
+    },
+    {
+      "javaScriptEnabled": false,
+      "width": 1440,
+      "theme": "dark",
+      "passed": true
+    },
+    {
+      "javaScriptEnabled": true,
+      "width": 390,
+      "theme": "light",
+      "passed": true
+    },
+    {
+      "javaScriptEnabled": true,
+      "width": 390,
+      "theme": "dark",
+      "passed": true
+    },
+    {
+      "javaScriptEnabled": true,
+      "width": 1440,
+      "theme": "light",
+      "passed": true
+    },
+    {
+      "javaScriptEnabled": true,
+      "width": 1440,
+      "theme": "dark",
+      "passed": true
+    }
+  ],
+  "failureAndRegressionCases": [
+    {
+      "mode": "normal",
+      "passed": true
+    },
+    {
+      "mode": "api-failure",
+      "passed": true
+    },
+    {
+      "mode": "image-failure",
+      "passed": true
+    },
+    {
+      "mode": "malformed",
+      "passed": true
+    },
+    {
+      "mode": "stale-entry",
+      "passed": true
+    },
+    {
+      "path": "/newborn-baby-photography-erode",
+      "hydration": true,
+      "passed": true
+    },
+    {
+      "path": "/wedding-photography-erode",
+      "hydration": true,
+      "passed": true
+    },
+    {
+      "path": "/maternity-photography-erode",
+      "hydration": true,
+      "passed": true
+    }
+  ],
+  "additional": [
+    "Baseline empty-media build and controlled heading/hero/photo rebuild",
+    "Initial HTML and hydrated QA copy agree",
+    "Raw extra privateNote absent from home snapshot",
+    "Cross-route rejection on six routes and malformed hero rejection",
+    "Mocked enquiry success; one intercepted POST and no external write",
+    "Private shell has no snapshot or populated public root",
+    "HTML smoke passed after standalone prerender repeat; public indexable and private noindex",
+    "No-JavaScript mobile screenshot visually inspected"
+  ],
+  "pending": [
+    "Preview and production deployment evidence",
+    "Actual published media review",
+    "Search Console observation",
+    "Remaining public page families"
+  ],
+  "release": "check:release passed; eight existing lint warnings, no canceled-build message"
+}

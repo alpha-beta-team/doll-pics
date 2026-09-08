@@ -29,7 +29,8 @@ export function validatePublicHtml(html: string, path: PublicHtmlPath, publicOri
   const document = dom.window.document;
   const failures: string[] = [];
   const expect = (condition: unknown, message: string) => { if (!condition) failures.push(message); };
-  const canonical = new URL(path, publicOrigin).href;
+  const canonical = canonicalUrl(path, publicOrigin);
+  const home = path === '/';
   try {
     const root = document.querySelector('#root');
     expect(document.querySelectorAll('#root').length === 1, 'expected exactly one #root');
@@ -38,7 +39,7 @@ export function validatePublicHtml(html: string, path: PublicHtmlPath, publicOri
     root?.querySelectorAll('noscript, script, template').forEach(node => node.remove());
     const heading = text(root?.querySelector('h1')?.textContent);
     expect(heading, 'missing service heading inside #root');
-    expect(text(root?.querySelector('#overview p')?.textContent), 'missing service content inside #root');
+    expect(text(root?.querySelector(home ? 'main p' : '#overview p')?.textContent), 'missing service content inside #root');
     expect(root?.querySelector('a[href^="tel:"]'), 'missing telephone link inside #root');
     expect(root?.querySelector('a[href*="wa.me/"]'), 'missing WhatsApp link inside #root');
     expect(root?.querySelectorAll('a[href^="/"]').length, 'missing internal navigation inside #root');
@@ -69,25 +70,32 @@ export function validatePublicHtml(html: string, path: PublicHtmlPath, publicOri
     const breadcrumbs = schema('BreadcrumbList');
     expect(webpage?.url === canonical && webpage?.['@id'] === `${canonical}#webpage`
       && webpage?.name === title && webpage?.description === description, 'WebPage schema differs from page metadata');
-    expect(service?.url === canonical && service?.['@id'] === `${canonical}#service`
+    if (!home) expect(service?.url === canonical && service?.['@id'] === `${canonical}#service`
       && service?.description === description, 'Service schema differs from page metadata');
     const studioId = `${new URL(publicOrigin).origin}/#studio`;
-    expect(business?.['@id'] === studioId && record(service?.provider)
-      && service.provider['@id'] === studioId, 'missing or inconsistent business/provider schema');
+    expect(business?.['@id'] === studioId && (home || (record(service?.provider)
+      && service.provider['@id'] === studioId)), 'missing or inconsistent business/provider schema');
     const items = breadcrumbs?.itemListElement;
     const last = Array.isArray(items) ? items.at(-1) : undefined;
-    expect(record(last) && last.item === canonical && text(String(last.name ?? '')) === heading,
+    if (!home) expect(record(last) && last.item === canonical && text(String(last.name ?? '')) === heading,
       'breadcrumb does not match rendered service');
 
     if (snapshot) {
       const nav = snapshot.data.siteContent.serviceNavLinks?.find(link => link.path === path);
       if (requireCms) {
-        expect(snapshot.loaded.includes('siteContent') && snapshot.loaded.includes('categories') && nav?.isPublished,
+        expect(snapshot.loaded.includes('siteContent') && snapshot.loaded.includes('categories') && (home || nav?.isPublished),
           'release requires both loaded CMS sources and a published target service');
         for (const source of Object.values(snapshot.data.publicCatalog.sources)) {
           expect(source.status === 'cms' && !source.reason && !source.rejectedRecords,
             'release snapshot contains fallback or rejected CMS records');
         }
+      }
+      if (home) {
+        expect(heading === text(snapshot.data.siteContent.heroHeading || 'Cinematic photographs for the stories you never want to forget.'), 'home heading differs from snapshot');
+        expect(text(root?.textContent).includes(text(snapshot.data.siteContent.heroSubtext || 'Honest emotion, beautiful light, and a calm experience from first hello to final frame.')), 'home introduction differs from snapshot');
+        const links = [...root?.querySelectorAll('a[href]') ?? []].map(link => link.getAttribute('href'));
+        for (const link of snapshot.data.publicCatalog.serviceLinks) expect(links.includes(link.path), `missing home service discovery link: ${link.path}`);
+        return failures;
       }
       expect(!nav || nav.isPublished, 'snapshot contains an unpublished target service');
       // The shared snapshot parser checked the normalized label/description/section fields.

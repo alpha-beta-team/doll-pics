@@ -3,7 +3,7 @@ import { removeRetiredCatalogPages } from './lib/catalog-output';
 import { PUBLIC_HTML_ROUTES, SERVICE_GALLERY_LIMIT, type PublicHtmlPath } from '../src/lib/publicHtmlRoutes';
 import { serializeInlineJson, shouldRenderPublicService } from './lib/public-html';
 import { createServer } from 'vite';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -47,11 +47,13 @@ const overlays = await loadCmsOverlays();
 const { publicCatalog, packagesByPath, servicesByPath, servicesLoaded, lastmodByPath, apiBase, siteContent, packageCategories } = overlays;
 if (String(process.env.SEO_REQUIRE_CMS ?? '').toLowerCase() === 'true') assertCmsReadiness(overlays);
 
+let buildHeroSlides: unknown[] | undefined;
 async function loadFirstHeroImage() {
   if (!apiBase) return '';
   try {
     const slides = await fetchJson(`${apiBase}/hero-slides`);
     if (!Array.isArray(slides)) return '';
+    buildHeroSlides = slides;
     const first = slides.find(
       (slide) =>
         typeof slide?.image === 'string' &&
@@ -276,7 +278,7 @@ function injectRouteHtml(template: string, page: CatalogPage) {
     );
   }
 
-  let html = template;
+  let html = template.replace(/<meta name="robots"[^>]*>/g, '<meta name="robots" content="index, follow" />');
 
   html = html.replace(/<title>[\s\S]*?<\/title>/, `<title>${title}</title>`);
 
@@ -355,7 +357,7 @@ function injectRouteHtml(template: string, page: CatalogPage) {
     ]
       .filter(Boolean)
       .join('\n');
-    html = html.replace('<body>', `<body>\n${poster}`);
+    if (!Object.hasOwn(PUBLIC_HTML_ROUTES, page.path)) html = html.replace('<body>', `<body>\n${poster}`);
   }
 
   if (/<link rel="canonical" href="[^"]*"\s*\/?>/.test(html)) {
@@ -517,12 +519,19 @@ function inject404Html(template: string) {
 }
 
 const baseTemplate = splitAdminStyles(
-  readFileSync(join(distDir, 'index.html'), 'utf8'),
+  readFileSync(join(distDir, existsSync(join(distDir, 'app-shell.html')) ? 'app-shell.html' : 'index.html'), 'utf8'),
 );
 // Share the CMS overlays and one Vite instance across the registered services.
 // Replace a previous seed when standalone prerender reuses the output directory.
 const template = baseTemplate.replace(/<script id="public-route-catalog"[^>]*>[\s\S]*?<\/script>/g, '')
   .replace('</body>', () => `<script id="public-route-catalog" type="application/json">${serializeInlineJson(publicCatalog)}</script></body>`);
+
+const privateShell = baseTemplate
+  .replace(/<meta name="robots"[^>]*>/g, '<meta name="robots" content="noindex, nofollow" />')
+  .replace(/<link\b(?=[^>]*\brel=["']canonical["'])[^>]*>/gi, '')
+  .replace(/<meta\b(?=[^>]*(?:property=["']og:|name=["']twitter:))[^>]*>/gi, '')
+  .replace(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/gi, '');
+writeFileSync(join(distDir, 'app-shell.html'), privateShell);
 
 const rendered = new Map<string, { html: string; snapshot: unknown }>();
 const renderPaths = (Object.keys(PUBLIC_HTML_ROUTES) as PublicHtmlPath[])
@@ -533,18 +542,22 @@ if (renderPaths.length) {
     try { return await fetchJson(`${apiBase}${path}`); }
     catch { console.warn(`Public HTML: optional media unavailable for ${path}`); return undefined; }
   };
-  const server = await createServer({ cacheDir: join(root, 'node_modules/.vite-prerender'), server: { middlewareMode: true }, appType: 'custom' });
+  const server = await createServer({ cacheDir: join(root, 'node_modules/.vite-prerender'), optimizeDeps: { noDiscovery: true, include: [] }, server: { middlewareMode: true }, appType: 'custom' });
   try {
-    const { renderPublicService } = await server.ssrLoadModule('/src/entry-public-server.tsx');
+    const { renderPublicPage } = await server.ssrLoadModule('/src/entry-public-server.tsx');
     for (const path of renderPaths) {
       const category = PUBLIC_HTML_ROUTES[path];
-      const [cover, photos] = await Promise.all([
-        loadOptional(`/categories/${category}`),
-        loadOptional(`/photos?category=${category}&limit=${SERVICE_GALLERY_LIMIT}`),
+      const [cover, photos, hero, featured, gallery] = await Promise.all([
+        category ? loadOptional(`/categories/${category}`) : undefined,
+        category ? loadOptional(`/photos?category=${category}&limit=${SERVICE_GALLERY_LIMIT}`) : undefined,
+        path === '/' ? buildHeroSlides : undefined,
+        path === '/' ? loadOptional('/photos?featured=true') : undefined,
+        path === '/' ? loadOptional('/photos?limit=24') : undefined,
       ]);
-      rendered.set(path, await renderPublicService({ path, siteContent, publicCatalog, categories: packageCategories,
+      rendered.set(path, await renderPublicPage({ path, siteContent, publicCatalog, categories: packageCategories,
         cover: cover && typeof cover === 'object' && !Array.isArray(cover) ? cover : undefined,
-        photos: Array.isArray(photos) ? photos : undefined }));
+        photos: Array.isArray(photos) ? photos : undefined,
+        home: path === '/' ? { hero: Array.isArray(hero) ? hero : undefined, featured: Array.isArray(featured) ? featured : undefined, gallery: Array.isArray(gallery) ? gallery : undefined } : undefined }));
     }
   } finally { await server.close(); }
 }
@@ -558,11 +571,12 @@ for (const page of Object.values(pages)) {
   let html = injectRouteHtml(template, page);
   const service = rendered.get(page.path);
   if (service) {
+    if (page.path === '/') html = html.replace(/<div id="home-hero-poster"[\s\S]*?<\/picture><\/div>/g, '').replace(/<style id="home-hero-poster-style">[\s\S]*?<\/style>/g, '');
     const serialized = serializeInlineJson(service.snapshot);
     html = html.replace(/<noscript>[\s\S]*?<\/noscript>/g, '');
     html = html.replace('<div id="root"></div>', () => `<div id="root" data-public-html="${page.path}">${service.html}</div><script id="public-page-snapshot" type="application/json">${serialized}</script>`);
     // Server-rendered gallery content must be visible without observer JavaScript.
-    html = html.replace('</head>', '<style>[data-public-html] .services-editorial .reveal,[data-public-html] .services-editorial .reveal-blur{opacity:1;transform:none;filter:none}</style></head>');
+    html = html.replace('</head>', '<style>[data-public-html] .services-editorial .reveal,[data-public-html] .services-editorial .reveal-blur,[data-public-html] .home-reveal,[data-public-html] .hero-copy-enter{opacity:1;transform:none;filter:none;animation:none}</style></head>');
   }
   htmlSha256[page.path] = createHash('sha256').update(html).digest('hex');
   written.push(writeRoute(page.path, html));

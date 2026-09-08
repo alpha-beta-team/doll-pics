@@ -5,5 +5,5 @@ export function serializeInlineJson(value: unknown): string {
 }
 
 export function shouldRenderPublicService(path: string, servicesLoaded: boolean, publishedPaths: ReadonlyMap<string, unknown>): boolean {
-  return isPublicHtmlPath(path) && (!servicesLoaded || publishedPaths.has(path));
+  return isPublicHtmlPath(path) && (path === '/' || !servicesLoaded || publishedPaths.has(path));
 }

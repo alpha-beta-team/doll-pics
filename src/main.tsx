@@ -38,8 +38,11 @@ async function startApp() {
   const rootElement = document.getElementById('root')!;
   const snapshot = readPublicSnapshot();
   if (snapshot && rootElement.hasChildNodes()) {
-    void import('./pages/ServicePage').then(({ ServicePage }) => {
-      hydrateRoot(rootElement, <StrictMode><App snapshot={snapshot} PilotPage={ServicePage} /></StrictMode>);
+    const pageModule = snapshot.path === '/'
+      ? import('./pages/Site').then(module => module.Site)
+      : import('./pages/ServicePage').then(module => module.ServicePage);
+    void pageModule.then(PublicPage => {
+      hydrateRoot(rootElement, <StrictMode><App snapshot={snapshot} PilotPage={PublicPage} /></StrictMode>);
     });
   } else {
     createRoot(rootElement).render(<StrictMode><App /></StrictMode>);

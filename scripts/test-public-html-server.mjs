@@ -54,7 +54,7 @@ try {
     if (existsSync(file) && statSync(file).isDirectory()) file = join(file, 'index.html');
     if (!existsSync(file)) {
       const privateRoute = /^\/(admin|employee|kiosk|quotation)(\/|$)/.test(pathname);
-      file = join(output, privateRoute ? 'index.html' : '404.html');
+      file = join(output, privateRoute ? 'app-shell.html' : '404.html');
       res.statusCode = privateRoute ? 200 : 404;
     }
     const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.jpg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.woff2': 'font/woff2' };
