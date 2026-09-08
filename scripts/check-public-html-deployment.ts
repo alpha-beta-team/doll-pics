@@ -40,6 +40,7 @@ export function validatePublicHtml(html: string, path: PublicHtmlPath, publicOri
   const home = path === '/';
   const gallery = path === '/gallery';
   const work = path === '/work';
+  const about = path === '/about';
   const hub = path === '/services' || path === '/packages';
   try {
     const root = document.querySelector('#root');
@@ -49,7 +50,7 @@ export function validatePublicHtml(html: string, path: PublicHtmlPath, publicOri
     root?.querySelectorAll('noscript, script, template').forEach(node => node.remove());
     const heading = text(root?.querySelector('h1')?.textContent);
     expect(heading, 'missing service heading inside #root');
-    expect(text(root?.querySelector(home || hub || gallery || work || packagePage ? 'main p' : '#overview p')?.textContent), 'missing service content inside #root');
+    expect(text(root?.querySelector(home || hub || gallery || work || about || packagePage ? 'main p' : '#overview p')?.textContent), 'missing service content inside #root');
     expect(root?.querySelector('a[href^="tel:"]'), 'missing telephone link inside #root');
     expect(root?.querySelector('a[href*="wa.me/"]'), 'missing WhatsApp link inside #root');
     expect(root?.querySelectorAll('a[href^="/"]').length, 'missing internal navigation inside #root');
@@ -79,25 +80,44 @@ export function validatePublicHtml(html: string, path: PublicHtmlPath, publicOri
     const breadcrumbs = schema('BreadcrumbList');
     expect(webpage?.url === canonical && webpage?.['@id'] === `${canonical}#webpage`
       && webpage?.name === title && webpage?.description === description, 'WebPage schema differs from page metadata');
-    if (!home && !hub && !gallery && !work && !packagePage) expect(service?.url === canonical && service?.['@id'] === `${canonical}#service`
+    if (!home && !hub && !gallery && !work && !about && !packagePage) expect(service?.url === canonical && service?.['@id'] === `${canonical}#service`
       && service?.description === description, 'Service schema differs from page metadata');
     const studioId = `${new URL(publicOrigin).origin}/#studio`;
-    expect(business?.['@id'] === studioId && (home || hub || gallery || work || packagePage || (record(service?.provider)
+    expect(business?.['@id'] === studioId && (home || hub || gallery || work || about || packagePage || (record(service?.provider)
       && service.provider['@id'] === studioId)), 'missing or inconsistent business/provider schema');
     const items = breadcrumbs?.itemListElement;
     const last = Array.isArray(items) ? items.at(-1) : undefined;
-    if (!home && !hub && !gallery && !work && !packagePage) expect(record(last) && last.item === canonical && text(String(last.name ?? '')) === heading,
+    if (!home && !hub && !gallery && !work && !about && !packagePage) expect(record(last) && last.item === canonical && text(String(last.name ?? '')) === heading,
       'breadcrumb does not match rendered service');
 
     if (snapshot) {
       const nav = snapshot.data.siteContent.serviceNavLinks?.find(link => link.path === path);
       if (requireCms) {
-        expect(snapshot.loaded.includes('siteContent') && snapshot.loaded.includes('categories') && (home || hub || gallery || work || (packagePage ? snapshot.data.publicCatalog.packageLinks.some(link => link.path === path) : nav?.isPublished)),
+        expect(snapshot.loaded.includes('siteContent') && snapshot.loaded.includes('categories') && (home || hub || gallery || work || about || (packagePage ? snapshot.data.publicCatalog.packageLinks.some(link => link.path === path) : nav?.isPublished)),
           'release requires both loaded CMS sources and a published target service');
         for (const source of Object.values(snapshot.data.publicCatalog.sources)) {
           expect(source.status === 'cms' && !source.reason && !source.rejectedRecords,
             'release snapshot contains fallback or rejected CMS records');
         }
+      }
+      if (about) {
+        const { siteContent, staffProfiles, behindScenes } = snapshot.data;
+        const main = root?.querySelector('main');
+        const content = text(main?.textContent);
+        expect(root?.querySelectorAll('h1').length === 1 && heading === 'About Doll Pictures and our Erode studio', 'About heading structure differs');
+        for (const paragraph of (siteContent.ourStory || siteContent.about).split(/\n\n+/).map(text).filter(Boolean)) expect(content.includes(paragraph), 'About story differs from snapshot');
+        expect(content.includes(text(siteContent.mission || siteContent.tagline)), 'About mission differs from snapshot');
+        expect(main?.querySelectorAll('#team h3').length === staffProfiles.length, 'About team count differs from snapshot');
+        for (const member of staffProfiles) {
+          for (const value of [member.name, member.jobTitle, member.bio]) expect(content.includes(text(value)), 'About team copy differs from snapshot');
+          expect([...main?.querySelectorAll('#team img') ?? []].some(img => img.getAttribute('src') === member.photo && img.getAttribute('alt') === member.name), 'About team photo differs from snapshot');
+        }
+        for (const scene of behindScenes) {
+          expect(content.includes(text(scene.title)), 'About process title missing');
+          expect([...main?.querySelectorAll('img, video') ?? []].some(media => media.getAttribute(scene.video ? 'poster' : 'src') === scene.image), 'About process poster missing');
+        }
+        if (requireCms) expect(snapshot.loaded.includes('staffProfiles') && snapshot.loaded.includes('behindScenes'), 'release requires loaded About collections');
+        return failures;
       }
       if (work) {
         const photos = snapshot.data.featuredWork;
@@ -302,7 +322,7 @@ export async function checkPublicHtmlDeployment({
         const returnedPath = new URL(response.url || new URL(path, baseUrl)).pathname.replace(/\/$/, '') || '/';
         if (returnedPath !== path) failures.push('redirected to a different route');
       }
-      if (published.has(path) && (['/', '/work', '/gallery', '/services', '/packages'].includes(path) || !CORE_PUBLIC_PATHS.includes(path))) {
+      if (published.has(path) && (['/', '/about', '/work', '/gallery', '/services', '/packages'].includes(path) || !CORE_PUBLIC_PATHS.includes(path))) {
         failures.push(...validatePublicHtml(html, path as PublicHtmlPath, publicOrigin, requireCms));
       } else failures.push(...validateExcludedHtml(html, path === missing || retired));
       return { path, failures };

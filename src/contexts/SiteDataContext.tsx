@@ -400,7 +400,7 @@ async function loadResource(resource: CmsResource, signal: AbortSignal, supplied
   }
 }
 
-export async function createPrerenderSiteData(content?: PublicSiteContent, categories?: PublicPackageCategory[], home?: { hero?: PublicHeroSlide[]; featured?: PublicPhoto[]; gallery?: PublicPhoto[] }, offers?: PublicPackage[]) {
+export async function createPrerenderSiteData(content?: PublicSiteContent, categories?: PublicPackageCategory[], home?: { hero?: PublicHeroSlide[]; featured?: PublicPhoto[]; gallery?: PublicPhoto[] }, offers?: PublicPackage[], about?: { staff?: PublicStaffProfile[]; scenes?: PublicBehindScene[] }) {
   let data: SiteData = { ...fallbackData, loading: false, fromApi: false };
   const loaded: CmsResource[] = [];
   const supplied = { siteContent: content, categories };
@@ -421,6 +421,12 @@ export async function createPrerenderSiteData(content?: PublicSiteContent, categ
     const keys: Array<keyof PublicPackage> = ['name', 'shootType', 'categorySlug', 'categoryName', 'description', 'inclusions', 'icon', 'imageUrl', 'pricingMode', 'price', 'durationLabel', 'advanceAmount', 'notes', 'slotTimings', 'locationType', 'themeGuideUrl'];
     data.packages = offers.map(offer => normalizePublicPackage(Object.fromEntries(keys.filter(key => offer[key] !== undefined).map(key => [key, offer[key]])) as PublicPackage));
     loaded.push('packages');
+  }
+  if (about) {
+    data.staffProfiles = (about.staff ?? []).map(({ name, jobTitle, bio, photo }) => ({ name, jobTitle, bio, photo }));
+    data.behindScenes = (about.scenes ?? []).map(({ title, image, video, description }) => ({ title, image, video, description }));
+    if (about.staff) loaded.push('staffProfiles');
+    if (about.scenes) loaded.push('behindScenes');
   }
   // Embed only the public view model, never the raw CMS response or metadata.
   data.siteContent = Object.fromEntries(Object.keys(defaultSiteContent).map(key => [key, data.siteContent[key as keyof PublicSiteContent]])) as PublicSiteContent;

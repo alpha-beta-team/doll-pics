@@ -3,7 +3,7 @@
 **Audit ID:** F04  
 **Priority:** High  
 **Effort:** Large (1–3 weeks in increments)  
-**Status:** In progress — homepage, hubs, gallery, work and catalog-driven service/package rendering implemented locally\
+**Status:** In progress — homepage, hubs, gallery, work, about and catalog-driven service/package rendering implemented locally\
 **Responsible role:** Frontend engineer with content reviewer  
 **Assigned owner:** Frontend implementation; frontend/content reviewer for deployment acceptance\
 **Chunk:** 3 — Rendering, media and metadata  
@@ -49,7 +49,8 @@ Historical context (retain its original records; do not copy old statuses into t
 - [x] Render all eligible published services using the shared service component and catalog-driven selection — local implementation verified; deployment/manual acceptance pending.
 - [x] Render the gallery's initial content using its existing component — local HTML, hydration, empty/unavailable and edited-content checks passed; deployment/manual acceptance pending.
 - [x] Render Work using its existing FeaturedWork component — initial HTML, hydration and data-state checks passed locally; deployment/manual acceptance pending.
-- [ ] Render About/Stories/Contact and legal pages using their existing components.
+- [x] Render About using its existing components and public staff/process snapshots — local initial HTML, hydration, independent failures and heading checks passed; deployment/manual acceptance pending.
+- [ ] Render Stories/Contact and legal pages using their existing components.
 - [ ] Release each page family separately; disable observer-only hiding in initial HTML and match the first browser render to its snapshot.
 - [ ] Exercise light/dark preference restoration, malformed snapshots, stale assets, independent CMS/media failures and route transitions.
 - [ ] Prove a controlled QA content change reaches generated HTML and hydrated content after rebuild before expanding the next family.
@@ -100,9 +101,9 @@ Promote through the existing release workflow only when this item's applicable g
 
 | Stage | State | Evidence |
 |---|---|---|
-| Remediation implementation | In progress | Homepage, hubs, gallery, work and catalog-driven service/package categories implemented. Remaining core public families are pending |
-| Local remediation validation | Implemented families passed | Earlier family evidence below; [Work evidence](./evidence/f04-work-local-verification.json) records release, strict HTML smoke, 14 browser cases, snapshot rejection and controlled rebuilds |
-| Preview/production acceptance | Latest increment pending | User reported both production smoke checks passed after Gallery/middleware deployment; Work requires deployment and manual acceptance, and earlier manual/external follow-ups remain separate |
+| Remediation implementation | In progress | Homepage, hubs, gallery, work, about and catalog-driven service/package categories implemented. Remaining core public families are pending |
+| Local remediation validation | Implemented families passed | Earlier family evidence below; [About evidence](./evidence/f04-about-local-verification.json) records release, strict HTML smoke, 16 browser cases, snapshot rejection and controlled rebuilds |
+| Preview/production acceptance | Latest increment pending | User reported both production smoke checks passed after Gallery/middleware deployment; Work and About require deployment and manual acceptance, and earlier manual/external follow-ups remain separate |
 | External checks | Pending | Apply the requirements above; label non-applicable checks explicitly |
 
 Update this header, this record, the master row, chunk checkbox and totals together. Use `Ready for verification` when implementation and required local checks pass but applicable deployment/manual checks remain. Use `Complete` only after this item's acceptance criteria pass; record non-gating ongoing observations separately. `Blocked` requires a blocker, responsible role and concrete next action.
@@ -207,3 +208,14 @@ User reported both production smoke commands passed after the Gallery/middleware
 - Validation: release check passed with existing warnings; strict HTML smoke passed for populated, empty and edited builds; optional smoke passed for unavailable output; eight populated JS/no-JS × mobile/desktop × stored-theme cases plus six empty/unavailable/edited browser cases passed. Eight malformed snapshot cases were rejected. Mobile no-JavaScript screenshot inspected. [Evidence](./evidence/f04-work-local-verification.json). No spec files, live CMS writes or deployment.
 
 **Next gate:** deploy and run both production smoke tools; review actual featured photos/captions, no-JavaScript visibility, themes, lightbox and enquiry. Then proceed to About, Stories, Contact and legal pages. F04 remains In progress and the completion count stays 10 / 19.
+
+### Increment 8 — About initial HTML (8 September 2026)
+
+User authorized the next F04 increment after About was identified as the next page. Work deployment evidence remains pending and is not inferred from this authorization.
+
+- `/about` now renders and hydrates the existing About component, preserving its F09 heading hierarchy, story, mission, team and process sections. Observer-dependent hiding is disabled for this rendered page's reveal elements.
+- The build reads `/staff-profiles` and `/behind-scenes`. Snapshot mapping selects only public name/job title/bio/photo and title/image/video/description fields. No raw staff/admin metadata is embedded. Loaded resources seed the provider independently, avoiding duplicate requests while allowing unavailable resources to retry in the browser.
+- Successful empty lists omit their sections. An unavailable collection cannot discard the other collection or the story/mission. Strict CMS build and smoke checks reject unavailable collections; optional builds retain an honest partial page without invented staff/process records.
+- Release check passed with existing warnings. Eight populated browser cases cover JS/no-JS, mobile/desktop, both stored themes, video-dialog open/Escape/focus return and navigation. Eight further cases cover empty collections, each independent failure and edited story/biography rebuilds. Nine malformed/cross-route/resource snapshots rejected. Private-field sentinels absent. Mobile no-JavaScript screenshot inspected. [Evidence](./evidence/f04-about-local-verification.json).
+
+**Next gate:** deploy and run both smoke tools; review approved biographies, photos, story, headings, no-JavaScript visibility, themes, enquiry and real video playback. Fixture dialog checks do not prove playback. Continue Stories, Contact and legal pages afterward. F04 remains In progress; total stays 10 / 19. No spec files or external writes.

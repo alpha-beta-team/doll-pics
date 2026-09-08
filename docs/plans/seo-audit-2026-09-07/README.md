@@ -85,7 +85,7 @@ Start with F01. Within a chunk, take ready items in the listed order; independen
 **Completion:** 1 / 7
 
 - [x] [F10](./10-authentic-category-media.md) — Use authentic and category-relevant portfolio media — Complete for implementation tracking; studio approval and deployed media checks remain pending
-- [ ] [F04](./04-public-html-expansion.md) — In progress: homepage, hubs, gallery, work and catalog-driven service/package rendering implemented locally; latest increments await deployment/manual acceptance
+- [ ] [F04](./04-public-html-expansion.md) — In progress: homepage, hubs, gallery, work, about and catalog-driven service/package rendering implemented locally; latest increments await deployment/manual acceptance
 - [ ] [F11](./11-image-discovery.md) — Provide crawlable discovery for intended photography
 - [ ] [F13](./13-performance-and-core-web-vitals.md) — In progress: Booking layout/image-loading fix implemented locally; production comparison and field acceptance remain pending
 - [ ] [F14](./14-social-preview-metadata.md) — Support route-specific social previews
@@ -111,7 +111,7 @@ Start with F01. Within a chunk, take ready items in the listed order; independen
 | 4 — Content growth and ongoing verification | 3 | 0 | 3 | Not started |
 | **Overall** | **19** | **10** | **9** | **In progress: 2 active, 7 not started** |
 
-**Recommended next task:** deploy/verify [F04 Work rendering](./04-public-html-expansion.md) and the [F13 Booking fix](./13-performance-and-core-web-vitals.md). Run both deployed smoke tools, check CMS publication/rebuild behavior and repeat Booking performance measurements. After Work acceptance, continue About/Stories/Contact/legal families. Totals are **10 / 19 complete** for implementation tracking; deployment/external follow-ups remain recorded separately.
+**Recommended next task:** deploy/verify [F04 Work/About rendering](./04-public-html-expansion.md) and the [F13 Booking fix](./13-performance-and-core-web-vitals.md). Run both deployed smoke tools, check CMS publication/rebuild behavior and repeat Booking performance measurements. After About acceptance, continue Stories/Contact/legal families. Totals are **10 / 19 complete** for implementation tracking; deployment/external follow-ups remain recorded separately.
 
 ## Parallel execution
 
@@ -119,7 +119,7 @@ Tasks are not all serial. Dependency gates still apply; implementation completio
 
 | Workstream | Can proceed now | Gate / coordination |
 |---|---|---|
-| Rendering — F04 | Deploy/verify catalog-driven service/package rendering, then About/Stories/Contact/legal families | New eligible CMS routes must render after rebuild without code edits; retain publication and manual acceptance gates |
+| Rendering — F04 | Deploy/verify catalog-driven service/package rendering, then Stories/Contact/legal families | New eligible CMS routes must render after rebuild without code edits; retain publication and manual acceptance gates |
 | Performance — F13 | Deploy/compare the focused Booking fix against the recorded baseline | Compare before/after; coordinate bundle/component changes with rendering work |
 | Metadata — F14, F15, F16 | Social previews, authored descriptions and sitemap dates | Existing implementation prerequisites are met; use approved imagery and coordinate edits to shared SEO/prerender files |
 | Business facts — I02 | Verify identity and structured-data facts | Requires authoritative business/content-owner confirmation |
@@ -228,3 +228,4 @@ The creator validates these separately from remediation completion:
 | 2026-09-08 | User reported both production smoke checks passed for package expansion; implemented catalog-driven F04 rendering and focused F13 Booking fix in parallel | 10 / 19 | Deploy latest changes; validate custom CMS lifecycle/content and repeat Booking performance measurements. Both items remain In progress |
 | 2026-09-08 | F04 Gallery initial HTML implemented locally with shared portfolio snapshot, visible no-JS images and empty/unavailable handling | 10 / 19 | Deploy/verify Gallery with both smoke tools and manual media/lightbox checks; then continue remaining core public families |
 | 2026-09-08 | User reported both production smoke checks passed after Gallery/middleware deployment; F04 Work HTML implemented and verified locally | 10 / 19 | Deploy/verify Work and review actual featured photos/lightbox; then continue About/Stories/Contact/legal families |
+| 2026-09-08 | F04 About initial HTML implemented with public staff/process snapshots and preserved heading hierarchy; local release, browser and failure checks passed | 10 / 19 | Deploy/verify Work/About and review real content/media; then continue Stories/Contact/legal families |

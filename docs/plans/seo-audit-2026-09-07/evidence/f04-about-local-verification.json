@@ -1,0 +1,115 @@
+{
+  "date": "2026-09-08",
+  "baseCommit": "5b3a6e43a522a6820e2b6923a7fbc4b61e056bab",
+  "scope": "Local uncommitted About initial HTML, synthetic CMS/media, no CMS writes or deployment",
+  "checks": {
+    "release": "passed with existing lint/chunk warnings",
+    "htmlSmoke": "strict passed populated/empty/edited; optional passed each independently unavailable collection",
+    "browser": [
+      {
+        "javaScriptEnabled": false,
+        "width": 390,
+        "theme": "light",
+        "passed": true,
+        "aboutRequests": 0
+      },
+      {
+        "javaScriptEnabled": false,
+        "width": 390,
+        "theme": "dark",
+        "passed": true,
+        "aboutRequests": 0
+      },
+      {
+        "javaScriptEnabled": false,
+        "width": 1440,
+        "theme": "light",
+        "passed": true,
+        "aboutRequests": 0
+      },
+      {
+        "javaScriptEnabled": false,
+        "width": 1440,
+        "theme": "dark",
+        "passed": true,
+        "aboutRequests": 0
+      },
+      {
+        "javaScriptEnabled": true,
+        "width": 390,
+        "theme": "light",
+        "passed": true,
+        "aboutRequests": 0
+      },
+      {
+        "javaScriptEnabled": true,
+        "width": 390,
+        "theme": "dark",
+        "passed": true,
+        "aboutRequests": 0
+      },
+      {
+        "javaScriptEnabled": true,
+        "width": 1440,
+        "theme": "light",
+        "passed": true,
+        "aboutRequests": 0
+      },
+      {
+        "javaScriptEnabled": true,
+        "width": 1440,
+        "theme": "dark",
+        "passed": true,
+        "aboutRequests": 0
+      }
+    ],
+    "states": [
+      {
+        "phase": "empty",
+        "passed": true
+      },
+      {
+        "phase": "staff-unavailable",
+        "passed": true,
+        "strictRejected": true
+      },
+      {
+        "phase": "scenes-unavailable",
+        "passed": true,
+        "strictRejected": true
+      },
+      {
+        "phase": "edited",
+        "passed": true
+      }
+    ],
+    "snapshots": {
+      "passed": true,
+      "cases": [
+        "cross-route",
+        "version",
+        "invalid story",
+        "invalid staff",
+        "invalid scene",
+        "unloaded staff",
+        "unloaded scenes",
+        "foreign media",
+        "wrong resource"
+      ]
+    },
+    "visual": "Mobile no-JavaScript screenshot inspected: About H1, Our Story, paragraphs and mission readable",
+    "privacy": "Private staff/process sentinel fields absent from generated HTML"
+  },
+  "behavior": [
+    "Existing About component preserves H1/H2/H3 structure",
+    "Public staff and process display fields included in initial snapshot",
+    "Successful resources do not refetch on hydration; unavailable resources can retry independently",
+    "Successful empty collections omit their sections; strict build rejects unavailable resources",
+    "Video dialog opening, Escape focus restoration and navigation verified; actual video playback not verified"
+  ],
+  "pending": [
+    "Work/About production acceptance",
+    "Real approved biographies, images, video playback, themes and enquiry review",
+    "Stories/Contact/legal page families"
+  ]
+}
