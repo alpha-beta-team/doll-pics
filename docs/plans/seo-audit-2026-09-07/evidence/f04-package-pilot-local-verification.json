@@ -1,0 +1,150 @@
+{
+  "date": "2026-09-08",
+  "baseCommit": "5704fed407f7e234f21686edae0c34f798156da7",
+  "scope": "Local uncommitted wedding/newborn package rendering; synthetic offers/media and intercepted enquiry only",
+  "browserCases": [
+    {
+      "category": "wedding",
+      "javaScriptEnabled": false,
+      "width": 390,
+      "theme": "light",
+      "offers": 3,
+      "passed": true
+    },
+    {
+      "category": "wedding",
+      "javaScriptEnabled": false,
+      "width": 390,
+      "theme": "dark",
+      "offers": 3,
+      "passed": true
+    },
+    {
+      "category": "wedding",
+      "javaScriptEnabled": false,
+      "width": 1440,
+      "theme": "light",
+      "offers": 3,
+      "passed": true
+    },
+    {
+      "category": "wedding",
+      "javaScriptEnabled": false,
+      "width": 1440,
+      "theme": "dark",
+      "offers": 3,
+      "passed": true
+    },
+    {
+      "category": "wedding",
+      "javaScriptEnabled": true,
+      "width": 390,
+      "theme": "light",
+      "offers": 3,
+      "passed": true
+    },
+    {
+      "category": "wedding",
+      "javaScriptEnabled": true,
+      "width": 390,
+      "theme": "dark",
+      "offers": 3,
+      "passed": true
+    },
+    {
+      "category": "wedding",
+      "javaScriptEnabled": true,
+      "width": 1440,
+      "theme": "light",
+      "offers": 3,
+      "passed": true
+    },
+    {
+      "category": "wedding",
+      "javaScriptEnabled": true,
+      "width": 1440,
+      "theme": "dark",
+      "offers": 3,
+      "passed": true
+    },
+    {
+      "category": "newborn",
+      "javaScriptEnabled": false,
+      "width": 390,
+      "theme": "light",
+      "offers": 3,
+      "passed": true
+    },
+    {
+      "category": "newborn",
+      "javaScriptEnabled": false,
+      "width": 390,
+      "theme": "dark",
+      "offers": 3,
+      "passed": true
+    },
+    {
+      "category": "newborn",
+      "javaScriptEnabled": false,
+      "width": 1440,
+      "theme": "light",
+      "offers": 3,
+      "passed": true
+    },
+    {
+      "category": "newborn",
+      "javaScriptEnabled": false,
+      "width": 1440,
+      "theme": "dark",
+      "offers": 3,
+      "passed": true
+    },
+    {
+      "category": "newborn",
+      "javaScriptEnabled": true,
+      "width": 390,
+      "theme": "light",
+      "offers": 3,
+      "passed": true
+    },
+    {
+      "category": "newborn",
+      "javaScriptEnabled": true,
+      "width": 390,
+      "theme": "dark",
+      "offers": 3,
+      "passed": true
+    },
+    {
+      "category": "newborn",
+      "javaScriptEnabled": true,
+      "width": 1440,
+      "theme": "light",
+      "offers": 3,
+      "passed": true
+    },
+    {
+      "category": "newborn",
+      "javaScriptEnabled": true,
+      "width": 1440,
+      "theme": "dark",
+      "offers": 3,
+      "passed": true
+    }
+  ],
+  "additionalChecks": [
+    "Empty-offer fixture build and initial HTML smoke",
+    "Controlled rebuild with wedding/newborn prices, inclusions and booking notes",
+    "Six API/media, malformed snapshot and stale-entry browser cases",
+    "Mocked wedding-page enquiry submitted once; no external writes",
+    "PrivateNote excluded from snapshots; malformed price and private-route snapshot rejected",
+    "Explicit wrong-category offer excluded despite matching display name; legacy name and toddler alias compatibility retained",
+    "Populated HTML smoke covers all registered families and private/404 exclusions"
+  ],
+  "release": "check:release passed; eight existing lint warnings. Final category alias refinement has focused validation.",
+  "pending": [
+    "Deployment acceptance and both smoke checks",
+    "Actual CMS price, inclusion, imagery and theme review",
+    "Remaining package categories and F04 families"
+  ]
+}

@@ -1,3 +1,4 @@
+import { packageMatchesCategory } from '../lib/packageCategory';
 import { Link, useLocation } from 'react-router-dom';
 import { useEffect, useRef } from 'react';
 import { useSiteData } from '../contexts/SiteDataContext';
@@ -23,21 +24,13 @@ import { STUDIO_ADDRESS } from '../lib/studioLocation';
 const GRID_SIZES = '(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw';
 const INLINE_SIZES = '(max-width: 1024px) 100vw, 70vw';
 
-function packageMatchesCategory(
-  pkg: { categorySlug?: string; shootType?: string; categoryName?: string },
-  categorySlug: string,
-  label: string,
-): boolean {
-  if (pkg.categorySlug?.toLowerCase() === categorySlug) return true;
-  const name = (pkg.categoryName || pkg.shootType || '').trim().toLowerCase();
-  return name === label.toLowerCase() || name === categorySlug.replace(/-/g, ' ');
-}
 
 function PackageCategoryPageContent() {
   const { pathname } = useLocation();
   const path = normalizePathname(pathname);
   const {
     siteContent,
+    serviceMedia,
     featuredWork,
     galleryImages,
     packages,
@@ -84,6 +77,8 @@ function PackageCategoryPageContent() {
 
   const { hero, gallery, inline } = selectServiceImages({
     imageCategories: [page.categorySlug],
+    sourceOnly: serviceMedia?.path === path,
+    sourceImages: serviceMedia?.path === path ? [...serviceMedia.cover, ...serviceMedia.photos] : undefined,
     featuredWork,
     galleryImages,
   });

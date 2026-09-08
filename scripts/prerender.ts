@@ -1,6 +1,7 @@
+import { parsePublicSnapshot } from '../src/lib/publicSnapshot';
 import { serviceCatalogFromLinks } from '../src/lib/seo-core';
 import { removeRetiredCatalogPages } from './lib/catalog-output';
-import { PUBLIC_HTML_ROUTES, SERVICE_GALLERY_LIMIT, type PublicHtmlPath } from '../src/lib/publicHtmlRoutes';
+import { PUBLIC_HTML_ROUTES, PUBLIC_PACKAGE_HTML_ROUTES, SERVICE_GALLERY_LIMIT, type PublicHtmlPath } from '../src/lib/publicHtmlRoutes';
 import { serializeInlineJson, shouldRenderPublicPage } from './lib/public-html';
 import { createServer } from 'vite';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -535,7 +536,7 @@ writeFileSync(join(distDir, 'app-shell.html'), privateShell);
 
 const rendered = new Map<string, { html: string; snapshot: unknown }>();
 const renderPaths = (Object.keys(PUBLIC_HTML_ROUTES) as PublicHtmlPath[])
-  .filter(path => pages[path] && shouldRenderPublicPage(path, servicesLoaded, servicesByPath));
+  .filter(path => pages[path] && shouldRenderPublicPage(path, servicesLoaded, servicesByPath, packagesByPath));
 if (renderPaths.length) {
   const loadOptional = async (path: string) => {
     if (!apiBase) return undefined;
@@ -546,17 +547,21 @@ if (renderPaths.length) {
   try {
     const { renderPublicPage } = await server.ssrLoadModule('/src/entry-public-server.tsx');
     for (const path of renderPaths) {
-      const category = PUBLIC_HTML_ROUTES[path];
-      const [cover, photos, hero, featured, gallery] = await Promise.all([
+      const packagePage = Object.hasOwn(PUBLIC_PACKAGE_HTML_ROUTES, path);
+      const category = packagePage ? publicCatalog.packageLinks.find(link => link.path === path)?.categorySlug : PUBLIC_HTML_ROUTES[path];
+      const [cover, photos, hero, featured, gallery, offers] = await Promise.all([
         category ? loadOptional(`/categories/${category}`) : undefined,
         category ? loadOptional(`/photos?category=${category}&limit=${SERVICE_GALLERY_LIMIT}`) : undefined,
         path === '/' ? buildHeroSlides : undefined,
         path === '/' ? loadOptional('/photos?featured=true') : undefined,
         path === '/' ? loadOptional('/photos?limit=24') : undefined,
+        packagePage ? loadOptional('/packages') : undefined,
       ]);
+      if (packagePage && String(process.env.SEO_REQUIRE_CMS).toLowerCase() === 'true' && !Array.isArray(offers)) throw new Error(`CMS packages unavailable for ${path}`);
       rendered.set(path, await renderPublicPage({ path, siteContent, publicCatalog, categories: packageCategories,
         cover: cover && typeof cover === 'object' && !Array.isArray(cover) ? cover : undefined,
         photos: Array.isArray(photos) ? photos : undefined,
+        offers: Array.isArray(offers) ? offers : undefined,
         home: path === '/' ? { hero: Array.isArray(hero) ? hero : undefined, featured: Array.isArray(featured) ? featured : undefined, gallery: Array.isArray(gallery) ? gallery : undefined } : undefined }));
     }
   } finally { await server.close(); }
@@ -573,10 +578,11 @@ for (const page of Object.values(pages)) {
   if (service) {
     if (page.path === '/') html = html.replace(/<div id="home-hero-poster"[\s\S]*?<\/picture><\/div>/g, '').replace(/<style id="home-hero-poster-style">[\s\S]*?<\/style>/g, '');
     const serialized = serializeInlineJson(service.snapshot);
+    if (!parsePublicSnapshot(serialized, page.path)) throw new Error(`Invalid public snapshot for ${page.path}`);
     html = html.replace(/<noscript>[\s\S]*?<\/noscript>/g, '');
     html = html.replace('<div id="root"></div>', () => `<div id="root" data-public-html="${page.path}">${service.html}</div><script id="public-page-snapshot" type="application/json">${serialized}</script>`);
     // Server-rendered gallery content must be visible without observer JavaScript.
-    html = html.replace('</head>', '<style>[data-public-html] .services-editorial .reveal,[data-public-html] .services-editorial .reveal-blur,[data-public-html] .packages-editorial .reveal,[data-public-html] .packages-editorial main a[style],[data-public-html] .home-reveal,[data-public-html] .hero-copy-enter{opacity:1;transform:none;filter:none;animation:none}</style></head>');
+    html = html.replace('</head>', '<style>[data-public-html] .services-editorial .reveal,[data-public-html] .services-editorial .reveal-blur,[data-public-html] .packages-editorial .reveal,[data-public-html] .packages-editorial .reveal-blur,[data-public-html] .packages-editorial main a[style],[data-public-html] .packages-editorial main article[style],[data-public-html] .home-reveal,[data-public-html] .hero-copy-enter{opacity:1;transform:none;filter:none;animation:none}</style></head>');
   }
   htmlSha256[page.path] = createHash('sha256').update(html).digest('hex');
   written.push(writeRoute(page.path, html));

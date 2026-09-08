@@ -3,7 +3,7 @@
 **Audit ID:** F04  
 **Priority:** High  
 **Effort:** Large (1–3 weeks in increments)  
-**Status:** In progress — homepage and hub increments implemented locally\
+**Status:** In progress — homepage, hubs and first two package categories implemented locally\
 **Responsible role:** Frontend engineer with content reviewer  
 **Assigned owner:** Frontend implementation; frontend/content reviewer for deployment acceptance\
 **Chunk:** 3 — Rendering, media and metadata  
@@ -94,7 +94,7 @@ Promote through the existing release workflow only when this item's applicable g
 
 | Stage | State | Evidence |
 |---|---|---|
-| Remediation implementation | In progress | Homepage and both hubs added; three service routes retained. Remaining families are not expanded yet |
+| Remediation implementation | In progress | Homepage, hubs and wedding/newborn packages added; three service routes retained. Remaining families are pending |
 | Local remediation validation | Homepage passed | [Fixture evidence](./evidence/f04-home-local-verification.json): initial HTML, hydration, themes, failures, controlled rebuild, enquiry and exclusion checks |
 | Preview/production acceptance | Pending | Requires deployed verification |
 | External checks | Pending | Apply the requirements above; label non-applicable checks explicitly |
@@ -140,3 +140,15 @@ User authorized the next increment after reporting deployed homepage HTML/path s
 **Next release gate:** deploy the hubs, run HTML smoke with `--require-cms` and path smoke, and inspect their no-JavaScript content, themes, published cards and enquiry flow. Record deployment ID/commit and content review. Then begin wedding/newborn package-category pages. F04 remains In progress and totals remain 10 / 19.
 
 Final hub release check passed with eight existing lint warnings. All six final fallback render artifacts passed the HTML validator.
+
+### Increment 3 — wedding and newborn package pages (8 September 2026)
+
+User authorized this increment after reporting deployed hub HTML/path smoke success. Manual visual acceptance is a separate gate.
+
+- Added only `/wedding-packages-erode` and `/newborn-packages-erode`; registration still requires the route in the published package catalog. Unpublished/retired targets remain excluded.
+- Server and browser select the existing PackageCategoryPage. Snapshots include explicitly allowlisted public offers and category-scoped media; extra raw CMS fields are not embedded. The package resource is seeded only when loaded successfully. Strict CMS builds fail if the offers endpoint is unavailable; successful empty arrays remain valid and display the existing enquiry state. Generated snapshots are validated before output is written.
+- Package imagery uses the category query from the authoritative catalog and the scoped snapshot rather than a general-gallery pool. Tagged photos from unrelated categories are rejected. Explicit package category slugs take precedence over display names; legacy missing-slug names and the toddler plural alias remain supported.
+- Initial headings, price cards and portfolio grids are visible without observer JavaScript. HTML smoke now checks package metadata, names, prices, inclusions and empty states.
+- Local checks: empty-offer build/HTML smoke, controlled populated rebuild, 16 mobile/desktop JS/no-JS and stored-theme browser cases, six failure/malformed/stale-asset cases, mocked enquiry, field-allowlist and malformed/private snapshot checks. JavaScript restores light/dark preference; no-JavaScript retains build-time dark. `check:release` passed with existing lint warnings. [Evidence](./evidence/f04-package-pilot-local-verification.json).
+
+**Next gate:** deploy this pair and verify actual CMS prices, inclusions, category photos, enquiry/navigation, no-JavaScript visibility and both themes; run both deployed smoke tools and record commit/deployment. Then expand the remaining intended package categories. This pair is local and uncommitted; no production acceptance claimed. F04 stays In progress and totals remain 10 / 19.

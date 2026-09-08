@@ -1,5 +1,5 @@
 import type { SiteData, CmsResource } from '../contexts/SiteDataContext';
-import { isPublicHtmlPath, type PublicHtmlPath } from './publicHtmlRoutes';
+import { isPublicHtmlPath, PUBLIC_PACKAGE_HTML_ROUTES, type PublicHtmlPath } from './publicHtmlRoutes';
 
 export interface PublicSnapshot {
   version: 1;
@@ -23,6 +23,7 @@ export function parsePublicSnapshot(text: string, pathname: string): PublicSnaps
   try {
     const value: unknown = JSON.parse(text);
     if (!record(value) || value.version !== 1 || value.path !== path || !record(value.data)) return;
+    const packagePage = Object.prototype.hasOwnProperty.call(PUBLIC_PACKAGE_HTML_ROUTES, path);
     const data = value.data;
     const catalog = data.publicCatalog;
     if (!record(catalog) || !record(catalog.sources)
@@ -46,7 +47,7 @@ export function parsePublicSnapshot(text: string, pathname: string): PublicSnaps
     if (!arrays.every(key => arrayOf(data[key], record))
       || typeof data.loading !== 'boolean' || typeof data.fromApi !== 'boolean') return;
     // Build snapshots seed only these shared resources; others remain browser-loaded.
-    if (!arrayOf(value.loaded, key => key === 'siteContent' || key === 'categories' || (path === '/' && ['hero', 'featuredPhotos', 'galleryPhotos'].includes(String(key))))) return;
+    if (!arrayOf(value.loaded, key => key === 'siteContent' || key === 'categories' || (packagePage && key === 'packages') || (path === '/' && ['hero', 'featuredPhotos', 'galleryPhotos'].includes(String(key))))) return;
     for (const [sourceName, resource] of [['services', 'siteContent'], ['packages', 'categories']]) {
       const source = (catalog.sources as Record<string, Record<string, unknown>>)[sourceName];
       if ((source.status === 'cms') !== (value.loaded as string[]).includes(resource)
@@ -56,6 +57,12 @@ export function parsePublicSnapshot(text: string, pathname: string): PublicSnaps
       && strings(item, ['title', 'desc', 'icon', 'image', 'path']))) return;
     if (path === '/packages' && !arrayOf(data.packageNavLinks, item => record(item)
       && strings(item, ['label', 'path', 'categorySlug', 'description']) && item.isPublished === true)) return;
+    if (packagePage && !(catalog.packageLinks as Record<string, unknown>[]).some(link => link.path === path)) return;
+    if (packagePage && !arrayOf(data.packages, item => record(item) && strings(item, ['name', 'description', 'pricingMode'])
+      && arrayOf(item.inclusions, entry => typeof entry === 'string')
+      && ['notes', 'slotTimings'].every(key => item[key] === undefined || arrayOf(item[key], entry => typeof entry === 'string'))
+      && ['price', 'advanceAmount'].every(key => item[key] === undefined || item[key] === null || (typeof item[key] === 'number' && Number.isFinite(item[key])))
+      && ['categorySlug', 'categoryName', 'shootType', 'durationLabel', 'themeGuideUrl', 'locationType'].every(key => item[key] === undefined || typeof item[key] === 'string'))) return;
     const media = data.serviceMedia;
     if (['/', '/services', '/packages'].includes(path)) {
       if (media !== undefined || !arrayOf(data.heroSlides, item => record(item) && strings(item, ['image', 'label']))

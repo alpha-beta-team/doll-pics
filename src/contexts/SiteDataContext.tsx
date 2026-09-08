@@ -398,7 +398,7 @@ async function loadResource(resource: CmsResource, signal: AbortSignal, supplied
   }
 }
 
-export async function createPrerenderSiteData(content?: PublicSiteContent, categories?: PublicPackageCategory[], home?: { hero?: PublicHeroSlide[]; featured?: PublicPhoto[]; gallery?: PublicPhoto[] }) {
+export async function createPrerenderSiteData(content?: PublicSiteContent, categories?: PublicPackageCategory[], home?: { hero?: PublicHeroSlide[]; featured?: PublicPhoto[]; gallery?: PublicPhoto[] }, offers?: PublicPackage[]) {
   let data: SiteData = { ...fallbackData, loading: false, fromApi: false };
   const loaded: CmsResource[] = [];
   const supplied = { siteContent: content, categories };
@@ -415,6 +415,11 @@ export async function createPrerenderSiteData(content?: PublicSiteContent, categ
   }
   if (home?.featured) { data.featuredWork = featuredFromPhotos(home.featured); loaded.push('featuredPhotos'); }
   if (home?.gallery) { data.galleryImages = galleryFromPhotos(home.gallery); loaded.push('galleryPhotos'); }
+  if (offers) {
+    const keys: Array<keyof PublicPackage> = ['name', 'shootType', 'categorySlug', 'categoryName', 'description', 'inclusions', 'icon', 'imageUrl', 'pricingMode', 'price', 'durationLabel', 'advanceAmount', 'notes', 'slotTimings', 'locationType', 'themeGuideUrl'];
+    data.packages = offers.map(offer => normalizePublicPackage(Object.fromEntries(keys.filter(key => offer[key] !== undefined).map(key => [key, offer[key]])) as PublicPackage));
+    loaded.push('packages');
+  }
   // Embed only the public view model, never the raw CMS response or metadata.
   data.siteContent = Object.fromEntries(Object.keys(defaultSiteContent).map(key => [key, data.siteContent[key as keyof PublicSiteContent]])) as PublicSiteContent;
   data.siteContent.serviceNavLinks = getPublishedServiceNavLinks(data.siteContent.serviceNavLinks);

@@ -1,15 +1,19 @@
+import { packageMatchesCategory } from '../src/lib/packageCategory';
+import { formatPackagePrice } from '../src/lib/pricing';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { isDeepStrictEqual } from 'node:util';
 import { CORE_PUBLIC_PATHS, normalizePublicLandingPath } from '../src/lib/publicRoutePath';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
-import { PUBLIC_HTML_ROUTES, type PublicHtmlPath } from '../src/lib/publicHtmlRoutes';
+import { PUBLIC_HTML_ROUTES, PUBLIC_PACKAGE_HTML_ROUTES, type PublicHtmlPath } from '../src/lib/publicHtmlRoutes';
 import { parsePublicSnapshot } from '../src/lib/publicSnapshot';
-import { resolveServicePage, type ServiceNavLinkLike } from '../src/lib/seo-core';
+import { resolveServicePage, resolvePackagePage, type ServiceNavLinkLike } from '../src/lib/seo-core';
 
 const servicePages = JSON.parse(readFileSync(new URL('../src/data/service-pages.json', import.meta.url), 'utf8')) as
   Record<PublicHtmlPath, NonNullable<Parameters<typeof resolveServicePage>[1]>>;
+
+const packagePages = JSON.parse(readFileSync(new URL('../src/data/package-pages.json', import.meta.url), 'utf8'));
 
 const defaultOrigin = 'https://dollpictures.in';
 const canonicalUrl = (path: string, origin: string) => path === '/' ? origin : new URL(path, origin).href;
@@ -30,6 +34,7 @@ export function validatePublicHtml(html: string, path: PublicHtmlPath, publicOri
   const failures: string[] = [];
   const expect = (condition: unknown, message: string) => { if (!condition) failures.push(message); };
   const canonical = canonicalUrl(path, publicOrigin);
+  const packagePage = Object.hasOwn(PUBLIC_PACKAGE_HTML_ROUTES, path);
   const home = path === '/';
   const hub = path === '/services' || path === '/packages';
   try {
@@ -40,7 +45,7 @@ export function validatePublicHtml(html: string, path: PublicHtmlPath, publicOri
     root?.querySelectorAll('noscript, script, template').forEach(node => node.remove());
     const heading = text(root?.querySelector('h1')?.textContent);
     expect(heading, 'missing service heading inside #root');
-    expect(text(root?.querySelector(home || hub ? 'main p' : '#overview p')?.textContent), 'missing service content inside #root');
+    expect(text(root?.querySelector(home || hub || packagePage ? 'main p' : '#overview p')?.textContent), 'missing service content inside #root');
     expect(root?.querySelector('a[href^="tel:"]'), 'missing telephone link inside #root');
     expect(root?.querySelector('a[href*="wa.me/"]'), 'missing WhatsApp link inside #root');
     expect(root?.querySelectorAll('a[href^="/"]').length, 'missing internal navigation inside #root');
@@ -71,25 +76,40 @@ export function validatePublicHtml(html: string, path: PublicHtmlPath, publicOri
     const breadcrumbs = schema('BreadcrumbList');
     expect(webpage?.url === canonical && webpage?.['@id'] === `${canonical}#webpage`
       && webpage?.name === title && webpage?.description === description, 'WebPage schema differs from page metadata');
-    if (!home && !hub) expect(service?.url === canonical && service?.['@id'] === `${canonical}#service`
+    if (!home && !hub && !packagePage) expect(service?.url === canonical && service?.['@id'] === `${canonical}#service`
       && service?.description === description, 'Service schema differs from page metadata');
     const studioId = `${new URL(publicOrigin).origin}/#studio`;
-    expect(business?.['@id'] === studioId && (home || hub || (record(service?.provider)
+    expect(business?.['@id'] === studioId && (home || hub || packagePage || (record(service?.provider)
       && service.provider['@id'] === studioId)), 'missing or inconsistent business/provider schema');
     const items = breadcrumbs?.itemListElement;
     const last = Array.isArray(items) ? items.at(-1) : undefined;
-    if (!home && !hub) expect(record(last) && last.item === canonical && text(String(last.name ?? '')) === heading,
+    if (!home && !hub && !packagePage) expect(record(last) && last.item === canonical && text(String(last.name ?? '')) === heading,
       'breadcrumb does not match rendered service');
 
     if (snapshot) {
       const nav = snapshot.data.siteContent.serviceNavLinks?.find(link => link.path === path);
       if (requireCms) {
-        expect(snapshot.loaded.includes('siteContent') && snapshot.loaded.includes('categories') && (home || hub || nav?.isPublished),
+        expect(snapshot.loaded.includes('siteContent') && snapshot.loaded.includes('categories') && (home || hub || (packagePage ? snapshot.data.publicCatalog.packageLinks.some(link => link.path === path) : nav?.isPublished)),
           'release requires both loaded CMS sources and a published target service');
         for (const source of Object.values(snapshot.data.publicCatalog.sources)) {
           expect(source.status === 'cms' && !source.reason && !source.rejectedRecords,
             'release snapshot contains fallback or rejected CMS records');
         }
+      }
+      if (packagePage) {
+        const link = snapshot.data.publicCatalog.packageLinks.find(link => link.path === path);
+        const page = link && resolvePackagePage(path, packagePages[path], link);
+        expect(page && heading === text(page.heading), 'package heading differs from catalog');
+        expect(page && title === page.title && description === page.description, 'package metadata differs from catalog');
+        if (requireCms) expect(snapshot.loaded.includes('packages'), 'release requires loaded public packages');
+        const content = text(root?.querySelector('main')?.textContent);
+        const offers = page ? snapshot.data.packages.filter(pkg => packageMatchesCategory(pkg, page.categorySlug, page.label)) : [];
+        for (const offer of offers) {
+          expect(content.includes(text(offer.name)) && content.includes(text(formatPackagePrice(offer.pricingMode, offer.price))), `package price/name missing: ${offer.name}`);
+          for (const inclusion of offer.inclusions) expect(content.includes(text(inclusion)), `package inclusion missing: ${offer.name}`);
+        }
+        if (!offers.length) expect(content.includes('Packages will be available soon.'), 'missing empty package state');
+        return failures;
       }
       if (hub) {
         const catalogLinks = path === '/services' ? snapshot.data.publicCatalog.serviceLinks : snapshot.data.publicCatalog.packageLinks;
