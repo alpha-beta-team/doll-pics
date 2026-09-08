@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, type ReactNode } from 'react';
+import { Suspense, lazy, useEffect, type ComponentType, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 import { SmoothScroll } from '../components/SmoothScroll';
 import { CustomCursor } from '../components/CustomCursor';
@@ -34,11 +34,13 @@ function SiteShell({ children }: { children: ReactNode }) {
 function SectionOnlyView({
   sectionId,
   pathname,
+  sectionComponent,
 }: {
   sectionId: string;
   pathname: string;
+  sectionComponent?: ComponentType;
 }) {
-  const Section = SECTION_COMPONENTS[sectionId];
+  const Section = sectionComponent ?? SECTION_COMPONENTS[sectionId];
   const seo = getPageSeo(pathname);
 
   useEffect(() => {
@@ -75,23 +77,23 @@ function HomeView() {
   );
 }
 
-function SiteContent() {
+function SiteContent({ sectionComponent }: { sectionComponent?: ComponentType }) {
   const { pathname } = useLocation();
   const sectionId = PATH_TO_SECTION[pathname];
 
   usePageSeo();
 
   if (sectionId) {
-    return <SectionOnlyView sectionId={sectionId} pathname={pathname} />;
+    return <SectionOnlyView sectionId={sectionId} pathname={pathname} sectionComponent={sectionComponent} />;
   }
 
   return <HomeView />;
 }
 
-export function Site() {
+export function Site({ sectionComponent }: { sectionComponent?: ComponentType } = {}) {
   return (
     <SmoothScroll>
-      <SiteContent />
+      <SiteContent sectionComponent={sectionComponent} />
     </SmoothScroll>
   );
 }

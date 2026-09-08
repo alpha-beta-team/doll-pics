@@ -85,7 +85,7 @@ Start with F01. Within a chunk, take ready items in the listed order; independen
 **Completion:** 1 / 7
 
 - [x] [F10](./10-authentic-category-media.md) — Use authentic and category-relevant portfolio media — Complete for implementation tracking; studio approval and deployed media checks remain pending
-- [ ] [F04](./04-public-html-expansion.md) — In progress: homepage implemented locally; deploy/verify this family before hubs
+- [ ] [F04](./04-public-html-expansion.md) — In progress: homepage and hubs implemented locally; deploy/verify hubs before package-category pages
 - [ ] [F11](./11-image-discovery.md) — Provide crawlable discovery for intended photography
 - [ ] [F13](./13-performance-and-core-web-vitals.md) — Measure and improve public-page performance
 - [ ] [F14](./14-social-preview-metadata.md) — Support route-specific social previews
@@ -111,7 +111,7 @@ Start with F01. Within a chunk, take ready items in the listed order; independen
 | 4 — Content growth and ongoing verification | 3 | 0 | 3 | Not started |
 | **Overall** | **19** | **8** | **11** | **In progress** |
 
-**Recommended next task:** [F04](./04-public-html-expansion.md) — deploy and verify the homepage increment, then expand hubs. Totals are **10 / 19 complete** for implementation tracking; deployment/external follow-ups remain recorded separately.
+**Recommended next task:** [F04](./04-public-html-expansion.md) — deploy and verify the hubs, then expand package-category pages. Totals are **10 / 19 complete** for implementation tracking; deployment/external follow-ups remain recorded separately.
 
 ## Execution defaults and dependency rules
 
@@ -204,3 +204,4 @@ The creator validates these separately from remediation completion:
 | 2026-09-08 | F12 implementation complete: modal mobile menu and destination route focus; release and fixture browser checks passed | 9 / 19 | Begin F10; retain F12 deployment and manual accessibility gates |
 | 2026-09-08 | F10 implementation complete: honest empty portfolio states and category-scoped media; release and 48 browser checks passed | 10 / 19 | Begin F04; retain studio approval and deployed media acceptance gates |
 | 2026-09-08 | F04 homepage increment implemented locally with shared rendering, public media snapshots and isolated private shell | 10 / 19 | Verify homepage candidate/production before expanding hubs; F04 remains In progress |
+| 2026-09-08 | F04 services/packages hubs implemented locally; published cards and empty states rendered with shared hydration | 10 / 19 | Deploy/verify hubs before wedding/newborn package-category rendering |

@@ -5,6 +5,8 @@ import { renderToString } from 'react-dom/server';
 import { StaticRouter } from 'react-router-dom';
 import { AppRoutes } from './App';
 import { createPrerenderSiteData } from './contexts/SiteDataContext';
+import { ServicesHub } from './pages/ServicesHub';
+import { Packages } from './pages/Packages';
 import { Site } from './pages/Site';
 import { ServicePage } from './pages/ServicePage';
 import { serviceImagesFromApi } from './lib/serviceMedia';
@@ -23,7 +25,7 @@ export async function renderPublicPage(input: {
   const { data, loaded } = await createPrerenderSiteData(input.siteContent, input.categories, input.home);
   if (input.publicCatalog) data.publicCatalog = input.publicCatalog;
   const categoryName = data.siteContent.serviceNavLinks?.find(link => link.path === input.path)?.label;
-  if (input.path !== '/') data.serviceMedia = {
+  if (!['/', '/services', '/packages'].includes(input.path)) data.serviceMedia = {
     path: input.path,
     cover: input.cover?.coverPhotoId && typeof input.cover.coverPhotoId === 'object'
       ? serviceImagesFromApi([input.cover.coverPhotoId], categoryName) : [],
@@ -31,6 +33,6 @@ export async function renderPublicPage(input: {
     loaded: [...(input.cover ? ['cover' as const] : []), ...(input.photos ? ['photos' as const] : [])],
   };
   const snapshot: PublicSnapshot = { version: 1, path: input.path, data, loaded };
-  const html = renderToString(<StrictMode><StaticRouter location={snapshot.path}><AppRoutes snapshot={snapshot} PilotPage={input.path === '/' ? Site : ServicePage} /></StaticRouter></StrictMode>);
+  const html = renderToString(<StrictMode><StaticRouter location={snapshot.path}><AppRoutes snapshot={snapshot} PilotPage={input.path === '/' ? Site : input.path === '/services' ? ServicesHub : input.path === '/packages' ? Packages : ServicePage} /></StaticRouter></StrictMode>);
   return { html, snapshot };
 }

@@ -44,6 +44,8 @@ function PackagesContent() {
               <div className="flex justify-center py-24">
                 <div className="h-8 w-8 animate-spin rounded-full border-2 border-gold-400 border-t-transparent" />
               </div>
+            ) : packageNavLinks.length === 0 ? (
+              <p className="py-12 text-ink-200">Package categories are currently unavailable. <Link to="/contact" className="underline">Contact us to discuss your session.</Link></p>
             ) : (
               <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {packageNavLinks.map((link, index) => (

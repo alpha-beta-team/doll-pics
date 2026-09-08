@@ -3,7 +3,7 @@
 **Audit ID:** F04  
 **Priority:** High  
 **Effort:** Large (1–3 weeks in increments)  
-**Status:** In progress — homepage increment implemented locally\
+**Status:** In progress — homepage and hub increments implemented locally\
 **Responsible role:** Frontend engineer with content reviewer  
 **Assigned owner:** Frontend implementation; frontend/content reviewer for deployment acceptance\
 **Chunk:** 3 — Rendering, media and metadata  
@@ -43,7 +43,7 @@ Historical context (retain its original records; do not copy old statuses into t
 
 - [x] Generalize route renderer and snapshot selection beyond a ServicePage-only assumption; preserve route/version validation and public field allowlists.
 - [x] Render the homepage first, including meaningful heading, approved media, contact and service discovery links.
-- [ ] Render /services and /packages hubs next using the authoritative public catalog.
+- [x] Render /services and /packages hubs next using the authoritative public catalog.
 - [ ] Render package-category pages next, beginning with wedding and newborn, then the remaining intended published package routes.
 - [ ] Render the other intended published services and the gallery's initial content; then work/about/stories/contact and legal pages using their existing components.
 - [ ] Release each page family separately; disable observer-only hiding in initial HTML and match the first browser render to its snapshot.
@@ -94,7 +94,7 @@ Promote through the existing release workflow only when this item's applicable g
 
 | Stage | State | Evidence |
 |---|---|---|
-| Remediation implementation | In progress | Homepage added; three service routes retained. Hubs and remaining families are not expanded yet |
+| Remediation implementation | In progress | Homepage and both hubs added; three service routes retained. Remaining families are not expanded yet |
 | Local remediation validation | Homepage passed | [Fixture evidence](./evidence/f04-home-local-verification.json): initial HTML, hydration, themes, failures, controlled rebuild, enquiry and exclusion checks |
 | Preview/production acceptance | Pending | Requires deployed verification |
 | External checks | Pending | Apply the requirements above; label non-applicable checks explicitly |
@@ -126,3 +126,17 @@ Production smoke reported 404 for all eight private root/nested probes. Read-onl
 The local fixture adapter previously hardcoded the private shell and therefore missed this configuration error. It now resolves declared rewrite destinations and rejects HTML-extension destinations under cleanUrls. Production acceptance remains pending redeployment and both smoke checks; the observed private-route regression does not count as a passed deployment gate.
 
 Correction validation: fixture production build, script syntax check, diff check and HTML smoke passed, including all eight private probes. No deployment performed.
+
+### Increment 2 — services and packages hubs (8 September 2026)
+
+User authorized the next increment after reporting deployed homepage HTML/path smoke success. That report is distinct from manual homepage visual acceptance.
+
+- `/services` and `/packages` are now in the explicit render registry. ServicesHub eagerly loads the existing Services section inside the shared Site shell; the server and initial browser use the same component and Suspense structure. Packages uses its existing page directly.
+- Both hubs render the authoritative catalog's published cards, descriptions and links. A successful empty package catalog shows an honest empty state and contact link. Optional service preview imagery retains its existing safe fallback. This increment does not add package pricing tables or package-category rendering.
+- Initial hub headings/cards are visible without observer JavaScript. Hub snapshot validation rejects malformed card fields and cross-route snapshots. Existing service snapshots, private shell rewrites and public metadata remain covered by the HTML smoke check.
+- Local fixtures passed 32 combined populated/edited-and-empty JS/no-JS checks at 390px/1440px with stored-theme variants, including card navigation/back. JavaScript restores both themes; no-JavaScript retains the build-time dark theme. Six additional API/media, malformed snapshot and missing-entry-asset cases passed. Mocked enquiry submissions succeeded once per hub, with no external writes. Controlled service copy appeared in rebuilt HTML. No spec files added.
+- [Verification evidence](./evidence/f04-hubs-local-verification.json). Changes are local and uncommitted; no deployment acceptance claimed.
+
+**Next release gate:** deploy the hubs, run HTML smoke with `--require-cms` and path smoke, and inspect their no-JavaScript content, themes, published cards and enquiry flow. Record deployment ID/commit and content review. Then begin wedding/newborn package-category pages. F04 remains In progress and totals remain 10 / 19.
+
+Final hub release check passed with eight existing lint warnings. All six final fallback render artifacts passed the HTML validator.

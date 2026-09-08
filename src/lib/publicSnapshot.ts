@@ -52,8 +52,12 @@ export function parsePublicSnapshot(text: string, pathname: string): PublicSnaps
       if ((source.status === 'cms') !== (value.loaded as string[]).includes(resource)
         || (source.status === 'cms' && source.reason !== undefined)) return;
     }
+    if (path === '/services' && !arrayOf(data.services, item => record(item)
+      && strings(item, ['title', 'desc', 'icon', 'image', 'path']))) return;
+    if (path === '/packages' && !arrayOf(data.packageNavLinks, item => record(item)
+      && strings(item, ['label', 'path', 'categorySlug', 'description']) && item.isPublished === true)) return;
     const media = data.serviceMedia;
-    if (path === '/') {
+    if (['/', '/services', '/packages'].includes(path)) {
       if (media !== undefined || !arrayOf(data.heroSlides, item => record(item) && strings(item, ['image', 'label']))
         || !arrayOf(data.featuredWork, item => record(item) && strings(item, ['image', 'alt', 'title', 'category', 'location', 'year']) && (item.categorySlugs === undefined || arrayOf(item.categorySlugs, slug => typeof slug === 'string')))
         || !arrayOf(data.galleryImages, item => image(item) && record(item) && (item.categorySlugs === undefined || arrayOf(item.categorySlugs, slug => typeof slug === 'string')))) return;

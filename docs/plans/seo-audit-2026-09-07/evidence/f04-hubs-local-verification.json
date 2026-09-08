@@ -1,0 +1,280 @@
+{
+  "date": "2026-09-08",
+  "baseCommit": "2a838e8c9ead58b486b134b69092ae6dac67704d",
+  "scope": "Local uncommitted services/packages hub increment; synthetic fixtures and intercepted enquiry requests; no deployment or CMS writes",
+  "populated": [
+    {
+      "path": "/services",
+      "javaScriptEnabled": false,
+      "width": 390,
+      "theme": "light",
+      "cardCount": 4,
+      "passed": true
+    },
+    {
+      "path": "/services",
+      "javaScriptEnabled": false,
+      "width": 390,
+      "theme": "dark",
+      "cardCount": 4,
+      "passed": true
+    },
+    {
+      "path": "/services",
+      "javaScriptEnabled": false,
+      "width": 1440,
+      "theme": "light",
+      "cardCount": 4,
+      "passed": true
+    },
+    {
+      "path": "/services",
+      "javaScriptEnabled": false,
+      "width": 1440,
+      "theme": "dark",
+      "cardCount": 4,
+      "passed": true
+    },
+    {
+      "path": "/services",
+      "javaScriptEnabled": true,
+      "width": 390,
+      "theme": "light",
+      "cardCount": 4,
+      "passed": true
+    },
+    {
+      "path": "/services",
+      "javaScriptEnabled": true,
+      "width": 390,
+      "theme": "dark",
+      "cardCount": 4,
+      "passed": true
+    },
+    {
+      "path": "/services",
+      "javaScriptEnabled": true,
+      "width": 1440,
+      "theme": "light",
+      "cardCount": 4,
+      "passed": true
+    },
+    {
+      "path": "/services",
+      "javaScriptEnabled": true,
+      "width": 1440,
+      "theme": "dark",
+      "cardCount": 4,
+      "passed": true
+    },
+    {
+      "path": "/packages",
+      "javaScriptEnabled": false,
+      "width": 390,
+      "theme": "light",
+      "cardCount": 5,
+      "passed": true
+    },
+    {
+      "path": "/packages",
+      "javaScriptEnabled": false,
+      "width": 390,
+      "theme": "dark",
+      "cardCount": 5,
+      "passed": true
+    },
+    {
+      "path": "/packages",
+      "javaScriptEnabled": false,
+      "width": 1440,
+      "theme": "light",
+      "cardCount": 5,
+      "passed": true
+    },
+    {
+      "path": "/packages",
+      "javaScriptEnabled": false,
+      "width": 1440,
+      "theme": "dark",
+      "cardCount": 5,
+      "passed": true
+    },
+    {
+      "path": "/packages",
+      "javaScriptEnabled": true,
+      "width": 390,
+      "theme": "light",
+      "cardCount": 5,
+      "passed": true
+    },
+    {
+      "path": "/packages",
+      "javaScriptEnabled": true,
+      "width": 390,
+      "theme": "dark",
+      "cardCount": 5,
+      "passed": true
+    },
+    {
+      "path": "/packages",
+      "javaScriptEnabled": true,
+      "width": 1440,
+      "theme": "light",
+      "cardCount": 5,
+      "passed": true
+    },
+    {
+      "path": "/packages",
+      "javaScriptEnabled": true,
+      "width": 1440,
+      "theme": "dark",
+      "cardCount": 5,
+      "passed": true
+    }
+  ],
+  "editedServicesAndEmptyPackages": [
+    {
+      "path": "/services",
+      "javaScriptEnabled": false,
+      "width": 390,
+      "theme": "light",
+      "cardCount": 5,
+      "passed": true
+    },
+    {
+      "path": "/services",
+      "javaScriptEnabled": false,
+      "width": 390,
+      "theme": "dark",
+      "cardCount": 5,
+      "passed": true
+    },
+    {
+      "path": "/services",
+      "javaScriptEnabled": false,
+      "width": 1440,
+      "theme": "light",
+      "cardCount": 5,
+      "passed": true
+    },
+    {
+      "path": "/services",
+      "javaScriptEnabled": false,
+      "width": 1440,
+      "theme": "dark",
+      "cardCount": 5,
+      "passed": true
+    },
+    {
+      "path": "/services",
+      "javaScriptEnabled": true,
+      "width": 390,
+      "theme": "light",
+      "cardCount": 5,
+      "passed": true
+    },
+    {
+      "path": "/services",
+      "javaScriptEnabled": true,
+      "width": 390,
+      "theme": "dark",
+      "cardCount": 5,
+      "passed": true
+    },
+    {
+      "path": "/services",
+      "javaScriptEnabled": true,
+      "width": 1440,
+      "theme": "light",
+      "cardCount": 5,
+      "passed": true
+    },
+    {
+      "path": "/services",
+      "javaScriptEnabled": true,
+      "width": 1440,
+      "theme": "dark",
+      "cardCount": 5,
+      "passed": true
+    },
+    {
+      "path": "/packages",
+      "javaScriptEnabled": false,
+      "width": 390,
+      "theme": "light",
+      "cardCount": 0,
+      "passed": true
+    },
+    {
+      "path": "/packages",
+      "javaScriptEnabled": false,
+      "width": 390,
+      "theme": "dark",
+      "cardCount": 0,
+      "passed": true
+    },
+    {
+      "path": "/packages",
+      "javaScriptEnabled": false,
+      "width": 1440,
+      "theme": "light",
+      "cardCount": 0,
+      "passed": true
+    },
+    {
+      "path": "/packages",
+      "javaScriptEnabled": false,
+      "width": 1440,
+      "theme": "dark",
+      "cardCount": 0,
+      "passed": true
+    },
+    {
+      "path": "/packages",
+      "javaScriptEnabled": true,
+      "width": 390,
+      "theme": "light",
+      "cardCount": 0,
+      "passed": true
+    },
+    {
+      "path": "/packages",
+      "javaScriptEnabled": true,
+      "width": 390,
+      "theme": "dark",
+      "cardCount": 0,
+      "passed": true
+    },
+    {
+      "path": "/packages",
+      "javaScriptEnabled": true,
+      "width": 1440,
+      "theme": "light",
+      "cardCount": 0,
+      "passed": true
+    },
+    {
+      "path": "/packages",
+      "javaScriptEnabled": true,
+      "width": 1440,
+      "theme": "dark",
+      "cardCount": 0,
+      "passed": true
+    }
+  ],
+  "additionalChecks": [
+    "Six browser API/media failure, malformed snapshot and stale-entry cases",
+    "Mocked enquiry success once on each hub; no external writes",
+    "Snapshot parser accepts hubs and rejects malformed card data and cross-private-route use",
+    "Controlled service label/description change appears after rebuild",
+    "Empty package catalog stays empty with usable contact link",
+    "HTML smoke passes with populated and empty catalogs, including previous rendered routes and private/404 exclusions"
+  ],
+  "pending": [
+    "Production hub deployment and both smoke checks",
+    "Manual media/content, no-JavaScript and theme checks on deployed hubs",
+    "Remaining F04 page families"
+  ],
+  "release": "Final check:release passed with eight existing lint warnings",
+  "themeNote": "Stored light/dark restoration checked with JavaScript; no-JavaScript retains the build-time dark theme."
+}

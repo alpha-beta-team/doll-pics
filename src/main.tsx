@@ -40,6 +40,8 @@ async function startApp() {
   if (snapshot && rootElement.hasChildNodes()) {
     const pageModule = snapshot.path === '/'
       ? import('./pages/Site').then(module => module.Site)
+      : snapshot.path === '/services' ? import('./pages/ServicesHub').then(module => module.ServicesHub)
+      : snapshot.path === '/packages' ? import('./pages/Packages').then(module => module.Packages)
       : import('./pages/ServicePage').then(module => module.ServicePage);
     void pageModule.then(PublicPage => {
       hydrateRoot(rootElement, <StrictMode><App snapshot={snapshot} PilotPage={PublicPage} /></StrictMode>);
