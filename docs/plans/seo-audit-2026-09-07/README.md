@@ -5,7 +5,7 @@
 **Repository baseline:** `ff8e0ad`  
 **Source:** The complete React.js SEO audit in this conversation (68/100 implementation assessment)  
 **Program status:** In progress\
-**Completion:** **4 / 19 items complete**
+**Completion:** **5 / 19 items complete**
 
 ## Objective and boundaries
 
@@ -38,7 +38,7 @@ IDs F01–F16 preserve audit traceability. I01–I03 cover the additional improv
 | F02 | [Unify publication state and public route catalogs](./02-publication-and-route-catalog.md) | High | Medium | [F01](./01-work-route.md) | Complete |
 | F03 | [Preserve CMS service sections during generation](./03-cms-service-sections.md) | High | Small | — | Complete |
 | F06 | [Separate fallback coverage from CMS release readiness](./06-cms-release-readiness.md) | Medium | Medium | [F02](./02-publication-and-route-catalog.md), [F03](./03-cms-service-sections.md) | Complete |
-| F08 | [Normalize known public canonical paths](./08-canonical-path-normalization.md) | Medium | Small | [F02](./02-publication-and-route-catalog.md) | Not started |
+| F08 | [Normalize known public canonical paths](./08-canonical-path-normalization.md) | Medium | Small | [F02](./02-publication-and-route-catalog.md) | Complete |
 | F05 | [Make no-JavaScript fallbacks readable](./05-noscript-contrast.md) | Medium | Small | — | Not started |
 | F07 | [Clarify private, preview and error-page indexing](./07-private-preview-and-404-indexing.md) | Medium | Small | — | Not started |
 | F09 | [Restore About page heading structure](./09-about-heading-and-semantics.md) | Medium | Small | — | Not started |
@@ -60,14 +60,14 @@ Start with F01. Within a chunk, take ready items in the listed order; independen
 
 ### Chunk 1 — Routing and content correctness
 
-**Status:** In progress\
-**Completion:** 4 / 5
+**Status:** Complete for implementation tracking\
+**Completion:** 5 / 5
 
 - [x] [F01](./01-work-route.md) — Restore the /work route — Complete; implementation and local validation passed, deployment verification remains a follow-up
 - [x] [F02](./02-publication-and-route-catalog.md) — Unify publication state and public route catalogs — Complete for implementation tracking; deployed acceptance remains a follow-up
 - [x] [F03](./03-cms-service-sections.md) — Preserve CMS service sections during generation — Complete for implementation tracking; deployed content parity remains a follow-up
 - [x] [F06](./06-cms-release-readiness.md) — Separate fallback coverage from CMS release readiness — Complete for implementation tracking; deployed candidate/hosting acceptance remains a follow-up
-- [ ] [F08](./08-canonical-path-normalization.md) — Normalize known public canonical paths
+- [x] [F08](./08-canonical-path-normalization.md) — Normalize known public canonical paths — Complete for implementation tracking; Vercel redirect acceptance remains a follow-up
 
 ### Chunk 2 — Indexing and usability
 
@@ -105,13 +105,13 @@ Start with F01. Within a chunk, take ready items in the listed order; independen
 
 | Chunk | Items | Complete | Remaining | Status |
 |---|---:|---:|---:|---|
-| 1 — Routing and content correctness | 5 | 4 | 1 | In progress |
+| 1 — Routing and content correctness | 5 | 5 | 0 | Complete for implementation tracking |
 | 2 — Indexing and usability | 4 | 0 | 4 | Not started |
 | 3 — Rendering, media and metadata | 7 | 0 | 7 | Not started |
 | 4 — Content growth and ongoing verification | 3 | 0 | 3 | Not started |
-| **Overall** | **19** | **4** | **15** | **In progress** |
+| **Overall** | **19** | **5** | **14** | **In progress** |
 
-**Recommended next task:** [F08](./08-canonical-path-normalization.md) — normalize known public canonical paths. Totals are **4 / 19 complete** for implementation tracking; F01–F03 and F06 deployment follow-ups remain recorded separately.
+**Recommended next task:** [F05](./05-noscript-contrast.md) — make no-JavaScript fallbacks readable. Totals are **5 / 19 complete** for implementation tracking; deployment/external follow-ups remain recorded separately.
 
 ## Execution defaults and dependency rules
 
@@ -197,3 +197,4 @@ The creator validates these separately from remediation completion:
 | 2026-09-07 | Marked F02 Complete at the user’s request for implementation tracking; recorded subsequent removal of spec files and test commands without rewriting historical results | 2 / 19 | Begin F03; retain F01/F02 deployment follow-ups |
 | 2026-09-07 | F03 implementation complete: preserved section images in fallback HTML; six loader/generated-route cases and 12 JS/no-JS browser checks passed; no spec files added | 3 / 19 | Begin F06; Frontend engineer retains F03 deployed content parity follow-up |
 | 2026-09-07 | F06 implementation complete: strict CMS provenance gate, all-route initial HTML fingerprints and saved-artifact release acceptance; local fixture builds and JS/no-JS checks passed with no specs added | 4 / 19 | Begin F08; release owner retains candidate/production, hosting identity and deploy-hook follow-ups |
+| 2026-09-08 | F08 implementation complete: catalog-scoped public redirects and client replacement; release checks and 120 local cases passed. Chunk 1 implementation complete | 5 / 19 | Begin F05; retain F08 deployed middleware/redirect and external canonical follow-ups |

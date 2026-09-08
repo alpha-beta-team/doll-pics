@@ -1,9 +1,11 @@
 import type { PublicSnapshot } from './lib/publicSnapshot';
 import { Suspense, lazy, type ComponentType } from 'react';
-import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Outlet, Navigate, useLocation } from 'react-router-dom';
 import { GoogleAnalytics } from './components/GoogleAnalytics';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { SiteDataProvider } from './contexts/SiteDataContext';
+import { SiteDataProvider, useSiteData } from './contexts/SiteDataContext';
+import { publicCanonicalPath } from './lib/publicCanonicalPath';
+import { CORE_PUBLIC_PATHS } from './lib/publicRoutePath';
 import { useBusinessSeo } from './hooks/useBusinessSeo';
 import { Site } from './pages/Site';
 import { SECTION_PATHS } from './lib/navigation';
@@ -59,12 +61,23 @@ function PublicBusinessSeo() {
   return null;
 }
 
+function PublicCanonicalRoute() {
+  const location = useLocation();
+  const { publicCatalog, loading } = useSiteData();
+  // Core routes are always known; wait for publication before resolving CMS aliases.
+  const canonical = publicCanonicalPath(location.pathname, CORE_PUBLIC_PATHS)
+    ?? (!loading ? publicCanonicalPath(location.pathname, publicCatalog.paths) : undefined);
+  if (canonical && canonical !== location.pathname) {
+    return <Navigate replace to={{ pathname: canonical, search: location.search, hash: location.hash }} state={location.state} />;
+  }
+  return <><PublicBusinessSeo /><Outlet /></>;
+}
+
 function PublicLayout({ snapshot }: { snapshot?: PublicSnapshot }) {
   return (
     <ThemeProvider initialTheme={snapshot ? 'dark' : undefined}>
       <SiteDataProvider initialData={snapshot?.data} initialLoaded={snapshot?.loaded}>
-        <PublicBusinessSeo />
-        <Outlet />
+        <PublicCanonicalRoute />
       </SiteDataProvider>
     </ThemeProvider>
   );

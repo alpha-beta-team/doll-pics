@@ -1,0 +1,357 @@
+{
+  "date": "2026-09-08T03:08:54.097Z",
+  "commit": "b7013502c95eba437f7fa2013395a9b5134994af",
+  "scope": "Local uncommitted F08 implementation; fixture HTTP adapter is not deployed Vercel routing evidence",
+  "resolver": [
+    {
+      "input": "/Services",
+      "expected": "/services",
+      "passed": true
+    },
+    {
+      "input": "/services/",
+      "expected": "/services",
+      "passed": true
+    },
+    {
+      "input": "/WORK/",
+      "expected": "/work",
+      "passed": true
+    },
+    {
+      "input": "/Custom-Service/",
+      "expected": "/custom-service",
+      "passed": true
+    },
+    {
+      "input": "/CUSTOM-PACKAGES",
+      "expected": "/custom-packages",
+      "passed": true
+    },
+    {
+      "input": "/Unknown/",
+      "expected": null,
+      "passed": true
+    },
+    {
+      "input": "/quotation/AbC_123/",
+      "expected": null,
+      "passed": true
+    },
+    {
+      "input": "/ADMIN/AbC/",
+      "expected": null,
+      "passed": true
+    },
+    {
+      "input": "/Services//",
+      "expected": null,
+      "passed": true
+    },
+    {
+      "input": "/%73ervices",
+      "expected": null,
+      "passed": true
+    },
+    {
+      "input": "//services",
+      "expected": null,
+      "passed": true
+    }
+  ],
+  "middleware": [
+    {
+      "scenario": "valid",
+      "path": "/Services/",
+      "status": 308,
+      "passed": true
+    },
+    {
+      "scenario": "valid",
+      "path": "/Custom-Service/",
+      "status": 308,
+      "passed": true
+    },
+    {
+      "scenario": "valid",
+      "path": "/Unknown/",
+      "status": null,
+      "passed": true
+    },
+    {
+      "scenario": "valid",
+      "path": "/quotation/AbC_123/",
+      "status": null,
+      "passed": true
+    },
+    {
+      "scenario": "valid",
+      "path": "/employee/AbC/",
+      "status": null,
+      "passed": true
+    },
+    {
+      "scenario": "valid",
+      "path": "/kiosk/AbC/",
+      "status": null,
+      "passed": true
+    },
+    {
+      "scenario": "valid",
+      "path": "/services",
+      "status": null,
+      "passed": true
+    },
+    {
+      "scenario": "valid",
+      "path": "/assets/Foo.JS",
+      "status": null,
+      "passed": true
+    },
+    {
+      "scenario": "valid",
+      "path": "/%73ervices",
+      "status": null,
+      "passed": true
+    },
+    {
+      "scenario": "empty",
+      "path": "/Services/",
+      "status": 308,
+      "passed": true
+    },
+    {
+      "scenario": "empty",
+      "path": "/Custom-Service/",
+      "status": null,
+      "passed": true
+    },
+    {
+      "scenario": "empty",
+      "path": "/Unknown/",
+      "status": null,
+      "passed": true
+    },
+    {
+      "scenario": "empty",
+      "path": "/quotation/AbC_123/",
+      "status": null,
+      "passed": true
+    },
+    {
+      "scenario": "empty",
+      "path": "/employee/AbC/",
+      "status": null,
+      "passed": true
+    },
+    {
+      "scenario": "empty",
+      "path": "/kiosk/AbC/",
+      "status": null,
+      "passed": true
+    },
+    {
+      "scenario": "empty",
+      "path": "/services",
+      "status": null,
+      "passed": true
+    },
+    {
+      "scenario": "empty",
+      "path": "/assets/Foo.JS",
+      "status": null,
+      "passed": true
+    },
+    {
+      "scenario": "empty",
+      "path": "/%73ervices",
+      "status": null,
+      "passed": true
+    },
+    {
+      "scenario": "invalid",
+      "path": "/Services/",
+      "status": 308,
+      "passed": true
+    },
+    {
+      "scenario": "invalid",
+      "path": "/Custom-Service/",
+      "status": null,
+      "passed": true
+    },
+    {
+      "scenario": "invalid",
+      "path": "/Unknown/",
+      "status": null,
+      "passed": true
+    },
+    {
+      "scenario": "invalid",
+      "path": "/quotation/AbC_123/",
+      "status": null,
+      "passed": true
+    },
+    {
+      "scenario": "invalid",
+      "path": "/employee/AbC/",
+      "status": null,
+      "passed": true
+    },
+    {
+      "scenario": "invalid",
+      "path": "/kiosk/AbC/",
+      "status": null,
+      "passed": true
+    },
+    {
+      "scenario": "invalid",
+      "path": "/services",
+      "status": null,
+      "passed": true
+    },
+    {
+      "scenario": "invalid",
+      "path": "/assets/Foo.JS",
+      "status": null,
+      "passed": true
+    },
+    {
+      "scenario": "invalid",
+      "path": "/%73ervices",
+      "status": null,
+      "passed": true
+    },
+    {
+      "scenario": "unavailable",
+      "path": "/Services/",
+      "status": 308,
+      "passed": true
+    },
+    {
+      "scenario": "unavailable",
+      "path": "/Custom-Service/",
+      "status": null,
+      "passed": true
+    },
+    {
+      "scenario": "unavailable",
+      "path": "/Unknown/",
+      "status": null,
+      "passed": true
+    },
+    {
+      "scenario": "unavailable",
+      "path": "/quotation/AbC_123/",
+      "status": null,
+      "passed": true
+    },
+    {
+      "scenario": "unavailable",
+      "path": "/employee/AbC/",
+      "status": null,
+      "passed": true
+    },
+    {
+      "scenario": "unavailable",
+      "path": "/kiosk/AbC/",
+      "status": null,
+      "passed": true
+    },
+    {
+      "scenario": "unavailable",
+      "path": "/services",
+      "status": null,
+      "passed": true
+    },
+    {
+      "scenario": "unavailable",
+      "path": "/assets/Foo.JS",
+      "status": null,
+      "passed": true
+    },
+    {
+      "scenario": "unavailable",
+      "path": "/%73ervices",
+      "status": null,
+      "passed": true
+    }
+  ],
+  "browser": [
+    {
+      "variant": "/Services/",
+      "canonical": "/services",
+      "mode": "http-no-js",
+      "passed": true
+    },
+    {
+      "variant": "/Services/",
+      "canonical": "/services",
+      "mode": "spa",
+      "passed": true
+    },
+    {
+      "variant": "/WORK",
+      "canonical": "/work",
+      "mode": "http-no-js",
+      "passed": true
+    },
+    {
+      "variant": "/WORK",
+      "canonical": "/work",
+      "mode": "spa",
+      "passed": true
+    },
+    {
+      "variant": "/Newborn-Baby-Photography-Erode/",
+      "canonical": "/newborn-baby-photography-erode",
+      "mode": "http-no-js",
+      "passed": true
+    },
+    {
+      "variant": "/Newborn-Baby-Photography-Erode/",
+      "canonical": "/newborn-baby-photography-erode",
+      "mode": "spa",
+      "passed": true
+    },
+    {
+      "variant": "/Custom-Packages-Erode/",
+      "canonical": "/custom-packages-erode",
+      "mode": "http-no-js",
+      "passed": true
+    },
+    {
+      "variant": "/Custom-Packages-Erode/",
+      "canonical": "/custom-packages-erode",
+      "mode": "spa",
+      "passed": true
+    },
+    {
+      "variant": "/Editorial-Photography/",
+      "canonical": "/editorial-photography",
+      "mode": "http-no-js",
+      "passed": true
+    },
+    {
+      "variant": "/Editorial-Photography/",
+      "canonical": "/editorial-photography",
+      "mode": "spa",
+      "passed": true
+    },
+    {
+      "variant": "/F08-Unknown/",
+      "mode": "unknown remains noindex and unchanged",
+      "passed": true
+    }
+  ],
+  "http": {
+    "checked": 62,
+    "failures": []
+  },
+  "releaseChecks": {
+    "command": "VITE_API_URL='' API_URL='' SEO_REQUIRE_CMS=false npm run check:release",
+    "passed": true,
+    "lint": "0 errors; 8 existing warnings",
+    "specFilesAdded": 0
+  }
+}

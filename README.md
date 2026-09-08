@@ -316,6 +316,30 @@ CMS deploy hooks and a material QA edit observed before/after hydration remain
 release-owner checks; offline PR CI cannot establish them. No production CMS writes
 are needed for the scripted gate.
 
+## Public URL normalization
+
+Known public case/slash variants redirect to the catalog pathname, for example
+`/Services/` → `/services`. Client navigation replaces the alias history entry and
+preserves query parameters and fragments. Private tokens and unknown destinations
+are excluded. Public navigation links already use the normalized publication catalog.
+
+Vercel uses root `middleware.ts` for HTTP 308 redirects. It resolves core pages
+locally and CMS destinations against the deployed `/public-catalog.json`; failed
+catalog reads leave the original request unchanged. No additional environment
+variables are needed. The global trailing-slash redirect was removed so that
+private/unknown paths are not rewritten by this setting.
+
+After deploying F08, verify the actual platform routing:
+
+```sh
+npm run seo:paths-smoke -- --base-url https://dollpictures.in
+npm run seo:html-smoke -- --require-cms --base-url https://dollpictures.in
+```
+
+The path smoke checks case/slash redirects and query preservation for every
+published destination, plus synthetic unknown/private URLs. Also verify HTTP/www
+redirect chains on the target; local Vite does not execute Vercel middleware.
+
 ## Campaign attribution
 
 See [the attribution contract and rollout plan](docs/plans/marketing-attribution.md)
