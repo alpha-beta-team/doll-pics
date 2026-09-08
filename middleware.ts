@@ -2,7 +2,7 @@ import { publicCanonicalPath } from './src/lib/publicCanonicalPath';
 import { CORE_PUBLIC_PATHS, isRecord, normalizePublicLandingPath } from './src/lib/publicRoutePath';
 
 // Assets and the catalog itself never need canonical-path middleware.
-export const config = { matcher: ['/((?!.*\\.).*)'] };
+export const config = { runtime: 'nodejs', matcher: ['/((?!.*\\.).*)'] };
 
 /** GET/HEAD public aliases only. Returning nothing preserves normal hosting behavior. */
 export default async function middleware(request: Request): Promise<Response | undefined> {

@@ -15,7 +15,7 @@
     "seed:admin-mock:dry-run": "npm --prefix ../photography-cms-backend run seed:admin-mock:dry-run",
     "lint": "eslint .",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json && tsc -p tsconfig.middleware.json",
     "check:release": "npm run typecheck && npm run lint && npm run build",
     "build:cms": "SEO_REQUIRE_CMS=true npm run build",
     "check:cms-release": "tsx scripts/check-public-html-deployment.ts --release",

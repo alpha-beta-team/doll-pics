@@ -118,3 +118,12 @@ Complete is used for implementation tracking, consistent with F01–F03/F06. Dep
 | 2026-09-07 | Created the issue checklist; remediation remains Not started | Conversation audit at `ff8e0ad`; no new remediation evidence | Assign owner, recheck baseline, then follow prerequisites and ordered checklist |
 
 | 2026-09-08 | F08 implementation complete: catalog-based case/slash resolution, replace navigation, scoped HTTP redirects and deployment smoke | Local release checks and 120 resolver/middleware/HTTP/browser cases passed; no specs added | Frontend/release engineer: deploy and verify Vercel redirect chains; SEO owner: selected canonicals follow-up |
+
+
+### Middleware build compatibility follow-up — 8 September 2026
+
+The user supplied Vercel build diagnostics TS2835/TS2339/TS2732 plus an Edge runtime deprecation warning. Root `tsconfig.json` contained only project references; the bundler/JSON settings existed only in child configs. Vercel's compiler reads root options and defaults to NodeNext when `module` is missing ([compiler source](https://github.com/vercel/vercel/blob/main/packages/node/src/typescript.ts)).
+
+Added explicit ESNext/bundler and JSON module options to the root config. Added `tsconfig.middleware.json` extending those root settings and included it in `npm run typecheck`, so release checks exercise the middleware's configuration. Set middleware `config.runtime` to `nodejs` following [Vercel's API](https://vercel.com/docs/routing-middleware/api#specify-runtime); matching, canonical resolution, query preservation and exclusions remain unchanged.
+
+Local validation: reproduced six fallback import/type diagnostics, then zero with root compiler options; all 27 direct GET/HEAD/POST, public/private, invalid-catalog and unavailable-catalog cases passed. Full `check:release` passed with existing lint/chunk warnings. No spec files, deployment or production verification. Next gate: redeploy, confirm middleware diagnostics/deprecation warning are absent, then run both production smoke tools. Implementation count remains unchanged.
