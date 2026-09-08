@@ -1,7 +1,8 @@
+import { resolveApiServiceCategory } from '../src/lib/serviceCategory';
 import { parsePublicSnapshot } from '../src/lib/publicSnapshot';
 import { serviceCatalogFromLinks } from '../src/lib/seo-core';
 import { removeRetiredCatalogPages } from './lib/catalog-output';
-import { PUBLIC_HTML_ROUTES, PUBLIC_PACKAGE_HTML_ROUTES, SERVICE_GALLERY_LIMIT, type PublicHtmlPath } from '../src/lib/publicHtmlRoutes';
+import { PUBLIC_HTML_ROUTES, publicHtmlKind, SERVICE_GALLERY_LIMIT } from '../src/lib/publicHtmlRoutes';
 import { serializeInlineJson, shouldRenderPublicPage } from './lib/public-html';
 import { createServer } from 'vite';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -45,7 +46,7 @@ const ogImage = `${siteUrl}/og-share.jpg`;
 const { seoPages, servicePages, packagePages } =
   loadStaticSeoData();
 const overlays = await loadCmsOverlays();
-const { publicCatalog, packagesByPath, servicesByPath, servicesLoaded, lastmodByPath, apiBase, siteContent, packageCategories } = overlays;
+const { publicCatalog, packagesByPath, servicesByPath, lastmodByPath, apiBase, siteContent, packageCategories } = overlays;
 if (String(process.env.SEO_REQUIRE_CMS ?? '').toLowerCase() === 'true') assertCmsReadiness(overlays);
 
 let buildHeroSlides: unknown[] | undefined;
@@ -535,8 +536,8 @@ const privateShell = baseTemplate
 writeFileSync(join(distDir, 'app-shell.html'), privateShell);
 
 const rendered = new Map<string, { html: string; snapshot: unknown }>();
-const renderPaths = (Object.keys(PUBLIC_HTML_ROUTES) as PublicHtmlPath[])
-  .filter(path => pages[path] && shouldRenderPublicPage(path, servicesLoaded, servicesByPath, packagesByPath));
+const renderPaths = publicCatalog.paths
+  .filter(path => pages[path] && shouldRenderPublicPage(path, publicCatalog));
 if (renderPaths.length) {
   const loadOptional = async (path: string) => {
     if (!apiBase) return undefined;
@@ -547,8 +548,8 @@ if (renderPaths.length) {
   try {
     const { renderPublicPage } = await server.ssrLoadModule('/src/entry-public-server.tsx');
     for (const path of renderPaths) {
-      const packagePage = Object.hasOwn(PUBLIC_PACKAGE_HTML_ROUTES, path);
-      const category = packagePage ? publicCatalog.packageLinks.find(link => link.path === path)?.categorySlug : PUBLIC_HTML_ROUTES[path];
+      const packagePage = publicHtmlKind(path, publicCatalog) === 'package';
+      const category = packagePage ? publicCatalog.packageLinks.find(link => link.path === path)?.categorySlug : resolveApiServiceCategory(path, publicCatalog.serviceLinks.find(link => link.path === path)?.label);
       const [cover, photos, hero, featured, gallery, offers] = await Promise.all([
         category ? loadOptional(`/categories/${category}`) : undefined,
         category ? loadOptional(`/photos?category=${category}&limit=${SERVICE_GALLERY_LIMIT}`) : undefined,

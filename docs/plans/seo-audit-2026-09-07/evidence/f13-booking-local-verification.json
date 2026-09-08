@@ -1,0 +1,530 @@
+{
+  "date": "2026-09-08",
+  "scope": "Uncommitted local development build with mocked CMS. Controlled delayed-chunk regression experiment; not Lighthouse, deployed CWV or field data.",
+  "setup": {
+    "url": "http://127.0.0.1:4193/booking",
+    "viewports": [
+      {
+        "width": 390,
+        "height": 900
+      },
+      {
+        "width": 1440,
+        "height": 900
+      }
+    ],
+    "reducedMotion": "reduce",
+    "lazyModuleDelayMs": 2000,
+    "modules": [
+      "/src/components/sections/BookingCTA.tsx",
+      "/src/components/sections/BookingFaq.tsx"
+    ],
+    "fixture": "tests/public-html/fixtures.json",
+    "network": "External requests blocked; local assets only",
+    "measurement": "PerformanceObserver layout-shift entries excluding hadRecentInput; DOM footer position before and after section insertion"
+  },
+  "before": [
+    {
+      "width": 390,
+      "initialFooterTop": 334.109375,
+      "shifts": [
+        {
+          "value": 0.000652712883823995,
+          "sources": [
+            {
+              "node": "A",
+              "previous": {
+                "x": 23,
+                "y": 12,
+                "width": 263,
+                "height": 56,
+                "top": 12,
+                "right": 286,
+                "bottom": 68,
+                "left": 23
+              },
+              "current": {
+                "x": 23,
+                "y": 17,
+                "width": 235.640625,
+                "height": 46,
+                "top": 17,
+                "right": 258.640625,
+                "bottom": 63,
+                "left": 23
+              }
+            }
+          ]
+        },
+        {
+          "value": 0.001870769230769231,
+          "sources": [
+            {
+              "node": "LI",
+              "previous": {
+                "x": 24,
+                "y": 825.109375,
+                "width": 342,
+                "height": 24,
+                "top": 825.109375,
+                "right": 366,
+                "bottom": 849.109375,
+                "left": 24
+              },
+              "current": {
+                "x": 24,
+                "y": 789.109375,
+                "width": 342,
+                "height": 24,
+                "top": 789.109375,
+                "right": 366,
+                "bottom": 813.109375,
+                "left": 24
+              }
+            }
+          ]
+        },
+        {
+          "value": 0.6288888888888889,
+          "sources": [
+            {
+              "node": "FOOTER",
+              "previous": {
+                "x": 0,
+                "y": 334.109375,
+                "width": 390,
+                "height": 565.890625,
+                "top": 334.109375,
+                "right": 390,
+                "bottom": 900,
+                "left": 0
+              },
+              "current": {
+                "x": 0,
+                "y": 0,
+                "width": 0,
+                "height": 0,
+                "top": 0,
+                "right": 0,
+                "bottom": 0,
+                "left": 0
+              }
+            }
+          ]
+        },
+        {
+          "value": 0.003036020299145299,
+          "sources": [
+            {
+              "previous": {
+                "x": 0.578125,
+                "y": 669.109375,
+                "width": 385,
+                "height": 72,
+                "top": 669.109375,
+                "right": 385.578125,
+                "bottom": 741.109375,
+                "left": 0.578125
+              },
+              "current": {
+                "x": 23.65625,
+                "y": 667.109375,
+                "width": 342.34375,
+                "height": 72,
+                "top": 667.109375,
+                "right": 366,
+                "bottom": 739.109375,
+                "left": 23.65625
+              }
+            }
+          ]
+        }
+      ],
+      "footerTop": 2120.265625,
+      "bookingHeight": 900,
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "initialFooterTop": 321.40625,
+      "shifts": [
+        {
+          "value": 0.00011539633166152263,
+          "sources": [
+            {
+              "node": "BODY",
+              "previous": {
+                "x": 11,
+                "y": 11,
+                "width": 1418,
+                "height": 12,
+                "top": 11,
+                "right": 1429,
+                "bottom": 23,
+                "left": 11
+              },
+              "current": {
+                "x": 3.53125,
+                "y": 3.53125,
+                "width": 1432.9375,
+                "height": 4,
+                "top": 3.53125,
+                "right": 1436.46875,
+                "bottom": 7.53125,
+                "left": 3.53125
+              }
+            }
+          ]
+        },
+        {
+          "value": 0.031138271604938275,
+          "sources": [
+            {
+              "node": "DIV",
+              "previous": {
+                "x": 0,
+                "y": 0,
+                "width": 0,
+                "height": 0,
+                "top": 0,
+                "right": 0,
+                "bottom": 0,
+                "left": 0
+              },
+              "current": {
+                "x": 80,
+                "y": 842.40625,
+                "width": 1280,
+                "height": 57.59375,
+                "top": 842.40625,
+                "right": 1360,
+                "bottom": 900,
+                "left": 80
+              }
+            },
+            {
+              "previous": {
+                "x": 80,
+                "y": 139,
+                "width": 768,
+                "height": 88,
+                "top": 139,
+                "right": 848,
+                "bottom": 227,
+                "left": 80
+              },
+              "current": {
+                "x": 80,
+                "y": 136,
+                "width": 768,
+                "height": 88,
+                "top": 136,
+                "right": 848,
+                "bottom": 224,
+                "left": 80
+              }
+            },
+            {
+              "node": "DIV",
+              "previous": {
+                "x": 0,
+                "y": 0,
+                "width": 0,
+                "height": 0,
+                "top": 0,
+                "right": 0,
+                "bottom": 0,
+                "left": 0
+              },
+              "current": {
+                "x": 80,
+                "y": 614.40625,
+                "width": 217.59375,
+                "height": 164,
+                "top": 614.40625,
+                "right": 297.59375,
+                "bottom": 778.40625,
+                "left": 80
+              }
+            },
+            {
+              "node": "DIV",
+              "previous": {
+                "x": 493.9375,
+                "y": 30,
+                "width": 556.234375,
+                "height": 20,
+                "top": 30,
+                "right": 1050.171875,
+                "bottom": 50,
+                "left": 493.9375
+              },
+              "current": {
+                "x": 475.765625,
+                "y": 30,
+                "width": 561.5625,
+                "height": 20,
+                "top": 30,
+                "right": 1037.328125,
+                "bottom": 50,
+                "left": 475.765625
+              }
+            },
+            {
+              "node": "LI",
+              "previous": {
+                "x": 876.796875,
+                "y": 470.40625,
+                "width": 217.59375,
+                "height": 24,
+                "top": 470.40625,
+                "right": 1094.390625,
+                "bottom": 494.40625,
+                "left": 876.796875
+              },
+              "current": {
+                "x": 876.796875,
+                "y": 434.40625,
+                "width": 217.59375,
+                "height": 24,
+                "top": 434.40625,
+                "right": 1094.390625,
+                "bottom": 458.40625,
+                "left": 876.796875
+              }
+            }
+          ]
+        },
+        {
+          "value": 0.6433333333333333,
+          "sources": [
+            {
+              "node": "FOOTER",
+              "previous": {
+                "x": 0,
+                "y": 321.40625,
+                "width": 1440,
+                "height": 578.59375,
+                "top": 321.40625,
+                "right": 1440,
+                "bottom": 900,
+                "left": 0
+              },
+              "current": {
+                "x": 0,
+                "y": 0,
+                "width": 0,
+                "height": 0,
+                "top": 0,
+                "right": 0,
+                "bottom": 0,
+                "left": 0
+              }
+            }
+          ]
+        }
+      ],
+      "footerTop": 1977.109375,
+      "bookingHeight": 900,
+      "overflow": false
+    }
+  ],
+  "after": [
+    {
+      "width": 390,
+      "initialFooterTop": 1234.109375,
+      "shifts": [
+        {
+          "value": 0.00020930278569167459,
+          "sources": [
+            {
+              "node": "BODY",
+              "previous": {
+                "x": 11,
+                "y": 11,
+                "width": 368,
+                "height": 12,
+                "top": 11,
+                "right": 379,
+                "bottom": 23,
+                "left": 11
+              },
+              "current": {
+                "x": 1.90625,
+                "y": 1.90625,
+                "width": 386.1875,
+                "height": 4,
+                "top": 1.90625,
+                "right": 388.09375,
+                "bottom": 5.90625,
+                "left": 1.90625
+              }
+            }
+          ]
+        },
+        {
+          "value": 0.000652712883823995,
+          "sources": [
+            {
+              "node": "A",
+              "previous": {
+                "x": 23,
+                "y": 12,
+                "width": 263,
+                "height": 56,
+                "top": 12,
+                "right": 286,
+                "bottom": 68,
+                "left": 23
+              },
+              "current": {
+                "x": 23,
+                "y": 17,
+                "width": 235.640625,
+                "height": 46,
+                "top": 17,
+                "right": 258.640625,
+                "bottom": 63,
+                "left": 23
+              }
+            }
+          ]
+        },
+        {
+          "value": 0.003036020299145299,
+          "sources": [
+            {
+              "previous": {
+                "x": 0.578125,
+                "y": 669.109375,
+                "width": 385,
+                "height": 72,
+                "top": 669.109375,
+                "right": 385.578125,
+                "bottom": 741.109375,
+                "left": 0.578125
+              },
+              "current": {
+                "x": 23.65625,
+                "y": 667.109375,
+                "width": 342.34375,
+                "height": 72,
+                "top": 667.109375,
+                "right": 366,
+                "bottom": 739.109375,
+                "left": 23.65625
+              }
+            }
+          ]
+        }
+      ],
+      "footerTop": 2120.265625,
+      "bookingHeight": 900,
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "initialFooterTop": 1221.40625,
+      "shifts": [
+        {
+          "value": 0.000792293126821845,
+          "sources": [
+            {
+              "previous": {
+                "x": 80,
+                "y": 139,
+                "width": 768,
+                "height": 88,
+                "top": 139,
+                "right": 848,
+                "bottom": 227,
+                "left": 80
+              },
+              "current": {
+                "x": 80,
+                "y": 136,
+                "width": 768,
+                "height": 88,
+                "top": 136,
+                "right": 848,
+                "bottom": 224,
+                "left": 80
+              }
+            },
+            {
+              "node": "DIV",
+              "previous": {
+                "x": 493.9375,
+                "y": 30,
+                "width": 556.234375,
+                "height": 20,
+                "top": 30,
+                "right": 1050.171875,
+                "bottom": 50,
+                "left": 493.9375
+              },
+              "current": {
+                "x": 475.765625,
+                "y": 30,
+                "width": 561.5625,
+                "height": 20,
+                "top": 30,
+                "right": 1037.328125,
+                "bottom": 50,
+                "left": 475.765625
+              }
+            }
+          ]
+        }
+      ],
+      "footerTop": 1977.109375,
+      "bookingHeight": 900,
+      "overflow": false
+    }
+  ],
+  "interactions": [
+    {
+      "width": 390,
+      "route": "/booking",
+      "imagePriority": true,
+      "modalAndEscape": true,
+      "queryPrefill": true,
+      "faq": true,
+      "writes": 0
+    },
+    {
+      "width": 390,
+      "route": "/gallery",
+      "imagePriority": true,
+      "modalAndEscape": true,
+      "queryPrefill": false,
+      "faq": false,
+      "writes": 0
+    },
+    {
+      "width": 1440,
+      "route": "/booking",
+      "imagePriority": true,
+      "modalAndEscape": true,
+      "queryPrefill": true,
+      "faq": true,
+      "writes": 0
+    },
+    {
+      "width": 1440,
+      "route": "/gallery",
+      "imagePriority": true,
+      "modalAndEscape": true,
+      "queryPrefill": false,
+      "faq": false,
+      "writes": 0
+    }
+  ],
+  "validation": {
+    "focusedEslint": "passed",
+    "externalWrites": 0,
+    "productionAcceptance": "pending",
+    "productionLcpImprovement": "not measured",
+    "notes": "Small font/other shifts remain. Reported footer event is a single layout-shift entry, not a field CLS percentile."
+  }
+}

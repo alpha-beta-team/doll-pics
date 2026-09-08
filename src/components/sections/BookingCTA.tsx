@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useInView } from '../../hooks/useScroll';
 import { ArrowRight, MessageCircle } from 'lucide-react';
 import {
@@ -42,6 +42,7 @@ export function BookingCTA() {
   const { siteContent } = useSiteData();
   const whatsappUrl = enquiryWhatsAppUrl(siteContent.whatsapp);
   const [searchParams] = useSearchParams();
+  const { pathname } = useLocation();
   const navigate = useNavigate();
   const queryConsumed = useRef(false);
   const reducedMotion = useReducedMotion();
@@ -97,6 +98,8 @@ export function BookingCTA() {
   const previousImage = previousBackground === null
     ? null
     : backgrounds[previousBackground] ?? null;
+  // This image is visible on the standalone page; other CTA placements stay lazy.
+  const prioritizeBackground = pathname === '/booking' && activeBackground === 0;
 
   useEffect(() => {
     if (queryConsumed.current) return;
@@ -177,7 +180,8 @@ export function BookingCTA() {
             sizes="100vw"
             width={1600}
             height={900}
-            loading="lazy"
+            loading={prioritizeBackground ? 'eager' : 'lazy'}
+            fetchPriority={prioritizeBackground ? 'high' : undefined}
             className="animate-fade-in absolute inset-0 h-full w-full object-cover"
           />
         ) : null}

@@ -1,4 +1,4 @@
-import { PUBLIC_PACKAGE_HTML_ROUTES } from './lib/publicHtmlRoutes';
+import { publicHtmlKind } from './lib/publicHtmlRoutes';
 import { readPublicSnapshot } from './lib/publicSnapshot';
 import { captureAttribution } from './lib/attribution';
 import { StrictMode } from 'react';
@@ -43,7 +43,7 @@ async function startApp() {
       ? import('./pages/Site').then(module => module.Site)
       : snapshot.path === '/services' ? import('./pages/ServicesHub').then(module => module.ServicesHub)
       : snapshot.path === '/packages' ? import('./pages/Packages').then(module => module.Packages)
-      : Object.prototype.hasOwnProperty.call(PUBLIC_PACKAGE_HTML_ROUTES, snapshot.path) ? import('./pages/PackageCategoryPage').then(module => module.PackageCategoryPage)
+      : publicHtmlKind(snapshot.path, snapshot.data.publicCatalog) === 'package' ? import('./pages/PackageCategoryPage').then(module => module.PackageCategoryPage)
       : import('./pages/ServicePage').then(module => module.ServicePage);
     void pageModule.then(PublicPage => {
       hydrateRoot(rootElement, <StrictMode><App snapshot={snapshot} PilotPage={PublicPage} /></StrictMode>);

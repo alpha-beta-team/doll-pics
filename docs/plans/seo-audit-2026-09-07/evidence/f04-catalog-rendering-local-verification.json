@@ -1,0 +1,173 @@
+{
+  "date": "2026-09-08",
+  "baseCommit": "69c7a5eefb7cfceb9ed054ceec9cf8a9ac3efa10",
+  "scope": "Local uncommitted implementation with synthetic CMS fixtures; no CMS writes or deployment",
+  "rendering": "Catalog-derived services and package categories; fixed home/hubs retained, remaining core families unchanged",
+  "customRoutes": [
+    "/sessions/brand-portrait",
+    "/plans/brand-portrait"
+  ],
+  "checks": {
+    "release": {
+      "passed": true,
+      "existingLintWarnings": 8,
+      "bundleWarnings": true,
+      "includesBookingChanges": true
+    },
+    "strictHtmlSmoke": true,
+    "customPackageBrowser": [
+      {
+        "category": "brand-portrait",
+        "javaScriptEnabled": false,
+        "width": 390,
+        "theme": "light",
+        "offers": 9,
+        "passed": true
+      },
+      {
+        "category": "brand-portrait",
+        "javaScriptEnabled": false,
+        "width": 390,
+        "theme": "dark",
+        "offers": 9,
+        "passed": true
+      },
+      {
+        "category": "brand-portrait",
+        "javaScriptEnabled": false,
+        "width": 1440,
+        "theme": "light",
+        "offers": 9,
+        "passed": true
+      },
+      {
+        "category": "brand-portrait",
+        "javaScriptEnabled": false,
+        "width": 1440,
+        "theme": "dark",
+        "offers": 9,
+        "passed": true
+      },
+      {
+        "category": "brand-portrait",
+        "javaScriptEnabled": true,
+        "width": 390,
+        "theme": "light",
+        "offers": 9,
+        "passed": true
+      },
+      {
+        "category": "brand-portrait",
+        "javaScriptEnabled": true,
+        "width": 390,
+        "theme": "dark",
+        "offers": 9,
+        "passed": true
+      },
+      {
+        "category": "brand-portrait",
+        "javaScriptEnabled": true,
+        "width": 1440,
+        "theme": "light",
+        "offers": 9,
+        "passed": true
+      },
+      {
+        "category": "brand-portrait",
+        "javaScriptEnabled": true,
+        "width": 1440,
+        "theme": "dark",
+        "offers": 9,
+        "passed": true
+      }
+    ],
+    "customServiceBrowser": [
+      {
+        "javaScriptEnabled": false,
+        "width": 390,
+        "theme": "light",
+        "passed": true
+      },
+      {
+        "javaScriptEnabled": false,
+        "width": 390,
+        "theme": "dark",
+        "passed": true
+      },
+      {
+        "javaScriptEnabled": false,
+        "width": 1440,
+        "theme": "light",
+        "passed": true
+      },
+      {
+        "javaScriptEnabled": false,
+        "width": 1440,
+        "theme": "dark",
+        "passed": true
+      },
+      {
+        "javaScriptEnabled": true,
+        "width": 390,
+        "theme": "light",
+        "passed": true
+      },
+      {
+        "javaScriptEnabled": true,
+        "width": 390,
+        "theme": "dark",
+        "passed": true
+      },
+      {
+        "javaScriptEnabled": true,
+        "width": 1440,
+        "theme": "light",
+        "passed": true
+      },
+      {
+        "javaScriptEnabled": true,
+        "width": 1440,
+        "theme": "dark",
+        "passed": true
+      }
+    ],
+    "negativeSnapshots": {
+      "passed": true,
+      "cases": [
+        "cross-route",
+        "private",
+        "unsupported version",
+        "unpublished source",
+        "missing source record",
+        "conflicting sources",
+        "forged category",
+        "wrong media path",
+        "unexpected loaded resource"
+      ],
+      "missingSnapshotSmokeRejected": true
+    },
+    "rebuildLifecycle": [
+      {
+        "phase": "edit",
+        "passed": true,
+        "strictHtmlSmoke": true
+      },
+      {
+        "phase": "unpublish-delete",
+        "passed": true,
+        "strictHtmlSmoke": true
+      },
+      {
+        "phase": "republish",
+        "passed": true,
+        "strictHtmlSmoke": true
+      }
+    ]
+  },
+  "limitations": [
+    "Fixture media and API data; no real CMS content acceptance",
+    "No-JavaScript uses build dark theme; stored theme restoration verified with JavaScript",
+    "CMS publication requires rebuild/redeploy; deploy-hook delivery not verified",
+    "Production smoke, custom CMS route lifecycle, manual content and media checks pending for this increment"
+  ]
+}

@@ -5,7 +5,7 @@
 **Effort:** Medium (1–3 days after baseline)  
 **Status:** In progress\
 **Responsible role:** Frontend engineer  
-**Assigned owner:** Frontend engineer (measurement increment)\
+**Assigned owner:** Frontend engineer (measurement and Booking remediation)\
 **Chunk:** 3 — Rendering, media and metadata  
 **Baseline:** Conversation audit, 7 September 2026, repository revision `ff8e0ad`
 
@@ -94,8 +94,8 @@ Promote through the existing release workflow only when this item's applicable g
 
 | Stage | State | Evidence |
 |---|---|---|
-| Remediation implementation | In progress | Production lab baseline and diagnosis recorded; no application optimization in this increment |
-| Local remediation validation | Pending | No application change to validate; before/after and interaction profiling remain pending |
+| Remediation implementation | In progress | Production baseline recorded; focused Booking loading-space and first-background priority changes implemented locally |
+| Local remediation validation | Focused checks passed | Controlled delayed-chunk before/after at 390/1440 px; four Booking/Gallery image-priority and enquiry cases; focused ESLint passed. Broader profiling remains pending |
 | Preview/production acceptance | Baseline recorded; remediation pending | Deployed commit `85cbd29c60e3b92030b542a827c41ec96a38d309`; measurement is not acceptance of a future optimization |
 | External checks | Pending | PSI API returned HTTP 429; CrUX URL/origin and Search Console field data remain unverified |
 
@@ -119,3 +119,22 @@ Deployed gzip, cache headers, actual public script requests, inline CSS coverage
 | Date | Change | Evidence | Remaining blockers / next action |
 |---|---|---|---|
 | 2026-09-08 | Completed first production measurement and diagnosis increment | 3 mobile Lighthouse samples × 5 page families, deployed manifest/entry verification and response headers | Frontend engineer: trace booking shift and test one scoped improvement, then repeat measurements; site owner/SEO operator: obtain field reports when available |
+
+
+## Booking remediation increment — 8 September 2026
+
+[Controlled local before/after and interaction evidence](./evidence/f13-booking-local-verification.json).
+
+A local browser experiment delayed both Booking lazy modules by 2 seconds and recorded `PerformanceObserver` layout-shift sources. Before the change, the `Suspense` boundary had a null fallback: the footer started at approximately 334 px on mobile and 321 px on desktop, then left the viewport when the 900 px CTA and FAQ arrived. The footer's individual shift contribution was 0.629 at 390×900 and 0.643 at 1440×900. This reproduces the footer source identified in the production baseline.
+
+`Site.tsx` now supplies a Booking-only `min-h-screen` fallback matching the CTA's existing minimum height. Other section fallbacks remain unchanged. In the same delayed-module experiment, the footer started below the viewport and contributed no layout-shift entry at either width. Smaller unrelated font/other shifts remain. These are controlled local event measurements, not production CLS or a Lighthouse score comparison.
+
+`BookingCTA.tsx` now marks the first active background `loading="eager"` and `fetchpriority="high"` only on `/booking`. The shared Gallery CTA remains lazy, as do subsequent backgrounds. Responsive sources, dimensions, image quality, rotation, copy and enquiry logic are preserved. The image still depends on the CMS response; this change does not establish an LCP improvement or eliminate that discovery dependency.
+
+Validation completed:
+
+- Local Chromium: before/after delayed lazy chunks at 390×900 and 1440×900, reduced motion, mocked CMS and blocked external requests; no horizontal overflow.
+- Four Booking/Gallery viewport cases: expected first-image loading/priority, decorative alt and dimensions, enquiry opening and Escape closing. Booking query package prefill and FAQ expansion passed at both widths. No submissions or external writes.
+- `npx eslint src/pages/Site.tsx src/components/sections/BookingCTA.tsx` passed. The parent's combined `check:release` also passed with these changes included (eight existing lint warnings and existing chunk warnings).
+
+Reproduce the focused diagnosis by running Vite locally with mocked public API routes, intercepting the two Booking module requests for 2 seconds, recording `layout-shift` entries excluding `hadRecentInput`, and comparing the footer position before `#booking` mounts and after it becomes visible. The JSON retains the exact rectangles and entries. Production acceptance still requires three comparable Lighthouse samples against the deployed change; compare Booking LCP/CLS and actual background request discovery with the recorded baseline. Also check normal-motion background rotation, real images and enquiry behavior. Field CWV, broader interaction profiling and the remaining F13 experiments are still pending. F13 remains **In progress**.

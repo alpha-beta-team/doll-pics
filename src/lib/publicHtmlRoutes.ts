@@ -1,4 +1,7 @@
-/** Explicit rollout scope shared by build-time rendering and browser media loading. */
+import type { PublicRouteCatalog } from './publicCatalog';
+import { normalizePublicLandingPath } from './publicRoutePath';
+
+/** Historical routes retained for retired-URL smoke probes and media aliases, not rendering eligibility. */
 export const PUBLIC_SERVICE_HTML_ROUTES = {
   '/newborn-baby-photography-erode': 'newborn',
   '/wedding-photography-erode': 'wedding',
@@ -16,8 +19,15 @@ export const PUBLIC_PACKAGE_HTML_ROUTES = {
   '/toddler-baby-shoot-packages-erode': 'toddler-baby-shoot',
 } as const;
 export const PUBLIC_HTML_ROUTES = { '/': null, '/services': null, '/packages': null, ...PUBLIC_SERVICE_HTML_ROUTES, ...PUBLIC_PACKAGE_HTML_ROUTES } as const;
-export type PublicHtmlPath = keyof typeof PUBLIC_HTML_ROUTES;
+export type PublicHtmlPath = string;
 export const SERVICE_GALLERY_LIMIT = 30;
-export function isPublicHtmlPath(path: string): path is PublicHtmlPath {
-  return Object.prototype.hasOwnProperty.call(PUBLIC_HTML_ROUTES, path);
+export function publicHtmlKind(path: string, catalog: PublicRouteCatalog): 'home' | 'services' | 'packages' | 'service' | 'package' | undefined {
+  if (path === '/') return 'home';
+  if (path === '/services') return 'services';
+  if (path === '/packages') return 'packages';
+  if (normalizePublicLandingPath(path) !== path || !catalog.paths.includes(path)) return;
+  const service = catalog.serviceLinks.filter(link => link.path === path && link.isPublished);
+  const packages = catalog.packageLinks.filter(link => link.path === path && link.isPublished);
+  if (service.length + packages.length !== 1) return;
+  return service.length ? 'service' : 'package';
 }

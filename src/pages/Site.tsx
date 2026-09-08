@@ -58,7 +58,10 @@ function SectionOnlyView({
         seo.body ? (
           <SectionPageIntro heading={seo.heading} body={seo.body} />
         ) : null}
-        <Suspense fallback={null}>
+        <Suspense
+          // Match the booking CTA's minimum height while its lazy chunks arrive.
+          fallback={pathname === '/booking' ? <div className="min-h-screen" aria-hidden="true" /> : null}
+        >
           <Section />
           {pathname === '/booking' ? <BookingFaq /> : null}
         </Suspense>

@@ -1,5 +1,6 @@
+import { parseBuildPublicCatalog } from './publicCatalog';
 import type { SiteData, CmsResource } from '../contexts/SiteDataContext';
-import { isPublicHtmlPath, PUBLIC_PACKAGE_HTML_ROUTES, type PublicHtmlPath } from './publicHtmlRoutes';
+import { publicHtmlKind, type PublicHtmlPath } from './publicHtmlRoutes';
 
 export interface PublicSnapshot {
   version: 1;
@@ -19,11 +20,9 @@ const image = (value: unknown) => record(value) && strings(value, ['src', 'alt']
 /** Reject malformed or cross-route HTML before it can seed a public provider. */
 export function parsePublicSnapshot(text: string, pathname: string): PublicSnapshot | undefined {
   const path = pathname.replace(/\/$/, '') || '/';
-  if (!isPublicHtmlPath(path)) return;
   try {
     const value: unknown = JSON.parse(text);
     if (!record(value) || value.version !== 1 || value.path !== path || !record(value.data)) return;
-    const packagePage = Object.prototype.hasOwnProperty.call(PUBLIC_PACKAGE_HTML_ROUTES, path);
     const data = value.data;
     const catalog = data.publicCatalog;
     if (!record(catalog) || !record(catalog.sources)
@@ -36,6 +35,13 @@ export function parsePublicSnapshot(text: string, pathname: string): PublicSnaps
       || !arrayOf(catalog.serviceLinks, link => record(link) && strings(link, ['label', 'path']))
       || !arrayOf(catalog.packageLinks, link => record(link) && strings(link, ['label', 'path', 'categorySlug']))
       || !arrayOf(catalog.paths, path => typeof path === 'string')) return;
+    const verifiedCatalog = parseBuildPublicCatalog(JSON.stringify(catalog));
+    if (!verifiedCatalog || JSON.stringify(verifiedCatalog.paths) !== JSON.stringify(catalog.paths)
+      || JSON.stringify(verifiedCatalog.serviceLinks) !== JSON.stringify(catalog.serviceLinks)
+      || JSON.stringify(verifiedCatalog.packageLinks) !== JSON.stringify(catalog.packageLinks)) return;
+    const kind = publicHtmlKind(path, verifiedCatalog);
+    if (!kind) return;
+    const packagePage = kind === 'package';
     const content = data.siteContent;
     if (!record(content) || !strings(content, ['brandName', 'phone', 'whatsapp', 'contactEmail'])
       || !record(content.socials)

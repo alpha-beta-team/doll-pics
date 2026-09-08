@@ -1,6 +1,6 @@
 import { normalizePackageCategorySlug } from './lib/packageCategory';
 import type { PublicRouteCatalog } from './lib/publicCatalog';
-import { PUBLIC_PACKAGE_HTML_ROUTES, type PublicHtmlPath } from './lib/publicHtmlRoutes';
+import { publicHtmlKind, type PublicHtmlPath } from './lib/publicHtmlRoutes';
 import { StrictMode } from 'react';
 import { renderToString } from 'react-dom/server';
 import { StaticRouter } from 'react-router-dom';
@@ -27,7 +27,9 @@ export async function renderPublicPage(input: {
 }) {
   const { data, loaded } = await createPrerenderSiteData(input.siteContent, input.categories, input.home, input.offers);
   if (input.publicCatalog) data.publicCatalog = input.publicCatalog;
-  const packagePage = Object.prototype.hasOwnProperty.call(PUBLIC_PACKAGE_HTML_ROUTES, input.path);
+  const kind = publicHtmlKind(input.path, data.publicCatalog);
+  if (!kind) throw new Error(`Unpublished or unsupported public HTML route: ${input.path}`);
+  const packagePage = kind === 'package';
   const categorySlug = packagePage ? data.packageNavLinks.find(link => link.path === input.path)?.categorySlug : undefined;
   const photos = packagePage ? input.photos?.filter(photo => {
     const slugs = (photo.categoryIds ?? []).flatMap(category => typeof category === 'object' && category?.slug ? [category.slug] : []);

@@ -1,6 +1,7 @@
+import { resolveApiServiceCategory } from '../lib/serviceCategory';
 import { ServicePreviewImage } from '../components/ServicePreviewImage';
 import { servicePackageLink } from '../lib/serviceDiscovery';
-import { PUBLIC_SERVICE_HTML_ROUTES, SERVICE_GALLERY_LIMIT } from '../lib/publicHtmlRoutes';
+import { SERVICE_GALLERY_LIMIT } from '../lib/publicHtmlRoutes';
 import { Link, useLocation } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -66,14 +67,6 @@ const SERVICE_SHOOT_TYPES: Record<string, ShootTypeOption> = {
   '/family-photography-erode': 'Family',
 };
 
-const API_ONLY_SERVICE_CATEGORIES: Record<string, string> = {
-  ...PUBLIC_SERVICE_HTML_ROUTES,
-  '/baby-milestone-photography-erode': 'baby-milestone',
-  '/baby-shower-photography-erode': 'baby-shower',
-  '/cake-smash-photography-erode': 'cake-smash',
-  '/family-photography-erode': 'family',
-};
-
 function normalizeServiceName(value: string) {
   return value
     .trim()
@@ -103,16 +96,6 @@ function resolveShootType(
   });
 
   return match ?? 'Other';
-}
-
-function resolveApiServiceCategory(path: string, serviceLabel?: string): string | undefined {
-  const configured = API_ONLY_SERVICE_CATEGORIES[path];
-  if (configured) return configured;
-
-  const normalizedLabel = normalizeServiceName(serviceLabel ?? '');
-  return normalizedLabel
-    ? normalizedLabel.replace(/\s+/g, '-')
-    : undefined;
 }
 
 function ServicePageContent() {

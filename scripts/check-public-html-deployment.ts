@@ -6,7 +6,7 @@ import { isDeepStrictEqual } from 'node:util';
 import { CORE_PUBLIC_PATHS, normalizePublicLandingPath } from '../src/lib/publicRoutePath';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
-import { PUBLIC_HTML_ROUTES, PUBLIC_PACKAGE_HTML_ROUTES, type PublicHtmlPath } from '../src/lib/publicHtmlRoutes';
+import { PUBLIC_HTML_ROUTES, publicHtmlKind, type PublicHtmlPath } from '../src/lib/publicHtmlRoutes';
 import { parsePublicSnapshot } from '../src/lib/publicSnapshot';
 import { resolveServicePage, resolvePackagePage, type ServiceNavLinkLike } from '../src/lib/seo-core';
 
@@ -34,7 +34,9 @@ export function validatePublicHtml(html: string, path: PublicHtmlPath, publicOri
   const failures: string[] = [];
   const expect = (condition: unknown, message: string) => { if (!condition) failures.push(message); };
   const canonical = canonicalUrl(path, publicOrigin);
-  const packagePage = Object.hasOwn(PUBLIC_PACKAGE_HTML_ROUTES, path);
+  const snapshotElements = document.querySelectorAll('script#public-page-snapshot[type="application/json"]');
+  const snapshot = parsePublicSnapshot(snapshotElements[0]?.textContent ?? '', path);
+  const packagePage = snapshot && publicHtmlKind(path, snapshot.data.publicCatalog) === 'package';
   const home = path === '/';
   const hub = path === '/services' || path === '/packages';
   try {
@@ -52,7 +54,6 @@ export function validatePublicHtml(html: string, path: PublicHtmlPath, publicOri
 
     const snapshots = document.querySelectorAll('script#public-page-snapshot[type="application/json"]');
     expect(snapshots.length === 1, 'expected exactly one public snapshot');
-    const snapshot = parsePublicSnapshot(snapshots[0]?.textContent ?? '', path);
     expect(snapshot, 'invalid or cross-route public snapshot');
 
     const title = text(document.title);
@@ -272,7 +273,7 @@ export async function checkPublicHtmlDeployment({
         const returnedPath = new URL(response.url || new URL(path, baseUrl)).pathname.replace(/\/$/, '') || '/';
         if (returnedPath !== path) failures.push('redirected to a different route');
       }
-      if (Object.hasOwn(PUBLIC_HTML_ROUTES, path) && !retired) {
+      if (published.has(path) && (['/', '/services', '/packages'].includes(path) || !CORE_PUBLIC_PATHS.includes(path))) {
         failures.push(...validatePublicHtml(html, path as PublicHtmlPath, publicOrigin, requireCms));
       } else failures.push(...validateExcludedHtml(html, path === missing || retired));
       return { path, failures };

@@ -3,7 +3,7 @@
 **Audit ID:** F04  
 **Priority:** High  
 **Effort:** Large (1–3 weeks in increments)  
-**Status:** In progress — homepage, hubs and nine standard package categories implemented locally\
+**Status:** In progress — homepage, hubs and catalog-driven service/package rendering implemented locally\
 **Responsible role:** Frontend engineer with content reviewer  
 **Assigned owner:** Frontend implementation; frontend/content reviewer for deployment acceptance\
 **Chunk:** 3 — Rendering, media and metadata  
@@ -45,7 +45,9 @@ Historical context (retain its original records; do not copy old statuses into t
 - [x] Render the homepage first, including meaningful heading, approved media, contact and service discovery links.
 - [x] Render /services and /packages hubs next using the authoritative public catalog.
 - [x] Render package-category pages next, beginning with wedding and newborn, then the remaining intended published package routes — all nine standard categories implemented; deployed/manual acceptance remains pending for the latest seven.
-- [ ] Render the other intended published services and the gallery's initial content; then work/about/stories/contact and legal pages using their existing components.
+- [x] After verifying the current package increment, derive service and package-category rendering eligibility from the authoritative published CMS catalog instead of a manually maintained URL registry. Newly created eligible routes must receive full initial HTML on rebuild/redeploy without route-specific code edits; preserve route-family selection, snapshot validation, public field allowlists and private/reserved-path exclusions.
+- [x] Render all eligible published services using the shared service component and catalog-driven selection — local implementation verified; deployment/manual acceptance pending.
+- [ ] Render the gallery's initial content; then work/about/stories/contact and legal pages using their existing components.
 - [ ] Release each page family separately; disable observer-only hiding in initial HTML and match the first browser render to its snapshot.
 - [ ] Exercise light/dark preference restoration, malformed snapshots, stale assets, independent CMS/media failures and route transitions.
 - [ ] Prove a controlled QA content change reaches generated HTML and hydrated content after rebuild before expanding the next family.
@@ -54,6 +56,8 @@ Historical context (retain its original records; do not copy old statuses into t
 
 - [ ] Each released family has meaningful heading, copy and crawlable links inside #root without JavaScript.
 - [ ] Initial and hydrated content agree with the approved catalog and available CMS content.
+- [ ] A newly published custom service and package category, absent from the code registry, render matching headings, content, links and validated snapshots after rebuild; package offers and photos stay scoped to their category. Both deployed smoke tools discover and verify these routes from the catalog.
+- [ ] Controlled QA publish, edit, unpublish/delete and republish checks prove rebuilt HTML, hydration, navigation and sitemap stay consistent; retired routes return true 404 and unpublished, conflicting or reserved paths never become renderable. Record the rebuild/deploy trigger and retain F06 freshness/provenance gates; CMS edits alone do not rewrite deployed HTML.
 - [ ] Enquiry interactions work with mocked submissions; no hydration mismatches or private snapshot leakage occur.
 - [ ] Each increment has recorded preview and production acceptance before the next family expands.
 
@@ -94,9 +98,9 @@ Promote through the existing release workflow only when this item's applicable g
 
 | Stage | State | Evidence |
 |---|---|---|
-| Remediation implementation | In progress | Homepage, hubs and nine standard package categories added; three service routes retained. Remaining service/public families are pending |
-| Local remediation validation | Implemented families passed | Homepage/hub/pilot evidence below; [all-package evidence](./evidence/f04-all-packages-local-verification.json) records release, HTML smoke and 72 browser cases for nine categories |
-| Preview/production acceptance | Pending | Requires deployed verification |
+| Remediation implementation | In progress | Homepage, hubs and catalog-driven service/package categories implemented. Remaining core public families are pending |
+| Local remediation validation | Implemented families passed | Earlier family evidence below; [catalog-rendering evidence](./evidence/f04-catalog-rendering-local-verification.json) records combined release, custom-route browser checks, strict HTML smoke, snapshot rejection and rebuild lifecycle |
+| Preview/production acceptance | Latest increment pending | User reported both production smoke checks passed for the nine-category expansion; catalog-driven rendering still requires deployment and manual acceptance |
 | External checks | Pending | Apply the requirements above; label non-applicable checks explicitly |
 
 Update this header, this record, the master row, chunk checkbox and totals together. Use `Ready for verification` when implementation and required local checks pass but applicable deployment/manual checks remain. Use `Complete` only after this item's acceptance criteria pass; record non-gating ongoing observations separately. `Blocked` requires a blocker, responsible role and concrete next action.
@@ -163,3 +167,18 @@ User authorized F04 expansion and F13 measurements in parallel after reporting b
 - Additional checks covered each publication gate, private exclusion, the toddler plural alias, intentionally unavailable cake-smash photography and an empty baby-shower offer list. No spec files or CMS writes. [Evidence](./evidence/f04-all-packages-local-verification.json).
 
 **Next gate:** deploy the latest seven routes and run both smoke commands against the candidate/production. Manually compare actual prices, inclusions and category photos and check no-JavaScript, themes and navigation. Then expand the remaining published services and subsequent public-page families. F04 remains In progress; this change is local and uncommitted.
+
+### Planned increment — catalog-driven service and package rendering (8 September 2026)
+
+Originally added as pending at the user's request; implemented locally in Increment 5 below: make newly published CMS services and package categories eligible for full initial HTML without adding each URL to code. Follow the current package deployment gate, coordinate publication rules with F02 and rebuild freshness with F06, and extend hydration and smoke validators alongside the renderer. Validate new custom routes and their publication lifecycle with controlled QA data before production acceptance. This planning addition does not complete F04 or change the master completion count.
+
+### Increment 5 — catalog-driven rendering (8 September 2026)
+
+User reported production HTML smoke and all 98 path checks passed for the previous package expansion, then authorized this work alongside a separate F13 Booking agent.
+
+- Build selection, server component selection, browser hydration and HTML smoke coverage now use the published catalog. New eligible service and package URLs no longer require registry edits. Historical constants remain only as retired-route smoke probes and service media aliases.
+- Snapshot parsing reconstructs the catalog from its normalized sources and rejects inconsistent derived links, conflicts, unsupported/private paths and cross-route media. The service media category resolver is shared between build and browser so existing aliases and new label-derived categories stay consistent.
+- Local checks passed: combined `check:release` (eight existing lint warnings and existing chunk warnings), strict CMS HTML smoke, 16 custom-route browser cases across JS/no-JS, mobile/desktop and light/dark preferences, nine malformed snapshot cases and missing-snapshot smoke rejection.
+- Controlled rebuilds verified authored service edits and package prices, service unpublication plus package deletion (files removed, true HTTP 404, sitemap/navigation removed), and republishing. Strict HTML smoke passed after each stage. No spec files, live CMS writes or deployments. [Evidence](./evidence/f04-catalog-rendering-local-verification.json).
+
+**Next gate:** deploy and run both smoke commands; verify a controlled new service/category and content/media parity through the CMS rebuild workflow. Automatic rendering happens at build time; deploy-hook delivery remains an F06 acceptance check. Then proceed to gallery and subsequent core public families. F04 remains In progress.
