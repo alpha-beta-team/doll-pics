@@ -38,6 +38,7 @@ export function validatePublicHtml(html: string, path: PublicHtmlPath, publicOri
   const snapshot = parsePublicSnapshot(snapshotElements[0]?.textContent ?? '', path);
   const packagePage = snapshot && publicHtmlKind(path, snapshot.data.publicCatalog) === 'package';
   const home = path === '/';
+  const gallery = path === '/gallery';
   const hub = path === '/services' || path === '/packages';
   try {
     const root = document.querySelector('#root');
@@ -47,7 +48,7 @@ export function validatePublicHtml(html: string, path: PublicHtmlPath, publicOri
     root?.querySelectorAll('noscript, script, template').forEach(node => node.remove());
     const heading = text(root?.querySelector('h1')?.textContent);
     expect(heading, 'missing service heading inside #root');
-    expect(text(root?.querySelector(home || hub || packagePage ? 'main p' : '#overview p')?.textContent), 'missing service content inside #root');
+    expect(text(root?.querySelector(home || hub || gallery || packagePage ? 'main p' : '#overview p')?.textContent), 'missing service content inside #root');
     expect(root?.querySelector('a[href^="tel:"]'), 'missing telephone link inside #root');
     expect(root?.querySelector('a[href*="wa.me/"]'), 'missing WhatsApp link inside #root');
     expect(root?.querySelectorAll('a[href^="/"]').length, 'missing internal navigation inside #root');
@@ -77,25 +78,38 @@ export function validatePublicHtml(html: string, path: PublicHtmlPath, publicOri
     const breadcrumbs = schema('BreadcrumbList');
     expect(webpage?.url === canonical && webpage?.['@id'] === `${canonical}#webpage`
       && webpage?.name === title && webpage?.description === description, 'WebPage schema differs from page metadata');
-    if (!home && !hub && !packagePage) expect(service?.url === canonical && service?.['@id'] === `${canonical}#service`
+    if (!home && !hub && !gallery && !packagePage) expect(service?.url === canonical && service?.['@id'] === `${canonical}#service`
       && service?.description === description, 'Service schema differs from page metadata');
     const studioId = `${new URL(publicOrigin).origin}/#studio`;
-    expect(business?.['@id'] === studioId && (home || hub || packagePage || (record(service?.provider)
+    expect(business?.['@id'] === studioId && (home || hub || gallery || packagePage || (record(service?.provider)
       && service.provider['@id'] === studioId)), 'missing or inconsistent business/provider schema');
     const items = breadcrumbs?.itemListElement;
     const last = Array.isArray(items) ? items.at(-1) : undefined;
-    if (!home && !hub && !packagePage) expect(record(last) && last.item === canonical && text(String(last.name ?? '')) === heading,
+    if (!home && !hub && !gallery && !packagePage) expect(record(last) && last.item === canonical && text(String(last.name ?? '')) === heading,
       'breadcrumb does not match rendered service');
 
     if (snapshot) {
       const nav = snapshot.data.siteContent.serviceNavLinks?.find(link => link.path === path);
       if (requireCms) {
-        expect(snapshot.loaded.includes('siteContent') && snapshot.loaded.includes('categories') && (home || hub || (packagePage ? snapshot.data.publicCatalog.packageLinks.some(link => link.path === path) : nav?.isPublished)),
+        expect(snapshot.loaded.includes('siteContent') && snapshot.loaded.includes('categories') && (home || hub || gallery || (packagePage ? snapshot.data.publicCatalog.packageLinks.some(link => link.path === path) : nav?.isPublished)),
           'release requires both loaded CMS sources and a published target service');
         for (const source of Object.values(snapshot.data.publicCatalog.sources)) {
           expect(source.status === 'cms' && !source.reason && !source.rejectedRecords,
             'release snapshot contains fallback or rejected CMS records');
         }
+      }
+      if (gallery) {
+        const portfolio = snapshot.data.galleryPortfolio;
+        const images = [...document.querySelectorAll('#gallery figure img')];
+        expect(portfolio && images.length === portfolio.photos.length, 'gallery image count differs from snapshot');
+        for (const photo of portfolio?.photos ?? []) {
+          expect(images.some(image => image.getAttribute('src') === photo.sources.src && image.getAttribute('alt') === photo.sources.alt), 'gallery image/source alt differs from snapshot');
+          expect(text(root?.querySelector('#gallery')?.textContent).includes(text(photo.title)), 'gallery caption missing');
+        }
+        if (portfolio && !portfolio.photos.length) expect(text(root?.querySelector('#gallery')?.textContent).includes(portfolio.loaded ? 'There are no published photographs in the gallery yet.' : 'We could not load the gallery right now.'), 'missing gallery empty/unavailable state');
+        if (requireCms) expect(portfolio?.loaded, 'release requires loaded gallery photos');
+        expect(root?.querySelectorAll('h1').length === 1, 'gallery must contain one heading');
+        return failures;
       }
       if (packagePage) {
         const link = snapshot.data.publicCatalog.packageLinks.find(link => link.path === path);
@@ -273,7 +287,7 @@ export async function checkPublicHtmlDeployment({
         const returnedPath = new URL(response.url || new URL(path, baseUrl)).pathname.replace(/\/$/, '') || '/';
         if (returnedPath !== path) failures.push('redirected to a different route');
       }
-      if (published.has(path) && (['/', '/services', '/packages'].includes(path) || !CORE_PUBLIC_PATHS.includes(path))) {
+      if (published.has(path) && (['/', '/gallery', '/services', '/packages'].includes(path) || !CORE_PUBLIC_PATHS.includes(path))) {
         failures.push(...validatePublicHtml(html, path as PublicHtmlPath, publicOrigin, requireCms));
       } else failures.push(...validateExcludedHtml(html, path === missing || retired));
       return { path, failures };

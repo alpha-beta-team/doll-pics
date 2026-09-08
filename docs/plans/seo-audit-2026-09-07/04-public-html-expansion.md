@@ -3,7 +3,7 @@
 **Audit ID:** F04  
 **Priority:** High  
 **Effort:** Large (1–3 weeks in increments)  
-**Status:** In progress — homepage, hubs and catalog-driven service/package rendering implemented locally\
+**Status:** In progress — homepage, hubs, gallery and catalog-driven service/package rendering implemented locally\
 **Responsible role:** Frontend engineer with content reviewer  
 **Assigned owner:** Frontend implementation; frontend/content reviewer for deployment acceptance\
 **Chunk:** 3 — Rendering, media and metadata  
@@ -47,7 +47,8 @@ Historical context (retain its original records; do not copy old statuses into t
 - [x] Render package-category pages next, beginning with wedding and newborn, then the remaining intended published package routes — all nine standard categories implemented; deployed/manual acceptance remains pending for the latest seven.
 - [x] After verifying the current package increment, derive service and package-category rendering eligibility from the authoritative published CMS catalog instead of a manually maintained URL registry. Newly created eligible routes must receive full initial HTML on rebuild/redeploy without route-specific code edits; preserve route-family selection, snapshot validation, public field allowlists and private/reserved-path exclusions.
 - [x] Render all eligible published services using the shared service component and catalog-driven selection — local implementation verified; deployment/manual acceptance pending.
-- [ ] Render the gallery's initial content; then work/about/stories/contact and legal pages using their existing components.
+- [x] Render the gallery's initial content using its existing component — local HTML, hydration, empty/unavailable and edited-content checks passed; deployment/manual acceptance pending.
+- [ ] Render work/about/stories/contact and legal pages using their existing components.
 - [ ] Release each page family separately; disable observer-only hiding in initial HTML and match the first browser render to its snapshot.
 - [ ] Exercise light/dark preference restoration, malformed snapshots, stale assets, independent CMS/media failures and route transitions.
 - [ ] Prove a controlled QA content change reaches generated HTML and hydrated content after rebuild before expanding the next family.
@@ -98,7 +99,7 @@ Promote through the existing release workflow only when this item's applicable g
 
 | Stage | State | Evidence |
 |---|---|---|
-| Remediation implementation | In progress | Homepage, hubs and catalog-driven service/package categories implemented. Remaining core public families are pending |
+| Remediation implementation | In progress | Homepage, hubs, gallery and catalog-driven service/package categories implemented. Remaining core public families are pending |
 | Local remediation validation | Implemented families passed | Earlier family evidence below; [catalog-rendering evidence](./evidence/f04-catalog-rendering-local-verification.json) records combined release, custom-route browser checks, strict HTML smoke, snapshot rejection and rebuild lifecycle |
 | Preview/production acceptance | Latest increment pending | User reported both production smoke checks passed for the nine-category expansion; catalog-driven rendering still requires deployment and manual acceptance |
 | External checks | Pending | Apply the requirements above; label non-applicable checks explicitly |
@@ -182,3 +183,15 @@ User reported production HTML smoke and all 98 path checks passed for the previo
 - Controlled rebuilds verified authored service edits and package prices, service unpublication plus package deletion (files removed, true HTTP 404, sitemap/navigation removed), and republishing. Strict HTML smoke passed after each stage. No spec files, live CMS writes or deployments. [Evidence](./evidence/f04-catalog-rendering-local-verification.json).
 
 **Next gate:** deploy and run both smoke commands; verify a controlled new service/category and content/media parity through the CMS rebuild workflow. Automatic rendering happens at build time; deploy-hook delivery remains an F06 acceptance check. Then proceed to gallery and subsequent core public families. F04 remains In progress.
+
+### Increment 6 — Gallery initial HTML (8 September 2026)
+
+Implemented at the user's explicit request. Earlier catalog-driven rendering and F13 deployment acceptance remain separate pending gates; no production success is inferred from local checks.
+
+- `/gallery` uses an eager GalleryPage wrapper around the existing GalleryPortfolio and Site shell for matching server/browser markup. The build fetches the same public 100-photo endpoint and maps only the portfolio view fields into a route-validated snapshot.
+- Photos, responsive sources, authored labels/captions, dimensions and navigation are present in initial HTML. Rendered Gallery images do not depend on an onLoad opacity change, and their placeholders cannot obscure no-JavaScript content. Existing lightbox, layout and booking CTA behavior are retained.
+- Successful snapshots seed the Gallery state without refetching the 100-photo endpoint on hydration. A successful empty list shows the existing empty message; unavailable/malformed responses show an honest retry state, with browser retry available. Strict CMS builds and smoke checks reject unavailable gallery data, while allowing successful empty collections.
+- Shared smoke validation now checks Gallery image count, source/alt, captions and empty/unavailable states. Snapshot validation rejects malformed dimensions/sources, foreign media and cross-route payloads.
+- Final release check passed with existing warnings; eight populated browser cases cover JS/no-JS, mobile/desktop and both stored themes; six browser cases cover empty, unavailable and edited rebuilds. Eight malformed snapshots were rejected. Strict HTML smoke passed for populated/empty/edited builds, and optional smoke passed for unavailable output. Mobile no-JavaScript screenshot inspected. [Evidence](./evidence/f04-gallery-local-verification.json). No spec files or external writes.
+
+**Next gate:** deploy, run both production smoke commands, and review actual Gallery images, captions/alt text, no-JavaScript visibility, themes, lightbox and enquiry. Then continue Work/About/Stories/Contact/legal families. F04 remains In progress; total stays 10 / 19.

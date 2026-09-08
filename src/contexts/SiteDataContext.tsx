@@ -1,3 +1,4 @@
+import type { PortfolioPhoto } from '../lib/galleryPortfolio';
 import { packageCatalogSource, publicPackageCategories, readBuildPublicCatalog, resolvePublicCatalog, serviceCatalogSource, type PublicRouteCatalog } from '../lib/publicCatalog';
 import { photoLabels } from '../lib/photoLabels';
 import type { ServiceMediaSnapshot } from '../lib/serviceMedia';
@@ -88,6 +89,7 @@ export interface ServiceItem {
 export interface SiteData {
   publicCatalog: PublicRouteCatalog;
   serviceMedia?: ServiceMediaSnapshot;
+  galleryPortfolio?: { photos: PortfolioPhoto[]; loaded: boolean };
   siteContent: PublicSiteContent;
   heroSlides: PublicHeroSlide[];
   storyScenes: PublicStoryScene[];

@@ -1,4 +1,6 @@
-import { photoLabels } from '../../lib/photoLabels';
+import { PORTFOLIO_PHOTO_LIMIT } from '../../lib/publicHtmlRoutes';
+import { normalizePhotos, type PortfolioPhoto } from '../../lib/galleryPortfolio';
+import { useSiteData } from '../../contexts/SiteDataContext';
 import { PublicRequestError } from '../../lib/publicRequest';
 import {
   useCallback,
@@ -12,12 +14,8 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import {
-  getPhotoLightboxUrl,
-  getPhotoSources,
   publicApi,
-  type PhotoSources,
 } from '../../lib/api';
-import type { PublicPhoto } from '../../shared/types';
 import {
   PhotoLightbox,
   type LightboxPhoto,
@@ -25,47 +23,8 @@ import {
 import { ResponsiveImage } from '../ResponsiveImage';
 import { BookingCTA } from '../sections/BookingCTA';
 
-const PHOTO_LIMIT = 100;
 const GRID_SIZES =
   '(max-width: 639px) calc(100vw - 3rem), (max-width: 1023px) 48vw, 72vw';
-
-type PortfolioPhoto = {
-  id: string;
-  title: string;
-  width: number;
-  height: number;
-  location: string;
-  year: string;
-  blurPlaceholder?: string;
-  sources: PhotoSources;
-  lightboxSrc: string;
-};
-
-function photoId(photo: PublicPhoto, index: number): string {
-  return photo.id || photo._id || photo.storageKey || `${photo.title}-${index}`;
-}
-
-function normalizePhotos(photos: PublicPhoto[]): PortfolioPhoto[] {
-  return photos
-    .map<PortfolioPhoto | null>((photo, index) => {
-      const sources = getPhotoSources(photo);
-      const lightboxSrc = getPhotoLightboxUrl(photo);
-      if (!sources || !lightboxSrc) return null;
-
-      return {
-        id: photoId(photo, index),
-        title: photoLabels(photo).title,
-        width: photo.width && photo.width > 0 ? photo.width : 1200,
-        height: photo.height && photo.height > 0 ? photo.height : 800,
-        location: photo.location?.trim() || '',
-        year: photo.year?.trim() || '',
-        blurPlaceholder: photo.blurPlaceholder,
-        sources,
-        lightboxSrc,
-      };
-    })
-    .filter((photo): photo is PortfolioPhoto => photo !== null);
-}
 
 function errorMessage(error: unknown): string {
   if (error instanceof Error && error.name === 'AbortError') return '';
@@ -76,25 +35,28 @@ function errorMessage(error: unknown): string {
 }
 
 export function GalleryPortfolio() {
-  const [photos, setPhotos] = useState<PortfolioPhoto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { galleryPortfolio: seed } = useSiteData();
+  const [photos, setPhotos] = useState<PortfolioPhoto[]>(seed?.photos ?? []);
+  const [loading, setLoading] = useState(!seed);
+  const [error, setError] = useState(seed && !seed.loaded ? 'We could not load the gallery right now. Please try again.' : '');
   const [attempt, setAttempt] = useState(0);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const lightboxTrigger = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
+    if (seed?.loaded && attempt === 0) return;
     const controller = new AbortController();
     setLoading(true);
     setError('');
 
     void publicApi
       .getPhotos(
-        { limit: PHOTO_LIMIT },
+        { limit: PORTFOLIO_PHOTO_LIMIT },
         { signal: controller.signal },
       )
       .then((photoData) => {
         if (controller.signal.aborted) return;
+        if (!Array.isArray(photoData)) throw new Error('We could not load the gallery right now. Please try again.');
         setPhotos(normalizePhotos(photoData));
         setLoading(false);
       })
@@ -107,7 +69,7 @@ export function GalleryPortfolio() {
       });
 
     return () => controller.abort();
-  }, [attempt]);
+  }, [attempt, seed]);
 
   const retry = () => {
     setAttempt((current) => current + 1);
@@ -270,6 +232,7 @@ function GalleryTile({ photo, index, layout, onOpen }: GalleryTileProps) {
         style={{ aspectRatio: `${photo.width} / ${photo.height}` }}
       >
         <div
+          data-gallery-placeholder
           className={`absolute inset-0 bg-ink-800 transition-opacity duration-700 ${
             loaded ? 'opacity-0' : 'opacity-100'
           }`}

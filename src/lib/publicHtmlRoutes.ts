@@ -18,11 +18,13 @@ export const PUBLIC_PACKAGE_HTML_ROUTES = {
   '/baby-shower-packages-erode': 'baby-shower',
   '/toddler-baby-shoot-packages-erode': 'toddler-baby-shoot',
 } as const;
-export const PUBLIC_HTML_ROUTES = { '/': null, '/services': null, '/packages': null, ...PUBLIC_SERVICE_HTML_ROUTES, ...PUBLIC_PACKAGE_HTML_ROUTES } as const;
+export const PUBLIC_HTML_ROUTES = { '/': null, '/gallery': null, '/services': null, '/packages': null, ...PUBLIC_SERVICE_HTML_ROUTES, ...PUBLIC_PACKAGE_HTML_ROUTES } as const;
 export type PublicHtmlPath = string;
 export const SERVICE_GALLERY_LIMIT = 30;
-export function publicHtmlKind(path: string, catalog: PublicRouteCatalog): 'home' | 'services' | 'packages' | 'service' | 'package' | undefined {
+export const PORTFOLIO_PHOTO_LIMIT = 100;
+export function publicHtmlKind(path: string, catalog: PublicRouteCatalog): 'home' | 'gallery' | 'services' | 'packages' | 'service' | 'package' | undefined {
   if (path === '/') return 'home';
+  if (path === '/gallery') return 'gallery';
   if (path === '/services') return 'services';
   if (path === '/packages') return 'packages';
   if (normalizePublicLandingPath(path) !== path || !catalog.paths.includes(path)) return;

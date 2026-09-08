@@ -69,8 +69,18 @@ export function parsePublicSnapshot(text: string, pathname: string): PublicSnaps
       && ['notes', 'slotTimings'].every(key => item[key] === undefined || arrayOf(item[key], entry => typeof entry === 'string'))
       && ['price', 'advanceAmount'].every(key => item[key] === undefined || item[key] === null || (typeof item[key] === 'number' && Number.isFinite(item[key])))
       && ['categorySlug', 'categoryName', 'shootType', 'durationLabel', 'themeGuideUrl', 'locationType'].every(key => item[key] === undefined || typeof item[key] === 'string'))) return;
+    const portfolio = data.galleryPortfolio;
+    if (path === '/gallery') {
+      if (!record(portfolio) || typeof portfolio.loaded !== 'boolean'
+        || !arrayOf(portfolio.photos, photo => record(photo) && strings(photo, ['id', 'title', 'location', 'year', 'lightboxSrc'])
+          && ['width', 'height'].every(key => typeof photo[key] === 'number' && Number.isFinite(photo[key]) && Number(photo[key]) > 0)
+          && record(photo.sources) && strings(photo.sources, ['src', 'alt'])
+          && ['avifSrcSet', 'webpSrcSet'].every(key => photo.sources && record(photo.sources) && (photo.sources[key] === undefined || typeof photo.sources[key] === 'string'))
+          && (photo.blurPlaceholder === undefined || typeof photo.blurPlaceholder === 'string'))
+        || (!portfolio.loaded && (portfolio.photos as unknown[]).length > 0)) return;
+    } else if (portfolio !== undefined) return;
     const media = data.serviceMedia;
-    if (['/', '/services', '/packages'].includes(path)) {
+    if (['/', '/gallery', '/services', '/packages'].includes(path)) {
       if (media !== undefined || !arrayOf(data.heroSlides, item => record(item) && strings(item, ['image', 'label']))
         || !arrayOf(data.featuredWork, item => record(item) && strings(item, ['image', 'alt', 'title', 'category', 'location', 'year']) && (item.categorySlugs === undefined || arrayOf(item.categorySlugs, slug => typeof slug === 'string')))
         || !arrayOf(data.galleryImages, item => image(item) && record(item) && (item.categorySlugs === undefined || arrayOf(item.categorySlugs, slug => typeof slug === 'string')))) return;

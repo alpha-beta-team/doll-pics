@@ -1,0 +1,107 @@
+{
+  "date": "2026-09-08",
+  "baseCommit": "b94633e15476c8bf8887563cb4fac91af3396417",
+  "scope": "Local uncommitted Gallery initial HTML; synthetic API/media, no deployment or CMS writes",
+  "checks": {
+    "release": "passed; eight existing lint warnings and bundle warnings",
+    "strictHtmlSmoke": "passed populated, empty and edited; optional unavailable mode passed without require-cms",
+    "populatedBrowser": [
+      {
+        "javaScriptEnabled": false,
+        "width": 390,
+        "theme": "light",
+        "passed": true,
+        "galleryRequests": 0
+      },
+      {
+        "javaScriptEnabled": false,
+        "width": 390,
+        "theme": "dark",
+        "passed": true,
+        "galleryRequests": 0
+      },
+      {
+        "javaScriptEnabled": false,
+        "width": 1440,
+        "theme": "light",
+        "passed": true,
+        "galleryRequests": 0
+      },
+      {
+        "javaScriptEnabled": false,
+        "width": 1440,
+        "theme": "dark",
+        "passed": true,
+        "galleryRequests": 0
+      },
+      {
+        "javaScriptEnabled": true,
+        "width": 390,
+        "theme": "light",
+        "passed": true,
+        "galleryRequests": 0
+      },
+      {
+        "javaScriptEnabled": true,
+        "width": 390,
+        "theme": "dark",
+        "passed": true,
+        "galleryRequests": 0
+      },
+      {
+        "javaScriptEnabled": true,
+        "width": 1440,
+        "theme": "light",
+        "passed": true,
+        "galleryRequests": 0
+      },
+      {
+        "javaScriptEnabled": true,
+        "width": 1440,
+        "theme": "dark",
+        "passed": true,
+        "galleryRequests": 0
+      }
+    ],
+    "states": [
+      {
+        "phase": "empty",
+        "passed": true
+      },
+      {
+        "phase": "unavailable",
+        "passed": true,
+        "strictRejected": true
+      },
+      {
+        "phase": "edited",
+        "passed": true
+      }
+    ],
+    "snapshotRejection": {
+      "passed": true,
+      "cases": [
+        "cross-route",
+        "version",
+        "missing portfolio",
+        "invalid dimensions",
+        "invalid source",
+        "invalid srcset",
+        "unloaded with photos",
+        "foreign media"
+      ]
+    },
+    "visual": "Inspected mobile no-JavaScript screenshot: readable heading and visible first image"
+  },
+  "behavior": [
+    "Shared public portfolio mapping preserves source URLs, alt, captions and dimensions",
+    "Successful portfolio snapshot avoids repeated limit=100 API request during hydration",
+    "Empty published collection stays empty; unavailable collection shows retry message and strict CMS build fails",
+    "Gallery images visible without onLoad/JavaScript; lightbox Escape restores trigger focus"
+  ],
+  "pending": [
+    "Production deployment and both smoke commands",
+    "Manual real image, alt, caption, theme and enquiry review",
+    "Production Lighthouse comparison; no performance improvement claimed"
+  ]
+}
