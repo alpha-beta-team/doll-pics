@@ -404,17 +404,9 @@ function injectRouteHtml(template: string, page: CatalogPage) {
     `    </section>`,
   ]);
 
-  const imageNoscript = page.fallbackImages?.length
-    ? [
-        '    <section>',
-        '      <h2>Selected work</h2>',
-        ...page.fallbackImages.slice(0, 6).map(
-          (image) =>
-            `      <p><img src="${escapeHtml(image.src)}" alt="${escapeHtml(image.alt)}" width="800" height="1000" loading="lazy" /></p>`,
-        ),
-        '    </section>',
-      ]
-    : [];
+  // Seed fallback images have no verified studio authorship or publication consent.
+  // CMS-authored section images above remain available in non-rendered pages.
+  const imageNoscript: string[] = [];
 
   const leadNoscript = page.lead
     ? `    <p>${escapeHtml(page.lead)}</p>`

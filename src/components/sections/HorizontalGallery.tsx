@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useSiteData, type GalleryImageItem } from '../../contexts/SiteDataContext';
 import { ResponsiveImage } from '../ResponsiveImage';
 
-const categories = ['Wedding', 'Portrait', 'Fashion', 'Drone', 'Maternity', 'Editorial'];
+const categoryLabel = (slug: string) => slug.replace(/[-_]+/g, ' ');
 const heights = ['h-[60vh]', 'h-[55vh]', 'h-[65vh]', 'h-[58vh]'];
 const GALLERY_SIZES = '(max-width: 768px) 80vw, 28vw';
 
@@ -30,6 +30,14 @@ export function HorizontalGallery() {
     return () => { window.removeEventListener('scroll', onScroll); cancelAnimationFrame(raf); };
   }, []);
 
+  if (!galleryImages.length) return (
+    <section id="gallery" className="px-6 py-24 text-ink-50">
+      <h2 className="font-display text-4xl">The Gallery</h2>
+      <p className="mt-4">Portfolio photographs are currently unavailable. Please contact us to discuss your session.</p>
+    </section>
+  );
+
+  const categories = [...new Set(galleryImages.flatMap(image => image.categorySlugs ?? []))].map(categoryLabel);
   const images = [...galleryImages, ...galleryImages];
   const xPercent = -50 * progress;
 
@@ -69,7 +77,7 @@ export function HorizontalGallery() {
 function GalleryItem({ image, index }: { image: GalleryImageItem; index: number }) {
   const [hovered, setHovered] = useState(false);
   const h = heights[index % heights.length];
-  const cat = categories[index % categories.length];
+  const cat = image.categorySlugs?.map(categoryLabel).join(' · ') || 'Photography';
 
   return (
     <div

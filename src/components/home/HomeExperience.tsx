@@ -420,6 +420,7 @@ function SelectedStories() {
         </Reveal>
 
         <div className="grid grid-cols-1 gap-5 md:grid-cols-12 md:gap-6">
+          {!items.length && <p className="text-ink-200 md:col-span-12">Portfolio photographs are currently unavailable. <Link to="/contact" className="underline">Contact us to discuss your session.</Link></p>}
           {items.map((work, index) => (
             <StoryTile
               key={`${work.title}-${index}`}

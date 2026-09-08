@@ -82,12 +82,13 @@ function PackageCategoryPageContent() {
     packageMatchesCategory(pkg, page.categorySlug, page.label),
   );
 
-  const { gallery, inline } = selectServiceImages({
-    imageCategories: page.imageCategories,
-    fallbackImages: page.fallbackImages,
+  const { hero, gallery, inline } = selectServiceImages({
+    imageCategories: [page.categorySlug],
     featuredWork,
     galleryImages,
   });
+
+  const portfolio = hero ? [hero, ...gallery] : gallery;
 
   const otherPackageLinks = packageNavLinks.filter((link) => link.path !== path);
 
@@ -143,7 +144,7 @@ function PackageCategoryPageContent() {
           </div>
         </section>
 
-        {gallery.length > 0 ? (
+        {portfolio.length > 0 ? (
           <section className="relative px-6 py-20 lg:px-10">
             <div className="mx-auto mb-12 max-w-7xl">
               <p className="section-label mb-4">Selected work</p>
@@ -152,9 +153,9 @@ function PackageCategoryPageContent() {
                 <span className="italic text-gradient-gold"> craft.</span>
               </h2>
             </div>
-            <PackageWorkGrid images={gallery} />
+            <PackageWorkGrid images={portfolio} />
           </section>
-        ) : null}
+        ) : <p className="mx-auto max-w-7xl px-6 py-12 text-ink-200">Photographs for this category are currently unavailable. <Link to="/contact" className="underline">Contact us to discuss your session.</Link></p>}
 
         <article className="relative px-6 pb-24 lg:px-10">
           <div className="mx-auto max-w-3xl space-y-16">

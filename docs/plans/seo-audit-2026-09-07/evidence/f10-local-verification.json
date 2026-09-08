@@ -1,0 +1,61 @@
+{
+  "scope": "Local synthetic CMS fixtures; no claim of studio approval or live verification",
+  "results": [
+    {
+      "state": "populated",
+      "width": 390,
+      "paths": 5,
+      "spaNavigation": true,
+      "passed": true
+    },
+    {
+      "state": "populated",
+      "width": 1440,
+      "paths": 5,
+      "spaNavigation": true,
+      "passed": true
+    },
+    {
+      "state": "empty",
+      "width": 390,
+      "paths": 5,
+      "spaNavigation": true,
+      "passed": true
+    },
+    {
+      "state": "empty",
+      "width": 1440,
+      "paths": 5,
+      "spaNavigation": true,
+      "passed": true
+    },
+    {
+      "state": "failed",
+      "width": 390,
+      "paths": 5,
+      "spaNavigation": true,
+      "passed": true
+    },
+    {
+      "state": "failed",
+      "width": 1440,
+      "paths": 5,
+      "spaNavigation": true,
+      "passed": true
+    },
+    {
+      "state": "partial",
+      "width": 390,
+      "paths": 5,
+      "spaNavigation": true,
+      "passed": true
+    },
+    {
+      "state": "partial",
+      "width": 1440,
+      "paths": 5,
+      "spaNavigation": true,
+      "passed": true
+    }
+  ]
+}

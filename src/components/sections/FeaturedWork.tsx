@@ -23,6 +23,7 @@ export function FeaturedWork() {
       </div>
 
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {!featuredWork.length && <p className="text-ink-200">Portfolio photographs are currently unavailable. Please contact us to discuss your session.</p>}
         {featuredWork.map((work, i) => (
           <FeatureCard key={i} work={work} index={i} />
         ))}

@@ -15,7 +15,8 @@ export type ServiceImage = {
 const MAX_GALLERY_COUNT = 6;
 
 function normalizeKey(value: string) {
-  return value.trim().toLowerCase();
+  const slug = value.trim().toLowerCase().replace(/[\s_]+/g, '-');
+  return slug === 'toddler-baby-shoots' ? 'toddler-baby-shoot' : slug;
 }
 
 function dedupe(images: ServiceImage[]): ServiceImage[] {
@@ -44,7 +45,7 @@ export function selectServiceImages(options: {
   );
 
   const fromFeatured = options.featuredWork
-    .filter((work) => categories.has(normalizeKey(work.category)))
+    .filter((work) => work.categorySlugs?.some((slug) => categories.has(normalizeKey(slug))))
     .map((work) => ({
       src: work.image,
       alt: work.alt || work.title,
@@ -54,16 +55,13 @@ export function selectServiceImages(options: {
       category: work.category,
     }));
 
-  const fromGallery = options.galleryImages.map((item) => ({
+  const fromGallery = options.galleryImages
+    .filter((item) => item.categorySlugs?.some((slug) => categories.has(normalizeKey(slug))))
+    .map((item) => ({
     src: item.src,
     alt: item.alt,
     avifSrcSet: item.avifSrcSet,
     webpSrcSet: item.webpSrcSet,
-  }));
-
-  const fromFallback = (options.fallbackImages ?? []).map((item) => ({
-    src: item.src,
-    alt: item.alt,
   }));
 
   // API-only service pages must never fall back to static/seed imagery.
@@ -72,7 +70,6 @@ export function selectServiceImages(options: {
     : dedupe([
         ...(options.sourceImages ?? []),
         ...fromFeatured,
-        ...fromFallback,
         ...fromGallery,
       ]);
   const requestedInlineCount = Math.max(0, options.inlineCount ?? 2);

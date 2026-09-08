@@ -108,6 +108,7 @@ export function ScrollStorytelling() {
   const widths = [...SECTION_WIDTHS];
   // loadedVersion forces re-render when new scene images should mount
   void loadedVersion;
+  if (!storyScenes.length) return null;
 
   return (
     <section

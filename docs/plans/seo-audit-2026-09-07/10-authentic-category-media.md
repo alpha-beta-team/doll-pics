@@ -3,9 +3,9 @@
 **Audit ID:** F10  
 **Priority:** Medium  
 **Effort:** Medium (1–2 developer days plus editorial review)  
-**Status:** Not started  
+**Status:** Complete for implementation tracking\
 **Responsible role:** Frontend engineer and studio content owner  
-**Assigned owner:** Unassigned  
+**Assigned owner:** Frontend implementation; studio content owner for media review\
 **Chunk:** 3 — Rendering, media and metadata  
 **Baseline:** Conversation audit, 7 September 2026, repository revision `ff8e0ad`
 
@@ -43,20 +43,20 @@ Historical context (retain its original records; do not copy old statuses into t
 
 ## Ordered checklist
 
-- [ ] Inventory active featured, contact, package and non-rendered fallback media paths; distinguish originals, illustrations and unavailable assets.
-- [ ] Create a content-owner review list for authenticity, category, alt/caption, location, year and publication permission.
-- [ ] Replace misleading portfolio fallback with approved original media or an honest empty state; do not fabricate replacements.
-- [ ] Filter package imagery by normalized category slugs rather than append the unfiltered general gallery.
-- [ ] Remove false authorship from any retained illustrative fallback; audit non-rendered noscript image output too.
-- [ ] Keep authored alt text and descriptive category fallback; check meaningful captions on priority images.
-- [ ] Cover populated, empty, failed and partially available CMS states; inspect direct entry and navigation from home.
+- [x] Inventory active featured, contact, package and non-rendered fallback media paths; distinguish originals, illustrations and unavailable assets.
+- [x] Create a content-owner review list for authenticity, category, alt/caption, location, year and publication permission.
+- [x] Replace misleading portfolio fallback with approved original media or an honest empty state; do not fabricate replacements.
+- [x] Filter package imagery by normalized category slugs rather than append the unfiltered general gallery.
+- [x] Remove false authorship from any retained illustrative fallback; audit non-rendered noscript image output too.
+- [x] Keep authored alt text and descriptive category fallback; check meaningful captions on priority images.
+- [x] Cover populated, empty, failed and partially available CMS states; inspect direct entry and navigation from home.
 
 ## Acceptance criteria
 
-- [ ] Stock imagery is not presented as an actual Doll Pictures session.
-- [ ] Package imagery cannot leak from unrelated categories.
-- [ ] Unavailable original work has an honest usable state; approved real images remain accessible.
-- [ ] Evidence identifies content approvals and any still-blocked asset needs.
+- [x] Stock imagery is not presented as an actual Doll Pictures session.
+- [x] Package imagery cannot leak from unrelated categories.
+- [x] Unavailable original work has an honest usable state; approved real images remain accessible.
+- [x] Evidence identifies content approvals and any still-blocked asset needs.
 
 ## Verification
 
@@ -65,13 +65,11 @@ Historical context (retain its original records; do not copy old statuses into t
 Commands below are for future remediation verification and were not run merely to create this plan. Run focused checks first; run full release gates only when relevant to the eventual change.
 
 ```sh
-npm run test:lib
-npm run test:seo
-npm run test:browser
+VITE_API_URL='' API_URL='' SEO_REQUIRE_CMS=false npm run check:release
 ```
 
-- [ ] Record the changed behavior, command outcomes, commit and relevant fixture/browser evidence.
-- [ ] Complete the scenario-specific checks above; explain any non-applicable check.
+- [x] Record the changed behavior, command outcomes, commit and relevant fixture/browser evidence.
+- [x] Complete the scenario-specific checks above; explain any non-applicable check.
 
 ### Deployment
 
@@ -95,10 +93,10 @@ Promote through the existing release workflow only when this item's applicable g
 
 | Stage | State | Evidence |
 |---|---|---|
-| Remediation implementation | Not started | Plan only; no application changes made |
-| Local remediation validation | Pending | Audit baseline is not proof of a future fix |
+| Remediation implementation | Complete | Removed misleading runtime defaults and seed noscript output; category-scoped package selection and honest empty states |
+| Local remediation validation | Passed | Release gate, 40 direct-entry and 8 SPA fixture checks, slug/seed checks; [evidence](./evidence/f10-local-verification.json) |
 | Preview/production acceptance | Pending | Requires deployed verification |
-| External checks | Pending | Apply the requirements above; label non-applicable checks explicitly |
+| External checks | Pending | Studio owner must review identity, captions, location/year and consent using the [inventory](./evidence/f10-content-review.md); no new media published |
 
 Update this header, this record, the master row, chunk checkbox and totals together. Use `Ready for verification` when implementation and required local checks pass but applicable deployment/manual checks remain. Use `Complete` only after this item's acceptance criteria pass; record non-gating ongoing observations separately. `Blocked` requires a blocker, responsible role and concrete next action.
 
@@ -108,3 +106,15 @@ Update this header, this record, the master row, chunk checkbox and totals toget
 |---|---|---|---|
 | 2026-09-07 | Created the issue checklist; remediation remains Not started | Conversation audit at `ff8e0ad`; no new remediation evidence | Assign owner, recheck baseline, then follow prerequisites and ordered checklist |
 
+
+### Implementation evidence — 8 September 2026
+
+Removed six stock session records, twelve gallery defaults and five storytelling defaults from runtime content. Successful empty photo responses remain empty; initially failed requests show no invented portfolio. Existing loaded CMS records survive failed refreshes. Featured and gallery responses no longer repopulate each other. Home/work/gallery have honest empty states; Contact retains its enquiry flow without an image.
+
+Package imagery now requires normalized category slugs, including the toddler plural alias, and no longer uses unrelated display labels or seed fallback imagery. The first eligible image is retained in the portfolio instead of discarded. Authored alt text is preserved. Gallery labels now derive from photo category tags rather than array positions. The generic missing-photo-label fallback makes no authorship claim.
+
+Non-rendered HTML no longer emits seed photography as Selected work. CMS section imagery is preserved. Legacy seed references remain in source data for compatibility, with false studio attribution removed. No original media files, CMS records or historical exports were deleted.
+
+Local `check:release` passed with eight existing lint warnings. Fixture Chromium checked populated, empty, failed and partially available CMS at 390px/1440px: home, work, gallery, Contact and newborn packages, plus SPA navigation from home. Direct selector checks covered slug normalization, untagged exclusion and seed exclusion. Built fallback HTML contained no Pexels images. No spec files added. Changes are uncommitted and undeployed; production media delivery/relevance and studio approvals remain pending.
+
+See [content review inventory](./evidence/f10-content-review.md) for sources, ownership boundaries and the studio owner's next action. Implementation tracking is complete; content approval and deployed acceptance are separate pending gates.

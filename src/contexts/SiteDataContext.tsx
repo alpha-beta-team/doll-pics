@@ -198,7 +198,7 @@ const normalizedFallbackFeatured: FeaturedWorkItem[] = fallbackFeaturedWork.map(
 const normalizedFallbackGallery: GalleryImageItem[] = fallbackGalleryImages.map(
   (item) =>
     typeof item === 'string'
-      ? { src: item, alt: 'Cinematic photography by Doll Pictures' }
+      ? { src: item, alt: 'Photography' }
       : item,
 );
 
@@ -389,19 +389,11 @@ async function loadResource(resource: CmsResource, signal: AbortSignal, supplied
     case 'packages': return { packages: collection(await publicApi.getPackages(init)).map(normalizePublicPackage) };
     case 'featuredPhotos': {
       const result = featuredFromPhotos(collection(await publicApi.getPhotos({ featured: true }, init)));
-      const featuredWork = result.length ? result : normalizedFallbackFeatured;
-      return previous => ({
-        featuredWork,
-        ...(previous.galleryImages === normalizedFallbackGallery && result.length ? {
-          galleryImages: result.map(w => ({ src: w.image, alt: w.alt, avifSrcSet: w.avifSrcSet, webpSrcSet: w.webpSrcSet })),
-        } : {}),
-      });
+      return { featuredWork: result };
     }
     case 'galleryPhotos': {
       const result = galleryFromPhotos(collection(await publicApi.getPhotos({ limit: GALLERY_PHOTO_LIMIT }, init)));
-      return previous => ({ galleryImages: result.length ? result : previous.featuredWork.length
-        ? previous.featuredWork.map(w => ({ src: w.image, alt: w.alt, avifSrcSet: w.avifSrcSet, webpSrcSet: w.webpSrcSet }))
-        : normalizedFallbackGallery });
+      return { galleryImages: result };
     }
   }
 }

@@ -43,7 +43,7 @@ IDs F01–F16 preserve audit traceability. I01–I03 cover the additional improv
 | F07 | [Clarify private, preview and error-page indexing](./07-private-preview-and-404-indexing.md) | Medium | Small | — | Complete |
 | F09 | [Restore About page heading structure](./09-about-heading-and-semantics.md) | Medium | Small | — | Complete |
 | F12 | [Complete mobile menu and route focus behavior](./12-mobile-navigation-and-focus.md) | Medium | Small | — | Complete |
-| F10 | [Use authentic and category-relevant portfolio media](./10-authentic-category-media.md) | Medium | Medium | — | Not started |
+| F10 | [Use authentic and category-relevant portfolio media](./10-authentic-category-media.md) | Medium | Medium | — | Complete |
 | F04 | [Expand public HTML rendering incrementally](./04-public-html-expansion.md) | High | Large | [F02](./02-publication-and-route-catalog.md), [F03](./03-cms-service-sections.md), [F05](./05-noscript-contrast.md), [F06](./06-cms-release-readiness.md), [F10](./10-authentic-category-media.md) | Not started |
 | F11 | [Provide crawlable discovery for intended photography](./11-image-discovery.md) | Medium | Medium | [F02](./02-publication-and-route-catalog.md), [F04](./04-public-html-expansion.md), [F10](./10-authentic-category-media.md) | Not started |
 | F13 | [Measure and improve public-page performance](./13-performance-and-core-web-vitals.md) | Medium | Medium | — | Not started |
@@ -81,10 +81,10 @@ Start with F01. Within a chunk, take ready items in the listed order; independen
 
 ### Chunk 3 — Rendering, media and metadata
 
-**Status:** Not started  
-**Completion:** 0 / 7
+**Status:** In progress\
+**Completion:** 1 / 7
 
-- [ ] [F10](./10-authentic-category-media.md) — Use authentic and category-relevant portfolio media
+- [x] [F10](./10-authentic-category-media.md) — Use authentic and category-relevant portfolio media — Complete for implementation tracking; studio approval and deployed media checks remain pending
 - [ ] [F04](./04-public-html-expansion.md) — Expand public HTML rendering incrementally
 - [ ] [F11](./11-image-discovery.md) — Provide crawlable discovery for intended photography
 - [ ] [F13](./13-performance-and-core-web-vitals.md) — Measure and improve public-page performance
@@ -111,7 +111,7 @@ Start with F01. Within a chunk, take ready items in the listed order; independen
 | 4 — Content growth and ongoing verification | 3 | 0 | 3 | Not started |
 | **Overall** | **19** | **8** | **11** | **In progress** |
 
-**Recommended next task:** [F10](./10-authentic-category-media.md) — use authentic and category-relevant portfolio media. Totals are **9 / 19 complete** for implementation tracking; deployment/external follow-ups remain recorded separately.
+**Recommended next task:** [F04](./04-public-html-expansion.md) — expand public HTML rendering incrementally. Totals are **10 / 19 complete** for implementation tracking; deployment/external follow-ups remain recorded separately.
 
 ## Execution defaults and dependency rules
 
@@ -202,3 +202,4 @@ The creator validates these separately from remediation completion:
 | 2026-09-08 | F07 implementation complete: private noindex headers and clean 404 metadata; release/config/HTTP/browser checks passed, robots policy preserved pending indexing review | 7 / 19 | Begin F09; retain F07 deployed/preview and Search Console gates |
 | 2026-09-08 | F09 implementation complete: visible About H1 with preserved H2/H3 sections; typecheck/lint and 21 browser cases passed | 8 / 19 | Begin F12; retain F09 deployed and screen-reader review |
 | 2026-09-08 | F12 implementation complete: modal mobile menu and destination route focus; release and fixture browser checks passed | 9 / 19 | Begin F10; retain F12 deployment and manual accessibility gates |
+| 2026-09-08 | F10 implementation complete: honest empty portfolio states and category-scoped media; release and 48 browser checks passed | 10 / 19 | Begin F04; retain studio approval and deployed media acceptance gates |
