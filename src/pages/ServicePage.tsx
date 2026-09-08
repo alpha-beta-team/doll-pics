@@ -118,12 +118,12 @@ function resolveApiServiceCategory(path: string, serviceLabel?: string): string 
 function ServicePageContent() {
   const { pathname } = useLocation();
   const path = normalizePathname(pathname);
-  const { siteContent, serviceMedia, packageNavLinks } = useSiteData();
+  const { siteContent, serviceMedia, packageNavLinks, publicCatalog } = useSiteData();
   const serviceLinks = getPublishedServiceNavLinks(
     siteContent.serviceNavLinks,
   );
   const nav = serviceLinks.find((link) => link.path === path) ?? null;
-  const page = resolveServicePage(path, nav);
+  const page = nav ? resolveServicePage(path, nav) : null;
   const viewTrackedPath = useRef<string | null>(null);
   const [showBooking, setShowBooking] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
@@ -201,7 +201,6 @@ function ServicePageContent() {
   const { hero } = selectServiceImages({
     imageCategories: page.imageCategories,
     sourceImages: categoryImages,
-    // Service pages intentionally render category API media only.
     sourceOnly: true,
     inlineCount: page.sections.length,
     featuredWork: [],
@@ -232,7 +231,7 @@ function ServicePageContent() {
   }));
   const packageLink = servicePackageLink(path, packageNavLinks);
   const usefulLinks = page.related.filter(
-    (link) => link.path !== packageLink.path && !serviceLinks.some((service) => service.path === link.path),
+    (link) => publicCatalog.paths.includes(link.path) && link.path !== packageLink.path && !serviceLinks.some((service) => service.path === link.path),
   );
 
   const openWhatsApp = () => {

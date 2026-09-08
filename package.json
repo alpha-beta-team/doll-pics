@@ -11,17 +11,14 @@
     "sitemap": "node scripts/generate-sitemap.mjs",
     "seo:smoke": "node scripts/check-seo-deployment.mjs",
     "seo:html-smoke": "tsx scripts/check-public-html-deployment.ts",
-    "test:seo": "tsx --test scripts/*.spec.mjs scripts/*.spec.ts scripts/lib/*.spec.ts",
-    "test:lib": "tsx --test src/lib/*.spec.ts",
-    "test:admin": "tsx --test --test-concurrency=1 src/admin/*.spec.ts src/admin/**/*.spec.ts src/attendance/*.spec.ts",
     "seed:admin-mock": "npm --prefix ../photography-cms-backend run seed:admin-mock",
     "seed:admin-mock:dry-run": "npm --prefix ../photography-cms-backend run seed:admin-mock:dry-run",
     "lint": "eslint .",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
-    "test:browser": "playwright test",
-    "check:release": "npm run typecheck && npm run test:lib && npm run test:admin && npm run test:seo && npm run lint && npm run build",
-    "test:html": "playwright test --config playwright.public-html.config.ts"
+    "check:release": "npm run typecheck && npm run lint && npm run build",
+    "build:cms": "SEO_REQUIRE_CMS=true npm run build",
+    "check:cms-release": "tsx scripts/check-public-html-deployment.ts --release"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

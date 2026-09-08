@@ -130,7 +130,7 @@ VITE_SITE_URL=https://dollpictures.in
 | `VITE_API_URL` | Yes (prod) | CMS/API base URL (includes `/api`). Runtime and prerender builds load published CMS content from it. |
 | `VITE_SITE_URL` | Recommended (prod) | Site origin for robots.txt, prerender, and SEO absolute URLs. No trailing slash. Defaults to `https://dollpictures.in` if unset. |
 | `VITE_ADMIN_DASHBOARD_MOCK_DATA` | No | Set to `true` to force bundled sample records on the admin dashboard. Local development also uses them automatically when both dashboard APIs are empty. |
-| `SEO_REQUIRE_CMS` | Yes (prod) | Set to `true` so a production build fails if any required sitemap route is missing from the combined static/CMS prerender catalog. A temporary CMS outage uses the complete static fallback. |
+| `SEO_REQUIRE_CMS` | Yes (prod) | Set to `true` for a CMS-backed candidate: both publication endpoints must load successfully with no invalid published records or route conflicts. Valid empty collections pass. `false` preserves offline/outage fallback; that output is not CMS release evidence. |
 | `SEO_CMS_RETRY_DELAYS_MS` | No | Comma-separated build retry delays for transient CMS errors. Defaults to `2000,4000,8000,15000`. |
 
 Backend: set `CORS_ORIGIN=http://localhost:5173` and change `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
@@ -264,26 +264,57 @@ Use Node.js 22 and the committed lockfile:
 ```sh
 npm ci
 VITE_API_URL='' API_URL='' SEO_REQUIRE_CMS=false npm run check:release
-npx playwright install chromium
-npm run test:browser
 ```
 
-`check:release` runs application/tooling typechecks, library/admin/SEO tests, lint,
-then the production build. Empty API variables select the existing static SEO
-fallback, including when a local `.env` contains a CMS URL. This build verifies
-bundling and fallback prerendering; it does not verify live CMS content.
+`check:release` runs application/tooling typechecks, lint and a production build.
+Empty API variables select static SEO fallback even when a local `.env` contains a
+CMS URL. The **Frontend release checks** PR workflow exercises this offline path.
+Spec files and their test commands were removed at the user's request.
 
-`test:browser` starts a dedicated local Vite server on port 4173 and runs Chromium
-smoke tests for public enquiry submission, enquiry conversion, and role visibility.
-API responses use isolated fixtures; external requests are blocked. No backend,
-login credentials, test emails, or production writes are required. Browser checks
-exercise the frontend against mocked contracts, not deployed end-to-end behavior.
-Failure traces are written to `test-results/`.
+A CMS-backed release has two additional required steps:
 
-The **Frontend release checks** workflow runs both commands on pull requests and
-supports manual runs. The existing production SEO sitemap monitor remains separate.
-Browser harness references: [local web server](https://playwright.dev/docs/test-webserver)
-and [API mocking](https://playwright.dev/docs/mock).
+1. Build the candidate with the intended read-only CMS endpoint configured:
+
+   ```sh
+   npm run build:cms
+   ```
+
+   Save `dist/public-catalog.json` as an artifact of **this exact build**, alongside
+   its deployment output. It records source status, rejected/conflicting record
+   counts, Git HEAD, build time, canonical origin and SHA-256 of every published
+   HTML file. Git HEAD identifies the checkout; use a clean committed checkout for
+   release evidence. Never substitute a freshly rebuilt manifest or download the
+   candidate's own manifest as the expected artifact.
+
+2. After deploying that output to a candidate URL, run the acceptance gate using
+   its saved manifest, full commit SHA and hosting deployment ID:
+
+   ```sh
+   npm run check:cms-release -- --base-url https://candidate.example.com \
+     --expected-catalog ./candidate-public-catalog.json \
+     --expected-commit FULL_40_CHARACTER_COMMIT_SHA \
+     --deployment-id HOSTING_DEPLOYMENT_ID --report ./cms-release-report.json
+   ```
+
+   Set `VITE_SITE_URL` if the public canonical origin differs from
+   `https://dollpictures.in`. Repeat acceptance and `npm run seo:smoke` against production after promotion.
+   Keep the previous CMS-verified deployment if any required gate fails.
+
+The gate checks both CMS sources, all published paths (including CMS-only services
+and packages), exact initial HTML fingerprints, canonical/indexing metadata,
+sitemap equality, active rendered-service snapshots and private/404 exclusions.
+Non-pilot pages still use noscript content; this check does not claim expanded SSR
+coverage or browser hydration. Byte-changing hosting transforms fail the artifact
+comparison and need investigation. An optional `seo:html-smoke -- --require-cms`
+checks source provenance and served content against the served manifest, but only
+`check:cms-release` requires an independently saved artifact for freshness evidence.
+
+The JSON report records the checked origin, candidate commit, content comparison,
+time and failures. Deployment ID is operator-supplied: verify its association with
+the URL/commit in the hosting dashboard. Promotion enforcement, hosting variables,
+CMS deploy hooks and a material QA edit observed before/after hydration remain
+release-owner checks; offline PR CI cannot establish them. No production CMS writes
+are needed for the scripted gate.
 
 ## Campaign attribution
 

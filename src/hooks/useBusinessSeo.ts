@@ -1,21 +1,16 @@
 import { useEffect } from 'react';
 import { useSiteData } from '../contexts/SiteDataContext';
-import { getPublishedServiceNavLinks } from '../lib/navigation';
 import { serviceCatalogFromLinks } from '../lib/seo-core';
-import { applyBusinessSeo, getStaticServiceCatalog } from '../lib/seo';
+import { applyBusinessSeo } from '../lib/seo';
 
 /** Keeps the shared LocalBusiness entity synchronized with public CMS data. */
 export function useBusinessSeo() {
-  const { siteContent, loading, fromApi } = useSiteData();
+  const { siteContent, loading, publicCatalog } = useSiteData();
 
   useEffect(() => {
     if (loading) return;
 
-    const serviceCatalog = fromApi
-      ? serviceCatalogFromLinks(
-          getPublishedServiceNavLinks(siteContent.serviceNavLinks),
-        )
-      : getStaticServiceCatalog();
+    const serviceCatalog = serviceCatalogFromLinks(publicCatalog.serviceLinks);
 
     applyBusinessSeo({
       contact: {
@@ -25,5 +20,5 @@ export function useBusinessSeo() {
       },
       services: serviceCatalog,
     });
-  }, [fromApi, loading, siteContent]);
+  }, [publicCatalog, loading, siteContent]);
 }

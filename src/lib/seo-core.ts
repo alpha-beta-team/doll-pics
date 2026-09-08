@@ -1,3 +1,4 @@
+import type { PublicRouteCatalog } from './publicCatalog';
 /**
  * Pure SEO helpers shared by runtime (src/lib/seo.ts) and build (scripts).
  * No DOM, no import.meta.env — callers pass siteUrl / data.
@@ -100,7 +101,12 @@ export type CatalogPage = {
   label?: string;
   lead?: string;
   categorySlug?: string;
-  sections: Array<{ heading: string; paragraphs: string[] }>;
+  sections: Array<{
+    heading: string;
+    paragraphs: string[];
+    imageUrl?: string;
+    imageAlt?: string;
+  }>;
   faqs: FaqItem[];
   related: Array<{ label: string; path: string }>;
   fallbackImages: Array<{ src: string; alt: string }>;
@@ -346,15 +352,13 @@ export function buildPageCatalog(input: {
   seoPages: SeoPagesData;
   servicePages: Record<string, ServiceJson>;
   packagePages: Record<string, PackageJson>;
-  packagesByPath: Map<string, PackageNavLinkLike>;
-  servicesByPath: Map<string, ServiceNavLinkLike>;
+  publicCatalog: PublicRouteCatalog;
 }): Record<string, CatalogPage> {
   const {
     seoPages,
     servicePages,
     packagePages,
-    packagesByPath,
-    servicesByPath,
+    publicCatalog,
   } = input;
   const pages: Record<string, CatalogPage> = {};
 
@@ -374,32 +378,18 @@ export function buildPageCatalog(input: {
     };
   }
 
-  for (const [path, json] of Object.entries(servicePages)) {
-    const nav = servicesByPath.get(path) ?? null;
-    const resolved = resolveServicePage(path, json, nav);
-    if (resolved) {
-      pages[path] = { ...resolved, kind: 'service', path };
-    }
-  }
-
-  for (const [path, json] of Object.entries(packagePages)) {
-    const nav = packagesByPath.get(path) ?? null;
-    const resolved = resolvePackagePage(path, json, nav);
-    if (resolved) {
-      pages[path] = { ...resolved, kind: 'package', path };
-    }
-  }
-
-  for (const [path, nav] of servicesByPath) {
-    if (pages[path]) continue;
-    const resolved = resolveServicePage(path, null, nav);
+  for (const nav of publicCatalog.serviceLinks) {
+    const path = nav.path;
+    const resolved = resolveServicePage(path, servicePages[path], nav);
     if (resolved) pages[path] = { ...resolved, kind: 'service', path };
   }
-
-  for (const [path, nav] of packagesByPath) {
-    if (pages[path]) continue;
-    const resolved = resolvePackagePage(path, null, nav);
+  for (const nav of publicCatalog.packageLinks) {
+    const path = nav.path;
+    const resolved = resolvePackagePage(path, packagePages[path], nav);
     if (resolved) pages[path] = { ...resolved, kind: 'package', path };
+  }
+  for (const page of Object.values(pages)) {
+    page.related = page.related.filter(link => Boolean(pages[link.path]));
   }
 
   return pages;

@@ -1,5 +1,8 @@
 import { fileURLToPath } from 'node:url';
-import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { isDeepStrictEqual } from 'node:util';
+import { CORE_PUBLIC_PATHS, normalizePublicLandingPath } from '../src/lib/publicRoutePath';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import { PUBLIC_HTML_ROUTES, type PublicHtmlPath } from '../src/lib/publicHtmlRoutes';
 import { parsePublicSnapshot } from '../src/lib/publicSnapshot';
@@ -9,6 +12,7 @@ const servicePages = JSON.parse(readFileSync(new URL('../src/data/service-pages.
   Record<PublicHtmlPath, NonNullable<Parameters<typeof resolveServicePage>[1]>>;
 
 const defaultOrigin = 'https://dollpictures.in';
+const canonicalUrl = (path: string, origin: string) => path === '/' ? origin : new URL(path, origin).href;
 const text = (value: string | null | undefined) => (value ?? '').replace(/\s+/g, ' ').trim();
 const record = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -77,8 +81,14 @@ export function validatePublicHtml(html: string, path: PublicHtmlPath, publicOri
 
     if (snapshot) {
       const nav = snapshot.data.siteContent.serviceNavLinks?.find(link => link.path === path);
-      if (requireCms) expect(snapshot.loaded.includes('siteContent') && nav?.isPublished,
-        'release requires loaded CMS content and a published target service');
+      if (requireCms) {
+        expect(snapshot.loaded.includes('siteContent') && snapshot.loaded.includes('categories') && nav?.isPublished,
+          'release requires both loaded CMS sources and a published target service');
+        for (const source of Object.values(snapshot.data.publicCatalog.sources)) {
+          expect(source.status === 'cms' && !source.reason && !source.rejectedRecords,
+            'release snapshot contains fallback or rejected CMS records');
+        }
+      }
       expect(!nav || nav.isPublished, 'snapshot contains an unpublished target service');
       // The shared snapshot parser checked the normalized label/description/section fields.
       const page = resolveServicePage(path, servicePages[path], nav as ServiceNavLinkLike | undefined);
@@ -117,44 +127,149 @@ export function validateExcludedHtml(html: string, missing = false): string[] {
   } finally { dom.window.close(); }
 }
 
+type ReleaseCatalog = {
+  version: 1;
+  paths: string[];
+  sources: Record<string, { status: string; reason?: string; rejectedRecords?: number; excludedConflicts?: number }>;
+  build?: { commit: string | null; createdAt: string; publicOrigin: string };
+  htmlSha256?: Record<string, string>;
+};
+
+export function validateReleaseCatalog(value: unknown, requireCms = false): asserts value is ReleaseCatalog {
+  if (!record(value) || value.version !== 1 || !Array.isArray(value.paths)
+    || !value.paths.every(path => typeof path === 'string' && (CORE_PUBLIC_PATHS.includes(path) || normalizePublicLandingPath(path) === path))
+    || new Set(value.paths).size !== value.paths.length || CORE_PUBLIC_PATHS.some(path => !(value.paths as unknown[]).includes(path))
+    || !record(value.sources)) throw new Error('missing or malformed public catalog');
+  for (const name of ['services', 'packages']) {
+    const source = value.sources[name];
+    if (!record(source) || !['cms', 'fallback'].includes(String(source.status))) throw new Error(`invalid ${name} provenance`);
+    if (requireCms && (source.status !== 'cms' || source.reason || source.rejectedRecords !== 0 || source.excludedConflicts !== 0)) {
+      throw new Error(`release requires successful ${name} CMS provenance without rejected or conflicting records`);
+    }
+  }
+  if (requireCms && (!record(value.build) || typeof value.build.createdAt !== 'string'
+    || !Number.isFinite(Date.parse(value.build.createdAt)) || typeof value.build.publicOrigin !== 'string'
+    || !record(value.htmlSha256) || Object.keys(value.htmlSha256).length !== value.paths.length
+    || value.paths.some(path => !/^[a-f0-9]{64}$/.test(String((value.htmlSha256 as Record<string, unknown>)[path]))))) {
+    throw new Error('release requires build provenance and an HTML fingerprint for every published route');
+  }
+}
+
+function validateCatalogHtml(html: string, path: string, origin: string): string[] {
+  const dom = new JSDOM(html);
+  try {
+    const document = dom.window.document;
+    const failures: string[] = [];
+    if (!text(document.title) || !text(document.querySelector('meta[name="description"]')?.getAttribute('content'))) failures.push('missing title or description');
+    if (document.querySelectorAll('link[rel="canonical"]').length !== 1
+      || document.querySelector('link[rel="canonical"]')?.getAttribute('href') !== canonicalUrl(path, origin)) failures.push('canonical does not match the public site URL');
+    const robots = [...document.querySelectorAll('meta[name="robots"]')].map(node => node.getAttribute('content') ?? '').join(',');
+    if (!robots || /\b(noindex|none)\b/i.test(robots)) failures.push('missing or non-indexable robots metadata');
+    if (!text(document.querySelector('#root h1, noscript h1')?.textContent)) failures.push('missing initial heading (rendered or noscript)');
+    return failures;
+  } finally { dom.window.close(); }
+}
+
 export async function checkPublicHtmlDeployment({
   baseUrl = defaultOrigin, publicOrigin = defaultOrigin, fetchImpl = fetch, requireCms = false,
-}: { baseUrl?: string; publicOrigin?: string; fetchImpl?: typeof fetch; requireCms?: boolean } = {}) {
-  const excluded = ['/', '/family-photography-erode', '/admin', '/admin/bookings', '/employee', '/employee/dashboard',
+  expectedCatalog, expectedCommit, deploymentId, report,
+}: { baseUrl?: string; publicOrigin?: string; fetchImpl?: typeof fetch; requireCms?: boolean;
+  expectedCatalog?: unknown; expectedCommit?: string; deploymentId?: string; report?: string } = {}) {
+  let published: Set<string>;
+  let catalog: ReleaseCatalog | undefined;
+  const finish = (results: Array<{ path: string; failures: string[] }>) => {
+    if (report) writeFileSync(report, JSON.stringify({ checkedAt: new Date().toISOString(), baseUrl, publicOrigin,
+      deploymentId: deploymentId ?? null, deploymentIdSource: 'operator-supplied; verify in hosting dashboard',
+      expectedCommit: expectedCommit ?? null, build: catalog?.build, requireCms,
+      comparedExpectedArtifact: expectedCatalog !== undefined, results,
+      passed: results.every(result => !result.failures.length) }, null, 2));
+    return results;
+  };
+  try {
+    const response = await fetchImpl(new URL('/public-catalog.json', baseUrl), { signal: AbortSignal.timeout(20_000) });
+    const value: unknown = await response.json();
+    if (!response.ok) throw new Error(`catalog HTTP ${response.status}`);
+    validateReleaseCatalog(value, requireCms);
+    catalog = value;
+    if (requireCms && catalog.build?.publicOrigin !== publicOrigin) throw new Error('catalog public origin differs from expected origin');
+    if (expectedCommit && catalog.build?.commit !== expectedCommit) throw new Error('candidate commit differs from expected commit');
+    if (expectedCatalog !== undefined) {
+      validateReleaseCatalog(expectedCatalog, true);
+      if (expectedCommit && expectedCatalog.build?.commit !== expectedCommit) throw new Error('expected artifact commit differs from expected commit');
+      if (!isDeepStrictEqual(catalog.paths, expectedCatalog.paths) || !isDeepStrictEqual(catalog.sources, expectedCatalog.sources)
+        || !isDeepStrictEqual(catalog.htmlSha256, expectedCatalog.htmlSha256)
+        || !isDeepStrictEqual(catalog.build, expectedCatalog.build)) throw new Error('candidate differs from the saved expected build artifact (routes, provenance or content)');
+    }
+    published = new Set(catalog.paths);
+  } catch (error) {
+    return finish([{ path: '/public-catalog.json', failures: [error instanceof Error ? error.message : String(error)] }]);
+  }
+  const excluded = ['/', '/services', '/admin', '/admin/bookings', '/employee', '/employee/dashboard',
     '/kiosk', '/kiosk/check-in', '/quotation/html-smoke'];
   const missing = '/__public-html-smoke-not-found';
-  const paths = [...Object.keys(PUBLIC_HTML_ROUTES), ...excluded, missing];
+  const paths = [...new Set([...published, ...Object.keys(PUBLIC_HTML_ROUTES), ...excluded, missing])];
   const results = await Promise.all(paths.map(async path => {
     try {
       const response = await fetchImpl(new URL(path, baseUrl), { signal: AbortSignal.timeout(20_000) });
       const failures: string[] = [];
-      const expectedStatus = path === missing ? 404 : 200;
+      const retired = Object.hasOwn(PUBLIC_HTML_ROUTES, path) && !published.has(path);
+      const expectedStatus = path === missing || retired ? 404 : 200;
       if (response.status !== expectedStatus) failures.push(`HTTP ${response.status}, expected ${expectedStatus}`);
       if (!response.headers.get('content-type')?.includes('text/html')) failures.push('response is not HTML');
       const html = await response.text();
-      if (Object.hasOwn(PUBLIC_HTML_ROUTES, path)) {
-        // Vercel deliberately sends noindex on preview hosts. Only the canonical
-        // production origin must be indexable at the HTTP layer.
+      if (published.has(path)) {
+        failures.push(...validateCatalogHtml(html, path, publicOrigin));
+        if (requireCms && createHash('sha256').update(html).digest('hex') !== catalog?.htmlSha256?.[path]) failures.push('initial HTML differs from build content fingerprint');
         if (new URL(baseUrl).origin === new URL(publicOrigin).origin
           && /\b(noindex|none)\b/i.test(response.headers.get('x-robots-tag') ?? '')) failures.push('HTTP robots header blocks indexing');
-        if (new URL(response.url || new URL(path, baseUrl)).pathname.replace(/\/$/, '') !== path) failures.push('redirected to a different route');
+        const returnedPath = new URL(response.url || new URL(path, baseUrl)).pathname.replace(/\/$/, '') || '/';
+        if (returnedPath !== path) failures.push('redirected to a different route');
+      }
+      if (Object.hasOwn(PUBLIC_HTML_ROUTES, path) && !retired) {
         failures.push(...validatePublicHtml(html, path as PublicHtmlPath, publicOrigin, requireCms));
-      } else failures.push(...validateExcludedHtml(html, path === missing));
+      } else failures.push(...validateExcludedHtml(html, path === missing || retired));
       return { path, failures };
     } catch (error) {
       return { path, failures: [error instanceof Error ? error.message : String(error)] };
     }
   }));
-  return results;
+  try {
+    const response = await fetchImpl(new URL('/sitemap.xml', baseUrl), { signal: AbortSignal.timeout(20_000) });
+    const dom = new JSDOM(await response.text(), { contentType: 'application/xml' });
+    try {
+      const locations = [...dom.window.document.querySelectorAll('url > loc')].map(node => node.textContent);
+      const expected = [...published].map(path => canonicalUrl(path, publicOrigin));
+      results.push({ path: '/sitemap.xml', failures: response.ok && locations.length === expected.length
+        && new Set(locations).size === locations.length && expected.every(url => locations.includes(url)) ? [] : ['sitemap differs from public catalog or canonical origin'] });
+    } finally { dom.window.close(); }
+  } catch { results.push({ path: '/sitemap.xml', failures: ['sitemap unavailable or malformed'] }); }
+  return finish(results);
 }
 
 export function parseArguments(argv: string[]) {
   let baseUrl = process.env.SEO_CHECK_BASE_URL || defaultOrigin;
   let requireCms = false;
+  let release = false;
+  let expectedCatalog: unknown;
+  let expectedCommit: string | undefined;
+  let deploymentId: string | undefined;
+  let report: string | undefined;
   for (let index = 0; index < argv.length; index++) {
     if (argv[index] === '--require-cms') { requireCms = true; continue; }
-    if (argv[index] !== '--base-url' || !argv[index + 1]) throw new Error(`Unknown or incomplete argument: ${argv[index]}`);
-    baseUrl = argv[++index];
+    if (argv[index] === '--release') { release = true; requireCms = true; continue; }
+    const option = argv[index];
+    if (!['--base-url', '--expected-catalog', '--expected-commit', '--deployment-id', '--report'].includes(option)
+      || !argv[index + 1] || argv[index + 1].startsWith('--')) throw new Error(`Unknown or incomplete argument: ${option}`);
+    const value = argv[++index];
+    if (option === '--base-url') baseUrl = value;
+    if (option === '--expected-catalog') expectedCatalog = JSON.parse(readFileSync(value, 'utf8'));
+    if (option === '--expected-commit') expectedCommit = value;
+    if (option === '--deployment-id') deploymentId = value;
+    if (option === '--report') report = value;
+  }
+  if (expectedCommit && !/^[a-f0-9]{40}$/i.test(expectedCommit)) throw new Error('Expected the full candidate Git commit SHA');
+  if (release && (expectedCatalog === undefined || !expectedCommit || !deploymentId || !report)) {
+    throw new Error('CMS release acceptance requires --expected-catalog from the build being deployed, --expected-commit, --deployment-id and --report');
   }
   const publicOrigin = process.env.VITE_SITE_URL || defaultOrigin;
   for (const url of [baseUrl, publicOrigin]) {
@@ -162,14 +277,15 @@ export function parseArguments(argv: string[]) {
     if (!['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password
       || parsed.pathname !== '/' || parsed.search || parsed.hash) throw new Error('Expected an HTTP(S) origin without credentials, path, query or fragment');
   }
-  return { baseUrl: new URL(baseUrl).origin, publicOrigin: new URL(publicOrigin).origin, requireCms };
+  return { baseUrl: new URL(baseUrl).origin, publicOrigin: new URL(publicOrigin).origin, requireCms, expectedCatalog, expectedCommit, deploymentId, report };
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   void (async () => {
-    const results = await checkPublicHtmlDeployment(parseArguments(process.argv.slice(2)));
+    const options = parseArguments(process.argv.slice(2));
+    const results = await checkPublicHtmlDeployment(options);
     const failures = results.flatMap(result => result.failures.map(failure => `${result.path}: ${failure}`));
     if (failures.length) throw new Error(`Public HTML smoke failed:\n- ${failures.join('\n- ')}`);
-    console.log(`Public HTML smoke passed: ${Object.keys(PUBLIC_HTML_ROUTES).length} rendered services, route snapshots, metadata, exclusions and true 404.`);
+    console.log(`${options.expectedCatalog !== undefined && options.requireCms ? 'CMS artifact comparison' : 'Public HTML smoke'} passed: published HTML, active service snapshots, metadata, sitemap, exclusions and true 404.`);
   })().catch(error => { console.error(error instanceof Error ? error.message : String(error)); process.exitCode = 1; });
 }

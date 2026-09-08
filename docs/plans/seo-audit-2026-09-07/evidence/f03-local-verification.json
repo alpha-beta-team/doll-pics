@@ -1,0 +1,60 @@
+{
+  "date": "2026-09-07",
+  "baselineCommit": "7fb7375",
+  "environment": "isolated local build; synthetic CMS fixture; external requests blocked",
+  "loaderToCatalog": "passed for six routes",
+  "browser": "Chromium at 390x844, JavaScript enabled and disabled",
+  "typecheck": "passed",
+  "lint": "passed with 8 existing warnings",
+  "deployment": "not verified",
+  "routes": [
+    {
+      "path": "/newborn-baby-photography-erode",
+      "sections": 1,
+      "initialHtml": "pass",
+      "javascript": "pass",
+      "noJavascript": "pass",
+      "safeSerialization": "pass"
+    },
+    {
+      "path": "/family-photography-erode",
+      "sections": 1,
+      "initialHtml": "pass",
+      "javascript": "pass",
+      "noJavascript": "pass",
+      "safeSerialization": "pass"
+    },
+    {
+      "path": "/wedding-photography-erode",
+      "sections": 0,
+      "initialHtml": "pass",
+      "javascript": "pass",
+      "noJavascript": "pass",
+      "safeSerialization": "pass"
+    },
+    {
+      "path": "/maternity-photography-erode",
+      "sections": 0,
+      "initialHtml": "pass",
+      "javascript": "pass",
+      "noJavascript": "pass",
+      "safeSerialization": "pass"
+    },
+    {
+      "path": "/pre-wedding-photography-erode",
+      "sections": 0,
+      "initialHtml": "pass",
+      "javascript": "pass",
+      "noJavascript": "pass",
+      "safeSerialization": "pass"
+    },
+    {
+      "path": "/kids-photography-erode",
+      "sections": 0,
+      "initialHtml": "pass",
+      "javascript": "pass",
+      "noJavascript": "pass",
+      "safeSerialization": "pass"
+    }
+  ]
+}

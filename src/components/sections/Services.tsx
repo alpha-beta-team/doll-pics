@@ -39,7 +39,8 @@ const EARLY_REVEAL_OPTIONS: IntersectionObserverInit = {
 };
 
 export function Services() {
-  const { services } = useSiteData();
+  const { services: catalogServices, loading } = useSiteData();
+  const services = loading ? [] : catalogServices;
 
   return (
     <section

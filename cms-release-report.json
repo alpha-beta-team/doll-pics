@@ -1,0 +1,19 @@
+{
+  "checkedAt": "2026-09-07T17:50:56.514Z",
+  "baseUrl": "https://dollpictures.in",
+  "publicOrigin": "https://dollpictures.in",
+  "deploymentId": "dpl_7iqZf5ihAd1K8JPQjuR524gj8LFN",
+  "deploymentIdSource": "operator-supplied; verify in hosting dashboard",
+  "expectedCommit": "7fb737532143f50f518a83deb88fc424bca63fe7",
+  "requireCms": true,
+  "comparedExpectedArtifact": true,
+  "results": [
+    {
+      "path": "/public-catalog.json",
+      "failures": [
+        "Unexpected token '<', \"<!doctype \"... is not valid JSON"
+      ]
+    }
+  ],
+  "passed": false
+}

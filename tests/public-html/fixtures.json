@@ -43,6 +43,9 @@
         "lead": "Maternity safe text </script><script>window.snapshotInjected=true</script>",
         "isPublished": true
       },
+      { "label": "Editorial", "path": "/editorial-photography", "isPublished": true },
+      { "label": "Conflicting service", "path": "/conflicting-landing", "isPublished": true },
+      { "label": "Private route", "path": "/admin/catalog-fixture", "isPublished": true },
       {
         "label": "PRIVATE_DRAFT_SENTINEL",
         "path": "/private-draft",
@@ -51,7 +54,15 @@
     ],
     "internalSecret": "PRIVATE_FIELD_SENTINEL"
   },
-  "/api/package-categories": [],
+  "/api/package-categories": [
+    { "name": "Newborn", "slug": "newborn", "isPublished": true },
+    { "name": "Wedding", "slug": "wedding", "isPublished": true },
+    { "name": "Maternity", "slug": "maternity", "isPublished": true },
+    { "name": "Custom", "slug": "custom", "isPublished": true },
+    { "name": "Family", "slug": "family", "path": "Portrait-Plans/", "isPublished": true },
+    { "name": "Hidden", "slug": "hidden", "isPublished": false },
+    { "name": "Conflicting package", "slug": "conflicting", "path": "/conflicting-landing", "isPublished": true }
+  ],
   "/api/hero-slides": [],
   "/api/categories/newborn": {
     "name": "Newborn",

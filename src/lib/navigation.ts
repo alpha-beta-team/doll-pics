@@ -1,3 +1,4 @@
+import { isRecord, normalizePublicLandingPath, publicText } from './publicRoutePath';
 import sitemapRoutes from '../data/sitemap-routes.json';
 import type { ServiceNavLink, ServiceNavLinkInput } from '../shared/types';
 
@@ -20,6 +21,7 @@ export const PATH_TO_SECTION: Record<string, string> = {
   ...Object.fromEntries(
     NAV_LINKS.filter((link) => link.sectionId).map((link) => [link.path, link.sectionId!]),
   ),
+  '/work': 'work',
   [BOOKING_ROUTE.path]: BOOKING_ROUTE.sectionId,
 };
 
@@ -145,37 +147,36 @@ export function defaultPackagePathForSlug(slug: string): string {
 export function normalizeServiceNavLinks(
   links?: Array<ServiceNavLinkInput | (Partial<ServiceNavLink> & { _id?: string })> | null,
 ): ServiceNavLink[] {
-  if (!links?.length) return [];
-  return links
-    .map((link, index) => {
-      const next: ServiceNavLink = {
-        id: link.id ?? link._id,
-        label: link.label?.trim() || 'Service',
-        path: link.path?.trim() || '/services',
-        description: link.description?.trim() || '',
-        icon: link.icon?.trim() || 'Camera',
-        imageUrl: link.imageUrl?.trim() || '',
-        sections: (link.sections ?? []).map((section) => ({
-          id: section.id ?? ('_id' in section ? section._id : undefined),
-          heading: section.heading?.trim() || '',
-          body: section.body?.trim() || '',
-          imageUrl: section.imageUrl?.trim() || '',
-          imageAlt: section.imageAlt?.trim() || '',
-        })).filter((section) => section.heading && section.body),
-        order: typeof link.order === 'number' ? link.order : index,
-        isPublished: link.isPublished !== false,
-      };
-      const seoTitle = link.seoTitle?.trim();
-      const seoDescription = link.seoDescription?.trim();
-      const heading = link.heading?.trim();
-      const lead = link.lead?.trim();
-      if (seoTitle) next.seoTitle = seoTitle;
-      if (seoDescription) next.seoDescription = seoDescription;
-      if (heading) next.heading = heading;
-      if (lead) next.lead = lead;
-      return next;
-    })
-    .sort((a, b) => a.order - b.order);
+  if (!Array.isArray(links)) return [];
+  return links.flatMap((link, index): ServiceNavLink[] => {
+    if (!isRecord(link) || (link.isPublished !== undefined && typeof link.isPublished !== 'boolean')) return [];
+    const path = normalizePublicLandingPath(link.path);
+    const label = publicText(link.label);
+    if (!path || !label) return [];
+    const next: ServiceNavLink = {
+      id: link.id ?? link._id,
+      label, path,
+      description: publicText(link.description),
+      icon: publicText(link.icon) || 'Camera',
+      imageUrl: publicText(link.imageUrl),
+      sections: (Array.isArray(link.sections) ? link.sections : []).flatMap(section => {
+        if (!isRecord(section)) return [];
+        const heading = publicText(section.heading);
+        const body = publicText(section.body);
+        return heading && body ? [{
+          id: publicText(section.id ?? ('_id' in section ? section._id : undefined)) || undefined,
+          heading, body, imageUrl: publicText(section.imageUrl), imageAlt: publicText(section.imageAlt),
+        }] : [];
+      }),
+      order: typeof link.order === 'number' && Number.isFinite(link.order) ? link.order : index,
+      isPublished: link.isPublished !== false,
+    };
+    for (const field of ['seoTitle', 'seoDescription', 'heading', 'lead'] as const) {
+      const value = publicText(link[field]);
+      if (value) next[field] = value;
+    }
+    return [next];
+  }).sort((a, b) => a.order - b.order);
 }
 
 export function getPublishedServiceNavLinks(
@@ -201,41 +202,30 @@ export type PackageCategoryInput = {
 export function normalizePackageNavLinks(
   categories?: PackageCategoryInput[] | null,
 ): PackageNavLink[] {
-  if (!categories?.length) {
-    return DEFAULT_PACKAGE_NAV_LINKS.map((l) => ({ ...l }));
-  }
-
-  const links = categories
-    .map((cat, index) => {
-      const slug = cat.slug?.trim().toLowerCase() || '';
-      if (!slug) return null;
-      const fallback = DEFAULT_PACKAGE_NAV_LINKS.find((l) => l.categorySlug === slug);
-      const rawPath = cat.path?.trim();
-      const path = rawPath
-        ? normalizePathname(rawPath.startsWith('/') ? rawPath : `/${rawPath}`)
-        : fallback?.path ?? defaultPackagePathForSlug(slug);
-      const link: PackageNavLink = {
-        label: cat.name?.trim() || fallback?.label || 'Packages',
-        path,
-        categorySlug: slug,
-        description: cat.description?.trim() || fallback?.description || '',
-        order: typeof cat.order === 'number' ? cat.order : index,
-        isPublished: cat.isPublished !== false,
-      };
-      const seoTitle = cat.seoTitle?.trim();
-      const seoDescription = cat.seoDescription?.trim();
-      const heading = cat.heading?.trim();
-      const lead = cat.lead?.trim();
-      if (seoTitle) link.seoTitle = seoTitle;
-      if (seoDescription) link.seoDescription = seoDescription;
-      if (heading) link.heading = heading;
-      if (lead) link.lead = lead;
-      return link;
-    })
-    .filter((link): link is PackageNavLink => link !== null)
-    .sort((a, b) => a.order - b.order);
-
-  return links.length ? links : DEFAULT_PACKAGE_NAV_LINKS.map((l) => ({ ...l }));
+  // Only unavailable input may use defaults; a successful empty response stays empty.
+  if (categories == null) return DEFAULT_PACKAGE_NAV_LINKS.map(link => ({ ...link }));
+  if (!Array.isArray(categories)) return [];
+  return categories.flatMap((cat, index): PackageNavLink[] => {
+    if (!isRecord(cat) || (cat.isPublished !== undefined && typeof cat.isPublished !== 'boolean')) return [];
+    const slug = publicText(cat.slug).toLowerCase();
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return [];
+    if (cat.path != null && typeof cat.path !== 'string') return [];
+    const fallback = DEFAULT_PACKAGE_NAV_LINKS.find(link => link.categorySlug === slug);
+    const path = normalizePublicLandingPath(publicText(cat.path) || fallback?.path || defaultPackagePathForSlug(slug));
+    if (!path) return [];
+    const link: PackageNavLink = {
+      label: publicText(cat.name) || fallback?.label || slug.replace(/-/g, ' '),
+      path, categorySlug: slug,
+      description: publicText(cat.description) || fallback?.description || '',
+      order: typeof cat.order === 'number' && Number.isFinite(cat.order) ? cat.order : index,
+      isPublished: cat.isPublished !== false,
+    };
+    for (const field of ['seoTitle', 'seoDescription', 'heading', 'lead'] as const) {
+      const value = publicText(cat[field]);
+      if (value) link[field] = value;
+    }
+    return [link];
+  }).sort((a, b) => a.order - b.order);
 }
 
 export function getPublishedPackageNavLinks(
@@ -250,10 +240,9 @@ export function packagePathForSlug(
 ): string | undefined {
   const clean = slug.trim().toLowerCase();
   if (!clean) return undefined;
-  const fromCms = normalizePackageNavLinks(categories).find(
+  const fromCms = getPublishedPackageNavLinks(categories).find(
     (l) => l.categorySlug === clean,
   );
   if (fromCms) return fromCms.path;
-  const fallback = DEFAULT_PACKAGE_NAV_LINKS.find((l) => l.categorySlug === clean);
-  return fallback?.path ?? defaultPackagePathForSlug(clean);
+  return undefined;
 }
