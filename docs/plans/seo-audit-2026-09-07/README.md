@@ -46,7 +46,7 @@ IDs F01–F16 preserve audit traceability. I01–I03 cover the additional improv
 | F10 | [Use authentic and category-relevant portfolio media](./10-authentic-category-media.md) | Medium | Medium | — | Complete |
 | F04 | [Expand public HTML rendering incrementally](./04-public-html-expansion.md) | High | Large | [F02](./02-publication-and-route-catalog.md), [F03](./03-cms-service-sections.md), [F05](./05-noscript-contrast.md), [F06](./06-cms-release-readiness.md), [F10](./10-authentic-category-media.md) | In progress |
 | F11 | [Provide crawlable discovery for intended photography](./11-image-discovery.md) | Medium | Medium | [F02](./02-publication-and-route-catalog.md), [F04](./04-public-html-expansion.md), [F10](./10-authentic-category-media.md) | Not started |
-| F13 | [Measure and improve public-page performance](./13-performance-and-core-web-vitals.md) | Medium | Medium | — | Not started |
+| F13 | [Measure and improve public-page performance](./13-performance-and-core-web-vitals.md) | Medium | Medium | — | In progress |
 | F14 | [Support route-specific social previews](./14-social-preview-metadata.md) | Low | Medium | [F02](./02-publication-and-route-catalog.md), [F10](./10-authentic-category-media.md) | Not started |
 | F15 | [Preserve authored metadata descriptions](./15-authored-meta-descriptions.md) | Low | Small | — | Not started |
 | F16 | [Extend trustworthy sitemap modification dates](./16-sitemap-freshness.md) | Low | Medium | [F02](./02-publication-and-route-catalog.md), [F06](./06-cms-release-readiness.md) | Not started |
@@ -85,9 +85,9 @@ Start with F01. Within a chunk, take ready items in the listed order; independen
 **Completion:** 1 / 7
 
 - [x] [F10](./10-authentic-category-media.md) — Use authentic and category-relevant portfolio media — Complete for implementation tracking; studio approval and deployed media checks remain pending
-- [ ] [F04](./04-public-html-expansion.md) — In progress: homepage, hubs and wedding/newborn packages implemented locally; deploy/verify this pair before remaining categories
+- [ ] [F04](./04-public-html-expansion.md) — In progress: homepage, hubs and all nine standard package categories implemented; latest seven await deployment/manual acceptance
 - [ ] [F11](./11-image-discovery.md) — Provide crawlable discovery for intended photography
-- [ ] [F13](./13-performance-and-core-web-vitals.md) — Measure and improve public-page performance
+- [ ] [F13](./13-performance-and-core-web-vitals.md) — In progress: production lab baseline and diagnosis; improvements and field acceptance remain pending
 - [ ] [F14](./14-social-preview-metadata.md) — Support route-specific social previews
 - [ ] [F15](./15-authored-meta-descriptions.md) — Preserve authored metadata descriptions
 - [ ] [F16](./16-sitemap-freshness.md) — Extend trustworthy sitemap modification dates
@@ -106,12 +106,28 @@ Start with F01. Within a chunk, take ready items in the listed order; independen
 | Chunk | Items | Complete | Remaining | Status |
 |---|---:|---:|---:|---|
 | 1 — Routing and content correctness | 5 | 5 | 0 | Complete for implementation tracking |
-| 2 — Indexing and usability | 4 | 3 | 1 | In progress |
-| 3 — Rendering, media and metadata | 7 | 0 | 7 | Not started |
+| 2 — Indexing and usability | 4 | 4 | 0 | Complete for implementation tracking |
+| 3 — Rendering, media and metadata | 7 | 1 | 6 | In progress |
 | 4 — Content growth and ongoing verification | 3 | 0 | 3 | Not started |
-| **Overall** | **19** | **8** | **11** | **In progress** |
+| **Overall** | **19** | **10** | **9** | **In progress: 2 active, 7 not started** |
 
-**Recommended next task:** [F04](./04-public-html-expansion.md) — deploy and verify wedding/newborn packages, then expand remaining package categories. Totals are **10 / 19 complete** for implementation tracking; deployment/external follow-ups remain recorded separately.
+**Recommended next task:** [F04](./04-public-html-expansion.md) — deploy/verify the remaining seven package categories, then expand remaining services. In parallel, [F13](./13-performance-and-core-web-vitals.md) can investigate Booking's repeated layout shift and late background-image loading using the [production baseline](./evidence/f13-production-baseline.md). Totals are **10 / 19 complete** for implementation tracking; deployment/external follow-ups remain recorded separately.
+
+## Parallel execution
+
+Tasks are not all serial. Dependency gates still apply; implementation completion does not replace content-owner or deployed acceptance.
+
+| Workstream | Can proceed now | Gate / coordination |
+|---|---|---|
+| Rendering — F04 | Deploy/verify the seven added package categories, then remaining services | Release and verify one family before the next; retain manual acceptance gates |
+| Performance — F13 | Booking layout-shift/LCP investigation from the recorded baseline | Compare before/after; coordinate bundle/component changes with rendering work |
+| Metadata — F14, F15, F16 | Social previews, authored descriptions and sitemap dates | Existing implementation prerequisites are met; use approved imagery and coordinate edits to shared SEO/prerender files |
+| Business facts — I02 | Verify identity and structured-data facts | Requires authoritative business/content-owner confirmation |
+| Monitoring — I03 | Setup and baseline collection | Final closure waits for every prerequisite |
+| Image discovery — F11 | Inventory/preparation | Implementation depends on F04 and approved media |
+| Case studies — I01 | Collect approved sessions and draft content | Publication depends on F04, original media and client permission |
+
+Suggested practical split: continue F04 while F13 measurement and I02 verification run independently; handle F14/F15/F16 as a coordinated metadata workstream. Parallel work does not require deploying all changes together.
 
 ## Execution defaults and dependency rules
 
@@ -206,3 +222,6 @@ The creator validates these separately from remediation completion:
 | 2026-09-08 | F04 homepage increment implemented locally with shared rendering, public media snapshots and isolated private shell | 10 / 19 | Verify homepage candidate/production before expanding hubs; F04 remains In progress |
 | 2026-09-08 | F04 services/packages hubs implemented locally; published cards and empty states rendered with shared hydration | 10 / 19 | Deploy/verify hubs before wedding/newborn package-category rendering |
 | 2026-09-08 | F04 wedding/newborn package rendering implemented locally with public offer snapshots and scoped media | 10 / 19 | Deploy/verify this pair before expanding remaining package categories |
+| 2026-09-08 | Corrected master dashboard to 10 implemented / 9 remaining (F04 active, eight not started); added dependency-based parallel workstreams | 10 / 19 | User reports wedding/newborn HTML smoke and all 98 path checks passed; retain manual acceptance and continue F04 |
+| 2026-09-08 | F04 remaining seven package categories implemented locally; F13 production lab baseline started in parallel | 10 / 19 | Deploy/verify package expansion; use F13 measurements to prioritize the next performance change |
+| 2026-09-08 | F13 recorded 15 production mobile Lighthouse samples across five page families; Booking median LCP 8.62s and CLS 0.629 identify the first investigation | 10 / 19 | Investigate Booking insertion/layout and lazy LCP image, then compare a scoped fix; field data and interaction profiling remain pending |

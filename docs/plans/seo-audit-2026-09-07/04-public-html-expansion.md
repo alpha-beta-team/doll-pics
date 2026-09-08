@@ -3,7 +3,7 @@
 **Audit ID:** F04  
 **Priority:** High  
 **Effort:** Large (1–3 weeks in increments)  
-**Status:** In progress — homepage, hubs and first two package categories implemented locally\
+**Status:** In progress — homepage, hubs and nine standard package categories implemented locally\
 **Responsible role:** Frontend engineer with content reviewer  
 **Assigned owner:** Frontend implementation; frontend/content reviewer for deployment acceptance\
 **Chunk:** 3 — Rendering, media and metadata  
@@ -44,7 +44,7 @@ Historical context (retain its original records; do not copy old statuses into t
 - [x] Generalize route renderer and snapshot selection beyond a ServicePage-only assumption; preserve route/version validation and public field allowlists.
 - [x] Render the homepage first, including meaningful heading, approved media, contact and service discovery links.
 - [x] Render /services and /packages hubs next using the authoritative public catalog.
-- [ ] Render package-category pages next, beginning with wedding and newborn, then the remaining intended published package routes.
+- [x] Render package-category pages next, beginning with wedding and newborn, then the remaining intended published package routes — all nine standard categories implemented; deployed/manual acceptance remains pending for the latest seven.
 - [ ] Render the other intended published services and the gallery's initial content; then work/about/stories/contact and legal pages using their existing components.
 - [ ] Release each page family separately; disable observer-only hiding in initial HTML and match the first browser render to its snapshot.
 - [ ] Exercise light/dark preference restoration, malformed snapshots, stale assets, independent CMS/media failures and route transitions.
@@ -94,8 +94,8 @@ Promote through the existing release workflow only when this item's applicable g
 
 | Stage | State | Evidence |
 |---|---|---|
-| Remediation implementation | In progress | Homepage, hubs and wedding/newborn packages added; three service routes retained. Remaining families are pending |
-| Local remediation validation | Homepage passed | [Fixture evidence](./evidence/f04-home-local-verification.json): initial HTML, hydration, themes, failures, controlled rebuild, enquiry and exclusion checks |
+| Remediation implementation | In progress | Homepage, hubs and nine standard package categories added; three service routes retained. Remaining service/public families are pending |
+| Local remediation validation | Implemented families passed | Homepage/hub/pilot evidence below; [all-package evidence](./evidence/f04-all-packages-local-verification.json) records release, HTML smoke and 72 browser cases for nine categories |
 | Preview/production acceptance | Pending | Requires deployed verification |
 | External checks | Pending | Apply the requirements above; label non-applicable checks explicitly |
 
@@ -152,3 +152,14 @@ User authorized this increment after reporting deployed hub HTML/path smoke succ
 - Local checks: empty-offer build/HTML smoke, controlled populated rebuild, 16 mobile/desktop JS/no-JS and stored-theme browser cases, six failure/malformed/stale-asset cases, mocked enquiry, field-allowlist and malformed/private snapshot checks. JavaScript restores light/dark preference; no-JavaScript retains build-time dark. `check:release` passed with existing lint warnings. [Evidence](./evidence/f04-package-pilot-local-verification.json).
 
 **Next gate:** deploy this pair and verify actual CMS prices, inclusions, category photos, enquiry/navigation, no-JavaScript visibility and both themes; run both deployed smoke tools and record commit/deployment. Then expand the remaining intended package categories. This pair is local and uncommitted; no production acceptance claimed. F04 stays In progress and totals remain 10 / 19.
+
+### Increment 4 — remaining standard package categories (8 September 2026)
+
+User authorized F04 expansion and F13 measurements in parallel after reporting both deployed smoke checks passed for wedding/newborn packages.
+
+- Added pre-wedding, maternity, baby milestone, cake smash, family, baby shower and toddler baby shoot to the existing explicit registry. All nine standard package routes now use the established PackageCategoryPage renderer and validated public snapshots.
+- No renderer, pricing, snapshot, media or hosting behavior was rewritten. The published catalog still gates each registered route. Future custom CMS routes need a separate registry review; registration does not force an unpublished page live.
+- Release check and fixture HTML smoke passed. Chromium checked nine categories × JS/no-JS × 390px/1440px × stored light/dark preference (72 cases), with pricing/inclusion, category-image, visibility, overflow, enquiry-dialog and back-navigation assertions. JavaScript restores both themes; no-JavaScript retains build-time dark.
+- Additional checks covered each publication gate, private exclusion, the toddler plural alias, intentionally unavailable cake-smash photography and an empty baby-shower offer list. No spec files or CMS writes. [Evidence](./evidence/f04-all-packages-local-verification.json).
+
+**Next gate:** deploy the latest seven routes and run both smoke commands against the candidate/production. Manually compare actual prices, inclusions and category photos and check no-JavaScript, themes and navigation. Then expand the remaining published services and subsequent public-page families. F04 remains In progress; this change is local and uncommitted.

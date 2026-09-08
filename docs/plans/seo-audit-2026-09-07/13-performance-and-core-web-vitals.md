@@ -3,9 +3,9 @@
 **Audit ID:** F13  
 **Priority:** Medium  
 **Effort:** Medium (1–3 days after baseline)  
-**Status:** Not started  
+**Status:** In progress\
 **Responsible role:** Frontend engineer  
-**Assigned owner:** Unassigned  
+**Assigned owner:** Frontend engineer (measurement increment)\
 **Chunk:** 3 — Rendering, media and metadata  
 **Baseline:** Conversation audit, 7 September 2026, repository revision `ff8e0ad`
 
@@ -42,8 +42,8 @@ Historical context (retain its original records; do not copy old statuses into t
 
 ## Ordered checklist
 
-- [ ] Record commit, served asset, device/network settings and repeatable baseline for home, service, package, gallery and booking.
-- [ ] Run three comparable Lighthouse samples and record medians plus actual LCP element, TBT and layout-shift causes.
+- [x] Record commit, served asset, device/network settings and repeatable baseline for home, service, package, gallery and booking.
+- [x] Run three comparable Lighthouse samples and record medians plus actual LCP element, TBT and layout-shift causes. (Mobile baseline; desktop and detailed interaction traces remain pending.)
 - [ ] Inspect field LCP/INP/CLS where available and clearly separate origin fallback from URL data.
 - [ ] Use CSS coverage and waterfall evidence to decide whether critical-only inline CSS plus a cached shared stylesheet improves the current tradeoff.
 - [ ] Check hero preload/rendered-source agreement, responsive sizes, font requests, third-party work and duplicate generic/category media requests.
@@ -65,8 +65,8 @@ Commands below are for future remediation verification and were not run merely t
 
 ```sh
 npm run typecheck
-npm run test:lib
-npm run test:browser
+npm run lint
+# Use focused browser verification for any eventual code change; no spec files are added.
 ```
 
 - [ ] Record the changed behavior, command outcomes, commit and relevant fixture/browser evidence.
@@ -94,10 +94,10 @@ Promote through the existing release workflow only when this item's applicable g
 
 | Stage | State | Evidence |
 |---|---|---|
-| Remediation implementation | Not started | Plan only; no application changes made |
-| Local remediation validation | Pending | Audit baseline is not proof of a future fix |
-| Preview/production acceptance | Pending | Requires deployed verification |
-| External checks | Pending | Apply the requirements above; label non-applicable checks explicitly |
+| Remediation implementation | In progress | Production lab baseline and diagnosis recorded; no application optimization in this increment |
+| Local remediation validation | Pending | No application change to validate; before/after and interaction profiling remain pending |
+| Preview/production acceptance | Baseline recorded; remediation pending | Deployed commit `85cbd29c60e3b92030b542a827c41ec96a38d309`; measurement is not acceptance of a future optimization |
+| External checks | Pending | PSI API returned HTTP 429; CrUX URL/origin and Search Console field data remain unverified |
 
 Update this header, this record, the master row, chunk checkbox and totals together. Use `Ready for verification` when implementation and required local checks pass but applicable deployment/manual checks remain. Use `Complete` only after this item's acceptance criteria pass; record non-gating ongoing observations separately. `Blocked` requires a blocker, responsible role and concrete next action.
 
@@ -107,3 +107,15 @@ Update this header, this record, the master row, chunk checkbox and totals toget
 |---|---|---|---|
 | 2026-09-07 | Created the issue checklist; remediation remains Not started | Conversation audit at `ff8e0ad`; no new remediation evidence | Assign owner, recheck baseline, then follow prerequisites and ordered checklist |
 
+
+## Measurement increment — 8 September 2026
+
+[Production baseline and prioritized experiments](./evidence/f13-production-baseline.md) · [Selected machine-readable Lighthouse evidence](./evidence/f13-production-baseline.json).
+
+Fifteen retained serial mobile Lighthouse samples cover home, newborn service, wedding package, gallery and booking against deployed commit `85cbd29c60e3b92030b542a827c41ec96a38d309`. Eleven exploratory samples overlapping concurrent F04 build/browser work were excluded. The mobile medians show low TBT, significant LCP variability and a repeated booking layout shift (median CLS 0.629). Booking content insertion and its lazily loaded LCP background are the first controlled experiment; confirm causes with a trace before changing the shared component.
+
+Deployed gzip, cache headers, actual public script requests, inline CSS coverage, hero preload/source agreement, font shifts and generic/category media requests are recorded. No application optimization was made, so there is no before/after improvement claim. Full interaction profiling, desktop comparisons and field data remain pending; PSI API returned HTTP 429. F13 remains **In progress**.
+
+| Date | Change | Evidence | Remaining blockers / next action |
+|---|---|---|---|
+| 2026-09-08 | Completed first production measurement and diagnosis increment | 3 mobile Lighthouse samples × 5 page families, deployed manifest/entry verification and response headers | Frontend engineer: trace booking shift and test one scoped improvement, then repeat measurements; site owner/SEO operator: obtain field reports when available |

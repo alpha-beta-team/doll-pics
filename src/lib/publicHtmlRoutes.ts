@@ -4,7 +4,17 @@ export const PUBLIC_SERVICE_HTML_ROUTES = {
   '/wedding-photography-erode': 'wedding',
   '/maternity-photography-erode': 'maternity',
 } as const;
-export const PUBLIC_PACKAGE_HTML_ROUTES = { '/wedding-packages-erode': 'wedding', '/newborn-packages-erode': 'newborn' } as const;
+export const PUBLIC_PACKAGE_HTML_ROUTES = {
+  '/wedding-packages-erode': 'wedding',
+  '/newborn-packages-erode': 'newborn',
+  '/pre-wedding-packages-erode': 'pre-wedding',
+  '/maternity-packages-erode': 'maternity',
+  '/baby-milestone-packages-erode': 'baby-milestone',
+  '/cake-smash-packages-erode': 'cake-smash',
+  '/family-packages-erode': 'family',
+  '/baby-shower-packages-erode': 'baby-shower',
+  '/toddler-baby-shoot-packages-erode': 'toddler-baby-shoot',
+} as const;
 export const PUBLIC_HTML_ROUTES = { '/': null, '/services': null, '/packages': null, ...PUBLIC_SERVICE_HTML_ROUTES, ...PUBLIC_PACKAGE_HTML_ROUTES } as const;
 export type PublicHtmlPath = keyof typeof PUBLIC_HTML_ROUTES;
 export const SERVICE_GALLERY_LIMIT = 30;

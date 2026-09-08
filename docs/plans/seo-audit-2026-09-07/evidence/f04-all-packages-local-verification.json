@@ -1,0 +1,597 @@
+{
+  "date": "2026-09-08",
+  "baseCommit": "85cbd29c60e3b92030b542a827c41ec96a38d309",
+  "scope": "Local uncommitted registry expansion to all nine standard package categories; synthetic CMS fixtures; no production deployment",
+  "browserCases": [
+    {
+      "category": "wedding",
+      "javaScriptEnabled": false,
+      "width": 390,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "wedding",
+      "javaScriptEnabled": false,
+      "width": 390,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "wedding",
+      "javaScriptEnabled": false,
+      "width": 1440,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "wedding",
+      "javaScriptEnabled": false,
+      "width": 1440,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "wedding",
+      "javaScriptEnabled": true,
+      "width": 390,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "wedding",
+      "javaScriptEnabled": true,
+      "width": 390,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "wedding",
+      "javaScriptEnabled": true,
+      "width": 1440,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "wedding",
+      "javaScriptEnabled": true,
+      "width": 1440,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "newborn",
+      "javaScriptEnabled": false,
+      "width": 390,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "newborn",
+      "javaScriptEnabled": false,
+      "width": 390,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "newborn",
+      "javaScriptEnabled": false,
+      "width": 1440,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "newborn",
+      "javaScriptEnabled": false,
+      "width": 1440,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "newborn",
+      "javaScriptEnabled": true,
+      "width": 390,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "newborn",
+      "javaScriptEnabled": true,
+      "width": 390,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "newborn",
+      "javaScriptEnabled": true,
+      "width": 1440,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "newborn",
+      "javaScriptEnabled": true,
+      "width": 1440,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "pre-wedding",
+      "javaScriptEnabled": false,
+      "width": 390,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "pre-wedding",
+      "javaScriptEnabled": false,
+      "width": 390,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "pre-wedding",
+      "javaScriptEnabled": false,
+      "width": 1440,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "pre-wedding",
+      "javaScriptEnabled": false,
+      "width": 1440,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "pre-wedding",
+      "javaScriptEnabled": true,
+      "width": 390,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "pre-wedding",
+      "javaScriptEnabled": true,
+      "width": 390,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "pre-wedding",
+      "javaScriptEnabled": true,
+      "width": 1440,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "pre-wedding",
+      "javaScriptEnabled": true,
+      "width": 1440,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "maternity",
+      "javaScriptEnabled": false,
+      "width": 390,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "maternity",
+      "javaScriptEnabled": false,
+      "width": 390,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "maternity",
+      "javaScriptEnabled": false,
+      "width": 1440,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "maternity",
+      "javaScriptEnabled": false,
+      "width": 1440,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "maternity",
+      "javaScriptEnabled": true,
+      "width": 390,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "maternity",
+      "javaScriptEnabled": true,
+      "width": 390,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "maternity",
+      "javaScriptEnabled": true,
+      "width": 1440,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "maternity",
+      "javaScriptEnabled": true,
+      "width": 1440,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "baby-milestone",
+      "javaScriptEnabled": false,
+      "width": 390,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "baby-milestone",
+      "javaScriptEnabled": false,
+      "width": 390,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "baby-milestone",
+      "javaScriptEnabled": false,
+      "width": 1440,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "baby-milestone",
+      "javaScriptEnabled": false,
+      "width": 1440,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "baby-milestone",
+      "javaScriptEnabled": true,
+      "width": 390,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "baby-milestone",
+      "javaScriptEnabled": true,
+      "width": 390,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "baby-milestone",
+      "javaScriptEnabled": true,
+      "width": 1440,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "baby-milestone",
+      "javaScriptEnabled": true,
+      "width": 1440,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "cake-smash",
+      "javaScriptEnabled": false,
+      "width": 390,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "cake-smash",
+      "javaScriptEnabled": false,
+      "width": 390,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "cake-smash",
+      "javaScriptEnabled": false,
+      "width": 1440,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "cake-smash",
+      "javaScriptEnabled": false,
+      "width": 1440,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "cake-smash",
+      "javaScriptEnabled": true,
+      "width": 390,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "cake-smash",
+      "javaScriptEnabled": true,
+      "width": 390,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "cake-smash",
+      "javaScriptEnabled": true,
+      "width": 1440,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "cake-smash",
+      "javaScriptEnabled": true,
+      "width": 1440,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "family",
+      "javaScriptEnabled": false,
+      "width": 390,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "family",
+      "javaScriptEnabled": false,
+      "width": 390,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "family",
+      "javaScriptEnabled": false,
+      "width": 1440,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "family",
+      "javaScriptEnabled": false,
+      "width": 1440,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "family",
+      "javaScriptEnabled": true,
+      "width": 390,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "family",
+      "javaScriptEnabled": true,
+      "width": 390,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "family",
+      "javaScriptEnabled": true,
+      "width": 1440,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "family",
+      "javaScriptEnabled": true,
+      "width": 1440,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "baby-shower",
+      "javaScriptEnabled": false,
+      "width": 390,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "baby-shower",
+      "javaScriptEnabled": false,
+      "width": 390,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "baby-shower",
+      "javaScriptEnabled": false,
+      "width": 1440,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "baby-shower",
+      "javaScriptEnabled": false,
+      "width": 1440,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "baby-shower",
+      "javaScriptEnabled": true,
+      "width": 390,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "baby-shower",
+      "javaScriptEnabled": true,
+      "width": 390,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "baby-shower",
+      "javaScriptEnabled": true,
+      "width": 1440,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "baby-shower",
+      "javaScriptEnabled": true,
+      "width": 1440,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "toddler-baby-shoot",
+      "javaScriptEnabled": false,
+      "width": 390,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "toddler-baby-shoot",
+      "javaScriptEnabled": false,
+      "width": 390,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "toddler-baby-shoot",
+      "javaScriptEnabled": false,
+      "width": 1440,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "toddler-baby-shoot",
+      "javaScriptEnabled": false,
+      "width": 1440,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "toddler-baby-shoot",
+      "javaScriptEnabled": true,
+      "width": 390,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "toddler-baby-shoot",
+      "javaScriptEnabled": true,
+      "width": 390,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "toddler-baby-shoot",
+      "javaScriptEnabled": true,
+      "width": 1440,
+      "theme": "light",
+      "offers": 8,
+      "passed": true
+    },
+    {
+      "category": "toddler-baby-shoot",
+      "javaScriptEnabled": true,
+      "width": 1440,
+      "theme": "dark",
+      "offers": 8,
+      "passed": true
+    }
+  ],
+  "additionalChecks": [
+    "check:release passed with existing lint warnings",
+    "Published HTML smoke passed across all registered families and private/404 exclusions",
+    "Nine registered category publication gates checked; missing/unpublished category not rendered even with unavailable service catalog",
+    "Toddler plural alias resolves the intended pricing and media",
+    "Empty cake-smash photography and empty baby-shower pricing states verified without JavaScript",
+    "Explicit category-specific image URL assertions; no external enquiry submissions"
+  ],
+  "themeNote": "JavaScript restores light/dark preference. No-JavaScript keeps build-time dark theme.",
+  "pending": [
+    "Deploy and run HTML/path smoke",
+    "Manual real CMS content/media/price review",
+    "Remaining F04 service and other public-page families"
+  ]
+}
