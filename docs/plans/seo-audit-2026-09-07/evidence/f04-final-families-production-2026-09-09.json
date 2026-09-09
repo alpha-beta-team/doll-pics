@@ -1,0 +1,69 @@
+{
+  "checkedAt": "2026-09-09T09:20:18.562Z",
+  "baseUrl": "https://dollpictures.in",
+  "build": {
+    "commit": "7a8fe9a9c6e7b01ae25297587cdffefd4b1f3006",
+    "createdAt": "2026-09-09T09:14:02.712Z",
+    "publicOrigin": "https://dollpictures.in"
+  },
+  "publishedPaths": 32,
+  "routes": [
+    {
+      "path": "/stories",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "marker": "/stories",
+      "heading": "Kind words.Lasting memories.",
+      "rootTextLength": 3822,
+      "snapshotCount": 1,
+      "snapshotPath": "/stories"
+    },
+    {
+      "path": "/contact",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "marker": "/contact",
+      "heading": "Let's createsomething timeless.",
+      "rootTextLength": 2144,
+      "snapshotCount": 1,
+      "snapshotPath": "/contact"
+    },
+    {
+      "path": "/privacy",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "marker": "/privacy",
+      "heading": "Privacy Policy",
+      "rootTextLength": 2983,
+      "snapshotCount": 1,
+      "snapshotPath": "/privacy"
+    },
+    {
+      "path": "/terms",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "marker": "/terms",
+      "heading": "Terms of Service",
+      "rootTextLength": 3106,
+      "snapshotCount": 1,
+      "snapshotPath": "/terms"
+    }
+  ],
+  "checks": {
+    "htmlSmoke": {
+      "command": "npm run seo:html-smoke -- --require-cms --base-url https://dollpictures.in",
+      "exitCode": 0,
+      "result": "> doll-pics@0.0.0 seo:html-smoke\n> tsx scripts/check-public-html-deployment.ts --require-cms --base-url https://dollpictures.in\n\nPublic HTML smoke passed: published HTML, active service snapshots, metadata, sitemap, exclusions and true 404."
+    },
+    "pathsSmoke": {
+      "command": "npm run seo:paths-smoke -- --base-url https://dollpictures.in",
+      "exitCode": 0,
+      "result": "> doll-pics@0.0.0 seo:paths-smoke\n> tsx scripts/check-public-paths-deployment.ts --base-url https://dollpictures.in\n\nPublic path smoke passed: 98 case/slash/query and unknown/private checks."
+    }
+  },
+  "limits": [
+    "Automated HTTP/source acceptance only; no production JavaScript browser or visual test performed in this run",
+    "No actual enquiry submitted; content-owner approval and manual interaction review remain pending",
+    "No independent expected-catalog CMS release gate, Search Console or field Core Web Vitals claim"
+  ]
+}

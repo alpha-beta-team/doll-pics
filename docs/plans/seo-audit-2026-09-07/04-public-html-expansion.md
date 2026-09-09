@@ -3,8 +3,8 @@
 **Audit ID:** F04  
 **Priority:** High  
 **Effort:** Large (1–3 weeks in increments)  
-**Status:** Ready for verification — planned page-family implementation complete; final deployment/manual acceptance pending\
-**Status updated:** 9 September 2026 — implementation and local validation complete; final four pages await deployment acceptance\
+**Status:** Ready for verification — implementation, local validation and automated production checks passed; manual acceptance pending\
+**Status updated:** 9 September 2026 — final four pages verified in production on `7a8fe9a`; manual content/browser review remains\
 **Responsible role:** Frontend engineer with content reviewer  
 **Assigned owner:** Frontend implementation; frontend/content reviewer for deployment acceptance\
 **Chunk:** 3 — Rendering, media and metadata  
@@ -51,14 +51,14 @@ Historical context (retain its original records; do not copy old statuses into t
 - [x] Render the gallery's initial content using its existing component — local validation and automated production checks passed; manual content/browser acceptance remains.
 - [x] Render Work using its existing FeaturedWork component — local validation and automated production checks passed; manual content/browser acceptance remains.
 - [x] Render About using its existing components and public staff/process snapshots — local validation and automated production checks passed; manual content/browser acceptance remains.
-- [x] Render Stories/Contact and legal pages using their existing components — Stories, Contact, Privacy and Terms implemented and locally verified on 9 September 2026.
+- [x] Render Stories/Contact and legal pages using their existing components — Stories, Contact, Privacy and Terms implemented, locally verified and confirmed in production on `7a8fe9a` on 9 September 2026.
 - [ ] Release each page family separately; disable observer-only hiding in initial HTML and match the first browser render to its snapshot.
 - [x] Exercise light/dark preference restoration, malformed snapshots, stale assets, independent CMS/media failures and route transitions — local checks recorded per family, including the final four pages below; deployed review remains separate.
 - [x] Prove a controlled QA content change reaches generated HTML and hydrated content after rebuild before expanding the next family — controlled local rebuild evidence recorded for CMS-backed families, including edited reviews and Contact media. Legal copy is source-authored.
 
 ## Acceptance criteria
 
-- [ ] Each released family has meaningful heading, copy and crawlable links inside #root without JavaScript.
+- [x] Each released family has meaningful heading, copy and crawlable links inside #root without JavaScript — production CMS-strict HTML smoke passed on `7a8fe9a`, including the final four pages.
 - [ ] Initial and hydrated content agree with the approved catalog and available CMS content.
 - [ ] A newly published custom service and package category, absent from the code registry, render matching headings, content, links and validated snapshots after rebuild; package offers and photos stay scoped to their category. Both deployed smoke tools discover and verify these routes from the catalog.
 - [ ] Controlled QA publish, edit, unpublish/delete and republish checks prove rebuilt HTML, hydration, navigation and sitemap stay consistent; retired routes return true 404 and unpublished, conflicting or reserved paths never become renderable. Record the rebuild/deploy trigger and retain F06 freshness/provenance gates; CMS edits alone do not rewrite deployed HTML.
@@ -84,7 +84,7 @@ npm run seo:paths-smoke -- --base-url https://YOUR-CANDIDATE-URL
 
 Run both smoke tools against each released candidate and production; extend validators as route coverage expands. Record commit, deployment, source provenance and served entry asset.
 
-- [ ] Record preview/production URLs, deployment date, commit, relevant HTTP/DOM evidence and any unverified hosting target.
+- [x] Record preview/production URLs, deployment date, commit, relevant HTTP/DOM evidence and any unverified hosting target — production URL, build timestamp, commit and HTTP/source evidence recorded below; separate preview hosting and production browser/manual review remain unverified.
 
 ### External
 
@@ -104,7 +104,7 @@ Promote through the existing release workflow only when this item's applicable g
 |---|---|---|
 | Remediation implementation | Complete; ready for verification | All planned families implemented: home, hubs, published services/package categories, Gallery, Work, About, Stories, Contact, Privacy and Terms |
 | Local remediation validation | Passed | Earlier family evidence below; [final-family evidence](./evidence/f04-final-families-local-verification.json): release check, strict/optional HTML smoke, 84 browser cases, 40 snapshot/content rejection cases and controlled rebuilds |
-| Preview/production acceptance | Pending for the final four pages; manual review remains | [9 September recovery evidence](./evidence/f04-production-recovery-2026-09-09.json) covers the earlier families on `aa0f0ca`. Stories, Contact, Privacy and Terms require deployment and the updated smoke checks |
+| Preview/production acceptance | Automated production checks passed; manual review pending | [Final-family production evidence](./evidence/f04-final-families-production-2026-09-09.json): CMS-strict HTML smoke and all 98 path checks passed on `7a8fe9a`; Stories, Contact, Privacy and Terms return HTTP 200 with matching rendered roots/snapshots. Separate preview and manual browser/content acceptance remain unverified |
 | External checks | Pending | Apply the requirements above; label non-applicable checks explicitly |
 
 Update this header, this record, the master row, chunk checkbox and totals together. Use `Ready for verification` when implementation and required local checks pass but applicable deployment/manual checks remain. Use `Complete` only after this item's acceptance criteria pass; record non-gating ongoing observations separately. `Blocked` requires a blocker, responsible role and concrete next action.
@@ -247,3 +247,9 @@ User requested completion of the remaining implementation together. Stories, Con
 - `check:release` passed, including middleware runtime validation; eight existing lint warnings and existing bundle-size warnings remain. CMS-strict HTML smoke passed for populated, empty and edited fixtures. Strict builds rejected unavailable review/featured collections; optional builds and browser recovery passed independently. Forty malformed snapshot/missing-content cases were rejected. Eighty-four browser cases covered four pages, JS/no-JS, mobile/desktop, stored themes, navigation, mocked enquiry, controlled edits, missing snapshots/assets and independent resource failures. Mobile no-JavaScript Stories/Contact screenshots inspected. [Evidence](./evidence/f04-final-families-local-verification.json).
 
 **Next gate:** deploy this candidate and run both updated smoke commands, then review approved reviews/photos/legal copy, no-JavaScript content, themes and interactions on the deployed pages. Earlier production success does not verify these additions. F04 is **Ready for verification**; final closure and master completion totals await deployment/manual acceptance. No spec files, CMS writes or deployment were added during this increment.
+
+### Final-family production checks passed — 9 September 2026
+
+After the user reported both smoke checks passing, reran the CMS-strict HTML smoke and all 98 path checks against `https://dollpictures.in`; both exited successfully. The served catalog identifies commit `7a8fe9a9c6e7b01ae25297587cdffefd4b1f3006`, built `2026-09-09T09:14:02.712Z`, with 32 published paths. Direct requests at `2026-09-09T09:20:18.562Z` confirmed HTTP 200, substantive content and one matching snapshot for each of Stories, Contact, Privacy and Terms. [Evidence](./evidence/f04-final-families-production-2026-09-09.json).
+
+Automated deployment acceptance is now recorded for the final families. The pasted `3.` shell error was a numbered-list label entered as a command and did not affect either smoke result. Manual production content/browser review and approval remain pending; no real enquiry was submitted. F04 stays **Ready for verification**, with no increase to completed totals until the remaining acceptance is recorded.

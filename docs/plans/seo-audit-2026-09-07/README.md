@@ -7,7 +7,7 @@
 **Program status:** In progress\
 **Completion:** **10 / 19 items complete**
 
-**Current status:** 10 complete, F04 ready for verification, F13 in progress, 7 not started. F04 implementation and local validation are complete; deployment/manual acceptance for Stories, Contact, Privacy and Terms remains pending.
+**Current status:** 10 complete, F04 ready for verification, F13 in progress, 7 not started. F04 implementation, local validation and automated production checks passed; manual content/browser acceptance remains pending.
 
 ## Objective and boundaries
 
@@ -87,7 +87,7 @@ Start with F01. Within a chunk, take ready items in the listed order; independen
 **Completion:** 1 / 7
 
 - [x] [F10](./10-authentic-category-media.md) — Use authentic and category-relevant portfolio media — Complete for implementation tracking; studio approval and deployed media checks remain pending
-- [ ] [F04](./04-public-html-expansion.md) — Ready for verification: all planned families implemented, including Stories, Contact, Privacy and Terms; final four pages passed local validation and await deployment/manual acceptance
+- [ ] [F04](./04-public-html-expansion.md) — Ready for verification: all planned families implemented; CMS-strict HTML smoke and all 98 production path checks passed on `7a8fe9a`, including Stories, Contact, Privacy and Terms; manual acceptance remains
 - [ ] [F11](./11-image-discovery.md) — Provide crawlable discovery for intended photography
 - [ ] [F13](./13-performance-and-core-web-vitals.md) — In progress: Booking fixes verified in production; three mobile samples show CLS 0.00344 and LCP 7.07s; image discovery, broader profiling and field acceptance remain open
 - [ ] [F14](./14-social-preview-metadata.md) — Support route-specific social previews
@@ -113,7 +113,7 @@ Start with F01. Within a chunk, take ready items in the listed order; independen
 | 4 — Content growth and ongoing verification | 3 | 0 | 3 | Not started |
 | **Overall** | **19** | **10** | **9** | **1 in progress, 1 ready for verification, 7 not started** |
 
-**Recommended next task:** deploy and verify the [completed F04 implementation](./04-public-html-expansion.md), including Stories, Contact, Privacy and Terms. [Local final-family evidence](./evidence/f04-final-families-local-verification.json) records release checks, 84 browser cases and 40 rejection cases. Run both updated production smoke tools and finish manual acceptance; the earlier `aa0f0ca` production result does not cover these additions. F13 Booking production comparison is [recorded](./evidence/f13-booking-production-2026-09-09.md): the footer shift is resolved in three samples; LCP image discovery remains the next experiment. Totals remain **10 / 19 complete** for implementation tracking.
+**Recommended next task:** complete manual content/browser acceptance for [F04](./04-public-html-expansion.md), then proceed to [F11 image discovery](./11-image-discovery.md). [Final-family production evidence](./evidence/f04-final-families-production-2026-09-09.json) records CMS-strict HTML smoke and all 98 path checks passing on `7a8fe9a`, with matching initial content/snapshots for Stories, Contact, Privacy and Terms. Automated checks do not replace content approval or browser review. F13 Booking production comparison is [recorded](./evidence/f13-booking-production-2026-09-09.md): the footer shift is resolved in three samples; LCP image discovery remains the next experiment. Totals remain **10 / 19 complete** for implementation tracking.
 
 ## Parallel execution
 
@@ -121,7 +121,7 @@ Tasks are not all serial. Dependency gates still apply; implementation completio
 
 | Workstream | Can proceed now | Gate / coordination |
 |---|---|---|
-| Rendering — F04 | Deploy/verify the completed Stories, Contact, Privacy and Terms increment | Run both updated smoke tools and finish real-content/browser acceptance; preserve catalog publication and rebuild gates |
+| Rendering — F04 | Complete manual content/browser acceptance of the deployed final four pages | Automated production HTML and path checks passed on `7a8fe9a`; review approved content, no-JavaScript visibility, themes and interactions |
 | Performance — F13 | Prepare a controlled earlier-discovery experiment for the Booking background; deployed CLS comparison passed | Compare against the 9 September baseline; coordinate public HTML/CMS changes with F04 |
 | Metadata — F14, F15, F16 | Social previews, authored descriptions and sitemap dates | Existing implementation prerequisites are met; use approved imagery and coordinate edits to shared SEO/prerender files |
 | Business facts — I02 | Verify identity and structured-data facts | Requires authoritative business/content-owner confirmation |
@@ -235,3 +235,4 @@ The creator validates these separately from remediation completion:
 | 2026-09-09 | Verified production recovery on `aa0f0ca`: CMS-strict HTML and 98 path checks passed; Work/About/admin HTML return 200 | 10 / 19 | Continue Stories/Contact/legal rendering; retain manual acceptance and F13 performance measurements |
 | 2026-09-09 | F13 verified deployed Booking fixes on `90a068e`; three comparable mobile samples: CLS 0.62908 → 0.00344, LCP 8.62s → 7.07s, score 51 → 74 | 10 / 19 | Continue CMS/JS background-discovery experiment; broader performance and field acceptance remain pending |
 | 2026-09-09 | Completed F04 Stories, Contact, Privacy and Terms implementation; release checks, 84 local browser cases and 40 snapshot/content rejection cases passed | 10 / 19 | F04 Ready for verification: deploy and run updated smoke checks, then complete manual acceptance |
+| 2026-09-09 | Verified final F04 families in production on `7a8fe9a`: CMS-strict HTML and 98 path checks passed; four direct HTTP/source probes confirmed matching roots and snapshots | 10 / 19 | Complete manual content/browser acceptance, then close F04 and proceed to F11 |
