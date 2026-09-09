@@ -18,8 +18,15 @@ export function bookingTimeWindowError(
   return null;
 }
 
-export function formatTimeWindow(startTime?: string, endTime?: string): string {
-  return startTime && endTime ? `${startTime}–${endTime}` : 'Time not set';
+export function formatTimeWindow(startTime?: string, endTime?: string, format: '12h' | '24h' = '24h'): string {
+  if (!startTime || !endTime) return 'Time not set';
+  const formatTime = (time: string) => {
+    if (format === '24h' || !TIME_PATTERN.test(time)) return time;
+    const [hour, minute] = time.split(':');
+    const hours = Number(hour);
+    return `${hours % 12 || 12}:${minute} ${hours >= 12 ? 'PM' : 'AM'}`;
+  };
+  return `${formatTime(startTime)}–${formatTime(endTime)}`;
 }
 
 export function bookingDurationLabel(startTime?: string, endTime?: string): string {

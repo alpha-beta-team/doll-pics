@@ -1,0 +1,50 @@
+{
+  "checkedAt": "2026-09-09T02:45:03.221Z",
+  "build": {
+    "commit": "aa0f0ca33020a498d0638ba5627d8247525071ad",
+    "createdAt": "2026-09-08T16:22:56.914Z",
+    "publicOrigin": "https://dollpictures.in"
+  },
+  "pathCount": 32,
+  "results": [
+    {
+      "path": "/admin/enquiries",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "robots": "noindex, nofollow",
+      "error": null
+    },
+    {
+      "path": "/work",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "robots": null,
+      "error": null
+    },
+    {
+      "path": "/about",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "robots": null,
+      "error": null
+    }
+  ],
+  "result": "automated production checks passed",
+  "commands": [
+    {
+      "command": "npm run seo:html-smoke -- --require-cms --base-url https://dollpictures.in",
+      "passed": true
+    },
+    {
+      "command": "npm run seo:paths-smoke -- --base-url https://dollpictures.in",
+      "passed": true,
+      "checks": 98
+    }
+  ],
+  "limitations": [
+    "HTTP checks do not prove authenticated admin interaction or live enquiry submission",
+    "Manual approved content/media, video playback, accessibility and no-JavaScript browser review remain separate",
+    "Stories, Contact, Privacy and Terms initial rendering remain unimplemented",
+    "F13 post-deployment performance measurements not repeated"
+  ]
+}

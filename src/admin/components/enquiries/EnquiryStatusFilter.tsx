@@ -228,7 +228,7 @@ export function EnquirySortControl({
       <label className="relative hidden shrink-0 sm:block">
         <span className="sr-only">Sort enquiries</span>
         <SlidersHorizontal className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-admin-gold" aria-hidden="true" />
-        <select value={value} onChange={event => onChange(event.target.value as EnquirySort)} className="h-11 min-w-44 appearance-none rounded-xl border border-admin-control bg-admin-surface py-0 pl-9 pr-8 text-sm font-semibold text-admin-secondary outline-none transition hover:border-admin-primary/45 focus-visible:ring-2 focus-visible:ring-admin-focus">
+        <select aria-label="Sort enquiries" value={value} onChange={event => onChange(event.target.value as EnquirySort)} className="h-11 min-w-44 appearance-none rounded-xl border border-admin-control bg-admin-surface py-0 pl-9 pr-8 text-sm font-semibold text-admin-secondary outline-none transition hover:border-admin-primary/45 focus-visible:ring-2 focus-visible:ring-admin-focus">
           {ENQUIRY_SORT_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
         </select>
         <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-admin-subtle" aria-hidden="true" />

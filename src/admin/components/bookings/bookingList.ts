@@ -1,7 +1,7 @@
 import type { Booking, BookingStatus } from '../../types';
 import { leadSourceLabel } from '../leadSource';
 
-export type BookingSort = 'shoot_date' | 'recent' | 'customer' | 'follow_up';
+export type BookingSort = 'shoot_date' | 'shoot_date_desc' | 'recent' | 'customer' | 'follow_up';
 export type BookingListScope = 'pending' | 'all';
 
 export const BOOKING_STATUSES: ReadonlyArray<{ value: BookingStatus; label: string }> = [
@@ -13,7 +13,8 @@ export const BOOKING_STATUSES: ReadonlyArray<{ value: BookingStatus; label: stri
 ];
 
 export const BOOKING_SORT_OPTIONS: ReadonlyArray<{ value: BookingSort; label: string }> = [
-  { value: 'shoot_date', label: 'Shoot date' },
+  { value: 'shoot_date', label: 'Shoot date · Earliest first' },
+  { value: 'shoot_date_desc', label: 'Shoot date · Latest first' },
   { value: 'recent', label: 'Recently created' },
   { value: 'customer', label: 'Customer name' },
   { value: 'follow_up', label: 'Follow-up date' },
@@ -99,7 +100,15 @@ export function sortBookings(bookings: Booking[], sort: BookingSort) {
     if (sort === 'follow_up') {
       return sortableDate(a.nextFollowUpAt) - sortableDate(b.nextFollowUpAt);
     }
-    return sortableDate(a.bookingDate) - sortableDate(b.bookingDate);
+    const aDate = sortableDate(a.bookingDate);
+    const bDate = sortableDate(b.bookingDate);
+    // Unscheduled shoots stay last in either direction.
+    if (aDate !== bDate) {
+      if (!Number.isFinite(aDate)) return 1;
+      if (!Number.isFinite(bDate)) return -1;
+      return sort === 'shoot_date_desc' ? bDate - aDate : aDate - bDate;
+    }
+    return 0;
   });
 }
 

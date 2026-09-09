@@ -1,3 +1,4 @@
+import './enquiries.css';
 import { LEAD_SOURCE_OPTIONS, leadSourceLabel } from '../components/leadSource';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
@@ -10,19 +11,20 @@ import { useFeatureAccess } from '../access/useFeatureAccess';
 import { useAuth } from '../contexts/AuthContext';
 import { ReadOnlyNotice } from '../components/ReadOnlyNotice';
 import { hasStaffPermission } from '../access/roles';
+import { EnquiryMobileHeader } from '../components/enquiries/EnquiryMobileHeader';
 import { EnquiryToolbar } from '../components/enquiries/EnquiryToolbar';
 import {
   EnquirySortControl,
 } from '../components/enquiries/EnquiryStatusFilter';
 import { EnquiryPrioritySummary } from '../components/enquiries/EnquiryPrioritySummary';
-import { EnquiryListHeader, EnquiryViewSwitch } from '../components/enquiries/EnquiryListHeader';
+import { EnquiryViewSelect } from '../components/enquiries/EnquiryListHeader';
+import { EnquiryPagination } from '../components/enquiries/EnquiryPagination';
 import { EnquiryCard, EnquiryCardSkeleton } from '../components/enquiries/EnquiryCard';
 import { SalesWorkspaceHeader } from '../components/sales/SalesWorkspaceHeader';
 import {
   buildServiceCategoryOptions,
   normalizeServiceCategory,
   serviceCategoryMatches,
-  serviceCategoryTabId,
 } from '../components/sales/serviceCategories';
 import {
   ENQUIRY_STAGES,
@@ -36,6 +38,8 @@ import {
   type EnquiryPriorityFilter,
   type EnquirySort,
 } from '../components/enquiries/enquiryList';
+
+const PAGE_SIZE = 7;
 
 type OccasionContact = {
   id: string;
@@ -63,6 +67,7 @@ export function WorkEnquiriesPage() {
   const [priority, setPriority] = useState<EnquiryPriorityFilter>('');
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<EnquirySort>('newest');
+  const [page, setPage] = useState(1);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -143,10 +148,24 @@ export function WorkEnquiriesPage() {
     [matching, serviceCategory, sort],
   );
 
+  useEffect(() => { setPage(1); }, [scope, stage, priority, query, sort, serviceCategory, source, dateFrom, dateTo]);
+  const pageCount = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount);
+  const pageItems = visible.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
   const activeEnquiryCount = useMemo(
     () => items.filter(item => enquiryMatchesScope(item, 'active')).length,
     [items],
   );
+
+  const mobileCounts = useMemo(() => {
+    const now = new Date();
+    return {
+      newCount: items.filter(item => item.stage === 'new').length,
+      newTodayCount: items.filter(item => item.stage === 'new' && new Date(item.createdAt).toDateString() === now.toDateString()).length,
+      dueTodayCount: items.filter(item => item.nextFollowUpAt && followUpUrgency(item.nextFollowUpAt, now) === 'due_today').length,
+    };
+  }, [items]);
 
   const activeFilterCount = Number(stage !== 'all') + Number(Boolean(priority)) + Number(Boolean(source)) + Number(Boolean(dateFrom || dateTo));
   const hasStatusOrPriorityFilter = stage !== 'all' || Boolean(priority);
@@ -192,11 +211,40 @@ export function WorkEnquiriesPage() {
   };
 
   return (
-    <div className="mx-auto max-w-[1320px] space-y-3 pb-2 sm:space-y-4">
+    <div className="enquiries-workspace">
+      <EnquiryMobileHeader
+        total={items.length}
+        activeCount={activeEnquiryCount}
+        {...mobileCounts}
+        view={priority === 'due_today' ? 'due_today' : !priority && stage === 'new' ? 'new' : !priority && stage === 'all' ? scope : ''}
+        onViewChange={view => {
+          setScope(view === 'all' ? 'all' : 'active');
+          setStage(view === 'new' ? 'new' : 'all');
+          setPriority(view === 'due_today' ? 'due_today' : '');
+        }}
+        query={query}
+        onQueryChange={setQuery}
+        filtersOpen={filtersOpen}
+        activeFilterCount={activeFilterCount}
+        onToggleFilters={() => setFiltersOpen(open => !open)}
+        refreshing={refreshing}
+        onRefresh={() => void load(true)}
+        canManage={canManage}
+        onAdd={openForm}
+        services={serviceCategories}
+        service={serviceCategory}
+        onServiceChange={selectServiceCategory}
+        sort={sort}
+        onSortChange={setSort}
+      />
+      {isReadOnly && <div className="px-4 pt-3 sm:hidden"><ReadOnlyNotice /></div>}
+      <div className="hidden sm:block">
       <SalesWorkspaceHeader
         title="Enquiries"
+        studioBadge
+        subtitle={<>{selectedListName}<span className="mx-1.5 text-slate-300">•</span><span className="font-medium text-admin-secondary">{loading ? 'Loading enquiries…' : `${visible.length} ${visible.length === 1 ? 'lead' : 'leads'} in pipeline`}</span></>}
         viewControls={(
-          <EnquiryViewSwitch
+          <EnquiryViewSelect
             scope={scope}
             activeCount={activeEnquiryCount}
             totalCount={items.length}
@@ -211,7 +259,7 @@ export function WorkEnquiriesPage() {
         onServiceCategoryChange={selectServiceCategory}
         panelId="enquiry-list-panel"
         readOnlyNotice={isReadOnly ? <ReadOnlyNotice /> : undefined}
-        listControls={<EnquirySortControl value={sort} onChange={setSort} />}
+        listControls={<div className="flex items-center gap-3"><span className="hidden whitespace-nowrap text-xs text-admin-subtle sm:inline">Sort by:</span><EnquirySortControl value={sort} onChange={setSort} /></div>}
         actions={(
           <EnquiryToolbar
             query={query}
@@ -227,6 +275,8 @@ export function WorkEnquiriesPage() {
         )}
       />
 
+      </div>
+      <div className="enquiry-list-content space-y-5">
       {(reportMode || filtersOpen) && <section aria-label="Source reporting filters" className="rounded-xl border border-admin-border bg-admin-surface p-3">
         <div className="flex flex-wrap items-end gap-3"><label className="min-w-0 flex-1 text-xs font-semibold text-admin-subtle">Source<select aria-label="Enquiry source" value={source} onChange={event => { const next = new URLSearchParams(params); if (event.target.value) next.set('source', event.target.value); else next.delete('source'); setParams(next); }} className="mt-1 min-h-11 w-full rounded-lg border border-admin-border bg-admin-surface px-2 text-sm text-admin-text"><option value="">All sources</option>{LEAD_SOURCE_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}<option value="not_recorded">Not recorded</option></select></label>{(['dateFrom', 'dateTo'] as const).map(key => <label key={key} className="text-xs font-semibold text-admin-subtle">{key === 'dateFrom' ? 'Created from' : 'Created through'}<input aria-label={key === 'dateFrom' ? 'Created from' : 'Created through'} type="date" value={key === 'dateFrom' ? dateFrom : dateTo} onChange={event => { const next = new URLSearchParams(params); if (event.target.value) next.set(key, event.target.value); else next.delete(key); setParams(next); }} className="mt-1 block min-h-11 max-w-full rounded-lg border border-admin-border bg-admin-surface px-2 text-sm text-admin-text" /></label>)}{reportMode && <button className="min-h-11 text-sm font-semibold text-admin-primary underline" onClick={clearFilters}>Clear filters</button>}</div>
         {reportMode && <p className="mt-2 text-xs text-admin-subtle">{source === 'not_recorded' ? 'Not recorded' : source ? leadSourceLabel(source as Enquiry['source']) : 'All sources'} · Creation dates in India time. All stages included unless narrowed below.</p>}
@@ -237,7 +287,7 @@ export function WorkEnquiriesPage() {
           <div className="flex flex-col gap-2 rounded-xl border border-admin-border bg-admin-surface p-2 shadow-sm sm:flex-row sm:items-center">
             <label className="block min-w-0 flex-1 sm:max-w-xs">
               <span className="sr-only">Enquiry status</span>
-              <select value={stage} onChange={event => {
+              <select aria-label="Enquiry status" value={stage} onChange={event => {
                 const nextStage = event.target.value as EnquiryStage | 'all';
                 setStage(nextStage);
                 if (nextStage === 'closed_lost') setScope('all');
@@ -277,15 +327,13 @@ export function WorkEnquiriesPage() {
         </div>
       )}
 
-      <EnquiryListHeader title={selectedListName} count={visible.length} />
-
-      <section id="enquiry-list-panel" role="tabpanel" aria-labelledby={serviceCategoryTabId(serviceCategory)} className="space-y-2 lg:space-y-0 lg:overflow-hidden lg:rounded-xl lg:border lg:border-admin-border lg:bg-admin-surface lg:shadow-[0_4px_18px_rgba(62,56,46,0.04)]">
-        <div className="hidden grid-cols-[minmax(0,1.25fr)_minmax(9rem,0.85fr)_minmax(7.5rem,0.65fr)_minmax(11rem,1fr)_auto] gap-x-5 border-b border-admin-border bg-admin-muted/60 px-5 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-admin-subtle lg:grid">
-          <span>Customer</span><span>Enquiry</span><span>Received</span><span>Follow-up</span><span className="pr-2 text-right">Actions</span>
+      <section id="enquiry-list-panel" aria-labelledby="enquiry-list-panel-title" className="enquiry-list overflow-hidden rounded-xl border border-admin-border bg-admin-surface shadow-[0_4px_20px_rgba(15,23,42,0.04)]" aria-busy={loading || refreshing}>
+        <div className="enquiry-table-heading text-[11px] font-semibold uppercase tracking-wide text-admin-subtle" aria-hidden="true">
+          <span>Customer</span><span>Enquiry / Service</span><span>Received</span><span>Follow-up</span><span className="text-right">Actions</span>
         </div>
 
         {loading ? (
-          <div className="space-y-2 lg:space-y-0" aria-label="Loading enquiries" role="status">
+          <div className="enquiry-rows" aria-label="Loading enquiries" role="status">
             {Array.from({ length: 5 }, (_, index) => <EnquiryCardSkeleton key={index} />)}
             <span className="sr-only">Loading enquiries…</span>
           </div>
@@ -297,13 +345,13 @@ export function WorkEnquiriesPage() {
             action={<AdminButton onClick={() => void load()}>Try again</AdminButton>}
           />
         ) : visible.length > 0 ? (
-          <div className="space-y-2 lg:space-y-0">
-            {visible.map(item => (
+          <div className="enquiry-rows">
+            {pageItems.map(item => (
           <EnquiryCard
                 key={item.id}
                 enquiry={item}
                 canContact={canManage}
-                 canViewPhone={canViewPhone}
+                canViewPhone={canViewPhone}
                 onOpen={() => navigate(
                   item.stage === 'booked' && item.convertedBookingId
                     ? `/admin/bookings/${item.convertedBookingId}`
@@ -341,6 +389,7 @@ export function WorkEnquiriesPage() {
             action={<AdminButton variant="secondary" onClick={() => setScope('all')}>View all enquiries</AdminButton>}
           />
         ) : null}
+        {!loading && !error && visible.length > 0 && <EnquiryPagination page={currentPage} pageCount={pageCount} pageSize={PAGE_SIZE} total={visible.length} onChange={setPage} />}
       </section>
 
       {refreshing && <p className="sr-only" role="status">Refreshing enquiries…</p>}
@@ -350,6 +399,8 @@ export function WorkEnquiriesPage() {
           <button type="button" onClick={clearFilters} className="min-h-10 rounded-xl px-3 text-xs font-semibold text-admin-primary outline-none hover:bg-admin-muted focus-visible:ring-2 focus-visible:ring-admin-focus">Clear all filters</button>
         </div>
       )}
+
+      </div>
 
       {canManage && params.get('new') === '1' && (
         <EnquiryFormModal

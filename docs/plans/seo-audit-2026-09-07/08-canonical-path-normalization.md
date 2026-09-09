@@ -134,3 +134,8 @@ Local validation: reproduced six fallback import/type diagnostics, then zero wit
 Production verification subsequently returned `MIDDLEWARE_INVOCATION_FAILED` HTTP 500. The prior bundler-mode compiler check cleared diagnostics but did not exercise emitted Node JavaScript. A direct local emitted-module import reproduced `ERR_MODULE_NOT_FOUND` on the extensionless middleware import. The import graph now uses `.js` extensions and the JSON `with { type: 'json' }` attribute required by [Node ESM](https://nodejs.org/api/esm.html); root settings use NodeNext with JSON support. The child Vite configs retain bundler mode.
 
 Added `npm run check:middleware` to `check:release`; it compiles, loads and exercises native emitted ESM without tsx/Vite resolution hooks. All 27 cases and full release passed locally. [Live failure and local-repair evidence](./evidence/f04-production-verification-2026-09-08.json). Exact provider logs and deployment recovery remain unverified; redeploy and run both production smoke tools. Prior local-only success is not evidence of live runtime compatibility.
+
+
+### Production recovery — 9 September 2026
+
+[Production checks](./evidence/f04-production-recovery-2026-09-09.json) passed on commit `aa0f0ca`: CMS-strict HTML smoke and all 98 canonical-path checks, plus HTTP 200 for Work/About/admin enquiries. The admin response retains noindex. The previous middleware invocation failure is no longer reproduced by these requests; authenticated app interactions remain outside this HTTP verification.

@@ -27,7 +27,7 @@ export function SalesToolbar({
   canManage,
   onAdd,
 }: SalesToolbarProps) {
-  const pluralName = `${itemName}s`;
+  const pluralName = itemName === 'enquiry' ? 'enquiries' : 'bookings';
   const [mobileSearchOpen, setMobileSearchOpen] = useState(Boolean(query));
   const mobileSearchRef = useRef<HTMLInputElement>(null);
 
@@ -58,7 +58,7 @@ export function SalesToolbar({
         <label className="hidden h-11 min-w-64 items-center gap-2 rounded-xl border border-admin-control bg-admin-surface px-3 text-admin-subtle transition focus-within:border-admin-focus focus-within:ring-2 focus-within:ring-admin-focus/20 sm:flex xl:min-w-80">
           <Search className="h-4 w-4 shrink-0" aria-hidden="true" />
           <span className="sr-only">Search {pluralName}</span>
-          <input value={query} onChange={event => onQueryChange(event.target.value)} type="text" role="searchbox" placeholder={`Search ${pluralName}`} className="min-w-0 flex-1 bg-transparent text-sm text-admin-text outline-none placeholder:text-admin-subtle" />
+          <input value={query} onChange={event => onQueryChange(event.target.value)} type="text" role="searchbox" aria-label={`Search ${pluralName}`} placeholder={`Search ${pluralName}`} className="min-w-0 flex-1 bg-transparent text-sm text-admin-text outline-none placeholder:text-admin-subtle" />
           {query && (
             <button type="button" onClick={() => onQueryChange('')} aria-label={`Clear ${itemName} search`} className="-mr-2 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg outline-none hover:bg-admin-muted focus-visible:ring-2 focus-visible:ring-admin-focus">
               <X className="h-4 w-4" aria-hidden="true" />
@@ -85,7 +85,7 @@ export function SalesToolbar({
         <label className="mt-2 flex h-11 items-center gap-2 rounded-xl border border-admin-control bg-admin-surface px-3 text-admin-subtle focus-within:border-admin-focus focus-within:ring-2 focus-within:ring-admin-focus/20 sm:hidden">
           <Search className="h-4 w-4 shrink-0" aria-hidden="true" />
           <span className="sr-only">Search {pluralName}</span>
-          <input ref={mobileSearchRef} value={query} onChange={event => onQueryChange(event.target.value)} type="text" role="searchbox" placeholder="Name, phone, service or package" className="min-w-0 flex-1 bg-transparent text-sm text-admin-text outline-none placeholder:text-admin-subtle" />
+          <input ref={mobileSearchRef} value={query} onChange={event => onQueryChange(event.target.value)} type="text" role="searchbox" aria-label={`Search ${pluralName}`} placeholder="Name, phone, service or package" className="min-w-0 flex-1 bg-transparent text-sm text-admin-text outline-none placeholder:text-admin-subtle" />
           <button type="button" aria-label={query ? 'Clear search' : 'Close search'} onClick={clearOrCloseSearch} className="-mr-2 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg outline-none hover:bg-admin-muted focus-visible:ring-2 focus-visible:ring-admin-focus">
             <X className="h-4 w-4" aria-hidden="true" />
           </button>

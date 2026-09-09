@@ -15,6 +15,7 @@ function AdminShell() {
   const immersiveEditor = /^\/admin\/quotations\/[^/]+$/.test(
     location.pathname,
   );
+  const salesList = /^\/admin\/(enquiries|bookings)\/?$/.test(location.pathname);
   const detailWorkspace = /^\/admin\/(bookings|enquiries)\/[^/]+$/.test(location.pathname);
   const sidebarWidth = isMobile
     ? 0
@@ -23,14 +24,14 @@ function AdminShell() {
       : SIDEBAR_EXPANDED_WIDTH;
 
   return (
-    <div className={`min-h-screen ${detailWorkspace ? 'overflow-x-clip' : 'overflow-x-hidden'} bg-admin-canvas text-admin-text`}>
+    <div className={`min-h-screen ${detailWorkspace ? 'overflow-x-clip' : 'overflow-x-hidden'} ${salesList ? 'bg-[#f8faf7]' : 'bg-admin-canvas'} text-admin-text`}>
       <Sidebar />
       <TopBar sidebarWidth={sidebarWidth} />
       <main
         className={`min-h-screen min-w-0 max-w-full ${detailWorkspace ? 'overflow-x-clip' : 'overflow-x-hidden'} pt-16 transition-[padding] duration-200 ease-out`}
         style={{ paddingLeft: sidebarWidth }}
       >
-        <div className="min-w-0 max-w-full p-3 pb-28 sm:p-6 sm:pb-24 md:p-7 md:pb-7">
+        <div className={`min-w-0 max-w-full ${salesList ? 'pb-28 md:pb-7' : 'p-3 pb-28 sm:p-6 sm:pb-24 md:p-7 md:pb-7'}`}>
           <Outlet />
         </div>
       </main>

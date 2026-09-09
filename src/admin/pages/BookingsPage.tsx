@@ -1,6 +1,8 @@
+import './enquiries.css';
+import './bookings.css';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { AlertCircle, Inbox, SearchX, X } from 'lucide-react';
+import { AlertCircle, ArrowDown, ArrowUp, ArrowUpDown, Inbox, SearchX, X } from 'lucide-react';
 import { api } from '../api/client';
 import type {
   Booking,
@@ -20,18 +22,21 @@ import { ReadOnlyNotice } from '../components/ReadOnlyNotice';
 import { canViewBookingPricing, hasStaffPermission } from '../access/roles';
 import { consumeNewBookingSearch } from './bookingsRoute';
 import { BookingCard, BookingCardSkeleton } from '../components/bookings/BookingCard';
-import { BookingListHeader, BookingViewSwitch } from '../components/bookings/BookingListHeader';
+import { BookingAssignmentDialog } from '../components/bookings/BookingAssignmentDialog';
+import { BookingViewSelect } from '../components/bookings/BookingListHeader';
 import { BookingSortControl } from '../components/bookings/BookingStatusFilter';
 import { BookingToolbar } from '../components/bookings/BookingToolbar';
+import { SalesMobileHeader } from '../components/sales/SalesMobileHeader';
+import { SalesListPagination } from '../components/sales/SalesListPagination';
 import { SalesWorkspaceHeader } from '../components/sales/SalesWorkspaceHeader';
 import {
   buildServiceCategoryOptions,
   normalizeServiceCategory,
   serviceCategoryMatches,
-  serviceCategoryTabId,
 } from '../components/sales/serviceCategories';
 import {
   BOOKING_STATUSES,
+  BOOKING_SORT_OPTIONS,
   bookingMatchesScope,
   bookingMatchesSearch,
   sortBookings,
@@ -41,7 +46,10 @@ import {
 
 export type ConvertEnquiryState = { convertFromEnquiry?: Enquiry };
 
+const PAGE_SIZE = 7;
+
 type BookingViewState = {
+  page: number;
   scope: BookingListScope;
   status: BookingStatus | '';
   assignee: string;
@@ -57,6 +65,7 @@ const RESTORE_SCROLL_KEY = 'doll-bookings-restore-scroll';
 const VIEW_STATE_KEY = 'doll-bookings-view-state';
 
 const defaultViewState: BookingViewState = {
+  page: 1,
   scope: 'pending',
   status: '',
   assignee: '',
@@ -75,6 +84,7 @@ function restoredViewState(): BookingViewState {
     if (restored.status === 'shoot_completed' || restored.status === 'delivered' || restored.status === 'cancelled') {
       restored.scope = 'all';
     }
+    restored.page = Number.isInteger(restored.page) && restored.page > 0 ? restored.page : 1;
     return restored;
   } catch {
     return defaultViewState;
@@ -99,11 +109,15 @@ export function BookingsPage() {
   const [formDataLoaded, setFormDataLoaded] = useState(false);
   const formDataPromise = useRef<Promise<boolean> | null>(null);
   const [creating, setCreating] = useState(false);
+  const [assigningBooking, setAssigningBooking] = useState<Booking | null>(null);
+  const [assignmentSuccess, setAssignmentSuccess] = useState('');
   const [convertFromEnquiry, setConvertFromEnquiry] = useState<Enquiry | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [page, setPage] = useState(restored.page);
+  const previousPageFilters = useRef<string>();
   const [scope, setScope] = useState<BookingListScope>(restored.scope);
   const [status, setStatus] = useState<BookingStatus | ''>(restored.status);
   const [assignee, setAssignee] = useState(restored.assignee);
@@ -242,6 +256,15 @@ export function BookingsPage() {
     [matching, serviceCategory, sort],
   );
 
+  const pageFilterKey = JSON.stringify([scope, status, assignee, paymentFilter, overdueOnly, query, sort, requestedServiceCategory]);
+  useEffect(() => {
+    if (previousPageFilters.current !== undefined && previousPageFilters.current !== pageFilterKey) setPage(1);
+    previousPageFilters.current = pageFilterKey;
+  }, [pageFilterKey]);
+  const pageCount = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount);
+  const pageItems = visible.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
   const counts = useMemo(() => Object.fromEntries(
     BOOKING_STATUSES.map(item => [item.value, bookingsForSelectedService.filter(row => row.status === item.value).length]),
   ) as Record<BookingStatus, number>, [bookingsForSelectedService]);
@@ -250,6 +273,11 @@ export function BookingsPage() {
     () => bookings.filter(booking => bookingMatchesScope(booking, 'pending')).length,
     [bookings],
   );
+
+  const mobileCounts = useMemo(() => ({
+    confirmed: bookings.filter(booking => booking.status === 'confirmed').length,
+    overdue: bookings.filter(booking => bookingMatchesScope(booking, 'pending') && booking.nextFollowUpAt && new Date(booking.nextFollowUpAt).getTime() <= Date.now()).length,
+  }), [bookings]);
 
   const selectedStatusLabel = BOOKING_STATUSES.find(item => item.value === status)?.label;
   const selectedServiceLabel = serviceCategories.find(option => option.value === serviceCategory)?.label;
@@ -285,6 +313,7 @@ export function BookingsPage() {
       sessionStorage.setItem(SCROLL_POSITION_KEY, String(window.scrollY));
       sessionStorage.setItem(RESTORE_SCROLL_KEY, 'true');
       sessionStorage.setItem(VIEW_STATE_KEY, JSON.stringify({
+        page: currentPage,
         status,
         scope,
         assignee,
@@ -309,11 +338,36 @@ export function BookingsPage() {
   };
 
   return (
-    <div className="mx-auto max-w-[1320px] space-y-3 pb-2 sm:space-y-4">
+    <div className="enquiries-workspace bookings-workspace">
+      <SalesMobileHeader
+        title="Bookings" itemName="booking" itemPlural="bookings" total={bookings.length} totalLabel="total bookings"
+        summary={`${pendingBookingCount} pending`} addLabel="Add booking"
+        views={[
+          { value: 'pending', label: 'Pending shoots', count: pendingBookingCount },
+          { value: 'all', label: 'All', count: bookings.length },
+          { value: 'confirmed', label: 'Confirmed', count: mobileCounts.confirmed },
+          { value: 'overdue', label: 'Follow-up overdue', count: mobileCounts.overdue },
+        ]}
+        view={overdueOnly && !status ? 'overdue' : !overdueOnly && status === 'confirmed' ? 'confirmed' : !overdueOnly && !status ? scope : ''}
+        onViewChange={view => {
+          setScope(view === 'all' ? 'all' : 'pending');
+          setStatus(view === 'confirmed' ? 'confirmed' : '');
+          setOverdueOnly(view === 'overdue');
+        }}
+        query={query} onQueryChange={setQuery} filtersOpen={showFilters} activeFilterCount={activeFilterCount}
+        onToggleFilters={() => setShowFilters(open => !open)} refreshing={refreshing} onRefresh={() => void load(true)}
+        canManage={canManage} onAdd={() => void openCreateBooking()} services={serviceCategories}
+        service={serviceCategory} onServiceChange={selectServiceCategory} sort={sort} onSortChange={setSort}
+        sortOptions={BOOKING_SORT_OPTIONS.map(option => ({ ...option, shortLabel: ({ shoot_date: 'Shoot ↑', shoot_date_desc: 'Shoot ↓', recent: 'Newest', customer: 'Name A–Z', follow_up: 'Follow-up' })[option.value] }))}
+      />
+      {isReadOnly && <div className="px-4 pt-3 sm:hidden"><ReadOnlyNotice /></div>}
+      <div className="hidden sm:block">
       <SalesWorkspaceHeader
         title="Bookings"
+        studioBadge
+        subtitle={<>{listTitle}<span className="mx-1.5 text-slate-300">•</span><span className="font-medium text-admin-secondary">{loading ? 'Loading bookings…' : `${visible.length} ${visible.length === 1 ? 'booking' : 'bookings'}`}</span></>}
         viewControls={(
-          <BookingViewSwitch
+          <BookingViewSelect
             scope={scope}
             pendingCount={pendingBookingCount}
             totalCount={bookings.length}
@@ -328,7 +382,7 @@ export function BookingsPage() {
         onServiceCategoryChange={selectServiceCategory}
         panelId="booking-list-panel"
         readOnlyNotice={isReadOnly ? <ReadOnlyNotice /> : undefined}
-        listControls={<BookingSortControl value={sort} onChange={setSort} />}
+        listControls={<div className="flex items-center gap-3"><span className="text-xs text-admin-subtle">Sort by:</span><BookingSortControl value={sort} onChange={setSort} /></div>}
         actions={(
           <BookingToolbar
             query={query}
@@ -344,6 +398,8 @@ export function BookingsPage() {
         )}
       />
 
+      </div>
+      <div className="enquiry-list-content space-y-5">
       {error && bookings.length > 0 && (
         <div role="alert" className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
           <AlertCircle className="h-5 w-5 shrink-0" aria-hidden="true" />
@@ -358,6 +414,7 @@ export function BookingsPage() {
           <label className="block">
             <span className="sr-only">Booking status</span>
             <select
+              aria-label="Booking status"
               value={status}
               onChange={event => {
                 const nextStatus = event.target.value as BookingStatus | '';
@@ -372,7 +429,7 @@ export function BookingsPage() {
           </label>
           <label className="block">
             <span className="sr-only">Assigned staff member</span>
-            <select value={assignee} onChange={event => setAssignee(event.target.value)} className="h-11 w-full rounded-xl border border-admin-control bg-admin-surface px-3 text-sm text-admin-secondary outline-none focus-visible:ring-2 focus-visible:ring-admin-focus">
+            <select aria-label="Assigned staff member" value={assignee} onChange={event => setAssignee(event.target.value)} className="h-11 w-full rounded-xl border border-admin-control bg-admin-surface px-3 text-sm text-admin-secondary outline-none focus-visible:ring-2 focus-visible:ring-admin-focus">
               <option value="">All assignees</option>
               <option value="unassigned">Unassigned</option>
               {staffLoadFailed && <option value="" disabled>Staff options unavailable</option>}
@@ -382,7 +439,7 @@ export function BookingsPage() {
           {canViewPayments ? (
             <label className="block">
               <span className="sr-only">Payment status</span>
-              <select value={payment} onChange={event => setPayment(event.target.value as PaymentState | '')} className="h-11 w-full rounded-xl border border-admin-control bg-admin-surface px-3 text-sm text-admin-secondary outline-none focus-visible:ring-2 focus-visible:ring-admin-focus">
+              <select aria-label="Payment status" value={payment} onChange={event => setPayment(event.target.value as PaymentState | '')} className="h-11 w-full rounded-xl border border-admin-control bg-admin-surface px-3 text-sm text-admin-secondary outline-none focus-visible:ring-2 focus-visible:ring-admin-focus">
                 <option value="">All payment states</option>
                 {(['unpriced', 'unpaid', 'partial', 'paid', 'overpaid'] as const).map(value => <option key={value} value={value}>{value.charAt(0).toUpperCase() + value.slice(1)}</option>)}
               </select>
@@ -396,18 +453,20 @@ export function BookingsPage() {
         </section>
       )}
 
-      <BookingListHeader
-        title={listTitle}
-        count={visible.length}
-      />
-
-      <section id="booking-list-panel" role="tabpanel" aria-labelledby={serviceCategoryTabId(serviceCategory)} className="space-y-2.5 lg:space-y-0 lg:overflow-hidden lg:rounded-xl lg:border lg:border-admin-border lg:bg-admin-surface lg:shadow-[0_4px_18px_rgba(62,56,46,0.04)]">
-        <div className={`hidden gap-x-5 border-b border-admin-border bg-admin-muted/60 px-5 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-admin-subtle lg:grid ${showBookingPricing ? 'grid-cols-[minmax(0,1.45fr)_minmax(9.5rem,0.9fr)_minmax(8rem,0.72fr)_minmax(10.5rem,1fr)_1.25rem]' : 'grid-cols-[minmax(0,1.45fr)_minmax(9.5rem,0.9fr)_minmax(10.5rem,1fr)_1.25rem]'}`}>
-          <span>Customer</span><span>Shoot</span>{showBookingPricing && <span>Amount</span>}<span>Attention</span><span />
+      <section id="booking-list-panel" aria-labelledby="booking-list-panel-title" aria-busy={loading || refreshing} className={`booking-list overflow-hidden rounded-xl border border-admin-border bg-admin-surface shadow-[0_4px_20px_rgba(15,23,42,0.04)] ${showBookingPricing ? 'booking-has-pricing' : ''}`}>
+        <div className="booking-table-heading text-[11px] font-semibold uppercase tracking-wide text-admin-subtle">
+          <span>Customer</span><span>Booking / Service</span>
+          <button type="button" onClick={() => setSort(sort === 'shoot_date' ? 'shoot_date_desc' : 'shoot_date')}
+            aria-label={`Sort by shoot date, ${sort === 'shoot_date' ? 'earliest first; show latest first' : sort === 'shoot_date_desc' ? 'latest first; show earliest first' : 'show earliest first'}`}
+            title={sort === 'shoot_date' ? 'Show latest shoots first' : 'Show earliest shoots first'}
+            className="-my-2 flex min-h-9 items-center gap-1.5 rounded text-left uppercase outline-none hover:text-admin-text focus-visible:ring-2 focus-visible:ring-admin-focus">
+            Shoot{sort === 'shoot_date' ? <ArrowUp className="h-3.5 w-3.5" aria-hidden="true" /> : sort === 'shoot_date_desc' ? <ArrowDown className="h-3.5 w-3.5" aria-hidden="true" /> : <ArrowUpDown className="h-3.5 w-3.5" aria-hidden="true" />}
+          </button>
+          {showBookingPricing && <span>Amount</span>}<span>Follow-up / Assigned</span><span className="text-right">Actions</span>
         </div>
 
         {loading ? (
-          <div className="space-y-2.5 md:grid md:grid-cols-2 md:gap-3 md:space-y-0 lg:block lg:space-y-0" aria-label="Loading bookings" role="status">
+          <div className="booking-rows" aria-label="Loading bookings" role="status">
             {Array.from({ length: 4 }, (_, index) => <BookingCardSkeleton key={index} showPricing={showBookingPricing} />)}
             <span className="sr-only">Loading bookings…</span>
           </div>
@@ -419,8 +478,8 @@ export function BookingsPage() {
             action={<AdminButton onClick={() => void load()}>Try again</AdminButton>}
           />
         ) : visible.length > 0 ? (
-          <div className="space-y-2.5 md:grid md:grid-cols-2 md:gap-3 md:space-y-0 lg:block lg:space-y-0">
-            {visible.map(booking => (
+          <div className="booking-rows">
+            {pageItems.map(booking => (
               <BookingCard
                 key={booking.id}
                 booking={booking}
@@ -428,6 +487,7 @@ export function BookingsPage() {
                 showPricing={showBookingPricing}
                 canViewPhone={canViewPhone}
                 onOpen={() => openBooking(booking.id)}
+                onAssign={canManage ? () => { setAssignmentSuccess(''); setAssigningBooking(booking); } : undefined}
               />
             ))}
           </div>
@@ -446,7 +506,20 @@ export function BookingsPage() {
             action={hasAnyFilter ? <AdminButton variant="secondary" onClick={clearAllFilters}>Clear all filters</AdminButton> : undefined}
           />
         )}
+        {!loading && visible.length > 0 && <SalesListPagination itemPlural="bookings" page={currentPage} pageCount={pageCount} pageSize={PAGE_SIZE} total={visible.length} onChange={setPage} />}
       </section>
+      </div>
+
+      <p role="status" className="sr-only">{assignmentSuccess}</p>
+      {canManage && assigningBooking && <BookingAssignmentDialog
+        booking={assigningBooking}
+        onClose={() => setAssigningBooking(null)}
+        onSaved={updated => {
+          setBookings(current => current.map(booking => booking.id === updated.id ? updated : booking));
+          setAssignmentSuccess(`Staff assignment saved for ${updated.customerName}`);
+          setAssigningBooking(null);
+        }}
+      />}
 
       {canManage && creating && (
         <BookingFormModal

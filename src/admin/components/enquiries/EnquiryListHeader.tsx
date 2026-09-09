@@ -1,41 +1,34 @@
+import { ChevronDown } from 'lucide-react';
 import type { EnquiryListScope } from './enquiryList';
 
-type EnquiryViewSwitchProps = {
+type EnquiryViewSelectProps = {
   scope: EnquiryListScope;
   activeCount: number;
   totalCount: number;
   onScopeChange: (scope: EnquiryListScope) => void;
 };
 
-export function EnquiryViewSwitch({
+export function EnquiryViewSelect({
   scope,
   activeCount,
   totalCount,
   onScopeChange,
-}: EnquiryViewSwitchProps) {
+}: EnquiryViewSelectProps) {
   return (
-    <div className="inline-flex w-fit rounded-lg bg-admin-muted p-0.5" role="group" aria-label="Enquiry view">
-      <button
-        type="button"
-        aria-pressed={scope === 'active'}
+    <label className="enquiry-view-select relative inline-flex shrink-0">
+      <span className="sr-only">Enquiry view</span>
+      <select
+        aria-label="Enquiry view"
         aria-controls="enquiry-list-panel"
-        onClick={() => onScopeChange('active')}
-        className={`inline-flex min-h-9 items-center gap-1.5 rounded-md px-3 text-xs font-semibold outline-none transition focus-visible:ring-2 focus-visible:ring-admin-focus ${scope === 'active' ? 'bg-admin-surface text-admin-text shadow-sm ring-1 ring-admin-border' : 'text-admin-secondary hover:text-admin-text'}`}
+        value={scope}
+        onChange={event => onScopeChange(event.target.value as EnquiryListScope)}
+        className="appearance-none outline-none focus-visible:ring-2 focus-visible:ring-admin-focus focus-visible:ring-offset-2"
       >
-        Active enquiries
-        <span className={`inline-flex min-w-5 justify-center rounded-full px-1.5 py-0.5 text-[10px] tabular-nums ${scope === 'active' ? 'bg-admin-primary text-white' : 'bg-admin-surface text-admin-subtle'}`}>{activeCount}</span>
-      </button>
-      <button
-        type="button"
-        aria-pressed={scope === 'all'}
-        aria-controls="enquiry-list-panel"
-        onClick={() => onScopeChange('all')}
-        className={`inline-flex min-h-9 items-center gap-1.5 rounded-md px-3 text-xs font-semibold outline-none transition focus-visible:ring-2 focus-visible:ring-admin-focus ${scope === 'all' ? 'bg-admin-surface text-admin-text shadow-sm ring-1 ring-admin-border' : 'text-admin-secondary hover:text-admin-text'}`}
-      >
-        All enquiries
-        <span className={`inline-flex min-w-5 justify-center rounded-full px-1.5 py-0.5 text-[10px] tabular-nums ${scope === 'all' ? 'bg-admin-primary text-white' : 'bg-admin-surface text-admin-subtle'}`}>{totalCount}</span>
-      </button>
-    </div>
+        <option value="active">Active enquiries ({activeCount})</option>
+        <option value="all">All enquiries ({totalCount})</option>
+      </select>
+      <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white" aria-hidden="true" />
+    </label>
   );
 }
 

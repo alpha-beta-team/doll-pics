@@ -1,6 +1,7 @@
 import type { KeyboardEvent, MouseEvent } from 'react';
-import { CalendarClock, ChevronRight, MessageCircle, Phone } from 'lucide-react';
+import { AlertTriangle, CalendarClock, CheckCircle2, ChevronRight, Globe, Megaphone, Phone, Store, Users } from 'lucide-react';
 import type { Enquiry } from '../../types';
+import { WhatsAppIcon } from './WhatsAppIcon';
 import { whatsappUrl } from '../../contact';
 import {
   enquirySourceLabel,
@@ -23,20 +24,44 @@ function stopCardNavigation(event: MouseEvent<HTMLAnchorElement | HTMLButtonElem
 }
 
 function FollowUpLabel({ enquiry }: { enquiry: Enquiry }) {
-  if (!enquiry.nextFollowUpAt) return null;
+  if (!enquiry.nextFollowUpAt) {
+    if (enquiry.stage === 'booked') return <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700"><CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />Booking confirmed</span>;
+    if (enquiry.stage !== 'follow_up') return <span className="text-xs text-admin-subtle">No follow-up scheduled</span>;
+    return <span className="rounded-md bg-slate-100 px-2 py-1 text-xs text-slate-600">Follow-up required</span>;
+  }
   const urgency = followUpUrgency(enquiry.nextFollowUpAt);
   const details = formatFollowUpAt(enquiry.nextFollowUpAt);
   const presentation = {
-    overdue: { label: 'Overdue', className: 'font-semibold text-red-700' },
-    due_today: { label: 'Due today', className: 'font-semibold text-amber-800' },
-    upcoming: { label: 'Upcoming', className: 'text-slate-600' },
+    overdue: { label: 'Overdue follow-up', className: 'border-rose-200 bg-rose-50 text-rose-600', icon: AlertTriangle },
+    due_today: { label: `Follow-up: ${formatReceivedAt(enquiry.nextFollowUpAt)}`, className: 'border-amber-200 bg-amber-50 text-amber-800', icon: CalendarClock },
+    upcoming: { label: `Follow-up: ${details}`, className: 'border-slate-200 bg-slate-50 text-slate-600', icon: CalendarClock },
   }[urgency ?? 'upcoming'];
+  const Icon = presentation.icon;
   return (
-    <span className={`flex min-w-0 items-center gap-1.5 ${presentation.className}`}>
-      <CalendarClock className="h-4 w-4 shrink-0" aria-hidden="true" />
-      <span className="truncate">{presentation.label} · {details}</span>
+    <span title={details} className={`inline-flex max-w-full items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs leading-4 ${presentation.className}`}>
+      <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+      <span>{presentation.label}</span>
     </span>
   );
+}
+
+function SourceLabel({ enquiry }: { enquiry: Enquiry }) {
+  const source = enquiry.source;
+  const Icon = source === 'whatsapp' ? WhatsAppIcon : source === 'phone' ? Phone : source === 'walk_in' ? Store : source === 'referral' ? Users : ['facebook', 'instagram', 'ads', 'google_business'].includes(source) ? Megaphone : Globe;
+  const color = ['whatsapp', 'walk_in'].includes(source) ? 'text-emerald-700' : ['facebook', 'instagram', 'ads', 'google_business'].includes(source) ? 'enquiry-source-social' : 'text-admin-subtle';
+  return <p className={`enquiry-source mt-1 flex items-center gap-1 text-xs ${color}`}><Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span><span className="enquiry-source-prefix">Source: </span>{enquirySourceLabel(source)}</span></p>;
+}
+
+const AVATAR_COLORS = ['bg-emerald-100 text-emerald-800 ring-emerald-200', 'bg-rose-100 text-rose-700 ring-rose-200', 'bg-purple-100 text-purple-700 ring-purple-200', 'bg-sky-100 text-sky-700 ring-sky-200', 'bg-amber-100 text-amber-700 ring-amber-200', 'bg-indigo-100 text-indigo-700 ring-indigo-200'];
+
+function receivedDetail(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const minutes = Math.floor((Date.now() - date.getTime()) / 60000);
+  if (minutes >= 0 && minutes < 1) return 'Just now';
+  if (minutes >= 1 && minutes < 60) return `${minutes} mins ago`;
+  if (minutes >= 60 && minutes < 1440) return `${Math.floor(minutes / 60)}h ${minutes % 60}m ago`;
+  return new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }).format(date);
 }
 
 function EnquiryActions({
@@ -47,7 +72,7 @@ function EnquiryActions({
   onOpen,
 }: EnquiryCardProps & { customer: string }) {
   return (
-    <div className="ml-auto flex shrink-0 items-center gap-0.5">
+    <div className="ml-auto flex shrink-0 items-center gap-1.5">
       {canContact && enquiry.phone && canViewPhone && (
         <>
           <a
@@ -55,9 +80,10 @@ function EnquiryActions({
             onClick={stopCardNavigation}
             aria-label={`Call ${customer} at ${enquiry.phone}`}
             title={`Call ${customer}`}
-            className="flex h-11 w-11 items-center justify-center rounded-xl text-admin-secondary outline-none transition hover:bg-admin-muted hover:text-admin-primary focus-visible:ring-2 focus-visible:ring-admin-focus"
+            className="flex h-11 w-11 items-center justify-center rounded-lg bg-slate-100 text-slate-600 outline-none transition hover:bg-admin-muted hover:text-admin-primary focus-visible:ring-2 focus-visible:ring-admin-focus"
           >
-            <Phone className="h-4 w-4" aria-hidden="true" />
+            <Phone className="h-4 w-4 shrink-0" aria-hidden="true" />
+            {enquiry.stage === 'booked' && <span className="enquiry-contact-label">Call</span>}
           </a>
           <a
             href={whatsappUrl(enquiry.phone)}
@@ -66,9 +92,10 @@ function EnquiryActions({
             onClick={stopCardNavigation}
             aria-label={`Message ${customer} on WhatsApp`}
             title={`Message ${customer} on WhatsApp`}
-            className="flex h-11 w-11 items-center justify-center rounded-xl text-emerald-700 outline-none transition hover:bg-emerald-50 focus-visible:ring-2 focus-visible:ring-admin-focus"
+            className="flex h-11 w-11 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 outline-none transition hover:bg-emerald-50 focus-visible:ring-2 focus-visible:ring-admin-focus"
           >
-            <MessageCircle className="h-4 w-4" aria-hidden="true" />
+            <WhatsAppIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
+            {enquiry.stage === 'booked' && <span className="enquiry-contact-label">Chat</span>}
           </a>
         </>
       )}
@@ -76,7 +103,7 @@ function EnquiryActions({
         type="button"
         onClick={event => { stopCardNavigation(event); onOpen(); }}
         aria-label={`View enquiry from ${customer}`}
-        className="flex h-11 w-11 items-center justify-center rounded-xl text-admin-primary outline-none transition hover:bg-admin-muted focus-visible:ring-2 focus-visible:ring-admin-focus"
+        className="flex h-11 w-11 items-center justify-center rounded-lg text-slate-400 outline-none transition hover:bg-admin-muted focus-visible:ring-2 focus-visible:ring-admin-focus"
       >
         <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
       </button>
@@ -86,96 +113,57 @@ function EnquiryActions({
 
 function StatusBadge({ enquiry }: { enquiry: Enquiry }) {
   return (
-    <span className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[11px] font-semibold leading-4 ring-1 ring-inset ${enquiryStageClass[enquiry.stage]}`}>
+    <span className={`enquiry-status-badge inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[11px] font-semibold leading-4 ring-1 ring-inset ${enquiryStageClass[enquiry.stage]}`}>
       {enquiryStageLabel(enquiry.stage)}
     </span>
   );
 }
 
-export function EnquiryCard({ enquiry, canContact, onOpen }: EnquiryCardProps) {
+export function EnquiryCard({ enquiry, canContact, canViewPhone, onOpen }: EnquiryCardProps) {
   const service = enquiry.shootType || enquiry.preferredEvent || 'Service not decided';
-  const source = enquirySourceLabel(enquiry.source);
   const customer = enquiry.name || 'Unnamed customer';
-
+  const avatarColor = AVATAR_COLORS[Array.from(customer).reduce((sum, letter) => sum + letter.charCodeAt(0), 0) % AVATAR_COLORS.length];
   const openFromKeyboard = (event: KeyboardEvent<HTMLElement>) => {
     if (event.target !== event.currentTarget) return;
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      onOpen();
-    }
+    if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onOpen(); }
   };
 
   return (
-    <article
-      role="link"
-      tabIndex={0}
-      aria-label={`Open enquiry from ${customer}`}
-      onClick={onOpen}
-      onKeyDown={openFromKeyboard}
-      className="group min-h-[108px] cursor-pointer rounded-xl border border-admin-border bg-admin-surface text-left shadow-[0_2px_9px_rgba(62,56,46,0.025)] outline-none transition-[border-color,background-color,box-shadow,transform] hover:border-admin-primary/35 hover:bg-white hover:shadow-[0_4px_14px_rgba(62,56,46,0.055)] focus-visible:ring-2 focus-visible:ring-admin-focus focus-visible:ring-offset-2 focus-visible:ring-offset-admin-canvas active:scale-[0.995] lg:min-h-0 lg:rounded-none lg:border-0 lg:border-b lg:shadow-none lg:last:border-b-0 lg:hover:bg-admin-muted/55 lg:hover:shadow-none lg:active:scale-100"
-    >
-      <div className="px-3 py-2.5 lg:hidden">
-        <div className="flex min-w-0 items-start justify-between gap-2">
-          <h3 className="min-w-0 truncate text-[15px] font-semibold leading-5 text-admin-text" title={customer}>{customer}</h3>
-          <StatusBadge enquiry={enquiry} />
-        </div>
-
-        <p className="mt-0.5 min-w-0 truncate text-xs leading-4 text-admin-subtle" title={`${service} · ${source}`}>
-          <span className="text-admin-secondary">{service}</span>
-          <span aria-hidden="true" className="px-1.5 text-admin-border-strong">·</span>
-          {source}
-        </p>
-
-        <div className="mt-0.5 flex min-h-11 min-w-0 items-center gap-1.5">
-          <div className="min-w-0 flex-1 text-xs leading-4 text-admin-subtle">
-            <p className="flex min-w-0 items-center gap-1.5">
-              {enquiry.phone && <span className="min-w-0 truncate font-medium text-admin-secondary">{enquiry.phone}</span>}
-              {enquiry.phone && <span aria-hidden="true" className="text-admin-border-strong">·</span>}
-              <span className="shrink-0">{formatReceivedAt(enquiry.createdAt)}</span>
-            </p>
-            {enquiry.nextFollowUpAt && (
-              <p className="mt-0.5 min-w-0"><FollowUpLabel enquiry={enquiry} /></p>
-            )}
-          </div>
-          <EnquiryActions enquiry={enquiry} customer={customer} canContact={canContact} canViewPhone={canContact} onOpen={onOpen} />
-        </div>
-      </div>
-
-      <div className="hidden min-h-[68px] grid-cols-[minmax(0,1.25fr)_minmax(9rem,0.85fr)_minmax(7.5rem,0.65fr)_minmax(11rem,1fr)_auto] items-center gap-x-5 px-5 py-3 lg:grid">
+    <article role="link" tabIndex={0} aria-label={`Open enquiry from ${customer}`} onClick={onOpen} onKeyDown={openFromKeyboard}
+      className={`enquiry-row group cursor-pointer outline-none transition-colors hover:bg-emerald-50/40 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-admin-focus ${enquiry.stage === 'booked' ? 'enquiry-row-confirmed' : ''}`}>
+      <div className="enquiry-customer flex min-w-0 items-center gap-3">
+        <span aria-hidden="true" className={`enquiry-avatar flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold ring-1 ring-inset ${avatarColor}`}><span className="enquiry-avatar-desktop">{customer.charAt(0).toUpperCase()}</span><span className="enquiry-avatar-mobile hidden">{customer.trim().split(/\s+/).length > 1 ? customer.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase() : customer.slice(0, 2).toUpperCase()}</span></span>
         <div className="min-w-0">
-          <div className="flex min-w-0 items-center justify-between gap-2">
-            <h3 className="min-w-0 truncate text-[15px] font-semibold leading-5 text-admin-text" title={customer}>{customer}</h3>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <h3 className="break-words text-sm font-semibold leading-5 text-admin-text">{customer}</h3>
             <StatusBadge enquiry={enquiry} />
           </div>
-          {enquiry.phone && <p className="mt-1 truncate text-xs font-medium text-admin-secondary">{enquiry.phone}</p>}
+          {enquiry.phone && <p className="mt-1 break-all text-xs text-admin-subtle">{canViewPhone ? enquiry.phone : 'Phone hidden'}</p>}
         </div>
-        <div className="min-w-0">
-          <p className="truncate text-sm font-medium text-admin-secondary" title={service}>{service}</p>
-          <p className="mt-0.5 truncate text-xs text-admin-subtle">{source}</p>
-        </div>
-        <p className="truncate text-sm text-admin-secondary">{formatReceivedAt(enquiry.createdAt)}</p>
-        <div className="min-w-0 text-xs"><FollowUpLabel enquiry={enquiry} /></div>
-        <EnquiryActions enquiry={enquiry} customer={customer} canContact={canContact} canViewPhone={canContact} onOpen={onOpen} />
       </div>
+      <div className="enquiry-service min-w-0">
+        <p className={`enquiry-service-name text-xs font-medium leading-5 ${enquiry.shootType || enquiry.preferredEvent ? 'text-admin-secondary' : 'italic text-admin-subtle'}`}>{service}</p>
+        <SourceLabel enquiry={enquiry} />
+      </div>
+      <div className="enquiry-received min-w-0">
+        <time className="enquiry-received-mobile hidden" dateTime={enquiry.createdAt} title={formatReceivedAt(enquiry.createdAt)}>{formatReceivedAt(enquiry.createdAt).replace(/^Today, /, '').replace(/^Yesterday, .*/, 'Yesterday')}</time>
+        <div className="enquiry-received-desktop">
+        <p className="text-xs leading-5 text-admin-secondary">{formatReceivedAt(enquiry.createdAt)}</p>
+        <p className="mt-0.5 text-[11px] text-slate-400">{receivedDetail(enquiry.createdAt)}</p>
+      </div>
+      </div>
+      <div className={`enquiry-follow-up min-w-0 ${!enquiry.nextFollowUpAt && enquiry.stage !== 'follow_up' ? 'enquiry-follow-up-empty' : ''}`}><FollowUpLabel enquiry={enquiry} /></div>
+      <div className="enquiry-actions"><EnquiryActions enquiry={enquiry} customer={customer} canContact={canContact} canViewPhone={canViewPhone} onOpen={onOpen} /></div>
     </article>
   );
 }
 
 export function EnquiryCardSkeleton() {
-  return (
-    <div className="min-h-[108px] animate-pulse rounded-xl border border-admin-border bg-admin-surface lg:min-h-0 lg:rounded-none lg:border-0 lg:border-b">
-      <div className="px-3 py-2.5 lg:hidden">
-        <div className="flex items-center justify-between gap-3"><div className="h-4 w-3/5 rounded bg-admin-muted" /><div className="h-5 w-14 rounded-full bg-admin-muted" /></div>
-        <div className="mt-2 h-3 w-4/5 rounded bg-admin-muted" />
-        <div className="mt-1 flex min-h-11 items-center justify-between gap-3"><div className="h-3 w-2/5 rounded bg-admin-muted" /><div className="flex gap-1"><div className="h-10 w-10 rounded-xl bg-admin-muted" /><div className="h-10 w-10 rounded-xl bg-admin-muted" /><div className="h-10 w-10 rounded-xl bg-admin-muted" /></div></div>
-      </div>
-      <div className="hidden min-h-[68px] grid-cols-[minmax(0,1.25fr)_minmax(9rem,0.85fr)_minmax(7.5rem,0.65fr)_minmax(11rem,1fr)_auto] items-center gap-x-5 px-5 py-3 lg:grid">
-        <div><div className="h-4 w-3/5 rounded bg-admin-muted" /><div className="mt-2 h-3 w-2/5 rounded bg-admin-muted" /></div>
-        <div><div className="h-4 w-28 rounded bg-admin-muted" /><div className="mt-2 h-3 w-16 rounded bg-admin-muted" /></div>
-        <div className="h-4 w-24 rounded bg-admin-muted" />
-        <div className="h-4 w-36 rounded bg-admin-muted" />
-        <div className="flex gap-1"><div className="h-10 w-10 rounded-xl bg-admin-muted" /><div className="h-10 w-10 rounded-xl bg-admin-muted" /><div className="h-10 w-10 rounded-xl bg-admin-muted" /></div>
-      </div>
-    </div>
-  );
+  return <div className="enquiry-row animate-pulse" aria-hidden="true">
+    <div className="enquiry-customer flex items-center gap-3"><div className="h-10 w-10 shrink-0 rounded-full bg-admin-muted" /><div className="w-full space-y-2"><div className="h-4 w-3/4 rounded bg-admin-muted" /><div className="h-3 w-1/2 rounded bg-admin-muted" /></div></div>
+    <div className="enquiry-service h-4 w-3/4 rounded bg-admin-muted" />
+    <div className="enquiry-received h-4 w-3/4 rounded bg-admin-muted" />
+    <div className="enquiry-follow-up h-7 w-3/4 rounded-full bg-admin-muted" />
+    <div className="enquiry-actions h-9 w-28 rounded bg-admin-muted" />
+  </div>;
 }

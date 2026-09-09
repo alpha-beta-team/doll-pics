@@ -85,7 +85,7 @@ Start with F01. Within a chunk, take ready items in the listed order; independen
 **Completion:** 1 / 7
 
 - [x] [F10](./10-authentic-category-media.md) — Use authentic and category-relevant portfolio media — Complete for implementation tracking; studio approval and deployed media checks remain pending
-- [ ] [F04](./04-public-html-expansion.md) — In progress: homepage, hubs, gallery, work, about and catalog-driven service/package rendering implemented locally; latest increments await deployment/manual acceptance
+- [ ] [F04](./04-public-html-expansion.md) — In progress: homepage, hubs, gallery, work, about and catalog-driven service/package rendering implemented; automated production checks passed, manual acceptance remains
 - [ ] [F11](./11-image-discovery.md) — Provide crawlable discovery for intended photography
 - [ ] [F13](./13-performance-and-core-web-vitals.md) — In progress: Booking layout/image-loading fix implemented locally; production comparison and field acceptance remain pending
 - [ ] [F14](./14-social-preview-metadata.md) — Support route-specific social previews
@@ -111,7 +111,7 @@ Start with F01. Within a chunk, take ready items in the listed order; independen
 | 4 — Content growth and ongoing verification | 3 | 0 | 3 | Not started |
 | **Overall** | **19** | **10** | **9** | **In progress: 2 active, 7 not started** |
 
-**Recommended next task:** deploy the middleware runtime repair. Latest [F04 production verification](./evidence/f04-production-verification-2026-09-08.json) failed with middleware HTTP 500, which persisted after production advanced to the About commit. Rerun both smoke tools and browser acceptance before continuing Stories/Contact/legal families. F13 production comparisons also await a healthy deployment. Totals remain **10 / 19 complete** for implementation tracking.
+**Recommended next task:** continue [F04 Stories initial HTML](./04-public-html-expansion.md), followed by Contact and legal pages. [9 September production recovery](./evidence/f04-production-recovery-2026-09-09.json) passed CMS-strict HTML and all 98 path checks on `aa0f0ca`; manual content/browser acceptance remains separate. F13 production measurements can now resume. Totals remain **10 / 19 complete** for implementation tracking.
 
 ## Parallel execution
 
@@ -230,3 +230,4 @@ The creator validates these separately from remediation completion:
 | 2026-09-08 | User reported both production smoke checks passed after Gallery/middleware deployment; F04 Work HTML implemented and verified locally | 10 / 19 | Deploy/verify Work and review actual featured photos/lightbox; then continue About/Stories/Contact/legal families |
 | 2026-09-08 | F04 About initial HTML implemented with public staff/process snapshots and preserved heading hierarchy; local release, browser and failure checks passed | 10 / 19 | Deploy/verify Work/About and review real content/media; then continue Stories/Contact/legal families |
 | 2026-09-08 | Direct F04 production verification failed: middleware HTTP 500 persisted across Work and About deployments; emitted Node ESM import bug reproduced and repaired locally | 10 / 19 | Deploy runtime repair, verify served commit and rerun both smoke tools before browser acceptance |
+| 2026-09-09 | Verified production recovery on `aa0f0ca`: CMS-strict HTML and 98 path checks passed; Work/About/admin HTML return 200 | 10 / 19 | Continue Stories/Contact/legal rendering; retain manual acceptance and F13 performance measurements |
