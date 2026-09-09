@@ -64,6 +64,7 @@ export const siteContentApi = {
       method: 'POST',
       auth: true,
       body: formData,
+      timeoutMs: 120_000,
     });
   },
 };

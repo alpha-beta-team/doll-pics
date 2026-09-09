@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useFeatureAccess } from '../access/useFeatureAccess';
 import { api } from '../api/client';
+import { ApiError } from '../api/http';
 import { AdminTabs, type AdminTab } from '../components/AdminTabs';
 import { ReadOnlyNotice } from '../components/ReadOnlyNotice';
 import { ServiceCardImageUpload } from '../components/ServiceCardImageUpload';
@@ -916,7 +917,9 @@ function SectionImageField({
       const result = await api.uploadServiceSectionImage(file);
       onChange(result.url);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Could not upload the image.');
+      setError(cause instanceof ApiError && cause.status === 502
+        ? 'The image server could not finish the upload. Try again or choose from Photos.'
+        : cause instanceof Error ? cause.message : 'Could not upload the image.');
     } finally {
       setUploading(false);
     }
