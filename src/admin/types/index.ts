@@ -41,6 +41,7 @@ export type {
   StaffPermission,
   StaffAccountRole,
   TodayWork,
+  TodayWorkspace,
   TodayFollowUp,
   TodaySummaryItem,
   TodayPaymentItem,

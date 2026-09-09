@@ -45,10 +45,15 @@ async function run(args) {
 try {
   await run(['vite', 'build', '--outDir', output, '--emptyOutDir']);
   await run(['tsx', 'scripts/prerender.ts']);
+  await run(['tsx', 'scripts/generate-pwa.mjs']);
   // Match directory-index hosting for clean URLs; Vite preview otherwise serves
   // the SPA home shell for an extensionless path without a trailing slash.
   frontend = createServer(async (req, res) => {
-    const pathname = new URL(req.url, 'http://localhost').pathname;
+    const requestUrl = new URL(req.url, 'http://localhost');
+    const pathname = requestUrl.pathname;
+    if (process.env.PWA_TEST_CONTROLS === 'true' && pathname === '/__pwa-test/blank') {
+      res.setHeader('Content-Type', 'text/html'); res.end('<!doctype html><title>PWA fixture</title>'); return;
+    }
     // Fixture adapter for declared headers; actual hosting acceptance is separate.
     for (const rule of hostingHeaders) {
       const prefix = rule.source.replace('/:path*', '');
@@ -56,8 +61,12 @@ try {
         for (const header of rule.headers) res.setHeader(header.key, header.value);
       }
     }
+    if (/^\/assets\/work-shell-.*\.html$/.test(pathname)) {
+      res.writeHead(308, { Location: pathname.slice(0, -5) }).end(); return;
+    }
     let file = pathname.startsWith('/fixture-media/') ? join(output, 'og-share.jpg') : resolve(output, '.' + decodeURIComponent(pathname));
     if (!file.startsWith(output + '/') && file !== output) { res.writeHead(403).end(); return; }
+    if (/^\/assets\/work-shell-[^/]+$/.test(pathname) && !pathname.endsWith('.html')) file += '.html';
     if (existsSync(file) && statSync(file).isDirectory()) file = join(file, 'index.html');
     if (!existsSync(file)) {
       const rewrite = hosting.rewrites.find(rule => matchesRoute(rule.source, pathname));
@@ -73,6 +82,12 @@ try {
     const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.jpg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.woff2': 'font/woff2' };
     res.setHeader('Content-Type', types[extname(file)] || 'application/octet-stream');
     let body = readFileSync(file);
+    if (process.env.PWA_TEST_CONTROLS === 'true' && pathname === '/admin-sw.js' && requestUrl.searchParams.has('fixture')) {
+      const original = JSON.parse(readFileSync(join(output, 'pwa-build.json'), 'utf8'));
+      const next = { ...original, version: `${Number(original.version.split('-')[0]) + 1}-fixture` };
+      if (requestUrl.searchParams.get('fixture') === 'broken') next.precache = [...next.precache, '/missing-pwa-asset.js'];
+      body = Buffer.from(body.toString().replace(JSON.stringify(original), JSON.stringify(next)));
+    }
     // A client-only baseline using the same bundle and fixtures for visual comparisons.
     if (extname(file) === '.html' && new URL(req.url, 'http://localhost').searchParams.has('client-only')) {
       const { JSDOM } = await import('jsdom');

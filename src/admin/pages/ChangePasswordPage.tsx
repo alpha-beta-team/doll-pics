@@ -1,3 +1,4 @@
+import { AuthRecovery } from '../components/AuthRecovery';
 import { useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { KeyRound } from 'lucide-react';
@@ -6,7 +7,7 @@ import { AdminAlert, AdminButton, AdminField, adminFieldClass } from '../compone
 import { getPostLoginRoute } from '../access/roles';
 
 export function ChangePasswordPage() {
-  const { isAuthenticated, isLoading, changePassword, user } = useAuth();
+  const { isAuthenticated, status, changePassword, user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [currentPassword, setCurrentPassword] = useState('');
@@ -15,7 +16,7 @@ export function ChangePasswordPage() {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const requested = (location.state as { from?: string } | null)?.from;
-  if (isLoading) return <div className="flex min-h-screen items-center justify-center bg-admin-canvas text-sm text-admin-subtle">Checking your account…</div>;
+  if (status === 'checking' || status === 'error') return <AuthRecovery />;
   if (!isAuthenticated) return <Navigate to="/admin/login" replace state={{ from: requested }} />;
   const destination = getPostLoginRoute(user, requested);
   const submit = async (event: React.FormEvent) => { event.preventDefault(); if (newPassword.length < 8) return setError('Use at least 8 characters.'); if (newPassword !== confirmPassword) return setError('The new passwords do not match.'); setSaving(true); setError(''); try { await changePassword(currentPassword, newPassword); navigate(destination, { replace: true }); } catch (err) { setError(err instanceof Error ? err.message : 'Could not change the password.'); } finally { setSaving(false); } };

@@ -1,11 +1,7 @@
 import type { StaffAccount } from '../types';
 import { normalizePermissionOverrides, normalizeStaffAccountRole } from '../access/roles';
-import { request } from './http';
+import { ApiError, request } from './http';
 import { authStorage } from './authStorage';
-
-function storeStaffAccount(account: StaffAccount) {
-  authStorage.setUser(account);
-}
 
 function clearUser() {
   authStorage.clear();
@@ -56,7 +52,6 @@ export const authApi = {
       body: JSON.stringify({ email, password }),
     });
     const user = mapStaffAccount(data);
-    storeStaffAccount(user);
     return { user, token: data.accessToken };
   },
 
@@ -64,11 +59,10 @@ export const authApi = {
     clearUser();
   },
 
-  /** Verifies the stored JWT with GET /auth/me; clears saved auth on failure. */
-  async getCurrentUser(): Promise<StaffAccount | null> {
+  /** Read-only verification; the context owns session changes and stale-response protection. */
+  async getCurrentUser(signal?: AbortSignal): Promise<StaffAccount | null> {
     const token = authStorage.getToken();
     if (!token) {
-      clearUser();
       return null;
     }
 
@@ -85,14 +79,13 @@ export const authApi = {
         mustChangePassword?: boolean;
       }>(
         '/auth/me',
-        { auth: true },
+        { auth: true, signal, timeoutMs: 15_000 },
       );
       const user = mapStaffAccount(data);
-      storeStaffAccount(user);
       return user;
-    } catch {
-      authStorage.clear();
-      return null;
+    } catch (error) {
+      if (error instanceof ApiError && [401, 403].includes(error.status)) return null;
+      throw error;
     }
   },
 
@@ -103,7 +96,6 @@ export const authApi = {
       body: JSON.stringify({ currentPassword, newPassword }),
     });
     const user = mapStaffAccount(data);
-    storeStaffAccount(user);
     return user;
   },
 };

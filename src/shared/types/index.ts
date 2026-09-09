@@ -923,6 +923,8 @@ export type TodayWork = {
   reviewRequests: TodayReviewTask[];
 };
 
+export type TodayWorkspace = Pick<TodayWork, 'date' | 'tomorrow' | 'timezone' | 'followUps' | 'newEnquiries' | 'todayShoots' | 'tomorrowShoots'>;
+
 export type OccasionContactHistoryEntry = {
   id?: string;
   occurrenceDate: string;

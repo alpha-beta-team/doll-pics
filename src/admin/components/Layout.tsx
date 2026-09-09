@@ -1,3 +1,7 @@
+import { AuthRecovery } from "./AuthRecovery";
+import { Suspense } from "react";
+import { RouteLoadBoundary } from "./RouteLoadBoundary";
+import { AdminLoadingState } from "./ui";
 import { Outlet, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import {
@@ -32,7 +36,9 @@ function AdminShell() {
         style={{ paddingLeft: sidebarWidth }}
       >
         <div className={`min-w-0 max-w-full ${salesList ? 'pb-28 md:pb-7' : 'p-3 pb-28 sm:p-6 sm:pb-24 md:p-7 md:pb-7'}`}>
-          <Outlet />
+          <RouteLoadBoundary key={location.pathname}>
+            <Suspense fallback={<AdminLoadingState label="Loading page…" />}><Outlet /></Suspense>
+          </RouteLoadBoundary>
         </div>
       </main>
       {!immersiveEditor && <MobileBottomNav />}
@@ -41,19 +47,10 @@ function AdminShell() {
 }
 
 export function RequireAuth() {
-  const { isAuthenticated, isLoading, user } = useAuth();
+  const { isAuthenticated, status, user } = useAuth();
   const location = useLocation();
 
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-admin-canvas text-admin-text">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-admin-primary border-t-transparent" />
-          <p className="text-sm text-admin-subtle">Loading...</p>
-        </div>
-      </div>
-    );
-  }
+  if (status === 'checking' || status === 'error') return <AuthRecovery />;
 
   if (!isAuthenticated) {
     return (

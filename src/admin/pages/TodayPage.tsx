@@ -1,16 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, CalendarDays, CalendarHeart, Check, CheckCircle2, Circle, Clock3, IndianRupee, MessageCircle, Phone, Plus, RefreshCw, RotateCcw, Star, X } from 'lucide-react';
+import { ArrowRight, CalendarDays, Check, Clock3, MessageCircle, Phone, Plus, RefreshCw, RotateCcw, X } from 'lucide-react';
 import { api } from '../api/client';
 import { InstallAppButton } from '../components/InstallAppButton';
-import type { TodayFollowUp, TodayOccasionTask, TodayReviewTask, TodaySummaryItem, TodayWork } from '../types';
+import type { TodayFollowUp, TodaySummaryItem, TodayWorkspace } from '../types';
 import { FollowUpShortcuts } from '../components/FollowUpShortcuts';
 import { followUpDateError, kolkataLocalToIso } from '../components/followUp.utils';
 import { WhatsAppComposer } from '../components/WhatsAppComposer';
 import type { ManualWhatsAppContext, WhatsAppTemplateId } from '../components/whatsappTemplates';
-import { endOfDayChecks } from '../components/todayChecklist.utils';
-import { useConfirmDialog } from '../hooks/useConfirmDialog';
-import { occasionMessageContext, occasionUrgency } from '../components/occasionPresentation';
 import { AdminAlert, AdminButton, AdminIconButton, AdminLoadingState, AdminPageHeader } from '../components/ui';
 import { ReadOnlyNotice } from '../components/ReadOnlyNotice';
 import { useFeatureAccess } from '../access/useFeatureAccess';
@@ -20,36 +17,32 @@ export function TodayPage() {
   const { canView: canViewPayments } = useFeatureAccess('payments');
   const { canView: canViewEnquiries } = useFeatureAccess('enquiries');
   const { canView: canViewBookings } = useFeatureAccess('bookings');
-  const { canView: canViewOccasions } = useFeatureAccess('occasions');
   const navigate = useNavigate();
-  const confirm = useConfirmDialog();
-  const [work, setWork] = useState<TodayWork | null>(null);
+  const [work, setWork] = useState<TodayWorkspace | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [rescheduling, setRescheduling] = useState<TodayFollowUp | null>(null);
-  const [message, setMessage] = useState<{ context: ManualWhatsAppContext; initial: WhatsAppTemplateId; onOpened?: () => void | Promise<void> } | null>(null);
-  const load = useCallback(async () => {
+  const [message, setMessage] = useState<{ context: ManualWhatsAppContext; initial: WhatsAppTemplateId } | null>(null);
+  const load = useCallback(async (signal?: AbortSignal) => {
     setError('');
     try {
-      const loaded = await api.getTodayWork();
+      const loaded = await api.getTodayWorkspace(undefined, signal);
+      if (signal?.aborted) return;
       setWork({
         ...loaded,
-        occasionsDue: canViewOccasions ? loaded.occasionsDue : [],
-        reviewRequests: canViewBookings ? loaded.reviewRequests : [],
         followUps: loaded.followUps
           .filter((item) => item.entityType === 'enquiry' ? canViewEnquiries : canViewBookings)
           .map((item) => canViewPayments ? item : ({ ...item, balanceDue: undefined, paymentDueDate: undefined })),
         newEnquiries: canViewEnquiries ? loaded.newEnquiries : [],
         todayShoots: canViewBookings ? loaded.todayShoots : [],
-        paymentsDue: canViewPayments && canViewBookings ? loaded.paymentsDue : [],
         tomorrowShoots: canViewBookings ? loaded.tomorrowShoots : [],
       });
     }
-    catch (err) { setError(err instanceof Error ? err.message : 'Could not load today’s work.'); }
-    finally { setLoading(false); }
-  }, [canViewBookings, canViewEnquiries, canViewOccasions, canViewPayments]);
-  useEffect(() => { void load(); }, [load]);
+    catch (err) { if (!signal?.aborted) setError(err instanceof Error ? err.message : 'Could not load today’s work.'); }
+    finally { if (!signal?.aborted) setLoading(false); }
+  }, [canViewBookings, canViewEnquiries, canViewPayments]);
+  useEffect(() => { const controller = new AbortController(); void load(controller.signal); return () => controller.abort(); }, [load]);
 
   const complete = async (item: TodayFollowUp) => {
     try {
@@ -68,32 +61,12 @@ export function TodayPage() {
       await load();
     } catch (err) { setError(err instanceof Error ? err.message : 'Could not reschedule the follow-up.'); throw err; }
   };
-  const markOccasionContacted = async (item: TodayOccasionTask) => {
-    try { await api.markOccasionContacted(item.id, item.nextOccurrenceDate); setSuccess(`${item.occasionName} marked contacted.`); await load(); }
-    catch (err) { setError(err instanceof Error ? err.message : 'Could not complete the occasion reminder.'); }
-  };
-  const updateReview = async (item: TodayReviewTask, action: 'requested' | 'received' | 'skipped') => {
-    if (action === 'skipped') {
-      const accepted = await confirm({ title: 'Skip this review request?', description: 'This closes the task without requesting a review.', confirmLabel: 'Skip review', variant: 'danger' });
-      if (!accepted) return;
-    }
-    try { await api.updateBookingReview(item.bookingId, action); setSuccess(action === 'requested' ? 'Review request was opened in WhatsApp.' : `Review marked ${action}.`); await load(); }
-    catch (err) { setError(err instanceof Error ? err.message : 'Could not update the review task.'); }
-  };
-
   if (loading) return <AdminLoadingState label="Preparing today’s studio work…" />;
   return <div className="mx-auto max-w-5xl space-y-5">
     <AdminPageHeader eyebrow={new Intl.DateTimeFormat('en-IN', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date())} title="Today’s work" description="Start at the top and finish one item at a time." actions={<><InstallAppButton />{isReadOnly && <ReadOnlyNotice />}<AdminIconButton label="Refresh today’s work" onClick={() => void load()}><RefreshCw className="h-4 w-4" /></AdminIconButton>{canManage && <AdminButton onClick={() => navigate('/admin/enquiries?new=1')} className="hidden sm:inline-flex"><Plus className="h-4 w-4" />Add enquiry</AdminButton>}</>} />
-    {error && <AdminAlert><span>{error}</span><button className="ml-3 font-semibold underline" onClick={() => void load()}>Try again</button></AdminAlert>}
+    {error && <AdminAlert><span>{work ? `Could not refresh. Showing previously loaded work. ${error}` : error}</span><button className="ml-3 font-semibold underline" onClick={() => void load()}>Try again</button></AdminAlert>}
     {success && <div className="flex rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-700">{success}<button className="ml-auto" onClick={() => setSuccess('')}>Dismiss</button></div>}
     {work && <>
-      <EndOfDayChecklist work={work} />
-      <div id="today-occasions"><WorkSection title="Birthdays & anniversaries" count={work.occasionsDue?.length || 0} urgent={work.occasionsDue?.some(item => item.overdue)} empty="No occasion reminders are due.">
-        {(work.occasionsDue || []).map(item => <article key={item.id} className="rounded-2xl border border-admin-border bg-admin-surface p-4 shadow-sm transition hover:border-admin-control hover:shadow-md"><div className="flex items-start gap-3"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-pink-50"><CalendarHeart className="h-5 w-5 text-pink-600" /></span><div className="min-w-0 flex-1"><p className="font-semibold text-slate-900">{item.occasionName}</p><p className="mt-1 text-sm capitalize text-slate-500">{item.type} · Contact {item.customerName}</p><p className={`mt-1 text-xs font-semibold ${item.overdue ? 'text-red-600' : 'text-pink-600'}`}>{occasionUrgency(item.daysUntil)}</p></div></div><div className="mt-4 grid grid-cols-2 gap-2 border-t border-admin-border pt-4 sm:grid-cols-[repeat(auto-fit,minmax(130px,1fr))]">{canManage && <><a href={`tel:${item.phone}`} className="action"><Phone className="h-4 w-4" />Call</a><button type="button" onClick={() => setMessage({ context: occasionMessageContext(item), initial: item.type })} className="action text-emerald-700"><MessageCircle className="h-4 w-4" />WhatsApp</button><button type="button" onClick={() => void markOccasionContacted(item)} className="action bg-emerald-600 text-white"><Check className="h-4 w-4" />Contacted</button></>}{item.source && <Link to={`/admin/${item.source.type === 'enquiry' ? 'enquiries' : 'bookings'}/${item.source.id}`} className="action">Source</Link>}{canManage && <button type="button" onClick={() => navigate('/admin/enquiries?new=1', { state: { occasionContact: { id: item.id, customerName: item.customerName, phone: item.phone } } })} className="action bg-blue-600 text-white">Create enquiry</button>}</div></article>)}
-      </WorkSection></div>
-      <div id="today-reviews"><WorkSection title="Review requests" count={work.reviewRequests?.length || 0} empty="No review requests are due.">
-        {(work.reviewRequests || []).map(item => <article key={item.bookingId} className="rounded-xl border border-slate-200 bg-white p-4"><div className="flex items-start gap-3"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-50"><Star className="h-5 w-5 text-amber-600" /></span><div className="min-w-0 flex-1"><p className="font-semibold text-slate-900">{item.customerName}</p><p className="mt-1 text-sm text-slate-500">{item.service || 'Photography session'} · {item.requestCount ? 'Review follow-up' : 'First request'}</p><p className="mt-1 text-xs text-slate-500">Due {formatDateTime(item.dueAt)}</p></div></div><div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-5">{canManage && <><a href={`tel:${item.phone}`} className="action"><Phone className="h-4 w-4" />Call</a><button type="button" disabled={item.optedOut} onClick={() => setMessage({ context: { customerName: item.customerName, phone: item.phone, service: item.service, reviewUrl: item.reviewUrl, consentRecorded: item.consentRecorded, optedOut: item.optedOut }, initial: 'review_request', onOpened: () => updateReview(item, 'requested') })} className="action text-emerald-700 disabled:opacity-40"><MessageCircle className="h-4 w-4" />WhatsApp</button></>}<Link to={`/admin/bookings/${item.bookingId}`} className="action">Open</Link>{canManage && <><button type="button" onClick={() => void updateReview(item, 'received')} className="action bg-emerald-600 text-white">Received</button><button type="button" onClick={() => void updateReview(item, 'skipped')} className="action text-slate-600">Skip</button></>}</div></article>)}
-      </WorkSection></div>
       <div id="today-followups"><WorkSection title="Follow-ups" count={work.followUps.length} urgent={work.followUps.some(item => item.overdue)} empty="No follow-ups due. You are up to date.">
         {work.followUps.map(item => (
           <FollowUpTask
@@ -108,11 +81,10 @@ export function TodayPage() {
       </WorkSection></div>
       <div id="today-new-enquiries"><WorkSection title="New enquiries" count={work.newEnquiries.length} empty="No new enquiries waiting.">{work.newEnquiries.map(item => <SimpleTask key={item.id} item={item} to={`/admin/enquiries/${item.id}`} enquiry onMessage={canManage ? () => setMessage({ context: summaryMessageContext(item), initial: 'enquiry_follow_up' }) : undefined} />)}</WorkSection></div>
       <div id="today-shoots"><WorkSection title="Today’s shoots" count={work.todayShoots.length} empty="No confirmed shoots today.">{work.todayShoots.map(item => <SimpleTask key={item.id} item={item} to={`/admin/bookings/${item.id}`} calendar onMessage={canManage ? () => setMessage({ context: summaryMessageContext(item), initial: 'shoot_reminder' }) : undefined} />)}</WorkSection></div>
-      {canViewPayments && <div id="today-payments"><WorkSection title="Payments due" count={work.paymentsDue.length} empty="No payments are due today.">{work.paymentsDue.map(item => <article key={item.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white p-4"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700"><IndianRupee className="h-5 w-5" /></span><div className="min-w-0 flex-1"><p className="truncate font-semibold text-slate-900">{item.name}</p><p className="text-sm text-slate-500">Balance {money(item.balanceDue)} · due {item.paymentDueDate}</p></div>{canManage && <button type="button" onClick={() => setMessage({ context: { ...summaryMessageContext(item), balanceDue: item.balanceDue, paymentDueDate: item.paymentDueDate }, initial: 'payment_reminder' })} className="flex h-11 items-center gap-2 rounded-xl border border-emerald-300 px-3 text-sm font-semibold text-emerald-700"><MessageCircle className="h-4 w-4" />Message</button>}<Link to={`/admin/bookings/${item.id}`} className="flex h-11 items-center rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white">Open</Link></article>)}</WorkSection></div>}
       <div id="today-tomorrow"><WorkSection title="Tomorrow’s shoots" count={work.tomorrowShoots.length} empty="No confirmed shoots tomorrow.">{work.tomorrowShoots.map(item => <SimpleTask key={item.id} item={item} to={`/admin/bookings/${item.id}`} calendar onMessage={canManage ? () => setMessage({ context: summaryMessageContext(item), initial: 'shoot_reminder' }) : undefined} />)}</WorkSection></div>
     </>}
     {canManage && rescheduling && <FollowUpDialog item={rescheduling} onClose={() => setRescheduling(null)} onSave={reschedule} />}
-    {canManage && message && <WhatsAppComposer context={message.context} initialTemplate={message.initial} onOpened={message.onOpened} onClose={() => setMessage(null)} />}
+    {canManage && message && <WhatsAppComposer context={message.context} initialTemplate={message.initial} onClose={() => setMessage(null)} />}
   </div>;
 }
 
@@ -145,18 +117,11 @@ function FollowUpTask({ item, canManage, onMessage, onComplete, onReschedule }: 
   </article>;
 }
 function SimpleTask({ item, to, calendar, enquiry, onMessage }: { item: TodaySummaryItem; to: string; calendar?: boolean; enquiry?: boolean; onMessage?: () => void }) { return <article className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white p-4"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700">{calendar ? <CalendarDays className="h-5 w-5" /> : item.name.charAt(0).toUpperCase()}</span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><p className="truncate font-semibold text-slate-900">{item.name}</p>{enquiry && item.source && <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold capitalize text-slate-600">{item.source.replace(/_/g, ' ')}</span>}</div><p className="truncate text-sm text-slate-500">{item.shootType || 'Service not decided'}{item.location ? ` · ${item.location}` : ''}</p>{enquiry && <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500"><a href={`tel:${item.phone}`} className="inline-flex items-center gap-1.5 font-medium text-slate-600 hover:text-slate-900"><Phone className="h-3.5 w-3.5" />{item.phone}</a>{item.bookingDate && <span className="inline-flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5" />Preferred {formatDate(item.bookingDate)}</span>}{item.createdAt && <span className="inline-flex items-center gap-1.5"><Clock3 className="h-3.5 w-3.5" />Received {formatDateTime(item.createdAt)}</span>}</div>}</div>{onMessage && <button type="button" onClick={onMessage} className="flex h-11 w-11 items-center justify-center rounded-xl border border-emerald-300 text-emerald-700" aria-label={`Message ${item.name}`}><MessageCircle className="h-4 w-4" /></button>}<Link to={to} className="flex h-11 items-center rounded-xl bg-slate-900 px-4 text-sm font-semibold text-white">Open</Link></article>; }
-function money(value: number) { return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value); }
 function formatDateTime(value: string) { return new Date(value).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' }); }
 function formatDate(value: string) { return new Date(`${value.slice(0, 10)}T12:00:00`).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }); }
 
 function summaryMessageContext(item: TodaySummaryItem): ManualWhatsAppContext { return { customerName: item.name, phone: item.phone, service: item.shootType, bookingDate: item.bookingDate, startTime: item.startTime, endTime: item.endTime, location: item.location, consentRecorded: item.whatsappOptIn, optedOut: Boolean(item.whatsappOptOutAt) }; }
 function followUpMessageContext(item: TodayFollowUp): ManualWhatsAppContext { return { customerName: item.name, phone: item.phone, service: item.shootType, bookingDate: item.bookingDate, startTime: item.startTime, endTime: item.endTime, location: item.location, balanceDue: item.balanceDue, paymentDueDate: item.paymentDueDate, consentRecorded: item.whatsappOptIn, optedOut: Boolean(item.whatsappOptOutAt) }; }
-
-function EndOfDayChecklist({ work }: { work: TodayWork }) {
-  const checks = endOfDayChecks(work);
-  const allClear = checks.every(check => check.count === 0);
-  return <section className={`rounded-2xl border p-4 shadow-sm sm:p-5 ${allClear ? 'border-emerald-200 bg-emerald-50' : 'border-blue-200 bg-blue-50/60'}`}><div className="flex items-center gap-3"><span className={`flex h-11 w-11 items-center justify-center rounded-xl ${allClear ? 'bg-emerald-600 text-white' : 'bg-blue-600 text-white'}`}><CheckCircle2 className="h-5 w-5" /></span><div><h2 className="text-lg font-bold text-slate-900">End of day</h2><p className="text-sm text-slate-600">{allClear ? 'All clear for today.' : 'This updates automatically as work is completed.'}</p></div></div><div className="mt-4 grid gap-2 sm:grid-cols-2">{checks.map(check => <a key={check.label} href={check.href} className="flex min-h-11 items-center gap-3 rounded-xl bg-white px-3 text-sm font-semibold text-slate-700 shadow-sm">{check.count === 0 ? <CheckCircle2 className="h-5 w-5 text-emerald-600" /> : <Circle className="h-5 w-5 text-amber-600" />}<span className="flex-1">{check.label}</span><span className={check.count ? 'text-amber-700' : 'text-emerald-700'}>{check.count ? `${check.count} left` : 'Done'}</span></a>)}</div></section>;
-}
 
 function FollowUpDialog({ item, onClose, onSave }: { item: TodayFollowUp; onClose: () => void; onSave: (item: TodayFollowUp, when: string, note: string) => Promise<void> }) {
   const [when, setWhen] = useState('');

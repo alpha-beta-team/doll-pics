@@ -1,0 +1,1401 @@
+{
+  "profile": "1.6 Mbps, 150 ms latency, 4x CPU; service workers blocked; login only; auth/Today timings not measured",
+  "results": [
+    {
+      "directory": "/tmp/doll-pwa-before",
+      "coldMedianMs": 2771,
+      "warmMedianMs": 409,
+      "coldJavascriptGzipBytes": 336018,
+      "runs": [
+        {
+          "iteration": 1,
+          "cache": "cold",
+          "readyMs": 2872,
+          "scripts": [
+            {
+              "url": "http://127.0.0.1:52813/assets/index-czdaDMIx.js",
+              "encoded": 107757,
+              "transferred": 108057
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/AdminApp-C7-Nuncr.js",
+              "encoded": 218723,
+              "transferred": 219023
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/types-BhxukvxO.js",
+              "encoded": 1317,
+              "transferred": 1617
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/clock-3-BugNA7R3.js",
+              "encoded": 277,
+              "transferred": 577
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/refresh-cw-CMJO06Qq.js",
+              "encoded": 325,
+              "transferred": 625
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/format-OpIQc9rT.js",
+              "encoded": 1345,
+              "transferred": 1645
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/arrow-up-right-y9zCzHeH.js",
+              "encoded": 262,
+              "transferred": 562
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/monitor-smartphone-BmC9xhmO.js",
+              "encoded": 408,
+              "transferred": 708
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/check-EzbqfqFc.js",
+              "encoded": 244,
+              "transferred": 544
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/star-BQpv6gCb.js",
+              "encoded": 289,
+              "transferred": 589
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/rotate-ccw-ukJZgXtZ.js",
+              "encoded": 285,
+              "transferred": 585
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/shootTypes-DGmeg7qA.js",
+              "encoded": 149,
+              "transferred": 449
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/quotationPagePlan-umHIfe5I.js",
+              "encoded": 414,
+              "transferred": 714
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/QuotationPresentation-Pyr0gVLG.js",
+              "encoded": 3958,
+              "transferred": 4258
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/send-B7wMx9nn.js",
+              "encoded": 265,
+              "transferred": 565
+            }
+          ],
+          "authMs": null,
+          "todayMs": null
+        },
+        {
+          "iteration": 1,
+          "cache": "warm",
+          "readyMs": 409,
+          "scripts": [
+            {
+              "url": "http://127.0.0.1:52813/assets/index-czdaDMIx.js",
+              "encoded": 107757,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/AdminApp-C7-Nuncr.js",
+              "encoded": 218723,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/types-BhxukvxO.js",
+              "encoded": 1317,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/clock-3-BugNA7R3.js",
+              "encoded": 277,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/format-OpIQc9rT.js",
+              "encoded": 1345,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/refresh-cw-CMJO06Qq.js",
+              "encoded": 325,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/arrow-up-right-y9zCzHeH.js",
+              "encoded": 262,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/monitor-smartphone-BmC9xhmO.js",
+              "encoded": 408,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/check-EzbqfqFc.js",
+              "encoded": 244,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/star-BQpv6gCb.js",
+              "encoded": 289,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/rotate-ccw-ukJZgXtZ.js",
+              "encoded": 285,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/shootTypes-DGmeg7qA.js",
+              "encoded": 149,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/QuotationPresentation-Pyr0gVLG.js",
+              "encoded": 3958,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/quotationPagePlan-umHIfe5I.js",
+              "encoded": 414,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/send-B7wMx9nn.js",
+              "encoded": 265,
+              "transferred": 0
+            }
+          ],
+          "authMs": null,
+          "todayMs": null
+        },
+        {
+          "iteration": 2,
+          "cache": "cold",
+          "readyMs": 2771,
+          "scripts": [
+            {
+              "url": "http://127.0.0.1:52813/assets/index-czdaDMIx.js",
+              "encoded": 107757,
+              "transferred": 108057
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/AdminApp-C7-Nuncr.js",
+              "encoded": 218723,
+              "transferred": 219023
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/types-BhxukvxO.js",
+              "encoded": 1317,
+              "transferred": 1617
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/clock-3-BugNA7R3.js",
+              "encoded": 277,
+              "transferred": 577
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/refresh-cw-CMJO06Qq.js",
+              "encoded": 325,
+              "transferred": 625
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/format-OpIQc9rT.js",
+              "encoded": 1345,
+              "transferred": 1645
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/arrow-up-right-y9zCzHeH.js",
+              "encoded": 262,
+              "transferred": 562
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/monitor-smartphone-BmC9xhmO.js",
+              "encoded": 408,
+              "transferred": 708
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/check-EzbqfqFc.js",
+              "encoded": 244,
+              "transferred": 544
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/star-BQpv6gCb.js",
+              "encoded": 289,
+              "transferred": 589
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/rotate-ccw-ukJZgXtZ.js",
+              "encoded": 285,
+              "transferred": 585
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/shootTypes-DGmeg7qA.js",
+              "encoded": 149,
+              "transferred": 449
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/quotationPagePlan-umHIfe5I.js",
+              "encoded": 414,
+              "transferred": 714
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/send-B7wMx9nn.js",
+              "encoded": 265,
+              "transferred": 565
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/QuotationPresentation-Pyr0gVLG.js",
+              "encoded": 3958,
+              "transferred": 4258
+            }
+          ],
+          "authMs": null,
+          "todayMs": null
+        },
+        {
+          "iteration": 2,
+          "cache": "warm",
+          "readyMs": 410,
+          "scripts": [
+            {
+              "url": "http://127.0.0.1:52813/assets/index-czdaDMIx.js",
+              "encoded": 107757,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/AdminApp-C7-Nuncr.js",
+              "encoded": 218723,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/types-BhxukvxO.js",
+              "encoded": 1317,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/clock-3-BugNA7R3.js",
+              "encoded": 277,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/format-OpIQc9rT.js",
+              "encoded": 1345,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/refresh-cw-CMJO06Qq.js",
+              "encoded": 325,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/arrow-up-right-y9zCzHeH.js",
+              "encoded": 262,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/monitor-smartphone-BmC9xhmO.js",
+              "encoded": 408,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/check-EzbqfqFc.js",
+              "encoded": 244,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/star-BQpv6gCb.js",
+              "encoded": 289,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/rotate-ccw-ukJZgXtZ.js",
+              "encoded": 285,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/shootTypes-DGmeg7qA.js",
+              "encoded": 149,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/QuotationPresentation-Pyr0gVLG.js",
+              "encoded": 3958,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/quotationPagePlan-umHIfe5I.js",
+              "encoded": 414,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/send-B7wMx9nn.js",
+              "encoded": 265,
+              "transferred": 0
+            }
+          ],
+          "authMs": null,
+          "todayMs": null
+        },
+        {
+          "iteration": 3,
+          "cache": "cold",
+          "readyMs": 2771,
+          "scripts": [
+            {
+              "url": "http://127.0.0.1:52813/assets/index-czdaDMIx.js",
+              "encoded": 107757,
+              "transferred": 108057
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/AdminApp-C7-Nuncr.js",
+              "encoded": 218723,
+              "transferred": 219023
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/types-BhxukvxO.js",
+              "encoded": 1317,
+              "transferred": 1617
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/clock-3-BugNA7R3.js",
+              "encoded": 277,
+              "transferred": 577
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/format-OpIQc9rT.js",
+              "encoded": 1345,
+              "transferred": 1645
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/refresh-cw-CMJO06Qq.js",
+              "encoded": 325,
+              "transferred": 625
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/arrow-up-right-y9zCzHeH.js",
+              "encoded": 262,
+              "transferred": 562
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/monitor-smartphone-BmC9xhmO.js",
+              "encoded": 408,
+              "transferred": 708
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/check-EzbqfqFc.js",
+              "encoded": 244,
+              "transferred": 544
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/star-BQpv6gCb.js",
+              "encoded": 289,
+              "transferred": 589
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/rotate-ccw-ukJZgXtZ.js",
+              "encoded": 285,
+              "transferred": 585
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/shootTypes-DGmeg7qA.js",
+              "encoded": 149,
+              "transferred": 449
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/QuotationPresentation-Pyr0gVLG.js",
+              "encoded": 3958,
+              "transferred": 4258
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/quotationPagePlan-umHIfe5I.js",
+              "encoded": 414,
+              "transferred": 714
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/send-B7wMx9nn.js",
+              "encoded": 265,
+              "transferred": 565
+            }
+          ],
+          "authMs": null,
+          "todayMs": null
+        },
+        {
+          "iteration": 3,
+          "cache": "warm",
+          "readyMs": 412,
+          "scripts": [
+            {
+              "url": "http://127.0.0.1:52813/assets/index-czdaDMIx.js",
+              "encoded": 107757,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/AdminApp-C7-Nuncr.js",
+              "encoded": 218723,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/types-BhxukvxO.js",
+              "encoded": 1317,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/clock-3-BugNA7R3.js",
+              "encoded": 277,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/format-OpIQc9rT.js",
+              "encoded": 1345,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/refresh-cw-CMJO06Qq.js",
+              "encoded": 325,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/arrow-up-right-y9zCzHeH.js",
+              "encoded": 262,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/monitor-smartphone-BmC9xhmO.js",
+              "encoded": 408,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/check-EzbqfqFc.js",
+              "encoded": 244,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/star-BQpv6gCb.js",
+              "encoded": 289,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/rotate-ccw-ukJZgXtZ.js",
+              "encoded": 285,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/shootTypes-DGmeg7qA.js",
+              "encoded": 149,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/QuotationPresentation-Pyr0gVLG.js",
+              "encoded": 3958,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/quotationPagePlan-umHIfe5I.js",
+              "encoded": 414,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/send-B7wMx9nn.js",
+              "encoded": 265,
+              "transferred": 0
+            }
+          ],
+          "authMs": null,
+          "todayMs": null
+        },
+        {
+          "iteration": 4,
+          "cache": "cold",
+          "readyMs": 2775,
+          "scripts": [
+            {
+              "url": "http://127.0.0.1:52813/assets/index-czdaDMIx.js",
+              "encoded": 107757,
+              "transferred": 108057
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/AdminApp-C7-Nuncr.js",
+              "encoded": 218723,
+              "transferred": 219023
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/types-BhxukvxO.js",
+              "encoded": 1317,
+              "transferred": 1617
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/clock-3-BugNA7R3.js",
+              "encoded": 277,
+              "transferred": 577
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/format-OpIQc9rT.js",
+              "encoded": 1345,
+              "transferred": 1645
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/refresh-cw-CMJO06Qq.js",
+              "encoded": 325,
+              "transferred": 625
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/arrow-up-right-y9zCzHeH.js",
+              "encoded": 262,
+              "transferred": 562
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/monitor-smartphone-BmC9xhmO.js",
+              "encoded": 408,
+              "transferred": 708
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/check-EzbqfqFc.js",
+              "encoded": 244,
+              "transferred": 544
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/star-BQpv6gCb.js",
+              "encoded": 289,
+              "transferred": 589
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/rotate-ccw-ukJZgXtZ.js",
+              "encoded": 285,
+              "transferred": 585
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/shootTypes-DGmeg7qA.js",
+              "encoded": 149,
+              "transferred": 449
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/QuotationPresentation-Pyr0gVLG.js",
+              "encoded": 3958,
+              "transferred": 4258
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/quotationPagePlan-umHIfe5I.js",
+              "encoded": 414,
+              "transferred": 714
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/send-B7wMx9nn.js",
+              "encoded": 265,
+              "transferred": 565
+            }
+          ],
+          "authMs": null,
+          "todayMs": null
+        },
+        {
+          "iteration": 4,
+          "cache": "warm",
+          "readyMs": 402,
+          "scripts": [
+            {
+              "url": "http://127.0.0.1:52813/assets/index-czdaDMIx.js",
+              "encoded": 107757,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/AdminApp-C7-Nuncr.js",
+              "encoded": 218723,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/types-BhxukvxO.js",
+              "encoded": 1317,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/clock-3-BugNA7R3.js",
+              "encoded": 277,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/format-OpIQc9rT.js",
+              "encoded": 1345,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/refresh-cw-CMJO06Qq.js",
+              "encoded": 325,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/arrow-up-right-y9zCzHeH.js",
+              "encoded": 262,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/monitor-smartphone-BmC9xhmO.js",
+              "encoded": 408,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/check-EzbqfqFc.js",
+              "encoded": 244,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/star-BQpv6gCb.js",
+              "encoded": 289,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/rotate-ccw-ukJZgXtZ.js",
+              "encoded": 285,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/shootTypes-DGmeg7qA.js",
+              "encoded": 149,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/QuotationPresentation-Pyr0gVLG.js",
+              "encoded": 3958,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/quotationPagePlan-umHIfe5I.js",
+              "encoded": 414,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/send-B7wMx9nn.js",
+              "encoded": 265,
+              "transferred": 0
+            }
+          ],
+          "authMs": null,
+          "todayMs": null
+        },
+        {
+          "iteration": 5,
+          "cache": "cold",
+          "readyMs": 2766,
+          "scripts": [
+            {
+              "url": "http://127.0.0.1:52813/assets/index-czdaDMIx.js",
+              "encoded": 107757,
+              "transferred": 108057
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/types-BhxukvxO.js",
+              "encoded": 1317,
+              "transferred": 1617
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/AdminApp-C7-Nuncr.js",
+              "encoded": 218723,
+              "transferred": 219023
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/clock-3-BugNA7R3.js",
+              "encoded": 277,
+              "transferred": 577
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/format-OpIQc9rT.js",
+              "encoded": 1345,
+              "transferred": 1645
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/refresh-cw-CMJO06Qq.js",
+              "encoded": 325,
+              "transferred": 625
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/arrow-up-right-y9zCzHeH.js",
+              "encoded": 262,
+              "transferred": 562
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/monitor-smartphone-BmC9xhmO.js",
+              "encoded": 408,
+              "transferred": 708
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/check-EzbqfqFc.js",
+              "encoded": 244,
+              "transferred": 544
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/star-BQpv6gCb.js",
+              "encoded": 289,
+              "transferred": 589
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/rotate-ccw-ukJZgXtZ.js",
+              "encoded": 285,
+              "transferred": 585
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/shootTypes-DGmeg7qA.js",
+              "encoded": 149,
+              "transferred": 449
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/quotationPagePlan-umHIfe5I.js",
+              "encoded": 414,
+              "transferred": 714
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/QuotationPresentation-Pyr0gVLG.js",
+              "encoded": 3958,
+              "transferred": 4258
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/send-B7wMx9nn.js",
+              "encoded": 265,
+              "transferred": 565
+            }
+          ],
+          "authMs": null,
+          "todayMs": null
+        },
+        {
+          "iteration": 5,
+          "cache": "warm",
+          "readyMs": 396,
+          "scripts": [
+            {
+              "url": "http://127.0.0.1:52813/assets/index-czdaDMIx.js",
+              "encoded": 107757,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/AdminApp-C7-Nuncr.js",
+              "encoded": 218723,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/types-BhxukvxO.js",
+              "encoded": 1317,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/clock-3-BugNA7R3.js",
+              "encoded": 277,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/format-OpIQc9rT.js",
+              "encoded": 1345,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/refresh-cw-CMJO06Qq.js",
+              "encoded": 325,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/arrow-up-right-y9zCzHeH.js",
+              "encoded": 262,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/monitor-smartphone-BmC9xhmO.js",
+              "encoded": 408,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/check-EzbqfqFc.js",
+              "encoded": 244,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/star-BQpv6gCb.js",
+              "encoded": 289,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/rotate-ccw-ukJZgXtZ.js",
+              "encoded": 285,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/shootTypes-DGmeg7qA.js",
+              "encoded": 149,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/QuotationPresentation-Pyr0gVLG.js",
+              "encoded": 3958,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/quotationPagePlan-umHIfe5I.js",
+              "encoded": 414,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52813/assets/send-B7wMx9nn.js",
+              "encoded": 265,
+              "transferred": 0
+            }
+          ],
+          "authMs": null,
+          "todayMs": null
+        }
+      ]
+    },
+    {
+      "directory": "dist",
+      "coldMedianMs": 1765,
+      "warmMedianMs": 397,
+      "coldJavascriptGzipBytes": 149443,
+      "runs": [
+        {
+          "iteration": 1,
+          "cache": "cold",
+          "readyMs": 1767,
+          "scripts": [
+            {
+              "url": "http://127.0.0.1:52870/assets/index-2JBbR4bR.js",
+              "encoded": 107889,
+              "transferred": 108189
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/AdminApp-cgkN3FeM.js",
+              "encoded": 38862,
+              "transferred": 39162
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/wallet-cards-JsCMJj_y.js",
+              "encoded": 917,
+              "transferred": 1217
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/clock-3-Sb71qk6k.js",
+              "encoded": 277,
+              "transferred": 577
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/log-out-C1aWeHsb.js",
+              "encoded": 321,
+              "transferred": 621
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/download-D0llvQSv.js",
+              "encoded": 321,
+              "transferred": 621
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/check-C_8FaLLR.js",
+              "encoded": 245,
+              "transferred": 545
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/refresh-cw-Baizw05d.js",
+              "encoded": 325,
+              "transferred": 625
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/rotate-ccw-rrjfOyyO.js",
+              "encoded": 286,
+              "transferred": 586
+            }
+          ],
+          "authMs": null,
+          "todayMs": null
+        },
+        {
+          "iteration": 1,
+          "cache": "warm",
+          "readyMs": 386,
+          "scripts": [
+            {
+              "url": "http://127.0.0.1:52870/assets/index-2JBbR4bR.js",
+              "encoded": 107889,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/AdminApp-cgkN3FeM.js",
+              "encoded": 38862,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/wallet-cards-JsCMJj_y.js",
+              "encoded": 917,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/clock-3-Sb71qk6k.js",
+              "encoded": 277,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/log-out-C1aWeHsb.js",
+              "encoded": 321,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/download-D0llvQSv.js",
+              "encoded": 321,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/check-C_8FaLLR.js",
+              "encoded": 245,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/refresh-cw-Baizw05d.js",
+              "encoded": 325,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/rotate-ccw-rrjfOyyO.js",
+              "encoded": 286,
+              "transferred": 0
+            }
+          ],
+          "authMs": null,
+          "todayMs": null
+        },
+        {
+          "iteration": 2,
+          "cache": "cold",
+          "readyMs": 1765,
+          "scripts": [
+            {
+              "url": "http://127.0.0.1:52870/assets/index-2JBbR4bR.js",
+              "encoded": 107889,
+              "transferred": 108189
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/AdminApp-cgkN3FeM.js",
+              "encoded": 38862,
+              "transferred": 39162
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/wallet-cards-JsCMJj_y.js",
+              "encoded": 917,
+              "transferred": 1217
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/clock-3-Sb71qk6k.js",
+              "encoded": 277,
+              "transferred": 577
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/log-out-C1aWeHsb.js",
+              "encoded": 321,
+              "transferred": 621
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/download-D0llvQSv.js",
+              "encoded": 321,
+              "transferred": 621
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/check-C_8FaLLR.js",
+              "encoded": 245,
+              "transferred": 545
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/refresh-cw-Baizw05d.js",
+              "encoded": 325,
+              "transferred": 625
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/rotate-ccw-rrjfOyyO.js",
+              "encoded": 286,
+              "transferred": 586
+            }
+          ],
+          "authMs": null,
+          "todayMs": null
+        },
+        {
+          "iteration": 2,
+          "cache": "warm",
+          "readyMs": 397,
+          "scripts": [
+            {
+              "url": "http://127.0.0.1:52870/assets/index-2JBbR4bR.js",
+              "encoded": 107889,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/AdminApp-cgkN3FeM.js",
+              "encoded": 38862,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/wallet-cards-JsCMJj_y.js",
+              "encoded": 917,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/clock-3-Sb71qk6k.js",
+              "encoded": 277,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/log-out-C1aWeHsb.js",
+              "encoded": 321,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/download-D0llvQSv.js",
+              "encoded": 321,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/check-C_8FaLLR.js",
+              "encoded": 245,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/refresh-cw-Baizw05d.js",
+              "encoded": 325,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/rotate-ccw-rrjfOyyO.js",
+              "encoded": 286,
+              "transferred": 0
+            }
+          ],
+          "authMs": null,
+          "todayMs": null
+        },
+        {
+          "iteration": 3,
+          "cache": "cold",
+          "readyMs": 1756,
+          "scripts": [
+            {
+              "url": "http://127.0.0.1:52870/assets/index-2JBbR4bR.js",
+              "encoded": 107889,
+              "transferred": 108189
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/wallet-cards-JsCMJj_y.js",
+              "encoded": 917,
+              "transferred": 1217
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/AdminApp-cgkN3FeM.js",
+              "encoded": 38862,
+              "transferred": 39162
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/clock-3-Sb71qk6k.js",
+              "encoded": 277,
+              "transferred": 577
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/log-out-C1aWeHsb.js",
+              "encoded": 321,
+              "transferred": 621
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/download-D0llvQSv.js",
+              "encoded": 321,
+              "transferred": 621
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/check-C_8FaLLR.js",
+              "encoded": 245,
+              "transferred": 545
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/refresh-cw-Baizw05d.js",
+              "encoded": 325,
+              "transferred": 625
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/rotate-ccw-rrjfOyyO.js",
+              "encoded": 286,
+              "transferred": 586
+            }
+          ],
+          "authMs": null,
+          "todayMs": null
+        },
+        {
+          "iteration": 3,
+          "cache": "warm",
+          "readyMs": 392,
+          "scripts": [
+            {
+              "url": "http://127.0.0.1:52870/assets/index-2JBbR4bR.js",
+              "encoded": 107889,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/AdminApp-cgkN3FeM.js",
+              "encoded": 38862,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/wallet-cards-JsCMJj_y.js",
+              "encoded": 917,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/clock-3-Sb71qk6k.js",
+              "encoded": 277,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/log-out-C1aWeHsb.js",
+              "encoded": 321,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/download-D0llvQSv.js",
+              "encoded": 321,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/check-C_8FaLLR.js",
+              "encoded": 245,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/refresh-cw-Baizw05d.js",
+              "encoded": 325,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/rotate-ccw-rrjfOyyO.js",
+              "encoded": 286,
+              "transferred": 0
+            }
+          ],
+          "authMs": null,
+          "todayMs": null
+        },
+        {
+          "iteration": 4,
+          "cache": "cold",
+          "readyMs": 1756,
+          "scripts": [
+            {
+              "url": "http://127.0.0.1:52870/assets/index-2JBbR4bR.js",
+              "encoded": 107889,
+              "transferred": 108189
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/AdminApp-cgkN3FeM.js",
+              "encoded": 38862,
+              "transferred": 39162
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/wallet-cards-JsCMJj_y.js",
+              "encoded": 917,
+              "transferred": 1217
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/clock-3-Sb71qk6k.js",
+              "encoded": 277,
+              "transferred": 577
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/log-out-C1aWeHsb.js",
+              "encoded": 321,
+              "transferred": 621
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/download-D0llvQSv.js",
+              "encoded": 321,
+              "transferred": 621
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/check-C_8FaLLR.js",
+              "encoded": 245,
+              "transferred": 545
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/refresh-cw-Baizw05d.js",
+              "encoded": 325,
+              "transferred": 625
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/rotate-ccw-rrjfOyyO.js",
+              "encoded": 286,
+              "transferred": 586
+            }
+          ],
+          "authMs": null,
+          "todayMs": null
+        },
+        {
+          "iteration": 4,
+          "cache": "warm",
+          "readyMs": 397,
+          "scripts": [
+            {
+              "url": "http://127.0.0.1:52870/assets/index-2JBbR4bR.js",
+              "encoded": 107889,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/AdminApp-cgkN3FeM.js",
+              "encoded": 38862,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/wallet-cards-JsCMJj_y.js",
+              "encoded": 917,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/clock-3-Sb71qk6k.js",
+              "encoded": 277,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/log-out-C1aWeHsb.js",
+              "encoded": 321,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/download-D0llvQSv.js",
+              "encoded": 321,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/check-C_8FaLLR.js",
+              "encoded": 245,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/refresh-cw-Baizw05d.js",
+              "encoded": 325,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/rotate-ccw-rrjfOyyO.js",
+              "encoded": 286,
+              "transferred": 0
+            }
+          ],
+          "authMs": null,
+          "todayMs": null
+        },
+        {
+          "iteration": 5,
+          "cache": "cold",
+          "readyMs": 1765,
+          "scripts": [
+            {
+              "url": "http://127.0.0.1:52870/assets/index-2JBbR4bR.js",
+              "encoded": 107889,
+              "transferred": 108189
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/AdminApp-cgkN3FeM.js",
+              "encoded": 38862,
+              "transferred": 39162
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/wallet-cards-JsCMJj_y.js",
+              "encoded": 917,
+              "transferred": 1217
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/clock-3-Sb71qk6k.js",
+              "encoded": 277,
+              "transferred": 577
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/log-out-C1aWeHsb.js",
+              "encoded": 321,
+              "transferred": 621
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/download-D0llvQSv.js",
+              "encoded": 321,
+              "transferred": 621
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/check-C_8FaLLR.js",
+              "encoded": 245,
+              "transferred": 545
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/refresh-cw-Baizw05d.js",
+              "encoded": 325,
+              "transferred": 625
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/rotate-ccw-rrjfOyyO.js",
+              "encoded": 286,
+              "transferred": 586
+            }
+          ],
+          "authMs": null,
+          "todayMs": null
+        },
+        {
+          "iteration": 5,
+          "cache": "warm",
+          "readyMs": 403,
+          "scripts": [
+            {
+              "url": "http://127.0.0.1:52870/assets/index-2JBbR4bR.js",
+              "encoded": 107889,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/AdminApp-cgkN3FeM.js",
+              "encoded": 38862,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/wallet-cards-JsCMJj_y.js",
+              "encoded": 917,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/clock-3-Sb71qk6k.js",
+              "encoded": 277,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/log-out-C1aWeHsb.js",
+              "encoded": 321,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/download-D0llvQSv.js",
+              "encoded": 321,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/check-C_8FaLLR.js",
+              "encoded": 245,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/refresh-cw-Baizw05d.js",
+              "encoded": 325,
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:52870/assets/rotate-ccw-rrjfOyyO.js",
+              "encoded": 286,
+              "transferred": 0
+            }
+          ],
+          "authMs": null,
+          "todayMs": null
+        }
+      ]
+    }
+  ]
+}
