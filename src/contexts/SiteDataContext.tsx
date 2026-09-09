@@ -56,7 +56,7 @@ import {
 /** Max published photos for the horizontal gallery / landing imagery. */
 const GALLERY_PHOTO_LIMIT = 24;
 
-type DataBucket = 'home' | 'reviews' | 'media' | 'packages' | 'about';
+type DataBucket = 'home' | 'reviews' | 'media' | 'packages' | 'about' | 'contact';
 
 export interface FeaturedWorkItem {
   categorySlugs?: string[];
@@ -273,6 +273,7 @@ function bucketsForPath(
   if (path === '/stories') {
     buckets.add('reviews');
   }
+  if (path === '/contact') buckets.add('contact');
   if (path === '/about') {
     buckets.add('about');
   }
@@ -330,6 +331,7 @@ const BUCKET_RESOURCES: Record<DataBucket, CmsResource[]> = {
   media: ['featuredPhotos', 'galleryPhotos'],
   packages: ['packages'],
   about: ['staffProfiles', 'behindScenes'],
+  contact: ['featuredPhotos'],
 };
 type SitePatch = Partial<SiteData> | ((previous: SiteData) => Partial<SiteData>);
 
@@ -400,7 +402,7 @@ async function loadResource(resource: CmsResource, signal: AbortSignal, supplied
   }
 }
 
-export async function createPrerenderSiteData(content?: PublicSiteContent, categories?: PublicPackageCategory[], home?: { hero?: PublicHeroSlide[]; featured?: PublicPhoto[]; gallery?: PublicPhoto[] }, offers?: PublicPackage[], about?: { staff?: PublicStaffProfile[]; scenes?: PublicBehindScene[] }) {
+export async function createPrerenderSiteData(content?: PublicSiteContent, categories?: PublicPackageCategory[], home?: { hero?: PublicHeroSlide[]; featured?: PublicPhoto[]; gallery?: PublicPhoto[] }, offers?: PublicPackage[], about?: { staff?: PublicStaffProfile[]; scenes?: PublicBehindScene[] }, stories?: { reviews?: PublicTestimonial[] }) {
   let data: SiteData = { ...fallbackData, loading: false, fromApi: false };
   const loaded: CmsResource[] = [];
   const supplied = { siteContent: content, categories };
@@ -427,6 +429,10 @@ export async function createPrerenderSiteData(content?: PublicSiteContent, categ
     data.behindScenes = (about.scenes ?? []).map(({ title, image, video, description }) => ({ title, image, video, description }));
     if (about.staff) loaded.push('staffProfiles');
     if (about.scenes) loaded.push('behindScenes');
+  }
+  if (stories) {
+    data.testimonials = (stories.reviews ?? []).map(({ name, role, avatar, rating, text, likes, reply }) => ({ name, role, avatar, rating, text, likes, reply }));
+    if (stories.reviews) loaded.push('testimonials');
   }
   // Embed only the public view model, never the raw CMS response or metadata.
   data.siteContent = Object.fromEntries(Object.keys(defaultSiteContent).map(key => [key, data.siteContent[key as keyof PublicSiteContent]])) as PublicSiteContent;

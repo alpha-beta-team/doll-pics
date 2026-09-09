@@ -3,7 +3,8 @@
 **Audit ID:** F04  
 **Priority:** High  
 **Effort:** Large (1–3 weeks in increments)  
-**Status:** In progress — homepage, hubs, gallery, work, about and catalog-driven service/package rendering implemented locally\
+**Status:** Ready for verification — planned page-family implementation complete; final deployment/manual acceptance pending\
+**Status updated:** 9 September 2026 — implementation and local validation complete; final four pages await deployment acceptance\
 **Responsible role:** Frontend engineer with content reviewer  
 **Assigned owner:** Frontend implementation; frontend/content reviewer for deployment acceptance\
 **Chunk:** 3 — Rendering, media and metadata  
@@ -15,7 +16,7 @@
 
 Priority public routes deliver substantive content in normal initial HTML and retain working hydration.
 
-## Current evidence
+## Audit baseline evidence
 
 - [`src/lib/publicHtmlRoutes.ts:2`](../../../src/lib/publicHtmlRoutes.ts#L2) — Only newborn, wedding and maternity are registered for rendered public HTML.
 - [`src/entry-public-server.tsx:13`](../../../src/entry-public-server.tsx#L13) — The existing server entry renders the shared React page.
@@ -44,16 +45,16 @@ Historical context (retain its original records; do not copy old statuses into t
 - [x] Generalize route renderer and snapshot selection beyond a ServicePage-only assumption; preserve route/version validation and public field allowlists.
 - [x] Render the homepage first, including meaningful heading, approved media, contact and service discovery links.
 - [x] Render /services and /packages hubs next using the authoritative public catalog.
-- [x] Render package-category pages next, beginning with wedding and newborn, then the remaining intended published package routes — all nine standard categories implemented; deployed/manual acceptance remains pending for the latest seven.
+- [x] Render package-category pages next, beginning with wedding and newborn, then the remaining intended published package routes — all nine standard categories implemented; automated production checks passed in the 9 September recovery record; manual content acceptance remains.
 - [x] After verifying the current package increment, derive service and package-category rendering eligibility from the authoritative published CMS catalog instead of a manually maintained URL registry. Newly created eligible routes must receive full initial HTML on rebuild/redeploy without route-specific code edits; preserve route-family selection, snapshot validation, public field allowlists and private/reserved-path exclusions.
-- [x] Render all eligible published services using the shared service component and catalog-driven selection — local implementation verified; deployment/manual acceptance pending.
-- [x] Render the gallery's initial content using its existing component — local HTML, hydration, empty/unavailable and edited-content checks passed; deployment/manual acceptance pending.
-- [x] Render Work using its existing FeaturedWork component — initial HTML, hydration and data-state checks passed locally; deployment/manual acceptance pending.
-- [x] Render About using its existing components and public staff/process snapshots — local initial HTML, hydration, independent failures and heading checks passed; deployment/manual acceptance pending.
-- [ ] Render Stories/Contact and legal pages using their existing components.
+- [x] Render all eligible published services using the shared service component and catalog-driven selection — local validation and automated production checks passed; manual content acceptance remains.
+- [x] Render the gallery's initial content using its existing component — local validation and automated production checks passed; manual content/browser acceptance remains.
+- [x] Render Work using its existing FeaturedWork component — local validation and automated production checks passed; manual content/browser acceptance remains.
+- [x] Render About using its existing components and public staff/process snapshots — local validation and automated production checks passed; manual content/browser acceptance remains.
+- [x] Render Stories/Contact and legal pages using their existing components — Stories, Contact, Privacy and Terms implemented and locally verified on 9 September 2026.
 - [ ] Release each page family separately; disable observer-only hiding in initial HTML and match the first browser render to its snapshot.
-- [ ] Exercise light/dark preference restoration, malformed snapshots, stale assets, independent CMS/media failures and route transitions.
-- [ ] Prove a controlled QA content change reaches generated HTML and hydrated content after rebuild before expanding the next family.
+- [x] Exercise light/dark preference restoration, malformed snapshots, stale assets, independent CMS/media failures and route transitions — local checks recorded per family, including the final four pages below; deployed review remains separate.
+- [x] Prove a controlled QA content change reaches generated HTML and hydrated content after rebuild before expanding the next family — controlled local rebuild evidence recorded for CMS-backed families, including edited reviews and Contact media. Legal copy is source-authored.
 
 ## Acceptance criteria
 
@@ -61,7 +62,7 @@ Historical context (retain its original records; do not copy old statuses into t
 - [ ] Initial and hydrated content agree with the approved catalog and available CMS content.
 - [ ] A newly published custom service and package category, absent from the code registry, render matching headings, content, links and validated snapshots after rebuild; package offers and photos stay scoped to their category. Both deployed smoke tools discover and verify these routes from the catalog.
 - [ ] Controlled QA publish, edit, unpublish/delete and republish checks prove rebuilt HTML, hydration, navigation and sitemap stay consistent; retired routes return true 404 and unpublished, conflicting or reserved paths never become renderable. Record the rebuild/deploy trigger and retain F06 freshness/provenance gates; CMS edits alone do not rewrite deployed HTML.
-- [ ] Enquiry interactions work with mocked submissions; no hydration mismatches or private snapshot leakage occur.
+- [x] Enquiry interactions work with mocked submissions; no hydration mismatches or private snapshot leakage occur — local fixture/browser evidence recorded; no real enquiry sent.
 - [ ] Each increment has recorded preview and production acceptance before the next family expands.
 
 ## Verification
@@ -76,8 +77,8 @@ npm run seo:html-smoke -- --base-url https://YOUR-CANDIDATE-URL
 npm run seo:paths-smoke -- --base-url https://YOUR-CANDIDATE-URL
 ```
 
-- [ ] Record the changed behavior, command outcomes, commit and relevant fixture/browser evidence.
-- [ ] Complete the scenario-specific checks above; explain any non-applicable check.
+- [x] Record the changed behavior, command outcomes, commit and relevant fixture/browser evidence — per-family evidence linked below.
+- [x] Complete the scenario-specific local checks above; explain any non-applicable check — final-family evidence records 84 browser cases, 40 rejection cases and explicit verification limits. Deployment/manual acceptance remains separate.
 
 ### Deployment
 
@@ -101,9 +102,9 @@ Promote through the existing release workflow only when this item's applicable g
 
 | Stage | State | Evidence |
 |---|---|---|
-| Remediation implementation | In progress | Homepage, hubs, gallery, work, about and catalog-driven service/package categories implemented. Remaining core public families are pending |
-| Local remediation validation | Implemented families passed | Earlier family evidence below; [About evidence](./evidence/f04-about-local-verification.json) records release, strict HTML smoke, 16 browser cases, snapshot rejection and controlled rebuilds |
-| Preview/production acceptance | Automated production checks passed; manual review pending | [9 September recovery evidence](./evidence/f04-production-recovery-2026-09-09.json): CMS-strict HTML and 98 path checks passed on `aa0f0ca`; Work/About/admin HTML return HTTP 200 |
+| Remediation implementation | Complete; ready for verification | All planned families implemented: home, hubs, published services/package categories, Gallery, Work, About, Stories, Contact, Privacy and Terms |
+| Local remediation validation | Passed | Earlier family evidence below; [final-family evidence](./evidence/f04-final-families-local-verification.json): release check, strict/optional HTML smoke, 84 browser cases, 40 snapshot/content rejection cases and controlled rebuilds |
+| Preview/production acceptance | Pending for the final four pages; manual review remains | [9 September recovery evidence](./evidence/f04-production-recovery-2026-09-09.json) covers the earlier families on `aa0f0ca`. Stories, Contact, Privacy and Terms require deployment and the updated smoke checks |
 | External checks | Pending | Apply the requirements above; label non-applicable checks explicitly |
 
 Update this header, this record, the master row, chunk checkbox and totals together. Use `Ready for verification` when implementation and required local checks pass but applicable deployment/manual checks remain. Use `Complete` only after this item's acceptance criteria pass; record non-gating ongoing observations separately. `Blocked` requires a blocker, responsible role and concrete next action.
@@ -235,3 +236,14 @@ A local emitted-JavaScript reproduction failed to import the middleware's extens
 Reran both production smoke tools with correctly separated `--require-cms --base-url` flags. CMS-strict HTML validation and all 98 path checks passed against `https://dollpictures.in`. The build manifest identifies commit `aa0f0ca33020a498d0638ba5627d8247525071ad`, built `2026-09-08T16:22:56.914Z`, with 32 published paths. Direct Work, About and admin/enquiries requests returned HTTP 200; admin retained `X-Robots-Tag: noindex, nofollow`. This supersedes the prior middleware HTTP failure for automated deployment checks. [Evidence](./evidence/f04-production-recovery-2026-09-09.json).
 
 Manual real-content, media/video, accessibility and browser acceptance remain separate; no authenticated admin action or enquiry submission was tested. Continue Stories, Contact and legal rendering. F04 remains In progress; totals unchanged.
+
+### Final planned families — 9 September 2026
+
+User requested completion of the remaining implementation together. Stories, Contact, Privacy and Terms now use their existing components for matching initial HTML and browser hydration. The shared core-route map drives rendering eligibility and full-content smoke coverage; service/package eligibility remains catalog-driven. Existing legal wording and its revision date are preserved.
+
+- Stories loads public testimonials at build time and projects only name, role, avatar, rating, text, likes and reply into the snapshot. Successful empty collections retain the existing approval/empty message. Missing resources remain empty and eligible for browser recovery; strict CMS builds reject unavailable collections. Ratings, likes and text shapes are validated before hydration. Raw CMS metadata is omitted.
+- Contact seeds its existing featured photograph from the public featured endpoint and requests that resource on client-only visits or recovery. The contact methods, labelled fields and links are present without JavaScript. The form stays disabled until hydration enables its existing submission handler, with a readable phone/email/WhatsApp alternative. Mocked error/retry/success behavior passed; no real enquiry was sent.
+- Privacy and Terms include all existing article sections and links in initial HTML. Their initial and hydrated components match. The four pages do not use observer-only hiding for their main content.
+- `check:release` passed, including middleware runtime validation; eight existing lint warnings and existing bundle-size warnings remain. CMS-strict HTML smoke passed for populated, empty and edited fixtures. Strict builds rejected unavailable review/featured collections; optional builds and browser recovery passed independently. Forty malformed snapshot/missing-content cases were rejected. Eighty-four browser cases covered four pages, JS/no-JS, mobile/desktop, stored themes, navigation, mocked enquiry, controlled edits, missing snapshots/assets and independent resource failures. Mobile no-JavaScript Stories/Contact screenshots inspected. [Evidence](./evidence/f04-final-families-local-verification.json).
+
+**Next gate:** deploy this candidate and run both updated smoke commands, then review approved reviews/photos/legal copy, no-JavaScript content, themes and interactions on the deployed pages. Earlier production success does not verify these additions. F04 is **Ready for verification**; final closure and master completion totals await deployment/manual acceptance. No spec files, CMS writes or deployment were added during this increment.

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ArrowUpRight,
   Check,
@@ -74,6 +74,8 @@ function ContactContent() {
   const [errorMessage, setErrorMessage] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<FormField, string>>>({});
   const leadTracked = useRef(false);
+  const [formReady, setFormReady] = useState(false);
+  useEffect(() => { setFormReady(true); }, []);
 
   usePageSeo();
 
@@ -290,6 +292,8 @@ function ContactContent() {
                 </div>
               ) : (
                 <form onSubmit={handleSubmit}>
+                  {!formReady ? <p className="mb-6 text-sm text-ink-100/75">To send this form, enable JavaScript. You can also contact us by phone, email or WhatsApp using the links on this page.</p> : null}
+                  <fieldset disabled={!formReady} className="min-w-0">
                   <div className="mb-9">
                     <p className="section-label mb-4">Start a conversation</p>
                     <h2 className="font-display text-4xl font-light text-ink-50 sm:text-5xl">Tell us about <span className="italic text-gold-300">your story.</span></h2>
@@ -352,6 +356,7 @@ function ContactContent() {
                       <Send className="relative z-10 h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
                     </button>
                   </div>
+                  </fieldset>
                 </form>
               )}
             </div>

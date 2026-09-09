@@ -1,0 +1,820 @@
+{
+  "date": "2026-09-09",
+  "baseCommit": "90a068e4d4f53cc3415f9d56dacc03f1d0e73532",
+  "scope": "Local uncommitted Stories, Contact, Privacy and Terms initial HTML; synthetic public CMS/media; no live writes or deployment",
+  "checks": {
+    "release": "Passed: typecheck, lint (8 existing warnings), emitted middleware runtime (27 cases), production build/prerender; existing chunk warnings remain",
+    "htmlSmoke": "CMS-strict passed populated, empty and edited builds; optional passed independently unavailable testimonials/featured photos; strict builds rejected unavailable collections",
+    "browser": [
+      {
+        "path": "/stories",
+        "javaScriptEnabled": false,
+        "width": 390,
+        "theme": "light",
+        "passed": true,
+        "seededRequests": 0,
+        "mockedSubmissions": 0
+      },
+      {
+        "path": "/stories",
+        "javaScriptEnabled": false,
+        "width": 390,
+        "theme": "dark",
+        "passed": true,
+        "seededRequests": 0,
+        "mockedSubmissions": 0
+      },
+      {
+        "path": "/stories",
+        "javaScriptEnabled": false,
+        "width": 1440,
+        "theme": "light",
+        "passed": true,
+        "seededRequests": 0,
+        "mockedSubmissions": 0
+      },
+      {
+        "path": "/stories",
+        "javaScriptEnabled": false,
+        "width": 1440,
+        "theme": "dark",
+        "passed": true,
+        "seededRequests": 0,
+        "mockedSubmissions": 0
+      },
+      {
+        "path": "/stories",
+        "javaScriptEnabled": true,
+        "width": 390,
+        "theme": "light",
+        "passed": true,
+        "seededRequests": 0,
+        "mockedSubmissions": 0
+      },
+      {
+        "path": "/stories",
+        "javaScriptEnabled": true,
+        "width": 390,
+        "theme": "dark",
+        "passed": true,
+        "seededRequests": 0,
+        "mockedSubmissions": 0
+      },
+      {
+        "path": "/stories",
+        "javaScriptEnabled": true,
+        "width": 1440,
+        "theme": "light",
+        "passed": true,
+        "seededRequests": 0,
+        "mockedSubmissions": 0
+      },
+      {
+        "path": "/stories",
+        "javaScriptEnabled": true,
+        "width": 1440,
+        "theme": "dark",
+        "passed": true,
+        "seededRequests": 0,
+        "mockedSubmissions": 0
+      },
+      {
+        "path": "/contact",
+        "javaScriptEnabled": false,
+        "width": 390,
+        "theme": "light",
+        "passed": true,
+        "seededRequests": 0,
+        "mockedSubmissions": 0
+      },
+      {
+        "path": "/contact",
+        "javaScriptEnabled": false,
+        "width": 390,
+        "theme": "dark",
+        "passed": true,
+        "seededRequests": 0,
+        "mockedSubmissions": 0
+      },
+      {
+        "path": "/contact",
+        "javaScriptEnabled": false,
+        "width": 1440,
+        "theme": "light",
+        "passed": true,
+        "seededRequests": 0,
+        "mockedSubmissions": 0
+      },
+      {
+        "path": "/contact",
+        "javaScriptEnabled": false,
+        "width": 1440,
+        "theme": "dark",
+        "passed": true,
+        "seededRequests": 0,
+        "mockedSubmissions": 0
+      },
+      {
+        "path": "/contact",
+        "javaScriptEnabled": true,
+        "width": 390,
+        "theme": "light",
+        "passed": true,
+        "seededRequests": 0,
+        "mockedSubmissions": 2
+      },
+      {
+        "path": "/contact",
+        "javaScriptEnabled": true,
+        "width": 390,
+        "theme": "dark",
+        "passed": true,
+        "seededRequests": 0,
+        "mockedSubmissions": 2
+      },
+      {
+        "path": "/contact",
+        "javaScriptEnabled": true,
+        "width": 1440,
+        "theme": "light",
+        "passed": true,
+        "seededRequests": 0,
+        "mockedSubmissions": 2
+      },
+      {
+        "path": "/contact",
+        "javaScriptEnabled": true,
+        "width": 1440,
+        "theme": "dark",
+        "passed": true,
+        "seededRequests": 0,
+        "mockedSubmissions": 2
+      },
+      {
+        "path": "/privacy",
+        "javaScriptEnabled": false,
+        "width": 390,
+        "theme": "light",
+        "passed": true,
+        "seededRequests": 0,
+        "mockedSubmissions": 0
+      },
+      {
+        "path": "/privacy",
+        "javaScriptEnabled": false,
+        "width": 390,
+        "theme": "dark",
+        "passed": true,
+        "seededRequests": 0,
+        "mockedSubmissions": 0
+      },
+      {
+        "path": "/privacy",
+        "javaScriptEnabled": false,
+        "width": 1440,
+        "theme": "light",
+        "passed": true,
+        "seededRequests": 0,
+        "mockedSubmissions": 0
+      },
+      {
+        "path": "/privacy",
+        "javaScriptEnabled": false,
+        "width": 1440,
+        "theme": "dark",
+        "passed": true,
+        "seededRequests": 0,
+        "mockedSubmissions": 0
+      },
+      {
+        "path": "/privacy",
+        "javaScriptEnabled": true,
+        "width": 390,
+        "theme": "light",
+        "passed": true,
+        "seededRequests": 0,
+        "mockedSubmissions": 0
+      },
+      {
+        "path": "/privacy",
+        "javaScriptEnabled": true,
+        "width": 390,
+        "theme": "dark",
+        "passed": true,
+        "seededRequests": 0,
+        "mockedSubmissions": 0
+      },
+      {
+        "path": "/privacy",
+        "javaScriptEnabled": true,
+        "width": 1440,
+        "theme": "light",
+        "passed": true,
+        "seededRequests": 0,
+        "mockedSubmissions": 0
+      },
+      {
+        "path": "/privacy",
+        "javaScriptEnabled": true,
+        "width": 1440,
+        "theme": "dark",
+        "passed": true,
+        "seededRequests": 0,
+        "mockedSubmissions": 0
+      },
+      {
+        "path": "/terms",
+        "javaScriptEnabled": false,
+        "width": 390,
+        "theme": "light",
+        "passed": true,
+        "seededRequests": 0,
+        "mockedSubmissions": 0
+      },
+      {
+        "path": "/terms",
+        "javaScriptEnabled": false,
+        "width": 390,
+        "theme": "dark",
+        "passed": true,
+        "seededRequests": 0,
+        "mockedSubmissions": 0
+      },
+      {
+        "path": "/terms",
+        "javaScriptEnabled": false,
+        "width": 1440,
+        "theme": "light",
+        "passed": true,
+        "seededRequests": 0,
+        "mockedSubmissions": 0
+      },
+      {
+        "path": "/terms",
+        "javaScriptEnabled": false,
+        "width": 1440,
+        "theme": "dark",
+        "passed": true,
+        "seededRequests": 0,
+        "mockedSubmissions": 0
+      },
+      {
+        "path": "/terms",
+        "javaScriptEnabled": true,
+        "width": 390,
+        "theme": "light",
+        "passed": true,
+        "seededRequests": 0,
+        "mockedSubmissions": 0
+      },
+      {
+        "path": "/terms",
+        "javaScriptEnabled": true,
+        "width": 390,
+        "theme": "dark",
+        "passed": true,
+        "seededRequests": 0,
+        "mockedSubmissions": 0
+      },
+      {
+        "path": "/terms",
+        "javaScriptEnabled": true,
+        "width": 1440,
+        "theme": "light",
+        "passed": true,
+        "seededRequests": 0,
+        "mockedSubmissions": 0
+      },
+      {
+        "path": "/terms",
+        "javaScriptEnabled": true,
+        "width": 1440,
+        "theme": "dark",
+        "passed": true,
+        "seededRequests": 0,
+        "mockedSubmissions": 0
+      }
+    ],
+    "states": [
+      {
+        "phase": "empty",
+        "path": "/stories",
+        "javaScriptEnabled": false,
+        "passed": true
+      },
+      {
+        "phase": "empty",
+        "path": "/stories",
+        "javaScriptEnabled": true,
+        "passed": true
+      },
+      {
+        "phase": "empty",
+        "path": "/contact",
+        "javaScriptEnabled": false,
+        "passed": true
+      },
+      {
+        "phase": "empty",
+        "path": "/contact",
+        "javaScriptEnabled": true,
+        "passed": true
+      },
+      {
+        "phase": "empty",
+        "path": "/privacy",
+        "javaScriptEnabled": false,
+        "passed": true
+      },
+      {
+        "phase": "empty",
+        "path": "/privacy",
+        "javaScriptEnabled": true,
+        "passed": true
+      },
+      {
+        "phase": "empty",
+        "path": "/terms",
+        "javaScriptEnabled": false,
+        "passed": true
+      },
+      {
+        "phase": "empty",
+        "path": "/terms",
+        "javaScriptEnabled": true,
+        "passed": true
+      },
+      {
+        "phase": "reviews-unavailable",
+        "path": "/stories",
+        "javaScriptEnabled": false,
+        "passed": true,
+        "strictRejected": true
+      },
+      {
+        "phase": "reviews-unavailable",
+        "path": "/stories",
+        "javaScriptEnabled": true,
+        "passed": true,
+        "strictRejected": true
+      },
+      {
+        "phase": "reviews-unavailable",
+        "path": "/contact",
+        "javaScriptEnabled": false,
+        "passed": true,
+        "strictRejected": true
+      },
+      {
+        "phase": "reviews-unavailable",
+        "path": "/contact",
+        "javaScriptEnabled": true,
+        "passed": true,
+        "strictRejected": true
+      },
+      {
+        "phase": "reviews-unavailable",
+        "path": "/privacy",
+        "javaScriptEnabled": false,
+        "passed": true,
+        "strictRejected": true
+      },
+      {
+        "phase": "reviews-unavailable",
+        "path": "/privacy",
+        "javaScriptEnabled": true,
+        "passed": true,
+        "strictRejected": true
+      },
+      {
+        "phase": "reviews-unavailable",
+        "path": "/terms",
+        "javaScriptEnabled": false,
+        "passed": true,
+        "strictRejected": true
+      },
+      {
+        "phase": "reviews-unavailable",
+        "path": "/terms",
+        "javaScriptEnabled": true,
+        "passed": true,
+        "strictRejected": true
+      },
+      {
+        "phase": "featured-unavailable",
+        "path": "/stories",
+        "javaScriptEnabled": false,
+        "passed": true,
+        "strictRejected": true
+      },
+      {
+        "phase": "featured-unavailable",
+        "path": "/stories",
+        "javaScriptEnabled": true,
+        "passed": true,
+        "strictRejected": true
+      },
+      {
+        "phase": "featured-unavailable",
+        "path": "/contact",
+        "javaScriptEnabled": false,
+        "passed": true,
+        "strictRejected": true
+      },
+      {
+        "phase": "featured-unavailable",
+        "path": "/contact",
+        "javaScriptEnabled": true,
+        "passed": true,
+        "strictRejected": true
+      },
+      {
+        "phase": "featured-unavailable",
+        "path": "/privacy",
+        "javaScriptEnabled": false,
+        "passed": true,
+        "strictRejected": true
+      },
+      {
+        "phase": "featured-unavailable",
+        "path": "/privacy",
+        "javaScriptEnabled": true,
+        "passed": true,
+        "strictRejected": true
+      },
+      {
+        "phase": "featured-unavailable",
+        "path": "/terms",
+        "javaScriptEnabled": false,
+        "passed": true,
+        "strictRejected": true
+      },
+      {
+        "phase": "featured-unavailable",
+        "path": "/terms",
+        "javaScriptEnabled": true,
+        "passed": true,
+        "strictRejected": true
+      },
+      {
+        "phase": "edited",
+        "path": "/stories",
+        "javaScriptEnabled": false,
+        "passed": true
+      },
+      {
+        "phase": "edited",
+        "path": "/stories",
+        "javaScriptEnabled": true,
+        "passed": true
+      },
+      {
+        "phase": "edited",
+        "path": "/contact",
+        "javaScriptEnabled": false,
+        "passed": true
+      },
+      {
+        "phase": "edited",
+        "path": "/contact",
+        "javaScriptEnabled": true,
+        "passed": true
+      },
+      {
+        "phase": "edited",
+        "path": "/privacy",
+        "javaScriptEnabled": false,
+        "passed": true
+      },
+      {
+        "phase": "edited",
+        "path": "/privacy",
+        "javaScriptEnabled": true,
+        "passed": true
+      },
+      {
+        "phase": "edited",
+        "path": "/terms",
+        "javaScriptEnabled": false,
+        "passed": true
+      },
+      {
+        "phase": "edited",
+        "path": "/terms",
+        "javaScriptEnabled": true,
+        "passed": true
+      }
+    ],
+    "failures": [
+      {
+        "path": "/stories",
+        "mode": "malformed",
+        "passed": true
+      },
+      {
+        "path": "/stories",
+        "mode": "cross-route",
+        "passed": true
+      },
+      {
+        "path": "/stories",
+        "mode": "missing-snapshot",
+        "passed": true
+      },
+      {
+        "path": "/stories",
+        "mode": "missing-entry",
+        "passed": true
+      },
+      {
+        "path": "/stories",
+        "mode": "missing-images",
+        "passed": true
+      },
+      {
+        "path": "/contact",
+        "mode": "malformed",
+        "passed": true
+      },
+      {
+        "path": "/contact",
+        "mode": "cross-route",
+        "passed": true
+      },
+      {
+        "path": "/contact",
+        "mode": "missing-snapshot",
+        "passed": true
+      },
+      {
+        "path": "/contact",
+        "mode": "missing-entry",
+        "passed": true
+      },
+      {
+        "path": "/contact",
+        "mode": "missing-images",
+        "passed": true
+      },
+      {
+        "path": "/privacy",
+        "mode": "malformed",
+        "passed": true
+      },
+      {
+        "path": "/privacy",
+        "mode": "cross-route",
+        "passed": true
+      },
+      {
+        "path": "/privacy",
+        "mode": "missing-snapshot",
+        "passed": true
+      },
+      {
+        "path": "/privacy",
+        "mode": "missing-entry",
+        "passed": true
+      },
+      {
+        "path": "/privacy",
+        "mode": "missing-images",
+        "passed": true
+      },
+      {
+        "path": "/terms",
+        "mode": "malformed",
+        "passed": true
+      },
+      {
+        "path": "/terms",
+        "mode": "cross-route",
+        "passed": true
+      },
+      {
+        "path": "/terms",
+        "mode": "missing-snapshot",
+        "passed": true
+      },
+      {
+        "path": "/terms",
+        "mode": "missing-entry",
+        "passed": true
+      },
+      {
+        "path": "/terms",
+        "mode": "missing-images",
+        "passed": true
+      }
+    ],
+    "negative": [
+      {
+        "path": "/stories",
+        "check": "wrong version",
+        "passed": true
+      },
+      {
+        "path": "/stories",
+        "check": "cross-route",
+        "passed": true
+      },
+      {
+        "path": "/stories",
+        "check": "private path",
+        "passed": true
+      },
+      {
+        "path": "/stories",
+        "check": "foreign service media",
+        "passed": true
+      },
+      {
+        "path": "/stories",
+        "check": "foreign loaded collection",
+        "passed": true
+      },
+      {
+        "path": "/stories",
+        "check": "forged catalog",
+        "passed": true
+      },
+      {
+        "path": "/stories",
+        "check": "bad rating",
+        "passed": true
+      },
+      {
+        "path": "/stories",
+        "check": "out of range rating",
+        "passed": true
+      },
+      {
+        "path": "/stories",
+        "check": "bad review text",
+        "passed": true
+      },
+      {
+        "path": "/stories",
+        "check": "negative likes",
+        "passed": true
+      },
+      {
+        "path": "/stories",
+        "check": "unloaded reviews",
+        "passed": true
+      },
+      {
+        "path": "/stories",
+        "check": "missing #public-page-snapshot",
+        "passed": true
+      },
+      {
+        "path": "/stories",
+        "check": "missing main blockquote",
+        "passed": true
+      },
+      {
+        "path": "/contact",
+        "check": "wrong version",
+        "passed": true
+      },
+      {
+        "path": "/contact",
+        "check": "cross-route",
+        "passed": true
+      },
+      {
+        "path": "/contact",
+        "check": "private path",
+        "passed": true
+      },
+      {
+        "path": "/contact",
+        "check": "foreign service media",
+        "passed": true
+      },
+      {
+        "path": "/contact",
+        "check": "foreign loaded collection",
+        "passed": true
+      },
+      {
+        "path": "/contact",
+        "check": "forged catalog",
+        "passed": true
+      },
+      {
+        "path": "/contact",
+        "check": "bad image alt",
+        "passed": true
+      },
+      {
+        "path": "/contact",
+        "check": "bad image sources",
+        "passed": true
+      },
+      {
+        "path": "/contact",
+        "check": "unloaded images",
+        "passed": true
+      },
+      {
+        "path": "/contact",
+        "check": "missing #public-page-snapshot",
+        "passed": true
+      },
+      {
+        "path": "/contact",
+        "check": "missing #contact-name",
+        "passed": true
+      },
+      {
+        "path": "/privacy",
+        "check": "wrong version",
+        "passed": true
+      },
+      {
+        "path": "/privacy",
+        "check": "cross-route",
+        "passed": true
+      },
+      {
+        "path": "/privacy",
+        "check": "private path",
+        "passed": true
+      },
+      {
+        "path": "/privacy",
+        "check": "foreign service media",
+        "passed": true
+      },
+      {
+        "path": "/privacy",
+        "check": "foreign loaded collection",
+        "passed": true
+      },
+      {
+        "path": "/privacy",
+        "check": "forged catalog",
+        "passed": true
+      },
+      {
+        "path": "/privacy",
+        "check": "missing #public-page-snapshot",
+        "passed": true
+      },
+      {
+        "path": "/privacy",
+        "check": "missing .prose-legal",
+        "passed": true
+      },
+      {
+        "path": "/terms",
+        "check": "wrong version",
+        "passed": true
+      },
+      {
+        "path": "/terms",
+        "check": "cross-route",
+        "passed": true
+      },
+      {
+        "path": "/terms",
+        "check": "private path",
+        "passed": true
+      },
+      {
+        "path": "/terms",
+        "check": "foreign service media",
+        "passed": true
+      },
+      {
+        "path": "/terms",
+        "check": "foreign loaded collection",
+        "passed": true
+      },
+      {
+        "path": "/terms",
+        "check": "forged catalog",
+        "passed": true
+      },
+      {
+        "path": "/terms",
+        "check": "missing #public-page-snapshot",
+        "passed": true
+      },
+      {
+        "path": "/terms",
+        "check": "missing .prose-legal",
+        "passed": true
+      }
+    ]
+  },
+  "limits": [
+    "Fixture media only; content-owner and production visual acceptance pending",
+    "Contact POST requests intercepted: one failure and one success in each of 4 JS viewport/theme cases; no real enquiry or email sent",
+    "No JavaScript uses build-time dark theme; saved light/dark preference restoration checked with JavaScript",
+    "Prior production smoke evidence covers earlier families; these four routes require deployment and both updated smoke commands",
+    "Field CWV and Search Console are separate tasks"
+  ]
+}

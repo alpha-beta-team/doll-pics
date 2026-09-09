@@ -5,7 +5,9 @@
 **Repository baseline:** `ff8e0ad`  
 **Source:** The complete React.js SEO audit in this conversation (68/100 implementation assessment)  
 **Program status:** In progress\
-**Completion:** **8 / 19 items complete**
+**Completion:** **10 / 19 items complete**
+
+**Current status:** 10 complete, F04 ready for verification, F13 in progress, 7 not started. F04 implementation and local validation are complete; deployment/manual acceptance for Stories, Contact, Privacy and Terms remains pending.
 
 ## Objective and boundaries
 
@@ -44,7 +46,7 @@ IDs F01–F16 preserve audit traceability. I01–I03 cover the additional improv
 | F09 | [Restore About page heading structure](./09-about-heading-and-semantics.md) | Medium | Small | — | Complete |
 | F12 | [Complete mobile menu and route focus behavior](./12-mobile-navigation-and-focus.md) | Medium | Small | — | Complete |
 | F10 | [Use authentic and category-relevant portfolio media](./10-authentic-category-media.md) | Medium | Medium | — | Complete |
-| F04 | [Expand public HTML rendering incrementally](./04-public-html-expansion.md) | High | Large | [F02](./02-publication-and-route-catalog.md), [F03](./03-cms-service-sections.md), [F05](./05-noscript-contrast.md), [F06](./06-cms-release-readiness.md), [F10](./10-authentic-category-media.md) | In progress |
+| F04 | [Expand public HTML rendering incrementally](./04-public-html-expansion.md) | High | Large | [F02](./02-publication-and-route-catalog.md), [F03](./03-cms-service-sections.md), [F05](./05-noscript-contrast.md), [F06](./06-cms-release-readiness.md), [F10](./10-authentic-category-media.md) | Ready for verification |
 | F11 | [Provide crawlable discovery for intended photography](./11-image-discovery.md) | Medium | Medium | [F02](./02-publication-and-route-catalog.md), [F04](./04-public-html-expansion.md), [F10](./10-authentic-category-media.md) | Not started |
 | F13 | [Measure and improve public-page performance](./13-performance-and-core-web-vitals.md) | Medium | Medium | — | In progress |
 | F14 | [Support route-specific social previews](./14-social-preview-metadata.md) | Low | Medium | [F02](./02-publication-and-route-catalog.md), [F10](./10-authentic-category-media.md) | Not started |
@@ -85,9 +87,9 @@ Start with F01. Within a chunk, take ready items in the listed order; independen
 **Completion:** 1 / 7
 
 - [x] [F10](./10-authentic-category-media.md) — Use authentic and category-relevant portfolio media — Complete for implementation tracking; studio approval and deployed media checks remain pending
-- [ ] [F04](./04-public-html-expansion.md) — In progress: homepage, hubs, gallery, work, about and catalog-driven service/package rendering implemented; automated production checks passed, manual acceptance remains
+- [ ] [F04](./04-public-html-expansion.md) — Ready for verification: all planned families implemented, including Stories, Contact, Privacy and Terms; final four pages passed local validation and await deployment/manual acceptance
 - [ ] [F11](./11-image-discovery.md) — Provide crawlable discovery for intended photography
-- [ ] [F13](./13-performance-and-core-web-vitals.md) — In progress: Booking layout/image-loading fix implemented locally; production comparison and field acceptance remain pending
+- [ ] [F13](./13-performance-and-core-web-vitals.md) — In progress: Booking fixes verified in production; three mobile samples show CLS 0.00344 and LCP 7.07s; image discovery, broader profiling and field acceptance remain open
 - [ ] [F14](./14-social-preview-metadata.md) — Support route-specific social previews
 - [ ] [F15](./15-authored-meta-descriptions.md) — Preserve authored metadata descriptions
 - [ ] [F16](./16-sitemap-freshness.md) — Extend trustworthy sitemap modification dates
@@ -109,9 +111,9 @@ Start with F01. Within a chunk, take ready items in the listed order; independen
 | 2 — Indexing and usability | 4 | 4 | 0 | Complete for implementation tracking |
 | 3 — Rendering, media and metadata | 7 | 1 | 6 | In progress |
 | 4 — Content growth and ongoing verification | 3 | 0 | 3 | Not started |
-| **Overall** | **19** | **10** | **9** | **In progress: 2 active, 7 not started** |
+| **Overall** | **19** | **10** | **9** | **1 in progress, 1 ready for verification, 7 not started** |
 
-**Recommended next task:** continue [F04 Stories initial HTML](./04-public-html-expansion.md), followed by Contact and legal pages. [9 September production recovery](./evidence/f04-production-recovery-2026-09-09.json) passed CMS-strict HTML and all 98 path checks on `aa0f0ca`; manual content/browser acceptance remains separate. F13 production measurements can now resume. Totals remain **10 / 19 complete** for implementation tracking.
+**Recommended next task:** deploy and verify the [completed F04 implementation](./04-public-html-expansion.md), including Stories, Contact, Privacy and Terms. [Local final-family evidence](./evidence/f04-final-families-local-verification.json) records release checks, 84 browser cases and 40 rejection cases. Run both updated production smoke tools and finish manual acceptance; the earlier `aa0f0ca` production result does not cover these additions. F13 Booking production comparison is [recorded](./evidence/f13-booking-production-2026-09-09.md): the footer shift is resolved in three samples; LCP image discovery remains the next experiment. Totals remain **10 / 19 complete** for implementation tracking.
 
 ## Parallel execution
 
@@ -119,8 +121,8 @@ Tasks are not all serial. Dependency gates still apply; implementation completio
 
 | Workstream | Can proceed now | Gate / coordination |
 |---|---|---|
-| Rendering — F04 | Deploy/verify catalog-driven service/package rendering, then Stories/Contact/legal families | New eligible CMS routes must render after rebuild without code edits; retain publication and manual acceptance gates |
-| Performance — F13 | Deploy/compare the focused Booking fix against the recorded baseline | Compare before/after; coordinate bundle/component changes with rendering work |
+| Rendering — F04 | Deploy/verify the completed Stories, Contact, Privacy and Terms increment | Run both updated smoke tools and finish real-content/browser acceptance; preserve catalog publication and rebuild gates |
+| Performance — F13 | Prepare a controlled earlier-discovery experiment for the Booking background; deployed CLS comparison passed | Compare against the 9 September baseline; coordinate public HTML/CMS changes with F04 |
 | Metadata — F14, F15, F16 | Social previews, authored descriptions and sitemap dates | Existing implementation prerequisites are met; use approved imagery and coordinate edits to shared SEO/prerender files |
 | Business facts — I02 | Verify identity and structured-data facts | Requires authoritative business/content-owner confirmation |
 | Monitoring — I03 | Setup and baseline collection | Final closure waits for every prerequisite |
@@ -231,3 +233,5 @@ The creator validates these separately from remediation completion:
 | 2026-09-08 | F04 About initial HTML implemented with public staff/process snapshots and preserved heading hierarchy; local release, browser and failure checks passed | 10 / 19 | Deploy/verify Work/About and review real content/media; then continue Stories/Contact/legal families |
 | 2026-09-08 | Direct F04 production verification failed: middleware HTTP 500 persisted across Work and About deployments; emitted Node ESM import bug reproduced and repaired locally | 10 / 19 | Deploy runtime repair, verify served commit and rerun both smoke tools before browser acceptance |
 | 2026-09-09 | Verified production recovery on `aa0f0ca`: CMS-strict HTML and 98 path checks passed; Work/About/admin HTML return 200 | 10 / 19 | Continue Stories/Contact/legal rendering; retain manual acceptance and F13 performance measurements |
+| 2026-09-09 | F13 verified deployed Booking fixes on `90a068e`; three comparable mobile samples: CLS 0.62908 → 0.00344, LCP 8.62s → 7.07s, score 51 → 74 | 10 / 19 | Continue CMS/JS background-discovery experiment; broader performance and field acceptance remain pending |
+| 2026-09-09 | Completed F04 Stories, Contact, Privacy and Terms implementation; release checks, 84 local browser cases and 40 snapshot/content rejection cases passed | 10 / 19 | F04 Ready for verification: deploy and run updated smoke checks, then complete manual acceptance |

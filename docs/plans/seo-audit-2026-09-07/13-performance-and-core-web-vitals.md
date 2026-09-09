@@ -54,7 +54,7 @@ Historical context (retain its original records; do not copy old statuses into t
 
 - [ ] Before/after evidence identifies a specific bottleneck and the measured effect of each change.
 - [ ] No regression in image relevance/quality, layout stability or enquiry/navigation usability.
-- [ ] Compression and caching assertions are based on deployed headers, not missing config assumptions.
+- [x] Compression and caching assertions are based on deployed headers, not missing config assumptions. (Baseline and 9 September Booking/entry response headers recorded.)
 - [ ] If baseline is healthy, a documented no-change conclusion satisfies the investigation rather than inventing optimization work.
 
 ## Verification
@@ -76,7 +76,7 @@ npm run lint
 
 Inspect real transfer encodings/cache headers and rerun comparable lab samples against the deployed commit.
 
-- [ ] Record preview/production URLs, deployment date, commit, relevant HTTP/DOM evidence and any unverified hosting target.
+- [x] Record preview/production URLs, deployment date, commit, relevant HTTP/DOM evidence and any unverified hosting target. (9 September production Booking comparison recorded; preview not checked in this increment; broader production acceptance remains open.)
 
 ### External
 
@@ -94,9 +94,9 @@ Promote through the existing release workflow only when this item's applicable g
 
 | Stage | State | Evidence |
 |---|---|---|
-| Remediation implementation | In progress | Production baseline recorded; focused Booking loading-space and first-background priority changes implemented locally |
+| Remediation implementation | In progress | Booking loading-space and first-background priority fixes are deployed in verified commit `90a068e`; remaining LCP discovery and broader performance work are open |
 | Local remediation validation | Focused checks passed | Controlled delayed-chunk before/after at 390/1440 px; four Booking/Gallery image-priority and enquiry cases; focused ESLint passed. Broader profiling remains pending |
-| Preview/production acceptance | Baseline recorded; remediation pending | Deployed commit `85cbd29c60e3b92030b542a827c41ec96a38d309`; measurement is not acceptance of a future optimization |
+| Preview/production acceptance | Booking comparison recorded; overall acceptance pending | Three mobile samples on stable deployed commit `90a068e`: median CLS 0.00344, LCP 7.07s, TBT 32ms, score 74. Footer shift absent; LCP remains slow. See 9 September evidence |
 | External checks | Pending | PSI API returned HTTP 429; CrUX URL/origin and Search Console field data remain unverified |
 
 Update this header, this record, the master row, chunk checkbox and totals together. Use `Ready for verification` when implementation and required local checks pass but applicable deployment/manual checks remain. Use `Complete` only after this item's acceptance criteria pass; record non-gating ongoing observations separately. `Blocked` requires a blocker, responsible role and concrete next action.
@@ -138,3 +138,20 @@ Validation completed:
 - `npx eslint src/pages/Site.tsx src/components/sections/BookingCTA.tsx` passed. The parent's combined `check:release` also passed with these changes included (eight existing lint warnings and existing chunk warnings).
 
 Reproduce the focused diagnosis by running Vite locally with mocked public API routes, intercepting the two Booking module requests for 2 seconds, recording `layout-shift` entries excluding `hadRecentInput`, and comparing the footer position before `#booking` mounts and after it becomes visible. The JSON retains the exact rectangles and entries. Production acceptance still requires three comparable Lighthouse samples against the deployed change; compare Booking LCP/CLS and actual background request discovery with the recorded baseline. Also check normal-motion background rotation, real images and enquiry behavior. Field CWV, broader interaction profiling and the remaining F13 experiments are still pending. F13 remains **In progress**.
+
+
+## Booking production comparison — 9 September 2026
+
+[Production comparison and next experiment](./evidence/f13-booking-production-2026-09-09.md) · [Selected Lighthouse evidence](./evidence/f13-booking-production-2026-09-09.json).
+
+Live checks before/after three retained serial mobile Lighthouse runs identified deployed commit `90a068e4d4f53cc3415f9d56dacc03f1d0e73532` and entry `/assets/index-DyvfbbA_.js`. Lighthouse 12.8.2, host Chrome 152.0.0.0 and all configuration values match the baseline. Median Booking CLS fell from **0.62908 to 0.00344**, LCP from **8.62s to 7.07s**, TBT from **60ms to 32ms**, and score rose from **51 to 74**. The large footer shift is absent from all three reports; the remaining small shift is font-related.
+
+The background is served eager/high priority as intended, but Lighthouse still finds it undiscoverable in initial HTML. Modeled load delay is 5.08–5.35s, following lazy JavaScript and the CMS background request. LCP remains slow. Other changes and uncontrolled network/host conditions exist between the two deployments, so these differences do not isolate the effect of image priority. The prior controlled local experiment supplies stronger causal evidence for the loading-space fix. Actual Booking HTML and public-entry GET headers confirm Brotli and the recorded cache policies.
+
+Six production browser cases passed at 390×900 and 1440×900 with normal motion: Booking background rotation/priority, enquiry opening/Escape and FAQ; Gallery lazy background and enquiry controls; Booking package/category query prefill. Booking screenshots were inspected, no horizontal overflow was found, and no enquiries were submitted. Initial Gallery probe timeouts and the corrected wait-for-content approach are retained in the evidence. These focused checks do not complete wider interaction profiling or accessibility/image-quality acceptance.
+
+This supersedes the earlier local-only/deployment-pending wording, while retaining the historical measurement and remediation records. F13 remains **In progress**, chunk 3 remains **1 / 7**, and overall implementation tracking remains **10 / 19**. Frontend engineer: next prepare a controlled earlier-image-discovery experiment through the existing public HTML/CMS flow, coordinate with active F04 changes, and compare against this new baseline. Desktop lab samples, broader profiling, CSS/media/font work and field data remain open.
+
+| Date | Change | Evidence | Remaining blockers / next action |
+|---|---|---|---|
+| 2026-09-09 | Verified deployed Booking fixes and recorded three comparable mobile samples | Stable deployed commit `90a068e`, matching Lighthouse settings; CLS 0.00344, LCP 7.07s; deployed response headers | Frontend engineer: address CMS/JS image discovery with a controlled experiment; retain broader and field acceptance as pending |

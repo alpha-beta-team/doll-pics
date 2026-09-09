@@ -1,4 +1,8 @@
 import { About } from './pages/About';
+import { Stories } from './pages/Stories';
+import { Contact } from './pages/Contact';
+import { Privacy } from './pages/Privacy';
+import { Terms } from './pages/Terms';
 import { WorkPage } from './pages/WorkPage';
 import { GalleryPage } from './pages/GalleryPage';
 import { normalizePhotos } from './lib/galleryPortfolio';
@@ -17,7 +21,10 @@ import { Site } from './pages/Site';
 import { ServicePage } from './pages/ServicePage';
 import { serviceImagesFromApi } from './lib/serviceMedia';
 import { type PublicSnapshot } from './lib/publicSnapshot';
-import type { PublicSiteContent, PublicPackageCategory, PublicPhoto, PublicCategory, PublicHeroSlide, PublicPackage, PublicStaffProfile, PublicBehindScene } from './shared/types';
+import type { PublicSiteContent, PublicPackageCategory, PublicPhoto, PublicCategory, PublicHeroSlide, PublicPackage, PublicStaffProfile, PublicBehindScene, PublicTestimonial } from './shared/types';
+
+const corePages = { home: Site, about: About, work: WorkPage, gallery: GalleryPage,
+  services: ServicesHub, packages: Packages, stories: Stories, contact: Contact, privacy: Privacy, terms: Terms };
 
 export async function renderPublicPage(input: {
   path: PublicHtmlPath;
@@ -29,14 +36,16 @@ export async function renderPublicPage(input: {
   offers?: PublicPackage[];
   portfolio?: PublicPhoto[];
   about?: { staff?: PublicStaffProfile[]; scenes?: PublicBehindScene[] };
+  stories?: { reviews?: PublicTestimonial[] };
   home?: { hero?: PublicHeroSlide[]; featured?: PublicPhoto[]; gallery?: PublicPhoto[] };
 }) {
-  const { data, loaded } = await createPrerenderSiteData(input.siteContent, input.categories, input.home, input.offers, input.about);
+  const { data, loaded } = await createPrerenderSiteData(input.siteContent, input.categories, input.home, input.offers, input.about, input.stories);
   if (input.publicCatalog) data.publicCatalog = input.publicCatalog;
   const kind = publicHtmlKind(input.path, data.publicCatalog);
   if (!kind) throw new Error(`Unpublished or unsupported public HTML route: ${input.path}`);
   if (kind === 'gallery') data.galleryPortfolio = { photos: normalizePhotos(input.portfolio ?? []), loaded: Array.isArray(input.portfolio) };
-  if (kind === 'work' && !loaded.includes('featuredPhotos')) data.featuredWork = [];
+  if ((kind === 'work' || kind === 'contact') && !loaded.includes('featuredPhotos')) data.featuredWork = [];
+  if (kind === 'stories' && !loaded.includes('testimonials')) data.testimonials = [];
   const packagePage = kind === 'package';
   const categorySlug = packagePage ? data.packageNavLinks.find(link => link.path === input.path)?.categorySlug : undefined;
   const photos = packagePage ? input.photos?.filter(photo => {
@@ -44,7 +53,7 @@ export async function renderPublicPage(input: {
     return !slugs.length || slugs.some(slug => normalizePackageCategorySlug(slug) === normalizePackageCategorySlug(categorySlug || ''));
   }) : input.photos;
   const categoryName = (packagePage ? data.packageNavLinks.find(link => link.path === input.path)?.label : undefined) ?? data.siteContent.serviceNavLinks?.find(link => link.path === input.path)?.label;
-  if (!['/', '/about', '/work', '/gallery', '/services', '/packages'].includes(input.path)) data.serviceMedia = {
+  if (kind === 'service' || packagePage) data.serviceMedia = {
     path: input.path,
     cover: input.cover?.coverPhotoId && typeof input.cover.coverPhotoId === 'object'
       ? serviceImagesFromApi([input.cover.coverPhotoId], categoryName) : [],
@@ -52,6 +61,7 @@ export async function renderPublicPage(input: {
     loaded: [...(input.cover ? ['cover' as const] : []), ...(input.photos ? ['photos' as const] : [])],
   };
   const snapshot: PublicSnapshot = { version: 1, path: input.path, data, loaded };
-  const html = renderToString(<StrictMode><StaticRouter location={snapshot.path}><AppRoutes snapshot={snapshot} PilotPage={input.path === '/about' ? About : input.path === '/work' ? WorkPage : input.path === '/gallery' ? GalleryPage : input.path === '/' ? Site : input.path === '/services' ? ServicesHub : input.path === '/packages' ? Packages : packagePage ? PackageCategoryPage : ServicePage} /></StaticRouter></StrictMode>);
+  const Page = kind === 'service' ? ServicePage : kind === 'package' ? PackageCategoryPage : corePages[kind];
+  const html = renderToString(<StrictMode><StaticRouter location={snapshot.path}><AppRoutes snapshot={snapshot} PilotPage={Page} /></StaticRouter></StrictMode>);
   return { html, snapshot };
 }

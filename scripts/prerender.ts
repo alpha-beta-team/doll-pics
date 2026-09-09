@@ -551,20 +551,22 @@ if (renderPaths.length) {
     for (const path of renderPaths) {
       const packagePage = publicHtmlKind(path, publicCatalog) === 'package';
       const category = packagePage ? publicCatalog.packageLinks.find(link => link.path === path)?.categorySlug : resolveApiServiceCategory(path, publicCatalog.serviceLinks.find(link => link.path === path)?.label);
-      const [cover, photos, hero, featured, gallery, offers, portfolio, staff, scenes] = await Promise.all([
+      const [cover, photos, hero, featured, gallery, offers, portfolio, staff, scenes, reviews] = await Promise.all([
         category ? loadOptional(`/categories/${category}`) : undefined,
         category ? loadOptional(`/photos?category=${category}&limit=${SERVICE_GALLERY_LIMIT}`) : undefined,
         path === '/' ? buildHeroSlides : undefined,
-        ['/', '/work'].includes(path) ? loadOptional('/photos?featured=true') : undefined,
+        ['/', '/work', '/contact'].includes(path) ? loadOptional('/photos?featured=true') : undefined,
         path === '/' ? loadOptional('/photos?limit=24') : undefined,
         packagePage ? loadOptional('/packages') : undefined,
         path === '/gallery' ? loadOptional(`/photos?limit=${PORTFOLIO_PHOTO_LIMIT}`) : undefined,
         path === '/about' ? loadOptional('/staff-profiles') : undefined,
         path === '/about' ? loadOptional('/behind-scenes') : undefined,
+        path === '/stories' ? loadOptional('/testimonials') : undefined,
       ]);
       if (packagePage && String(process.env.SEO_REQUIRE_CMS).toLowerCase() === 'true' && !Array.isArray(offers)) throw new Error(`CMS packages unavailable for ${path}`);
       if (path === '/gallery' && String(process.env.SEO_REQUIRE_CMS).toLowerCase() === 'true' && !Array.isArray(portfolio)) throw new Error('CMS gallery photos unavailable for /gallery');
-      if (path === '/work' && String(process.env.SEO_REQUIRE_CMS).toLowerCase() === 'true' && !Array.isArray(featured)) throw new Error('CMS featured photos unavailable for /work');
+      if (['/work', '/contact'].includes(path) && String(process.env.SEO_REQUIRE_CMS).toLowerCase() === 'true' && !Array.isArray(featured)) throw new Error(`CMS featured photos unavailable for ${path}`);
+      if (path === '/stories' && String(process.env.SEO_REQUIRE_CMS).toLowerCase() === 'true' && !Array.isArray(reviews)) throw new Error('CMS testimonials unavailable for /stories');
       if (path === '/about' && String(process.env.SEO_REQUIRE_CMS).toLowerCase() === 'true' && (!Array.isArray(staff) || !Array.isArray(scenes))) throw new Error('CMS About collections unavailable for /about');
       rendered.set(path, await renderPublicPage({ path, siteContent, publicCatalog, categories: packageCategories,
         cover: cover && typeof cover === 'object' && !Array.isArray(cover) ? cover : undefined,
@@ -572,7 +574,8 @@ if (renderPaths.length) {
         offers: Array.isArray(offers) ? offers : undefined,
         portfolio: Array.isArray(portfolio) ? portfolio : undefined,
         about: path === '/about' ? { staff: Array.isArray(staff) ? staff : undefined, scenes: Array.isArray(scenes) ? scenes : undefined } : undefined,
-        home: path === '/' ? { hero: Array.isArray(hero) ? hero : undefined, featured: Array.isArray(featured) ? featured : undefined, gallery: Array.isArray(gallery) ? gallery : undefined } : path === '/work' ? { featured: Array.isArray(featured) ? featured : undefined } : undefined }));
+        stories: path === '/stories' ? { reviews: Array.isArray(reviews) ? reviews : undefined } : undefined,
+        home: path === '/' ? { hero: Array.isArray(hero) ? hero : undefined, featured: Array.isArray(featured) ? featured : undefined, gallery: Array.isArray(gallery) ? gallery : undefined } : ['/work', '/contact'].includes(path) ? { featured: Array.isArray(featured) ? featured : undefined } : undefined }));
     }
   } finally { await server.close(); }
 }

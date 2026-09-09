@@ -1,0 +1,2716 @@
+{
+  "measuredAt": "2026-09-09T05:55:43.388Z",
+  "scope": "Three retained serial mobile production Lighthouse samples for Booking; not field CWV or a controlled attribution of all changes between deployments.",
+  "baseline": {
+    "evidence": "f13-production-baseline.json",
+    "build": {
+      "commit": "85cbd29c60e3b92030b542a827c41ec96a38d309",
+      "createdAt": "2026-09-08T12:49:15.936Z",
+      "publicOrigin": "https://dollpictures.in"
+    },
+    "entryAsset": "/assets/index-CLARWShD.js",
+    "medians": {
+      "count": 3,
+      "score": 0.51,
+      "first-contentful-paint": 2528.5721000000003,
+      "largest-contentful-paint": 8616.516599999999,
+      "total-blocking-time": 60,
+      "cumulative-layout-shift": 0.6290758306852486,
+      "speed-index": 4319.82850798991
+    }
+  },
+  "deploymentBefore": {
+    "checkedAt": "2026-09-09T05:52:07.015Z",
+    "build": {
+      "commit": "90a068e4d4f53cc3415f9d56dacc03f1d0e73532",
+      "createdAt": "2026-09-09T03:48:59.891Z",
+      "publicOrigin": "https://dollpictures.in"
+    },
+    "status": 200,
+    "scripts": [
+      "/assets/index-DyvfbbA_.js"
+    ],
+    "headers": {
+      "cache-control": "public, max-age=0, must-revalidate",
+      "cf-cache-status": "DYNAMIC",
+      "content-encoding": "br",
+      "x-vercel-cache": "MISS"
+    }
+  },
+  "deploymentAfter": {
+    "checkedAt": "2026-09-09T05:53:38.840Z",
+    "build": {
+      "commit": "90a068e4d4f53cc3415f9d56dacc03f1d0e73532",
+      "createdAt": "2026-09-09T03:48:59.891Z",
+      "publicOrigin": "https://dollpictures.in"
+    },
+    "status": 200,
+    "scripts": [
+      "/assets/index-DyvfbbA_.js"
+    ],
+    "headers": {
+      "cache-control": "public, max-age=0, must-revalidate",
+      "cf-cache-status": "DYNAMIC",
+      "content-encoding": "br",
+      "x-vercel-cache": "HIT"
+    }
+  },
+  "entryHeaders": {
+    "url": "https://dollpictures.in/assets/index-DyvfbbA_.js",
+    "status": 200,
+    "checkedAt": "2026-09-09T05:54:38.342Z",
+    "headers": {
+      "cache-control": "public, max-age=14400, must-revalidate",
+      "cf-cache-status": "MISS",
+      "content-encoding": "br",
+      "etag": "W/\"e9307553e391ca0556e68ae37e604820\"",
+      "x-vercel-cache": "HIT"
+    }
+  },
+  "sameSettingsAsBaseline": true,
+  "medians": {
+    "count": 3,
+    "score": 0.74,
+    "first-contentful-paint": 1784.3865999999998,
+    "largest-contentful-paint": 7065.402,
+    "total-blocking-time": 32,
+    "cumulative-layout-shift": 0.003442148842009878,
+    "speed-index": 3787.291497979178
+  },
+  "deltas": {
+    "score": {
+      "before": 0.51,
+      "after": 0.74,
+      "absolute": 0.22999999999999998,
+      "percent": 45.09803921568627
+    },
+    "first-contentful-paint": {
+      "before": 2528.5721000000003,
+      "after": 1784.3865999999998,
+      "absolute": -744.1855000000005,
+      "percent": -29.43105715672495
+    },
+    "largest-contentful-paint": {
+      "before": 8616.516599999999,
+      "after": 7065.402,
+      "absolute": -1551.114599999999,
+      "percent": -18.001643494773738
+    },
+    "total-blocking-time": {
+      "before": 60,
+      "after": 32,
+      "absolute": -28,
+      "percent": -46.666666666666664
+    },
+    "cumulative-layout-shift": {
+      "before": 0.6290758306852486,
+      "after": 0.003442148842009878,
+      "absolute": -0.6256336818432388,
+      "percent": -99.45282449680822
+    },
+    "speed-index": {
+      "before": 4319.82850798991,
+      "after": 3787.291497979178,
+      "absolute": -532.5370100107316,
+      "percent": -12.327734978964019
+    }
+  },
+  "samples": [
+    {
+      "file": "booking-1.json",
+      "fetchedAt": "2026-09-09T05:52:10.177Z",
+      "url": "https://dollpictures.in/booking",
+      "version": "12.8.2",
+      "runtimeError": null,
+      "warnings": [],
+      "environment": {
+        "networkUserAgent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Mobile Safari/537.36",
+        "hostUserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+        "benchmarkIndex": 2930,
+        "credits": {}
+      },
+      "settings": {
+        "output": [
+          "json"
+        ],
+        "maxWaitForFcp": 30000,
+        "maxWaitForLoad": 45000,
+        "pauseAfterFcpMs": 1000,
+        "pauseAfterLoadMs": 1000,
+        "networkQuietThresholdMs": 1000,
+        "cpuQuietThresholdMs": 1000,
+        "formFactor": "mobile",
+        "throttling": {
+          "rttMs": 150,
+          "throughputKbps": 1638.4,
+          "requestLatencyMs": 562.5,
+          "downloadThroughputKbps": 1474.5600000000002,
+          "uploadThroughputKbps": 675,
+          "cpuSlowdownMultiplier": 4
+        },
+        "throttlingMethod": "simulate",
+        "screenEmulation": {
+          "mobile": true,
+          "width": 412,
+          "height": 823,
+          "deviceScaleFactor": 1.75,
+          "disabled": false
+        },
+        "emulatedUserAgent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Mobile Safari/537.36",
+        "auditMode": false,
+        "gatherMode": false,
+        "clearStorageTypes": [
+          "file_systems",
+          "shader_cache",
+          "service_workers",
+          "cache_storage"
+        ],
+        "disableStorageReset": false,
+        "debugNavigation": false,
+        "channel": "cli",
+        "usePassiveGathering": false,
+        "disableFullPageScreenshot": false,
+        "skipAboutBlank": false,
+        "blankPage": "about:blank",
+        "ignoreStatusCode": false,
+        "locale": "en-US",
+        "blockedUrlPatterns": null,
+        "additionalTraceCategories": null,
+        "extraHeaders": null,
+        "precomputedLanternData": null,
+        "onlyAudits": null,
+        "onlyCategories": [
+          "performance"
+        ],
+        "skipAudits": null
+      },
+      "score": 0.74,
+      "metrics": {
+        "first-contentful-paint": 1784.3865999999998,
+        "largest-contentful-paint": 6983.5608,
+        "total-blocking-time": 25,
+        "cumulative-layout-shift": 0.003442148842009878,
+        "speed-index": 3787.291497979178
+      },
+      "audits": {
+        "largest-contentful-paint-element": {
+          "displayValue": "6,980 ms",
+          "score": 0,
+          "details": {
+            "type": "list",
+            "items": [
+              {
+                "type": "table",
+                "headings": [
+                  {
+                    "key": "node",
+                    "valueType": "node",
+                    "label": "Element"
+                  }
+                ],
+                "items": [
+                  {
+                    "node": {
+                      "type": "node",
+                      "lhId": "page-0-IMG",
+                      "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,1,SECTION,0,DIV,0,PICTURE,1,IMG",
+                      "selector": "section#booking > div.absolute > picture.contents > img.animate-fade-in",
+                      "boundingRect": {
+                        "top": 334,
+                        "bottom": 1157,
+                        "left": 0,
+                        "right": 412,
+                        "width": 412,
+                        "height": 823
+                      },
+                      "snippet": "<img src=\"https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5…\" alt=\"\" width=\"1600\" height=\"900\" sizes=\"100vw\" loading=\"eager\" decoding=\"async\" fetchpriority=\"high\" class=\"animate-fade-in absolute inset-0 h-full w-full object-cover\">",
+                      "nodeLabel": "section#booking > div.absolute > picture.contents > img.animate-fade-in"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "table",
+                "headings": [
+                  {
+                    "key": "phase",
+                    "valueType": "text",
+                    "label": "Phase"
+                  },
+                  {
+                    "key": "percent",
+                    "valueType": "text",
+                    "label": "% of LCP"
+                  },
+                  {
+                    "key": "timing",
+                    "valueType": "ms",
+                    "label": "Timing"
+                  }
+                ],
+                "items": [
+                  {
+                    "phase": "TTFB",
+                    "timing": 1254.078,
+                    "percent": "18%"
+                  },
+                  {
+                    "phase": "Load Delay",
+                    "timing": 5079.3720139528905,
+                    "percent": "73%"
+                  },
+                  {
+                    "phase": "Load Time",
+                    "timing": 600.6674533417436,
+                    "percent": "9%"
+                  },
+                  {
+                    "phase": "Render Delay",
+                    "timing": 49.44333270536572,
+                    "percent": "1%"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "lcp-discovery-insight": {
+          "score": 0,
+          "details": {
+            "type": "list",
+            "items": [
+              {
+                "type": "checklist",
+                "items": {
+                  "priorityHinted": {
+                    "label": "fetchpriority=high applied",
+                    "value": true
+                  },
+                  "requestDiscoverable": {
+                    "label": "Request is discoverable in initial document",
+                    "value": false
+                  },
+                  "eagerlyLoaded": {
+                    "label": "lazy load not applied",
+                    "value": true
+                  }
+                }
+              },
+              {
+                "type": "node",
+                "lhId": "page-0-IMG",
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,1,SECTION,0,DIV,0,PICTURE,1,IMG",
+                "selector": "section#booking > div.absolute > picture.contents > img.animate-fade-in",
+                "boundingRect": {
+                  "top": 334,
+                  "bottom": 1157,
+                  "left": 0,
+                  "right": 412,
+                  "width": 412,
+                  "height": 823
+                },
+                "snippet": "<img src=\"https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5…\" alt=\"\" width=\"1600\" height=\"900\" sizes=\"100vw\" loading=\"eager\" decoding=\"async\" fetchpriority=\"high\" class=\"animate-fade-in absolute inset-0 h-full w-full object-cover\">",
+                "nodeLabel": "section#booking > div.absolute > picture.contents > img.animate-fade-in"
+              }
+            ]
+          }
+        },
+        "lcp-breakdown-insight": {
+          "score": 1,
+          "details": {
+            "type": "list",
+            "items": [
+              {
+                "type": "table",
+                "headings": [
+                  {
+                    "key": "label",
+                    "valueType": "text",
+                    "label": "Subpart"
+                  },
+                  {
+                    "key": "duration",
+                    "valueType": "ms",
+                    "label": "Duration"
+                  }
+                ],
+                "items": [
+                  {
+                    "subpart": "timeToFirstByte",
+                    "label": "Time to first byte",
+                    "duration": 1254.078
+                  },
+                  {
+                    "subpart": "resourceLoadDelay",
+                    "label": "Resource load delay",
+                    "duration": 901.339
+                  },
+                  {
+                    "subpart": "resourceLoadDuration",
+                    "label": "Resource load duration",
+                    "duration": 204.885
+                  },
+                  {
+                    "subpart": "elementRenderDelay",
+                    "label": "Element render delay",
+                    "duration": 16.83
+                  }
+                ]
+              },
+              {
+                "type": "node",
+                "lhId": "page-0-IMG",
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,1,SECTION,0,DIV,0,PICTURE,1,IMG",
+                "selector": "section#booking > div.absolute > picture.contents > img.animate-fade-in",
+                "boundingRect": {
+                  "top": 334,
+                  "bottom": 1157,
+                  "left": 0,
+                  "right": 412,
+                  "width": 412,
+                  "height": 823
+                },
+                "snippet": "<img src=\"https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5…\" alt=\"\" width=\"1600\" height=\"900\" sizes=\"100vw\" loading=\"eager\" decoding=\"async\" fetchpriority=\"high\" class=\"animate-fade-in absolute inset-0 h-full w-full object-cover\">",
+                "nodeLabel": "section#booking > div.absolute > picture.contents > img.animate-fade-in"
+              }
+            ]
+          }
+        },
+        "layout-shifts": {
+          "displayValue": "1 layout shift found",
+          "score": 1,
+          "details": {
+            "type": "table",
+            "headings": [
+              {
+                "key": "node",
+                "valueType": "node",
+                "subItemsHeading": {
+                  "key": "extra"
+                },
+                "label": "Element"
+              },
+              {
+                "key": "score",
+                "valueType": "numeric",
+                "subItemsHeading": {
+                  "key": "cause",
+                  "valueType": "text"
+                },
+                "granularity": 0.001,
+                "label": "Layout shift score"
+              }
+            ],
+            "items": [
+              {
+                "node": {
+                  "type": "node",
+                  "lhId": "page-1-SPAN",
+                  "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,1,SECTION,2,DIV,1,H2,2,SPAN",
+                  "selector": "section#booking > div.relative > h2.font-display > span.italic",
+                  "boundingRect": {
+                    "top": 629,
+                    "bottom": 701,
+                    "left": 90,
+                    "right": 322,
+                    "width": 231,
+                    "height": 72
+                  },
+                  "snippet": "<span class=\"italic text-gradient-gold\">",
+                  "nodeLabel": "your story."
+                },
+                "score": 0.003442148842009878,
+                "subItems": {
+                  "type": "subitems",
+                  "items": [
+                    {
+                      "extra": {
+                        "type": "url",
+                        "value": "https://dollpictures.in/assets/cormorant-garamond-latin-400-italic-Dc_OZ8oc.woff2"
+                      },
+                      "cause": "Web font loaded"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "lcp-lazy-loaded": {
+          "score": 1,
+          "details": {
+            "type": "table",
+            "headings": [
+              {
+                "key": "node",
+                "valueType": "node",
+                "label": "Element"
+              }
+            ],
+            "items": [
+              {
+                "node": {
+                  "type": "node",
+                  "lhId": "1-3-IMG",
+                  "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,1,SECTION,0,DIV,0,PICTURE,1,IMG",
+                  "selector": "section#booking > div.absolute > picture.contents > img.animate-fade-in",
+                  "boundingRect": {
+                    "top": 334,
+                    "bottom": 1157,
+                    "left": 0,
+                    "right": 412,
+                    "width": 412,
+                    "height": 823
+                  },
+                  "snippet": "<img src=\"https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5…\" alt=\"\" width=\"1600\" height=\"900\" sizes=\"100vw\" loading=\"eager\" decoding=\"async\" fetchpriority=\"high\" class=\"animate-fade-in absolute inset-0 h-full w-full object-cover\">",
+                  "nodeLabel": "section#booking > div.absolute > picture.contents > img.animate-fade-in"
+                }
+              }
+            ]
+          }
+        },
+        "prioritize-lcp-image": {
+          "displayValue": "Est savings of 1,350 ms",
+          "score": 0,
+          "details": {
+            "type": "opportunity",
+            "headings": [
+              {
+                "key": "node",
+                "valueType": "node",
+                "label": ""
+              },
+              {
+                "key": "url",
+                "valueType": "url",
+                "label": "URL"
+              },
+              {
+                "key": "wastedMs",
+                "valueType": "timespanMs",
+                "label": "Est Savings"
+              }
+            ],
+            "items": [
+              {
+                "node": {
+                  "type": "node",
+                  "lhId": "page-0-IMG",
+                  "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,1,SECTION,0,DIV,0,PICTURE,1,IMG",
+                  "selector": "section#booking > div.absolute > picture.contents > img.animate-fade-in",
+                  "boundingRect": {
+                    "top": 334,
+                    "bottom": 1157,
+                    "left": 0,
+                    "right": 412,
+                    "width": 412,
+                    "height": 823
+                  },
+                  "snippet": "<img src=\"https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5…\" alt=\"\" width=\"1600\" height=\"900\" sizes=\"100vw\" loading=\"eager\" decoding=\"async\" fetchpriority=\"high\" class=\"animate-fade-in absolute inset-0 h-full w-full object-cover\">",
+                  "nodeLabel": "section#booking > div.absolute > picture.contents > img.animate-fade-in"
+                },
+                "url": "https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5d906-95f2-40e3-ae22-6e8a0842c9ec.jpg",
+                "wastedMs": 1351.0370000000003
+              }
+            ],
+            "overallSavingsMs": 1351.0370000000003,
+            "sortedBy": [
+              "wastedMs"
+            ],
+            "debugData": {
+              "type": "debugdata",
+              "initiatorPath": [
+                {
+                  "url": "https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5d906-95f2-40e3-ae22-6e8a0842c9ec.jpg",
+                  "initiatorType": "script"
+                },
+                {
+                  "url": "https://dollpictures.in/assets/index-DyvfbbA_.js",
+                  "initiatorType": "parser"
+                },
+                {
+                  "url": "https://dollpictures.in/booking",
+                  "initiatorType": "other"
+                }
+              ],
+              "pathLength": 3
+            }
+          }
+        }
+      },
+      "requests": [
+        {
+          "url": "https://dollpictures.in/booking",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 0,
+          "networkRequestTime": 0.4010000228881836,
+          "networkEndTime": 1255.182999998331,
+          "finished": true,
+          "transferSize": 38253,
+          "resourceSize": 227195,
+          "statusCode": 200,
+          "mimeType": "text/html",
+          "resourceType": "Document",
+          "priority": "VeryHigh",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/assets/index-DyvfbbA_.js",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1262.1319999992847,
+          "networkRequestTime": 1267.397000014782,
+          "networkEndTime": 1359.274000018835,
+          "finished": true,
+          "transferSize": 110760,
+          "resourceSize": 346733,
+          "statusCode": 200,
+          "mimeType": "application/javascript",
+          "resourceType": "Script",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/manifest.webmanifest",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1269.2020000219345,
+          "networkRequestTime": 1269.4500000178814,
+          "networkEndTime": 2974.3700000047684,
+          "finished": true,
+          "transferSize": 959,
+          "resourceSize": 424,
+          "statusCode": 200,
+          "mimeType": "application/manifest+json",
+          "resourceType": "Manifest",
+          "priority": "Medium",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/assets/BookingCTA-D2sVY8em.js",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1380.9710000157356,
+          "networkRequestTime": 1381.2250000238419,
+          "networkEndTime": 1750.5060000121593,
+          "finished": true,
+          "transferSize": 3449,
+          "resourceSize": 6236,
+          "statusCode": 200,
+          "mimeType": "application/javascript",
+          "resourceType": "Script",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/assets/EnquiryModal-DVgCnQhr.js",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1381.0660000145435,
+          "networkRequestTime": 1381.3560000061989,
+          "networkEndTime": 1460.6760000288486,
+          "finished": true,
+          "transferSize": 5070,
+          "resourceSize": 11805,
+          "statusCode": 200,
+          "mimeType": "application/javascript",
+          "resourceType": "Script",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/assets/shootTypes-DGmeg7qA.js",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1381.1159999966621,
+          "networkRequestTime": 1382.0580000281334,
+          "networkEndTime": 1483.132000029087,
+          "finished": true,
+          "transferSize": 788,
+          "resourceSize": 162,
+          "statusCode": 200,
+          "mimeType": "application/javascript",
+          "resourceType": "Script",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/assets/BookingFaq-BzyYporj.js",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1384.188000023365,
+          "networkRequestTime": 1384.4679999947548,
+          "networkEndTime": 1742.6389999985695,
+          "finished": true,
+          "transferSize": 1453,
+          "resourceSize": 1615,
+          "statusCode": 200,
+          "mimeType": "application/javascript",
+          "resourceType": "Script",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/logo-doll-nav.webp",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1384.28900000453,
+          "networkRequestTime": 1384.7410000264645,
+          "networkEndTime": 1670.5550000369549,
+          "finished": true,
+          "transferSize": 1334,
+          "resourceSize": 712,
+          "statusCode": 200,
+          "mimeType": "image/webp",
+          "resourceType": "Image",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/assets/inter-latin-400-normal-C38fXH4l.woff2",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1385.8660000264645,
+          "networkRequestTime": 1394.3250000178814,
+          "networkEndTime": 1477.1660000383854,
+          "finished": true,
+          "transferSize": 24305,
+          "resourceSize": 23664,
+          "statusCode": 200,
+          "mimeType": "font/woff2",
+          "resourceType": "Font",
+          "priority": "VeryHigh",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/assets/cormorant-garamond-latin-600-normal-Co1r35X9.woff2",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1385.9460000395775,
+          "networkRequestTime": 1394.4629999995232,
+          "networkEndTime": 1482.3220000267029,
+          "finished": true,
+          "transferSize": 24043,
+          "resourceSize": 23396,
+          "statusCode": 200,
+          "mimeType": "font/woff2",
+          "resourceType": "Font",
+          "priority": "VeryHigh",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/assets/cormorant-garamond-latin-300-normal-Cw-E_7L1.woff2",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1385.988999992609,
+          "networkRequestTime": 1394.7420000135899,
+          "networkEndTime": 1469.968000024557,
+          "finished": true,
+          "transferSize": 22565,
+          "resourceSize": 21908,
+          "statusCode": 200,
+          "mimeType": "font/woff2",
+          "resourceType": "Font",
+          "priority": "VeryHigh",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/assets/inter-latin-600-normal-LgqL8muc.woff2",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1386.013000011444,
+          "networkRequestTime": 1394.8590000271797,
+          "networkEndTime": 1486.513000011444,
+          "finished": true,
+          "transferSize": 25103,
+          "resourceSize": 24452,
+          "statusCode": 200,
+          "mimeType": "font/woff2",
+          "resourceType": "Font",
+          "priority": "VeryHigh",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://doll-backend-27n8.onrender.com/api/site-content",
+          "sessionTargetType": "page",
+          "protocol": "h2",
+          "rendererStartTime": 1398.677000015974,
+          "networkRequestTime": 1398.9810000061989,
+          "networkEndTime": 1696.108000010252,
+          "finished": true,
+          "transferSize": 6482,
+          "resourceSize": 22997,
+          "statusCode": 200,
+          "mimeType": "application/json",
+          "resourceType": "Fetch",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "onrender.com"
+        },
+        {
+          "url": "https://doll-backend-27n8.onrender.com/api/hero-slides",
+          "sessionTargetType": "page",
+          "protocol": "h2",
+          "rendererStartTime": 1398.8390000164509,
+          "networkRequestTime": 1399.6270000040531,
+          "networkEndTime": 1546.8620000183582,
+          "finished": true,
+          "transferSize": 897,
+          "resourceSize": 1500,
+          "statusCode": 200,
+          "mimeType": "application/json",
+          "resourceType": "Fetch",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "onrender.com"
+        },
+        {
+          "url": "https://doll-backend-27n8.onrender.com/api/package-categories",
+          "sessionTargetType": "page",
+          "protocol": "h2",
+          "rendererStartTime": 1398.9379999935627,
+          "networkRequestTime": 1400.007000029087,
+          "networkEndTime": 1547.1640000343323,
+          "finished": true,
+          "transferSize": 1924,
+          "resourceSize": 6185,
+          "statusCode": 200,
+          "mimeType": "application/json",
+          "resourceType": "Fetch",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "onrender.com"
+        },
+        {
+          "url": "https://dollpictures.in/favicon-32x32.png",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1399.1510000228882,
+          "networkRequestTime": 1400.6010000109673,
+          "networkEndTime": 1483.0640000104904,
+          "finished": true,
+          "transferSize": 2915,
+          "resourceSize": 2298,
+          "statusCode": 200,
+          "mimeType": "image/png",
+          "resourceType": "Other",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://doll-backend-27n8.onrender.com/api/booking-backgrounds",
+          "sessionTargetType": "page",
+          "protocol": "h2",
+          "rendererStartTime": 1753.8550000190735,
+          "networkRequestTime": 1754.1430000066757,
+          "networkEndTime": 2151.162000030279,
+          "finished": true,
+          "transferSize": 1547,
+          "resourceSize": 13177,
+          "statusCode": 200,
+          "mimeType": "application/json",
+          "resourceType": "Fetch",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "onrender.com"
+        },
+        {
+          "url": "https://dollpictures.in/assets/inter-latin-500-normal-Cerq10X2.woff2",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1762.3250000178814,
+          "networkRequestTime": 1766.949000030756,
+          "networkEndTime": 1870.563000023365,
+          "finished": true,
+          "transferSize": 24917,
+          "resourceSize": 24272,
+          "statusCode": 200,
+          "mimeType": "font/woff2",
+          "resourceType": "Font",
+          "priority": "VeryHigh",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/assets/cormorant-garamond-latin-400-normal-B-1hWBU7.woff2",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1762.3980000317097,
+          "networkRequestTime": 1767.1010000109673,
+          "networkEndTime": 1873.9650000035763,
+          "finished": true,
+          "transferSize": 23530,
+          "resourceSize": 22876,
+          "statusCode": 200,
+          "mimeType": "font/woff2",
+          "resourceType": "Font",
+          "priority": "VeryHigh",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/assets/cormorant-garamond-latin-400-italic-Dc_OZ8oc.woff2",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1762.4280000329018,
+          "networkRequestTime": 1767.425000011921,
+          "networkEndTime": 1857.4760000109673,
+          "finished": true,
+          "transferSize": 24317,
+          "resourceSize": 23660,
+          "statusCode": 200,
+          "mimeType": "font/woff2",
+          "resourceType": "Font",
+          "priority": "VeryHigh",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5d906-95f2-40e3-ae22-6e8a0842c9ec.jpg",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 2155.0280000269413,
+          "networkRequestTime": 2155.4520000219345,
+          "networkEndTime": 2359.9130000174046,
+          "finished": true,
+          "transferSize": 53724,
+          "resourceSize": 53322,
+          "statusCode": 200,
+          "mimeType": "image/webp",
+          "resourceType": "Image",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "imagekit.io"
+        },
+        {
+          "url": "https://dollpictures.in/logo-doll.png?v=20260810",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 2976.319000005722,
+          "networkRequestTime": 2976.748000025749,
+          "networkEndTime": 3178.1780000030994,
+          "finished": true,
+          "transferSize": 358015,
+          "resourceSize": 357364,
+          "statusCode": 200,
+          "mimeType": "image/png",
+          "resourceType": "Other",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        }
+      ]
+    },
+    {
+      "file": "booking-2.json",
+      "fetchedAt": "2026-09-09T05:52:40.133Z",
+      "url": "https://dollpictures.in/booking",
+      "version": "12.8.2",
+      "runtimeError": null,
+      "warnings": [],
+      "environment": {
+        "networkUserAgent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Mobile Safari/537.36",
+        "hostUserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+        "benchmarkIndex": 2869,
+        "credits": {}
+      },
+      "settings": {
+        "output": [
+          "json"
+        ],
+        "maxWaitForFcp": 30000,
+        "maxWaitForLoad": 45000,
+        "pauseAfterFcpMs": 1000,
+        "pauseAfterLoadMs": 1000,
+        "networkQuietThresholdMs": 1000,
+        "cpuQuietThresholdMs": 1000,
+        "formFactor": "mobile",
+        "throttling": {
+          "rttMs": 150,
+          "throughputKbps": 1638.4,
+          "requestLatencyMs": 562.5,
+          "downloadThroughputKbps": 1474.5600000000002,
+          "uploadThroughputKbps": 675,
+          "cpuSlowdownMultiplier": 4
+        },
+        "throttlingMethod": "simulate",
+        "screenEmulation": {
+          "mobile": true,
+          "width": 412,
+          "height": 823,
+          "deviceScaleFactor": 1.75,
+          "disabled": false
+        },
+        "emulatedUserAgent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Mobile Safari/537.36",
+        "auditMode": false,
+        "gatherMode": false,
+        "clearStorageTypes": [
+          "file_systems",
+          "shader_cache",
+          "service_workers",
+          "cache_storage"
+        ],
+        "disableStorageReset": false,
+        "debugNavigation": false,
+        "channel": "cli",
+        "usePassiveGathering": false,
+        "disableFullPageScreenshot": false,
+        "skipAboutBlank": false,
+        "blankPage": "about:blank",
+        "ignoreStatusCode": false,
+        "locale": "en-US",
+        "blockedUrlPatterns": null,
+        "additionalTraceCategories": null,
+        "extraHeaders": null,
+        "precomputedLanternData": null,
+        "onlyAudits": null,
+        "onlyCategories": [
+          "performance"
+        ],
+        "skipAudits": null
+      },
+      "score": 0.69,
+      "metrics": {
+        "first-contentful-paint": 2364.6360000000004,
+        "largest-contentful-paint": 7065.402,
+        "total-blocking-time": 40.5,
+        "cumulative-layout-shift": 0.003442148842009878,
+        "speed-index": 5651.913674014475
+      },
+      "audits": {
+        "largest-contentful-paint-element": {
+          "displayValue": "7,070 ms",
+          "score": 0,
+          "details": {
+            "type": "list",
+            "items": [
+              {
+                "type": "table",
+                "headings": [
+                  {
+                    "key": "node",
+                    "valueType": "node",
+                    "label": "Element"
+                  }
+                ],
+                "items": [
+                  {
+                    "node": {
+                      "type": "node",
+                      "lhId": "page-0-IMG",
+                      "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,1,SECTION,0,DIV,0,PICTURE,1,IMG",
+                      "selector": "section#booking > div.absolute > picture.contents > img.animate-fade-in",
+                      "boundingRect": {
+                        "top": 334,
+                        "bottom": 1157,
+                        "left": 0,
+                        "right": 412,
+                        "width": 412,
+                        "height": 823
+                      },
+                      "snippet": "<img src=\"https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5…\" alt=\"\" width=\"1600\" height=\"900\" sizes=\"100vw\" loading=\"eager\" decoding=\"async\" fetchpriority=\"high\" class=\"animate-fade-in absolute inset-0 h-full w-full object-cover\">",
+                      "nodeLabel": "section#booking > div.absolute > picture.contents > img.animate-fade-in"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "table",
+                "headings": [
+                  {
+                    "key": "phase",
+                    "valueType": "text",
+                    "label": "Phase"
+                  },
+                  {
+                    "key": "percent",
+                    "valueType": "text",
+                    "label": "% of LCP"
+                  },
+                  {
+                    "key": "timing",
+                    "valueType": "ms",
+                    "label": "Timing"
+                  }
+                ],
+                "items": [
+                  {
+                    "phase": "TTFB",
+                    "timing": 1573.78,
+                    "percent": "22%"
+                  },
+                  {
+                    "phase": "Load Delay",
+                    "timing": 5345.7320183513375,
+                    "percent": "76%"
+                  },
+                  {
+                    "phase": "Load Time",
+                    "timing": 116.63145915054793,
+                    "percent": "2%"
+                  },
+                  {
+                    "phase": "Render Delay",
+                    "timing": 29.25852249811487,
+                    "percent": "0%"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "lcp-discovery-insight": {
+          "score": 0,
+          "details": {
+            "type": "list",
+            "items": [
+              {
+                "type": "checklist",
+                "items": {
+                  "priorityHinted": {
+                    "label": "fetchpriority=high applied",
+                    "value": true
+                  },
+                  "requestDiscoverable": {
+                    "label": "Request is discoverable in initial document",
+                    "value": false
+                  },
+                  "eagerlyLoaded": {
+                    "label": "lazy load not applied",
+                    "value": true
+                  }
+                }
+              },
+              {
+                "type": "node",
+                "lhId": "page-0-IMG",
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,1,SECTION,0,DIV,0,PICTURE,1,IMG",
+                "selector": "section#booking > div.absolute > picture.contents > img.animate-fade-in",
+                "boundingRect": {
+                  "top": 334,
+                  "bottom": 1157,
+                  "left": 0,
+                  "right": 412,
+                  "width": 412,
+                  "height": 823
+                },
+                "snippet": "<img src=\"https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5…\" alt=\"\" width=\"1600\" height=\"900\" sizes=\"100vw\" loading=\"eager\" decoding=\"async\" fetchpriority=\"high\" class=\"animate-fade-in absolute inset-0 h-full w-full object-cover\">",
+                "nodeLabel": "section#booking > div.absolute > picture.contents > img.animate-fade-in"
+              }
+            ]
+          }
+        },
+        "lcp-breakdown-insight": {
+          "score": 1,
+          "details": {
+            "type": "list",
+            "items": [
+              {
+                "type": "table",
+                "headings": [
+                  {
+                    "key": "label",
+                    "valueType": "text",
+                    "label": "Subpart"
+                  },
+                  {
+                    "key": "duration",
+                    "valueType": "ms",
+                    "label": "Duration"
+                  }
+                ],
+                "items": [
+                  {
+                    "subpart": "timeToFirstByte",
+                    "label": "Time to first byte",
+                    "duration": 1573.78
+                  },
+                  {
+                    "subpart": "resourceLoadDelay",
+                    "label": "Resource load delay",
+                    "duration": 1897.539
+                  },
+                  {
+                    "subpart": "resourceLoadDuration",
+                    "label": "Resource load duration",
+                    "duration": 58.714
+                  },
+                  {
+                    "subpart": "elementRenderDelay",
+                    "label": "Element render delay",
+                    "duration": 14.679
+                  }
+                ]
+              },
+              {
+                "type": "node",
+                "lhId": "page-0-IMG",
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,1,SECTION,0,DIV,0,PICTURE,1,IMG",
+                "selector": "section#booking > div.absolute > picture.contents > img.animate-fade-in",
+                "boundingRect": {
+                  "top": 334,
+                  "bottom": 1157,
+                  "left": 0,
+                  "right": 412,
+                  "width": 412,
+                  "height": 823
+                },
+                "snippet": "<img src=\"https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5…\" alt=\"\" width=\"1600\" height=\"900\" sizes=\"100vw\" loading=\"eager\" decoding=\"async\" fetchpriority=\"high\" class=\"animate-fade-in absolute inset-0 h-full w-full object-cover\">",
+                "nodeLabel": "section#booking > div.absolute > picture.contents > img.animate-fade-in"
+              }
+            ]
+          }
+        },
+        "layout-shifts": {
+          "displayValue": "1 layout shift found",
+          "score": 1,
+          "details": {
+            "type": "table",
+            "headings": [
+              {
+                "key": "node",
+                "valueType": "node",
+                "subItemsHeading": {
+                  "key": "extra"
+                },
+                "label": "Element"
+              },
+              {
+                "key": "score",
+                "valueType": "numeric",
+                "subItemsHeading": {
+                  "key": "cause",
+                  "valueType": "text"
+                },
+                "granularity": 0.001,
+                "label": "Layout shift score"
+              }
+            ],
+            "items": [
+              {
+                "node": {
+                  "type": "node",
+                  "lhId": "page-1-SPAN",
+                  "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,1,SECTION,2,DIV,1,H2,2,SPAN",
+                  "selector": "section#booking > div.relative > h2.font-display > span.italic",
+                  "boundingRect": {
+                    "top": 629,
+                    "bottom": 701,
+                    "left": 90,
+                    "right": 322,
+                    "width": 231,
+                    "height": 72
+                  },
+                  "snippet": "<span class=\"italic text-gradient-gold\">",
+                  "nodeLabel": "your story."
+                },
+                "score": 0.003442148842009878,
+                "subItems": {
+                  "type": "subitems",
+                  "items": [
+                    {
+                      "extra": {
+                        "type": "url",
+                        "value": "https://dollpictures.in/assets/inter-latin-500-normal-Cerq10X2.woff2"
+                      },
+                      "cause": "Web font loaded"
+                    },
+                    {
+                      "extra": {
+                        "type": "url",
+                        "value": "https://dollpictures.in/assets/cormorant-garamond-latin-400-normal-B-1hWBU7.woff2"
+                      },
+                      "cause": "Web font loaded"
+                    },
+                    {
+                      "extra": {
+                        "type": "url",
+                        "value": "https://dollpictures.in/assets/cormorant-garamond-latin-400-italic-Dc_OZ8oc.woff2"
+                      },
+                      "cause": "Web font loaded"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "lcp-lazy-loaded": {
+          "score": 1,
+          "details": {
+            "type": "table",
+            "headings": [
+              {
+                "key": "node",
+                "valueType": "node",
+                "label": "Element"
+              }
+            ],
+            "items": [
+              {
+                "node": {
+                  "type": "node",
+                  "lhId": "1-3-IMG",
+                  "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,1,SECTION,0,DIV,0,PICTURE,1,IMG",
+                  "selector": "section#booking > div.absolute > picture.contents > img.animate-fade-in",
+                  "boundingRect": {
+                    "top": 334,
+                    "bottom": 1157,
+                    "left": 0,
+                    "right": 412,
+                    "width": 412,
+                    "height": 823
+                  },
+                  "snippet": "<img src=\"https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5…\" alt=\"\" width=\"1600\" height=\"900\" sizes=\"100vw\" loading=\"eager\" decoding=\"async\" fetchpriority=\"high\" class=\"animate-fade-in absolute inset-0 h-full w-full object-cover\">",
+                  "nodeLabel": "section#booking > div.absolute > picture.contents > img.animate-fade-in"
+                }
+              }
+            ]
+          }
+        },
+        "prioritize-lcp-image": {
+          "displayValue": "Est savings of 1,190 ms",
+          "score": 0,
+          "details": {
+            "type": "opportunity",
+            "headings": [
+              {
+                "key": "node",
+                "valueType": "node",
+                "label": ""
+              },
+              {
+                "key": "url",
+                "valueType": "url",
+                "label": "URL"
+              },
+              {
+                "key": "wastedMs",
+                "valueType": "timespanMs",
+                "label": "Est Savings"
+              }
+            ],
+            "items": [
+              {
+                "node": {
+                  "type": "node",
+                  "lhId": "page-0-IMG",
+                  "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,1,SECTION,0,DIV,0,PICTURE,1,IMG",
+                  "selector": "section#booking > div.absolute > picture.contents > img.animate-fade-in",
+                  "boundingRect": {
+                    "top": 334,
+                    "bottom": 1157,
+                    "left": 0,
+                    "right": 412,
+                    "width": 412,
+                    "height": 823
+                  },
+                  "snippet": "<img src=\"https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5…\" alt=\"\" width=\"1600\" height=\"900\" sizes=\"100vw\" loading=\"eager\" decoding=\"async\" fetchpriority=\"high\" class=\"animate-fade-in absolute inset-0 h-full w-full object-cover\">",
+                  "nodeLabel": "section#booking > div.absolute > picture.contents > img.animate-fade-in"
+                },
+                "url": "https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5d906-95f2-40e3-ae22-6e8a0842c9ec.jpg",
+                "wastedMs": 1189.2839999999997
+              }
+            ],
+            "overallSavingsMs": 1189.2839999999997,
+            "sortedBy": [
+              "wastedMs"
+            ],
+            "debugData": {
+              "type": "debugdata",
+              "initiatorPath": [
+                {
+                  "url": "https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5d906-95f2-40e3-ae22-6e8a0842c9ec.jpg",
+                  "initiatorType": "script"
+                },
+                {
+                  "url": "https://dollpictures.in/assets/index-DyvfbbA_.js",
+                  "initiatorType": "parser"
+                },
+                {
+                  "url": "https://dollpictures.in/booking",
+                  "initiatorType": "other"
+                }
+              ],
+              "pathLength": 3
+            }
+          }
+        }
+      },
+      "requests": [
+        {
+          "url": "https://dollpictures.in/booking",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 0,
+          "networkRequestTime": 0.3919999897480011,
+          "networkEndTime": 1611.791000008583,
+          "finished": true,
+          "transferSize": 38256,
+          "resourceSize": 227195,
+          "statusCode": 200,
+          "mimeType": "text/html",
+          "resourceType": "Document",
+          "priority": "VeryHigh",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/assets/index-DyvfbbA_.js",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1592.7339999973774,
+          "networkRequestTime": 1598.2129999697208,
+          "networkEndTime": 2565.8389999866486,
+          "finished": true,
+          "transferSize": 110757,
+          "resourceSize": 346733,
+          "statusCode": 200,
+          "mimeType": "application/javascript",
+          "resourceType": "Script",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/manifest.webmanifest",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1596.6799999773502,
+          "networkRequestTime": 1598.4879999756813,
+          "networkEndTime": 2054.4599999785423,
+          "finished": true,
+          "transferSize": 962,
+          "resourceSize": 424,
+          "statusCode": 200,
+          "mimeType": "application/manifest+json",
+          "resourceType": "Manifest",
+          "priority": "Medium",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/assets/BookingCTA-D2sVY8em.js",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 2608.1990000009537,
+          "networkRequestTime": 2608.5419999957085,
+          "networkEndTime": 2959.266999989748,
+          "finished": true,
+          "transferSize": 3448,
+          "resourceSize": 6236,
+          "statusCode": 200,
+          "mimeType": "application/javascript",
+          "resourceType": "Script",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/assets/EnquiryModal-DVgCnQhr.js",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 2608.354999989271,
+          "networkRequestTime": 2608.7290000021458,
+          "networkEndTime": 3190.150999993086,
+          "finished": true,
+          "transferSize": 5063,
+          "resourceSize": 11805,
+          "statusCode": 200,
+          "mimeType": "application/javascript",
+          "resourceType": "Script",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/assets/shootTypes-DGmeg7qA.js",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 2608.442000001669,
+          "networkRequestTime": 2609.4429999887943,
+          "networkEndTime": 2953.6759999990463,
+          "finished": true,
+          "transferSize": 779,
+          "resourceSize": 162,
+          "statusCode": 200,
+          "mimeType": "application/javascript",
+          "resourceType": "Script",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/assets/BookingFaq-BzyYporj.js",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 2613.332999974489,
+          "networkRequestTime": 2613.63299998641,
+          "networkEndTime": 2941.0199999809265,
+          "finished": true,
+          "transferSize": 1450,
+          "resourceSize": 1615,
+          "statusCode": 200,
+          "mimeType": "application/javascript",
+          "resourceType": "Script",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/logo-doll-nav.webp",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 2613.46899998188,
+          "networkRequestTime": 2613.8589999973774,
+          "networkEndTime": 2727.8440000116825,
+          "finished": true,
+          "transferSize": 1334,
+          "resourceSize": 712,
+          "statusCode": 200,
+          "mimeType": "image/webp",
+          "resourceType": "Image",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/assets/inter-latin-400-normal-C38fXH4l.woff2",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 2615.544999986887,
+          "networkRequestTime": 2627.8630000054836,
+          "networkEndTime": 2744.830000013113,
+          "finished": true,
+          "transferSize": 24312,
+          "resourceSize": 23664,
+          "statusCode": 200,
+          "mimeType": "font/woff2",
+          "resourceType": "Font",
+          "priority": "VeryHigh",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/assets/cormorant-garamond-latin-600-normal-Co1r35X9.woff2",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 2615.6319999992847,
+          "networkRequestTime": 2628.0299999713898,
+          "networkEndTime": 2958.974000006914,
+          "finished": true,
+          "transferSize": 24049,
+          "resourceSize": 23396,
+          "statusCode": 200,
+          "mimeType": "font/woff2",
+          "resourceType": "Font",
+          "priority": "VeryHigh",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/assets/cormorant-garamond-latin-300-normal-Cw-E_7L1.woff2",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 2615.688999980688,
+          "networkRequestTime": 2628.376999974251,
+          "networkEndTime": 2953.099999964237,
+          "finished": true,
+          "transferSize": 22559,
+          "resourceSize": 21908,
+          "statusCode": 200,
+          "mimeType": "font/woff2",
+          "resourceType": "Font",
+          "priority": "VeryHigh",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/assets/inter-latin-600-normal-LgqL8muc.woff2",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 2615.7360000014305,
+          "networkRequestTime": 2628.525999993086,
+          "networkEndTime": 2958.8849999904633,
+          "finished": true,
+          "transferSize": 25098,
+          "resourceSize": 24452,
+          "statusCode": 200,
+          "mimeType": "font/woff2",
+          "resourceType": "Font",
+          "priority": "VeryHigh",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://doll-backend-27n8.onrender.com/api/site-content",
+          "sessionTargetType": "page",
+          "protocol": "h2",
+          "rendererStartTime": 2632.8289999961853,
+          "networkRequestTime": 2633.1879999935627,
+          "networkEndTime": 2947.1189999878407,
+          "finished": true,
+          "transferSize": 6490,
+          "resourceSize": 22997,
+          "statusCode": 200,
+          "mimeType": "application/json",
+          "resourceType": "Fetch",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "onrender.com"
+        },
+        {
+          "url": "https://doll-backend-27n8.onrender.com/api/hero-slides",
+          "sessionTargetType": "page",
+          "protocol": "h2",
+          "rendererStartTime": 2633.0139999985695,
+          "networkRequestTime": 2633.4959999918938,
+          "networkEndTime": 2985.0199999809265,
+          "finished": true,
+          "transferSize": 587,
+          "resourceSize": 1500,
+          "statusCode": 200,
+          "mimeType": "application/json",
+          "resourceType": "Fetch",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "onrender.com"
+        },
+        {
+          "url": "https://doll-backend-27n8.onrender.com/api/package-categories",
+          "sessionTargetType": "page",
+          "protocol": "h2",
+          "rendererStartTime": 2633.1359999775887,
+          "networkRequestTime": 2633.690999984741,
+          "networkEndTime": 2938.5419999957085,
+          "finished": true,
+          "transferSize": 2234,
+          "resourceSize": 6185,
+          "statusCode": 200,
+          "mimeType": "application/json",
+          "resourceType": "Fetch",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "onrender.com"
+        },
+        {
+          "url": "https://dollpictures.in/favicon-32x32.png",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 2633.4020000100136,
+          "networkRequestTime": 2633.8579999804497,
+          "networkEndTime": 2816.037000000477,
+          "finished": true,
+          "transferSize": 2909,
+          "resourceSize": 2298,
+          "statusCode": 200,
+          "mimeType": "image/png",
+          "resourceType": "Other",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/logo-doll.png?v=20260810",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 2633.7719999849796,
+          "networkRequestTime": 2634.3289999961853,
+          "networkEndTime": 2996.475999981165,
+          "finished": true,
+          "transferSize": 358041,
+          "resourceSize": 357364,
+          "statusCode": 200,
+          "mimeType": "image/png",
+          "resourceType": "Other",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://doll-backend-27n8.onrender.com/api/booking-backgrounds",
+          "sessionTargetType": "page",
+          "protocol": "h2",
+          "rendererStartTime": 3193.4159999787807,
+          "networkRequestTime": 3193.8460000157356,
+          "networkEndTime": 3468.997999995947,
+          "finished": true,
+          "transferSize": 1523,
+          "resourceSize": 13177,
+          "statusCode": 200,
+          "mimeType": "application/json",
+          "resourceType": "Fetch",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "onrender.com"
+        },
+        {
+          "url": "https://dollpictures.in/assets/inter-latin-500-normal-Cerq10X2.woff2",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 3199.900999993086,
+          "networkRequestTime": 3204.8569999933243,
+          "networkEndTime": 3319.824999988079,
+          "finished": true,
+          "transferSize": 24923,
+          "resourceSize": 24272,
+          "statusCode": 200,
+          "mimeType": "font/woff2",
+          "resourceType": "Font",
+          "priority": "VeryHigh",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/assets/cormorant-garamond-latin-400-normal-B-1hWBU7.woff2",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 3199.9729999899864,
+          "networkRequestTime": 3204.9990000128746,
+          "networkEndTime": 3322.359999984503,
+          "finished": true,
+          "transferSize": 23527,
+          "resourceSize": 22876,
+          "statusCode": 200,
+          "mimeType": "font/woff2",
+          "resourceType": "Font",
+          "priority": "VeryHigh",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/assets/cormorant-garamond-latin-400-italic-Dc_OZ8oc.woff2",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 3200.0029999911785,
+          "networkRequestTime": 3205.525999993086,
+          "networkEndTime": 3317.860000014305,
+          "finished": true,
+          "transferSize": 24310,
+          "resourceSize": 23660,
+          "statusCode": 200,
+          "mimeType": "font/woff2",
+          "resourceType": "Font",
+          "priority": "VeryHigh",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5d906-95f2-40e3-ae22-6e8a0842c9ec.jpg",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 3470.934000015259,
+          "networkRequestTime": 3471.1339999735355,
+          "networkEndTime": 3529.6480000019073,
+          "finished": true,
+          "transferSize": 53706,
+          "resourceSize": 53322,
+          "statusCode": 200,
+          "mimeType": "image/webp",
+          "resourceType": "Image",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "imagekit.io"
+        }
+      ]
+    },
+    {
+      "file": "booking-3.json",
+      "fetchedAt": "2026-09-09T05:52:55.620Z",
+      "url": "https://dollpictures.in/booking",
+      "version": "12.8.2",
+      "runtimeError": null,
+      "warnings": [],
+      "environment": {
+        "networkUserAgent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Mobile Safari/537.36",
+        "hostUserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+        "benchmarkIndex": 2833.5,
+        "credits": {}
+      },
+      "settings": {
+        "output": [
+          "json"
+        ],
+        "maxWaitForFcp": 30000,
+        "maxWaitForLoad": 45000,
+        "pauseAfterFcpMs": 1000,
+        "pauseAfterLoadMs": 1000,
+        "networkQuietThresholdMs": 1000,
+        "cpuQuietThresholdMs": 1000,
+        "formFactor": "mobile",
+        "throttling": {
+          "rttMs": 150,
+          "throughputKbps": 1638.4,
+          "requestLatencyMs": 562.5,
+          "downloadThroughputKbps": 1474.5600000000002,
+          "uploadThroughputKbps": 675,
+          "cpuSlowdownMultiplier": 4
+        },
+        "throttlingMethod": "simulate",
+        "screenEmulation": {
+          "mobile": true,
+          "width": 412,
+          "height": 823,
+          "deviceScaleFactor": 1.75,
+          "disabled": false
+        },
+        "emulatedUserAgent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Mobile Safari/537.36",
+        "auditMode": false,
+        "gatherMode": false,
+        "clearStorageTypes": [
+          "file_systems",
+          "shader_cache",
+          "service_workers",
+          "cache_storage"
+        ],
+        "disableStorageReset": false,
+        "debugNavigation": false,
+        "channel": "cli",
+        "usePassiveGathering": false,
+        "disableFullPageScreenshot": false,
+        "skipAboutBlank": false,
+        "blankPage": "about:blank",
+        "ignoreStatusCode": false,
+        "locale": "en-US",
+        "blockedUrlPatterns": null,
+        "additionalTraceCategories": null,
+        "extraHeaders": null,
+        "precomputedLanternData": null,
+        "onlyAudits": null,
+        "onlyCategories": [
+          "performance"
+        ],
+        "skipAudits": null
+      },
+      "score": 0.74,
+      "metrics": {
+        "first-contentful-paint": 1734.5350000000003,
+        "largest-contentful-paint": 7283.472000000002,
+        "total-blocking-time": 32,
+        "cumulative-layout-shift": 0.003442148842009878,
+        "speed-index": 3513.030721991181
+      },
+      "audits": {
+        "largest-contentful-paint-element": {
+          "displayValue": "7,280 ms",
+          "score": 0,
+          "details": {
+            "type": "list",
+            "items": [
+              {
+                "type": "table",
+                "headings": [
+                  {
+                    "key": "node",
+                    "valueType": "node",
+                    "label": "Element"
+                  }
+                ],
+                "items": [
+                  {
+                    "node": {
+                      "type": "node",
+                      "lhId": "page-0-IMG",
+                      "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,1,SECTION,0,DIV,0,PICTURE,1,IMG",
+                      "selector": "section#booking > div.absolute > picture.contents > img.animate-fade-in",
+                      "boundingRect": {
+                        "top": 334,
+                        "bottom": 1157,
+                        "left": 0,
+                        "right": 412,
+                        "width": 412,
+                        "height": 823
+                      },
+                      "snippet": "<img src=\"https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5…\" alt=\"\" width=\"1600\" height=\"900\" sizes=\"100vw\" loading=\"eager\" decoding=\"async\" fetchpriority=\"high\" class=\"animate-fade-in absolute inset-0 h-full w-full object-cover\">",
+                      "nodeLabel": "section#booking > div.absolute > picture.contents > img.animate-fade-in"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "table",
+                "headings": [
+                  {
+                    "key": "phase",
+                    "valueType": "text",
+                    "label": "Phase"
+                  },
+                  {
+                    "key": "percent",
+                    "valueType": "text",
+                    "label": "% of LCP"
+                  },
+                  {
+                    "key": "timing",
+                    "valueType": "ms",
+                    "label": "Timing"
+                  }
+                ],
+                "items": [
+                  {
+                    "phase": "TTFB",
+                    "timing": 1232.077,
+                    "percent": "17%"
+                  },
+                  {
+                    "phase": "Load Delay",
+                    "timing": 5162.980090723711,
+                    "percent": "71%"
+                  },
+                  {
+                    "phase": "Load Time",
+                    "timing": 780.1391038102511,
+                    "percent": "11%"
+                  },
+                  {
+                    "phase": "Render Delay",
+                    "timing": 108.27580546603895,
+                    "percent": "1%"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "lcp-discovery-insight": {
+          "score": 0,
+          "details": {
+            "type": "list",
+            "items": [
+              {
+                "type": "checklist",
+                "items": {
+                  "priorityHinted": {
+                    "label": "fetchpriority=high applied",
+                    "value": true
+                  },
+                  "requestDiscoverable": {
+                    "label": "Request is discoverable in initial document",
+                    "value": false
+                  },
+                  "eagerlyLoaded": {
+                    "label": "lazy load not applied",
+                    "value": true
+                  }
+                }
+              },
+              {
+                "type": "node",
+                "lhId": "page-0-IMG",
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,1,SECTION,0,DIV,0,PICTURE,1,IMG",
+                "selector": "section#booking > div.absolute > picture.contents > img.animate-fade-in",
+                "boundingRect": {
+                  "top": 334,
+                  "bottom": 1157,
+                  "left": 0,
+                  "right": 412,
+                  "width": 412,
+                  "height": 823
+                },
+                "snippet": "<img src=\"https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5…\" alt=\"\" width=\"1600\" height=\"900\" sizes=\"100vw\" loading=\"eager\" decoding=\"async\" fetchpriority=\"high\" class=\"animate-fade-in absolute inset-0 h-full w-full object-cover\">",
+                "nodeLabel": "section#booking > div.absolute > picture.contents > img.animate-fade-in"
+              }
+            ]
+          }
+        },
+        "lcp-breakdown-insight": {
+          "score": 1,
+          "details": {
+            "type": "list",
+            "items": [
+              {
+                "type": "table",
+                "headings": [
+                  {
+                    "key": "label",
+                    "valueType": "text",
+                    "label": "Subpart"
+                  },
+                  {
+                    "key": "duration",
+                    "valueType": "ms",
+                    "label": "Duration"
+                  }
+                ],
+                "items": [
+                  {
+                    "subpart": "timeToFirstByte",
+                    "label": "Time to first byte",
+                    "duration": 1232.077
+                  },
+                  {
+                    "subpart": "resourceLoadDelay",
+                    "label": "Resource load delay",
+                    "duration": 612.307
+                  },
+                  {
+                    "subpart": "resourceLoadDuration",
+                    "label": "Resource load duration",
+                    "duration": 225.291
+                  },
+                  {
+                    "subpart": "elementRenderDelay",
+                    "label": "Element render delay",
+                    "duration": 31.232
+                  }
+                ]
+              },
+              {
+                "type": "node",
+                "lhId": "page-0-IMG",
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,1,SECTION,0,DIV,0,PICTURE,1,IMG",
+                "selector": "section#booking > div.absolute > picture.contents > img.animate-fade-in",
+                "boundingRect": {
+                  "top": 334,
+                  "bottom": 1157,
+                  "left": 0,
+                  "right": 412,
+                  "width": 412,
+                  "height": 823
+                },
+                "snippet": "<img src=\"https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5…\" alt=\"\" width=\"1600\" height=\"900\" sizes=\"100vw\" loading=\"eager\" decoding=\"async\" fetchpriority=\"high\" class=\"animate-fade-in absolute inset-0 h-full w-full object-cover\">",
+                "nodeLabel": "section#booking > div.absolute > picture.contents > img.animate-fade-in"
+              }
+            ]
+          }
+        },
+        "layout-shifts": {
+          "displayValue": "1 layout shift found",
+          "score": 1,
+          "details": {
+            "type": "table",
+            "headings": [
+              {
+                "key": "node",
+                "valueType": "node",
+                "subItemsHeading": {
+                  "key": "extra"
+                },
+                "label": "Element"
+              },
+              {
+                "key": "score",
+                "valueType": "numeric",
+                "subItemsHeading": {
+                  "key": "cause",
+                  "valueType": "text"
+                },
+                "granularity": 0.001,
+                "label": "Layout shift score"
+              }
+            ],
+            "items": [
+              {
+                "node": {
+                  "type": "node",
+                  "lhId": "page-1-SPAN",
+                  "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,1,SECTION,2,DIV,1,H2,2,SPAN",
+                  "selector": "section#booking > div.relative > h2.font-display > span.italic",
+                  "boundingRect": {
+                    "top": 629,
+                    "bottom": 701,
+                    "left": 90,
+                    "right": 322,
+                    "width": 231,
+                    "height": 72
+                  },
+                  "snippet": "<span class=\"italic text-gradient-gold\">",
+                  "nodeLabel": "your story."
+                },
+                "score": 0.003442148842009878,
+                "subItems": {
+                  "type": "subitems",
+                  "items": [
+                    {
+                      "extra": {
+                        "type": "url",
+                        "value": "https://dollpictures.in/assets/inter-latin-500-normal-Cerq10X2.woff2"
+                      },
+                      "cause": "Web font loaded"
+                    },
+                    {
+                      "extra": {
+                        "type": "url",
+                        "value": "https://dollpictures.in/assets/cormorant-garamond-latin-400-normal-B-1hWBU7.woff2"
+                      },
+                      "cause": "Web font loaded"
+                    },
+                    {
+                      "extra": {
+                        "type": "url",
+                        "value": "https://dollpictures.in/assets/cormorant-garamond-latin-400-italic-Dc_OZ8oc.woff2"
+                      },
+                      "cause": "Web font loaded"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "lcp-lazy-loaded": {
+          "score": 1,
+          "details": {
+            "type": "table",
+            "headings": [
+              {
+                "key": "node",
+                "valueType": "node",
+                "label": "Element"
+              }
+            ],
+            "items": [
+              {
+                "node": {
+                  "type": "node",
+                  "lhId": "1-3-IMG",
+                  "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,1,SECTION,0,DIV,0,PICTURE,1,IMG",
+                  "selector": "section#booking > div.absolute > picture.contents > img.animate-fade-in",
+                  "boundingRect": {
+                    "top": 334,
+                    "bottom": 1157,
+                    "left": 0,
+                    "right": 412,
+                    "width": 412,
+                    "height": 823
+                  },
+                  "snippet": "<img src=\"https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5…\" alt=\"\" width=\"1600\" height=\"900\" sizes=\"100vw\" loading=\"eager\" decoding=\"async\" fetchpriority=\"high\" class=\"animate-fade-in absolute inset-0 h-full w-full object-cover\">",
+                  "nodeLabel": "section#booking > div.absolute > picture.contents > img.animate-fade-in"
+                }
+              }
+            ]
+          }
+        },
+        "prioritize-lcp-image": {
+          "displayValue": "Est savings of 1,520 ms",
+          "score": 0,
+          "details": {
+            "type": "opportunity",
+            "headings": [
+              {
+                "key": "node",
+                "valueType": "node",
+                "label": ""
+              },
+              {
+                "key": "url",
+                "valueType": "url",
+                "label": "URL"
+              },
+              {
+                "key": "wastedMs",
+                "valueType": "timespanMs",
+                "label": "Est Savings"
+              }
+            ],
+            "items": [
+              {
+                "node": {
+                  "type": "node",
+                  "lhId": "page-0-IMG",
+                  "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,1,SECTION,0,DIV,0,PICTURE,1,IMG",
+                  "selector": "section#booking > div.absolute > picture.contents > img.animate-fade-in",
+                  "boundingRect": {
+                    "top": 334,
+                    "bottom": 1157,
+                    "left": 0,
+                    "right": 412,
+                    "width": 412,
+                    "height": 823
+                  },
+                  "snippet": "<img src=\"https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5…\" alt=\"\" width=\"1600\" height=\"900\" sizes=\"100vw\" loading=\"eager\" decoding=\"async\" fetchpriority=\"high\" class=\"animate-fade-in absolute inset-0 h-full w-full object-cover\">",
+                  "nodeLabel": "section#booking > div.absolute > picture.contents > img.animate-fade-in"
+                },
+                "url": "https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5d906-95f2-40e3-ae22-6e8a0842c9ec.jpg",
+                "wastedMs": 1521.5989999999993
+              }
+            ],
+            "overallSavingsMs": 1521.5989999999993,
+            "sortedBy": [
+              "wastedMs"
+            ],
+            "debugData": {
+              "type": "debugdata",
+              "initiatorPath": [
+                {
+                  "url": "https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5d906-95f2-40e3-ae22-6e8a0842c9ec.jpg",
+                  "initiatorType": "script"
+                },
+                {
+                  "url": "https://dollpictures.in/assets/index-DyvfbbA_.js",
+                  "initiatorType": "parser"
+                },
+                {
+                  "url": "https://dollpictures.in/booking",
+                  "initiatorType": "other"
+                }
+              ],
+              "pathLength": 3
+            }
+          }
+        }
+      },
+      "requests": [
+        {
+          "url": "https://dollpictures.in/booking",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 0,
+          "networkRequestTime": 0.468999981880188,
+          "networkEndTime": 1242.6799999773502,
+          "finished": true,
+          "transferSize": 38256,
+          "resourceSize": 227195,
+          "statusCode": 200,
+          "mimeType": "text/html",
+          "resourceType": "Document",
+          "priority": "VeryHigh",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/assets/index-DyvfbbA_.js",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1238.7649999856949,
+          "networkRequestTime": 1241.1749999821186,
+          "networkEndTime": 1362.1929999887943,
+          "finished": true,
+          "transferSize": 110748,
+          "resourceSize": 346733,
+          "statusCode": 200,
+          "mimeType": "application/javascript",
+          "resourceType": "Script",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/manifest.webmanifest",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1247.0549999773502,
+          "networkRequestTime": 1247.259999960661,
+          "networkEndTime": 1371.9049999713898,
+          "finished": true,
+          "transferSize": 963,
+          "resourceSize": 424,
+          "statusCode": 200,
+          "mimeType": "application/manifest+json",
+          "resourceType": "Manifest",
+          "priority": "Medium",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/assets/BookingCTA-D2sVY8em.js",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1382.3019999861717,
+          "networkRequestTime": 1382.5309999883175,
+          "networkEndTime": 1448.2879999876022,
+          "finished": true,
+          "transferSize": 3458,
+          "resourceSize": 6236,
+          "statusCode": 200,
+          "mimeType": "application/javascript",
+          "resourceType": "Script",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/assets/EnquiryModal-DVgCnQhr.js",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1382.4039999842644,
+          "networkRequestTime": 1382.694000005722,
+          "networkEndTime": 1446.3469999730587,
+          "finished": true,
+          "transferSize": 5072,
+          "resourceSize": 11805,
+          "statusCode": 200,
+          "mimeType": "application/javascript",
+          "resourceType": "Script",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/assets/shootTypes-DGmeg7qA.js",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1382.453999966383,
+          "networkRequestTime": 1382.9719999730587,
+          "networkEndTime": 1472.6180000007153,
+          "finished": true,
+          "transferSize": 786,
+          "resourceSize": 162,
+          "statusCode": 200,
+          "mimeType": "application/javascript",
+          "resourceType": "Script",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/assets/BookingFaq-BzyYporj.js",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1385.3599999845028,
+          "networkRequestTime": 1385.6389999687672,
+          "networkEndTime": 1479.680999994278,
+          "finished": true,
+          "transferSize": 1462,
+          "resourceSize": 1615,
+          "statusCode": 200,
+          "mimeType": "application/javascript",
+          "resourceType": "Script",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/logo-doll-nav.webp",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1385.4579999744892,
+          "networkRequestTime": 1385.7899999916553,
+          "networkEndTime": 1479.7719999849796,
+          "finished": true,
+          "transferSize": 1332,
+          "resourceSize": 712,
+          "statusCode": 200,
+          "mimeType": "image/webp",
+          "resourceType": "Image",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/assets/inter-latin-400-normal-C38fXH4l.woff2",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1387.03900000453,
+          "networkRequestTime": 1397.0819999873638,
+          "networkEndTime": 1489.9149999916553,
+          "finished": true,
+          "transferSize": 24318,
+          "resourceSize": 23664,
+          "statusCode": 200,
+          "mimeType": "font/woff2",
+          "resourceType": "Font",
+          "priority": "VeryHigh",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/assets/cormorant-garamond-latin-600-normal-Co1r35X9.woff2",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1387.1099999845028,
+          "networkRequestTime": 1397.2199999690056,
+          "networkEndTime": 1462.6180000007153,
+          "finished": true,
+          "transferSize": 24054,
+          "resourceSize": 23396,
+          "statusCode": 200,
+          "mimeType": "font/woff2",
+          "resourceType": "Font",
+          "priority": "VeryHigh",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/assets/cormorant-garamond-latin-300-normal-Cw-E_7L1.woff2",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1387.1489999890327,
+          "networkRequestTime": 1397.494999974966,
+          "networkEndTime": 1480.9909999966621,
+          "finished": true,
+          "transferSize": 22563,
+          "resourceSize": 21908,
+          "statusCode": 200,
+          "mimeType": "font/woff2",
+          "resourceType": "Font",
+          "priority": "VeryHigh",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/assets/inter-latin-600-normal-LgqL8muc.woff2",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1387.1769999861717,
+          "networkRequestTime": 1397.6149999797344,
+          "networkEndTime": 1482.9269999563694,
+          "finished": true,
+          "transferSize": 25102,
+          "resourceSize": 24452,
+          "statusCode": 200,
+          "mimeType": "font/woff2",
+          "resourceType": "Font",
+          "priority": "VeryHigh",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://doll-backend-27n8.onrender.com/api/site-content",
+          "sessionTargetType": "page",
+          "protocol": "h2",
+          "rendererStartTime": 1401.472999960184,
+          "networkRequestTime": 1401.8209999799728,
+          "networkEndTime": 1741.2139999866486,
+          "finished": true,
+          "transferSize": 6490,
+          "resourceSize": 22997,
+          "statusCode": 200,
+          "mimeType": "application/json",
+          "resourceType": "Fetch",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "onrender.com"
+        },
+        {
+          "url": "https://doll-backend-27n8.onrender.com/api/hero-slides",
+          "sessionTargetType": "page",
+          "protocol": "h2",
+          "rendererStartTime": 1401.6339999735355,
+          "networkRequestTime": 1402.2029999792576,
+          "networkEndTime": 1633.4009999930859,
+          "finished": true,
+          "transferSize": 587,
+          "resourceSize": 1500,
+          "statusCode": 200,
+          "mimeType": "application/json",
+          "resourceType": "Fetch",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "onrender.com"
+        },
+        {
+          "url": "https://doll-backend-27n8.onrender.com/api/package-categories",
+          "sessionTargetType": "page",
+          "protocol": "h2",
+          "rendererStartTime": 1401.733999967575,
+          "networkRequestTime": 1402.7849999666214,
+          "networkEndTime": 1593.5459999740124,
+          "finished": true,
+          "transferSize": 2235,
+          "resourceSize": 6185,
+          "statusCode": 200,
+          "mimeType": "application/json",
+          "resourceType": "Fetch",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "onrender.com"
+        },
+        {
+          "url": "https://dollpictures.in/favicon-32x32.png",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1401.9399999678135,
+          "networkRequestTime": 1402.9719999730587,
+          "networkEndTime": 1480.8779999613762,
+          "finished": true,
+          "transferSize": 2908,
+          "resourceSize": 2298,
+          "statusCode": 200,
+          "mimeType": "image/png",
+          "resourceType": "Other",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/logo-doll.png?v=20260810",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1403.9169999957085,
+          "networkRequestTime": 1404.2049999833107,
+          "networkEndTime": 1552.7859999835491,
+          "finished": true,
+          "transferSize": 358041,
+          "resourceSize": 357364,
+          "statusCode": 200,
+          "mimeType": "image/png",
+          "resourceType": "Other",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://doll-backend-27n8.onrender.com/api/booking-backgrounds",
+          "sessionTargetType": "page",
+          "protocol": "h2",
+          "rendererStartTime": 1482.9409999847412,
+          "networkRequestTime": 1483.4139999747276,
+          "networkEndTime": 1841.580999970436,
+          "finished": true,
+          "transferSize": 1523,
+          "resourceSize": 13177,
+          "statusCode": 200,
+          "mimeType": "application/json",
+          "resourceType": "Fetch",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "onrender.com"
+        },
+        {
+          "url": "https://dollpictures.in/assets/inter-latin-500-normal-Cerq10X2.woff2",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1484.4989999830723,
+          "networkRequestTime": 1490.3269999623299,
+          "networkEndTime": 1558.4349999725819,
+          "finished": true,
+          "transferSize": 24927,
+          "resourceSize": 24272,
+          "statusCode": 200,
+          "mimeType": "font/woff2",
+          "resourceType": "Font",
+          "priority": "VeryHigh",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/assets/cormorant-garamond-latin-400-normal-B-1hWBU7.woff2",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1484.5559999644756,
+          "networkRequestTime": 1490.4509999752045,
+          "networkEndTime": 1556.3689999878407,
+          "finished": true,
+          "transferSize": 23529,
+          "resourceSize": 22876,
+          "statusCode": 200,
+          "mimeType": "font/woff2",
+          "resourceType": "Font",
+          "priority": "VeryHigh",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://dollpictures.in/assets/cormorant-garamond-latin-400-italic-Dc_OZ8oc.woff2",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1484.583999991417,
+          "networkRequestTime": 1490.71099999547,
+          "networkEndTime": 1560.1129999756813,
+          "finished": true,
+          "transferSize": 24314,
+          "resourceSize": 23660,
+          "statusCode": 200,
+          "mimeType": "font/woff2",
+          "resourceType": "Font",
+          "priority": "VeryHigh",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5d906-95f2-40e3-ae22-6e8a0842c9ec.jpg",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 1843.4869999587536,
+          "networkRequestTime": 1843.7479999661446,
+          "networkEndTime": 2068.7779999673367,
+          "finished": true,
+          "transferSize": 53724,
+          "resourceSize": 53322,
+          "statusCode": 200,
+          "mimeType": "image/webp",
+          "resourceType": "Image",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "imagekit.io"
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "The deployed commit includes unrelated F04/rendering and admin changes since the baseline; LCP and score changes cannot be attributed only to eager/high priority.",
+    "Same Lighthouse 12.8.2 and host Chrome 152.0.0.0; fresh browser/storage per serial invocation; no other build or browser work started by this task during the three samples. System indexing and other existing host processes were active, and CDN/network state was uncontrolled.",
+    "No samples discarded. No form submissions. Raw reports retained in /tmp/doll-f13-booking-2026-09-09; portable selection omits screenshots and third-party analytics request identifiers.",
+    "Lighthouse TBT is not INP. Desktop Lighthouse, field URL/origin LCP/INP/CLS, and full interaction profiling remain pending."
+  ],
+  "browserVerification": {
+    "scope": "Normal-motion production Chromium checks at 390x900 and 1440x900. GET data and real images; backend mutations intercepted; no enquiry submitted. Browser run after Lighthouse.",
+    "results": [
+      {
+        "width": 390,
+        "route": "/booking",
+        "checkedAt": "2026-09-09T05:54:11.504Z",
+        "image": {
+          "src": "https://ik.imagekit.io/dollpictures/tr:w-480,q-78,f-auto/wedding/2026/81a5d906-95f2-40e3-ae22-6e8a0842c9ec.jpg",
+          "loading": "eager",
+          "fetchPriority": "high",
+          "alt": "",
+          "width": 390,
+          "height": 900,
+          "naturalWidth": 389
+        },
+        "rotation": {
+          "changed": true,
+          "loaded": true,
+          "loading": "lazy",
+          "fetchPriority": "auto"
+        },
+        "modalOpened": true,
+        "escapeClosed": true,
+        "faqExpanded": true,
+        "overflow": false,
+        "pass": true,
+        "pageErrors": [],
+        "blockedBackendWrites": 0
+      },
+      {
+        "width": 1440,
+        "route": "/booking",
+        "checkedAt": "2026-09-09T05:54:52.903Z",
+        "image": {
+          "src": "https://ik.imagekit.io/dollpictures/tr:w-1600,q-78,f-auto/wedding/2026/81a5d906-95f2-40e3-ae22-6e8a0842c9ec.jpg",
+          "loading": "eager",
+          "fetchPriority": "high",
+          "alt": "",
+          "width": 1440,
+          "height": 900,
+          "naturalWidth": 1440
+        },
+        "rotation": {
+          "changed": true,
+          "loaded": true,
+          "loading": "lazy",
+          "fetchPriority": "auto"
+        },
+        "modalOpened": true,
+        "escapeClosed": true,
+        "faqExpanded": true,
+        "overflow": false,
+        "pass": true,
+        "pageErrors": [],
+        "blockedBackendWrites": 0
+      },
+      {
+        "width": 390,
+        "route": "/gallery",
+        "checkedAt": "2026-09-09T05:58:47.077Z",
+        "probeCorrection": "Wait for Gallery network/content to settle before scrolling below-fold CTA; earlier probes timed out when asynchronous gallery content moved the CTA out of view.",
+        "image": {
+          "src": "https://ik.imagekit.io/dollpictures/tr:w-480,q-78,f-auto/wedding/2026/81a5d906-95f2-40e3-ae22-6e8a0842c9ec.jpg",
+          "loading": "lazy",
+          "fetchPriority": "auto",
+          "alt": "",
+          "width": 390,
+          "height": 900,
+          "naturalWidth": 389
+        },
+        "modalOpened": true,
+        "escapeClosed": true,
+        "overflow": false,
+        "pass": true,
+        "pageErrors": [],
+        "blockedBackendWrites": 0
+      },
+      {
+        "width": 1440,
+        "route": "/gallery",
+        "checkedAt": "2026-09-09T05:58:50.078Z",
+        "probeCorrection": "Wait for Gallery network/content to settle before scrolling below-fold CTA; earlier probes timed out when asynchronous gallery content moved the CTA out of view.",
+        "image": {
+          "src": "https://ik.imagekit.io/dollpictures/tr:w-1600,q-78,f-auto/wedding/2026/81a5d906-95f2-40e3-ae22-6e8a0842c9ec.jpg",
+          "loading": "lazy",
+          "fetchPriority": "auto",
+          "alt": "",
+          "width": 1440,
+          "height": 900,
+          "naturalWidth": 1440
+        },
+        "modalOpened": true,
+        "escapeClosed": true,
+        "overflow": false,
+        "pass": true,
+        "pageErrors": [],
+        "blockedBackendWrites": 0
+      },
+      {
+        "width": 390,
+        "route": "/booking?package=F13%20verification&shootType=Wedding",
+        "packageVisible": true,
+        "category": "Wedding",
+        "escapeClosed": true,
+        "pass": true
+      },
+      {
+        "width": 1440,
+        "route": "/booking?package=F13%20verification&shootType=Wedding",
+        "packageVisible": true,
+        "category": "Wedding",
+        "escapeClosed": true,
+        "pass": true
+      }
+    ],
+    "earlierProbeFailures": [
+      {
+        "width": 390,
+        "route": "/gallery",
+        "checkedAt": "2026-09-09T05:54:21.397Z",
+        "pass": false,
+        "error": "page.waitForFunction: Timeout 30000ms exceeded.",
+        "pageErrors": [],
+        "blockedBackendWrites": 0
+      },
+      {
+        "width": 1440,
+        "route": "/gallery",
+        "checkedAt": "2026-09-09T05:55:02.375Z",
+        "pass": false,
+        "error": "page.waitForFunction: Timeout 30000ms exceeded.",
+        "pageErrors": [],
+        "blockedBackendWrites": 0
+      },
+      {
+        "width": 390,
+        "route": "/gallery",
+        "checkedAt": "2026-09-09T05:56:14.327Z",
+        "probeCorrection": "Scroll below-fold CTA into view before waiting for its intentionally lazy image to load.",
+        "pass": false,
+        "error": "page.waitForFunction: Timeout 30000ms exceeded.",
+        "pageErrors": [],
+        "blockedBackendWrites": 0
+      },
+      {
+        "width": 1440,
+        "route": "/gallery",
+        "checkedAt": "2026-09-09T05:56:46.153Z",
+        "probeCorrection": "Scroll below-fold CTA into view before waiting for its intentionally lazy image to load.",
+        "pass": false,
+        "error": "page.waitForFunction: Timeout 30000ms exceeded.",
+        "pageErrors": [],
+        "blockedBackendWrites": 0
+      }
+    ],
+    "interpretation": "Initial Gallery probes timed out waiting for a below-fold lazy image before the dynamic gallery finished settling. Waiting for network/content settlement and then scrolling to the CTA passed at both widths. These failures are retained as probe limitations, not reported as successful attempts or proof about gallery behavior during loading.",
+    "screenshots": [
+      "/tmp/doll-f13-booking-2026-09-09/booking-390.png",
+      "/tmp/doll-f13-booking-2026-09-09/booking-1440.png",
+      "/tmp/doll-f13-booking-2026-09-09/gallery-390.png",
+      "/tmp/doll-f13-booking-2026-09-09/gallery-1440.png"
+    ],
+    "visualReview": "Booking mobile and desktop screenshots inspected: real photography and CTA visible without horizontal overflow. No comprehensive image-quality or accessibility audit performed."
+  }
+}

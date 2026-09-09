@@ -6,7 +6,7 @@ import { isDeepStrictEqual } from 'node:util';
 import { CORE_PUBLIC_PATHS, normalizePublicLandingPath } from '../src/lib/publicRoutePath';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
-import { PUBLIC_HTML_ROUTES, publicHtmlKind, type PublicHtmlPath } from '../src/lib/publicHtmlRoutes';
+import { PUBLIC_CORE_HTML_ROUTES, PUBLIC_HTML_ROUTES, publicHtmlKind, type PublicHtmlPath } from '../src/lib/publicHtmlRoutes';
 import { parsePublicSnapshot } from '../src/lib/publicSnapshot';
 import { resolveServicePage, resolvePackagePage, type ServiceNavLinkLike } from '../src/lib/seo-core';
 
@@ -42,6 +42,7 @@ export function validatePublicHtml(html: string, path: PublicHtmlPath, publicOri
   const work = path === '/work';
   const about = path === '/about';
   const hub = path === '/services' || path === '/packages';
+  const core = Object.hasOwn(PUBLIC_CORE_HTML_ROUTES, path);
   try {
     const root = document.querySelector('#root');
     expect(document.querySelectorAll('#root').length === 1, 'expected exactly one #root');
@@ -49,8 +50,8 @@ export function validatePublicHtml(html: string, path: PublicHtmlPath, publicOri
     // JSDOM parses noscript when scripting is disabled; explicitly exclude fallback content.
     root?.querySelectorAll('noscript, script, template').forEach(node => node.remove());
     const heading = text(root?.querySelector('h1')?.textContent);
-    expect(heading, 'missing service heading inside #root');
-    expect(text(root?.querySelector(home || hub || gallery || work || about || packagePage ? 'main p' : '#overview p')?.textContent), 'missing service content inside #root');
+    expect(heading, 'missing page heading inside #root');
+    expect(text(root?.querySelector(core || packagePage ? 'main p' : '#overview p')?.textContent), 'missing page content inside #root');
     expect(root?.querySelector('a[href^="tel:"]'), 'missing telephone link inside #root');
     expect(root?.querySelector('a[href*="wa.me/"]'), 'missing WhatsApp link inside #root');
     expect(root?.querySelectorAll('a[href^="/"]').length, 'missing internal navigation inside #root');
@@ -80,25 +81,68 @@ export function validatePublicHtml(html: string, path: PublicHtmlPath, publicOri
     const breadcrumbs = schema('BreadcrumbList');
     expect(webpage?.url === canonical && webpage?.['@id'] === `${canonical}#webpage`
       && webpage?.name === title && webpage?.description === description, 'WebPage schema differs from page metadata');
-    if (!home && !hub && !gallery && !work && !about && !packagePage) expect(service?.url === canonical && service?.['@id'] === `${canonical}#service`
+    if (!core && !packagePage) expect(service?.url === canonical && service?.['@id'] === `${canonical}#service`
       && service?.description === description, 'Service schema differs from page metadata');
     const studioId = `${new URL(publicOrigin).origin}/#studio`;
-    expect(business?.['@id'] === studioId && (home || hub || gallery || work || about || packagePage || (record(service?.provider)
+    expect(business?.['@id'] === studioId && (core || packagePage || (record(service?.provider)
       && service.provider['@id'] === studioId)), 'missing or inconsistent business/provider schema');
     const items = breadcrumbs?.itemListElement;
     const last = Array.isArray(items) ? items.at(-1) : undefined;
-    if (!home && !hub && !gallery && !work && !about && !packagePage) expect(record(last) && last.item === canonical && text(String(last.name ?? '')) === heading,
+    if (!core && !packagePage) expect(record(last) && last.item === canonical && text(String(last.name ?? '')) === heading,
       'breadcrumb does not match rendered service');
 
     if (snapshot) {
       const nav = snapshot.data.siteContent.serviceNavLinks?.find(link => link.path === path);
       if (requireCms) {
-        expect(snapshot.loaded.includes('siteContent') && snapshot.loaded.includes('categories') && (home || hub || gallery || work || about || (packagePage ? snapshot.data.publicCatalog.packageLinks.some(link => link.path === path) : nav?.isPublished)),
+        expect(snapshot.loaded.includes('siteContent') && snapshot.loaded.includes('categories') && (core || (packagePage ? snapshot.data.publicCatalog.packageLinks.some(link => link.path === path) : nav?.isPublished)),
           'release requires both loaded CMS sources and a published target service');
         for (const source of Object.values(snapshot.data.publicCatalog.sources)) {
           expect(source.status === 'cms' && !source.reason && !source.rejectedRecords,
             'release snapshot contains fallback or rejected CMS records');
         }
+      }
+      if (path === '/stories') {
+        const reviews = snapshot.data.testimonials;
+        const cards = [...root?.querySelectorAll('section[aria-labelledby="client-reviews-title"] li article') ?? []];
+        expect(root?.querySelectorAll('h1').length === 1 && (reviews.length ? ['Kind words.', 'Lasting memories.'] : ['Real words.', 'Published with permission.']).every(part => heading.includes(part)), 'Stories heading differs from snapshot');
+        expect(cards.length === reviews.length, 'Stories review count differs from snapshot');
+        reviews.forEach((review, index) => {
+          const card = cards[index];
+          expect(text(card?.querySelector('cite')?.textContent) === text(review.name), 'Stories author differs from snapshot');
+          for (const value of [review.role, review.text, review.reply]) if (value) expect(text(card?.textContent).includes(text(value)), 'Stories review copy differs from snapshot');
+          expect(card?.querySelector('[role="img"]')?.getAttribute('aria-label') === `${Number.isInteger(review.rating) ? review.rating : review.rating.toFixed(1)} out of 5 stars`, 'Stories rating differs from snapshot');
+          if (review.avatar) expect(card?.querySelector('img')?.getAttribute('src') === review.avatar, 'Stories avatar differs from snapshot');
+          if (review.likes > 0) expect(card?.querySelector(`[aria-label="${review.likes} likes"]`), 'Stories likes differ from snapshot');
+        });
+        if (!reviews.length) expect(text(root?.querySelector('main')?.textContent).includes('We publish client feedback only after it is verified and approved.'), 'Stories empty state missing');
+        expect(root?.querySelector('main a[href="/booking"]'), 'Stories booking link missing');
+        if (requireCms) expect(snapshot.loaded.includes('testimonials'), 'release requires loaded testimonials');
+        return failures;
+      }
+      if (path === '/contact') {
+        const main = root?.querySelector('main');
+        const links = [...main?.querySelectorAll('a[href]') ?? []].map(link => link.getAttribute('href'));
+        expect(root?.querySelectorAll('h1').length === 1 && ["Let's create", 'something timeless.'].every(part => heading.includes(part)), 'Contact heading differs');
+        expect(links.includes(`mailto:${snapshot.data.siteContent.contactEmail}`) && links.includes(`tel:${snapshot.data.siteContent.phone.replace(/\s/g, '')}`), 'Contact email/phone differs from snapshot');
+        expect(links.some(link => link?.startsWith(`https://wa.me/${snapshot.data.siteContent.whatsapp.replace(/\D/g, '')}`)), 'Contact WhatsApp differs from snapshot');
+        for (const id of ['contact-name', 'contact-email', 'contact-phone', 'contact-shoot', 'contact-date', 'contact-location', 'contact-message']) {
+          expect(main?.querySelector(`#${id}`) && main?.querySelector(`label[for="${id}"]`), `Contact field/label missing: ${id}`);
+        }
+        expect(main?.querySelector('form fieldset[disabled] button[type="submit"]') && text(main?.querySelector('form')?.textContent).includes('enable JavaScript'), 'Contact form lacks safe initial state');
+        const hero = snapshot.data.featuredWork[0];
+        const image = main?.querySelector('figure img');
+        expect(hero ? image?.getAttribute('src') === hero.image && image?.getAttribute('alt') === hero.alt : !image, 'Contact photo differs from snapshot');
+        if (requireCms) expect(snapshot.loaded.includes('featuredPhotos'), 'release requires loaded Contact featured photos');
+        return failures;
+      }
+      if (path === '/privacy' || path === '/terms') {
+        const article = root?.querySelector('main article');
+        expect(root?.querySelectorAll('h1').length === 1 && heading === (path === '/privacy' ? 'Privacy Policy' : 'Terms of Service'), 'legal heading differs');
+        const sections = [...article?.querySelectorAll('.prose-legal > section') ?? []];
+        expect(sections.length >= 8 && sections.every(section => text(section.querySelector('h2')?.textContent) && text(section.querySelector('p, li')?.textContent)), 'legal sections missing substantive content');
+        expect(text(article?.textContent).includes('Last updated: 9 July 2026'), 'legal revision date missing');
+        expect(article?.querySelector('a[href="/booking"]') && article?.querySelector(`a[href="mailto:${snapshot.data.siteContent.contactEmail}"]`), 'legal contact links missing');
+        return failures;
       }
       if (about) {
         const { siteContent, staffProfiles, behindScenes } = snapshot.data;
@@ -322,7 +366,7 @@ export async function checkPublicHtmlDeployment({
         const returnedPath = new URL(response.url || new URL(path, baseUrl)).pathname.replace(/\/$/, '') || '/';
         if (returnedPath !== path) failures.push('redirected to a different route');
       }
-      if (published.has(path) && (['/', '/about', '/work', '/gallery', '/services', '/packages'].includes(path) || !CORE_PUBLIC_PATHS.includes(path))) {
+      if (published.has(path) && (Object.hasOwn(PUBLIC_CORE_HTML_ROUTES, path) || !CORE_PUBLIC_PATHS.includes(path))) {
         failures.push(...validatePublicHtml(html, path as PublicHtmlPath, publicOrigin, requireCms));
       } else failures.push(...validateExcludedHtml(html, path === missing || retired));
       return { path, failures };
