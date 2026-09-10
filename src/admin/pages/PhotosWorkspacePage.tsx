@@ -36,7 +36,9 @@ import {
   AdminPageHeader,
   adminFieldClass,
 } from '../components/ui';
-import { PhotoEditModal, PhotoPreviewModal } from './PhotosPage';
+import { PhotoEditModal } from './PhotosPage';
+import { PhotoLightbox } from '../../components/PhotoLightbox';
+import { serviceCategorySlug } from '../services/serviceNavLinks';
 import { useFeatureAccess } from '../access/useFeatureAccess';
 import { ReadOnlyNotice } from '../components/ReadOnlyNotice';
 import {
@@ -159,7 +161,8 @@ function readImageDimensions(file: File): Promise<{ width: number; height: numbe
   });
 }
 
-export function PhotosWorkspacePage() {
+export function PhotosWorkspacePage({ serviceLabel }: { serviceLabel?: string } = {}) {
+  const serviceSlug = serviceLabel ? serviceCategorySlug(serviceLabel) : '';
   const { canManage, isReadOnly } = useFeatureAccess('photos');
   const confirmDialog = useConfirmDialog();
   const localGenerationCapability = useMemo(
@@ -170,6 +173,7 @@ export function PhotosWorkspacePage() {
   const uploadingFilesRef = useRef<UploadQueueItem[]>([]);
   const generationTokensRef = useRef<Map<string, string>>(new Map());
   const [photos, setPhotos] = useState<Photo[]>([]);
+  const [servicePhotoIds, setServicePhotoIds] = useState<Set<string>>(new Set());
   const [categories, setCategories] = useState<Category[]>([]);
   const [serviceCategories, setServiceCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -183,6 +187,7 @@ export function PhotosWorkspacePage() {
   const [reorderMode, setReorderMode] = useState(false);
   const [draggedPhotoId, setDraggedPhotoId] = useState<string | null>(null);
   const [previewPhoto, setPreviewPhoto] = useState<Photo | null>(null);
+  const previewTriggerRef = useRef<HTMLElement | null>(null);
   const [editingPhoto, setEditingPhoto] = useState<Photo | null>(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState<UploadQueueItem[]>([]);
@@ -206,23 +211,29 @@ export function PhotosWorkspacePage() {
 
   const fetchPhotos = useCallback(async () => {
     try {
-      const [photoData, categoryData, serviceCategoryData] = await Promise.all([
+      const [photoData, categoryData, serviceCategoryData, servicePhotos] = await Promise.all([
         api.getPhotos(),
         api.getCategories(),
         api.getServiceCategories(),
+        serviceSlug ? api.getPhotos({ category: serviceSlug }) : Promise.resolve([]),
       ]);
       setPhotos(photoData);
+      setServicePhotoIds(new Set(servicePhotos.map(photo => photo.id)));
       setCategories(Array.from(new Map(
         [...categoryData, ...serviceCategoryData].map(category => [category.id, category]),
       ).values()).sort((a, b) => a.order - b.order));
-      setServiceCategories(serviceCategoryData.sort((a, b) => a.order - b.order));
+      const savedServiceCategory = categoryData.find(category => category.slug === serviceSlug);
+      const uploadCategories = savedServiceCategory && !serviceCategoryData.some(category => category.id === savedServiceCategory.id)
+        ? [...serviceCategoryData, savedServiceCategory]
+        : serviceCategoryData;
+      setServiceCategories(uploadCategories.sort((a, b) => a.order - b.order));
       setError(null);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Failed to load photos');
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [serviceSlug]);
 
   useEffect(() => {
     void fetchPhotos();
@@ -233,15 +244,21 @@ export function PhotosWorkspacePage() {
     () => categories.filter(category => (categoryCounts.get(category.id) ?? 0) > 0),
     [categories, categoryCounts],
   );
-  const visiblePhotos = useMemo(
-    () => filterPhotos(photos, selectedCategory, statusFilter, searchQuery),
-    [photos, searchQuery, selectedCategory, statusFilter],
+  const workspacePhotos = useMemo(
+    () => serviceSlug ? photos.filter(photo => servicePhotoIds.has(photo.id)) : photos,
+    [photos, servicePhotoIds, serviceSlug],
   );
-  const publishedCount = photos.filter(photo => photo.isPublished).length;
+  const visiblePhotos = useMemo(
+    () => filterPhotos(workspacePhotos, serviceSlug ? '' : selectedCategory, statusFilter, searchQuery),
+    [workspacePhotos, searchQuery, selectedCategory, statusFilter, serviceSlug],
+  );
+  const uploadCategory = serviceCategories.find(category => category.slug === serviceSlug);
+  const canUpload = canManage && (!serviceSlug || Boolean(uploadCategory));
+  const publishedCount = workspacePhotos.filter(photo => photo.isPublished).length;
   const visibleIds = useMemo(() => visiblePhotos.map(photo => photo.id), [visiblePhotos]);
   const allVisibleSelected = visibleIds.length > 0 && visibleIds.every(id => selectedPhotos.has(id));
   const filtersActive = Boolean(selectedCategory || statusFilter !== 'all' || searchQuery.trim());
-  const canReorder = !filtersActive;
+  const canReorder = !serviceSlug && !filtersActive;
 
   useEffect(() => {
     const visible = new Set(visibleIds);
@@ -447,6 +464,9 @@ export function PhotosWorkspacePage() {
 
   const addUploadFiles = async (files: File[]) => {
     if (!files.length) return;
+    if (!canUpload && !replacementUploadCategoryId) return;
+    const defaultCategoryId = replacementUploadCategoryId ?? uploadCategory?.id
+      ?? (serviceCategories.some(category => category.id === selectedCategory) ? selectedCategory : '');
     const selectedFiles = replacementUploadCategoryId ? files.slice(0, 1) : files;
     const invalidType = selectedFiles.find(file => !SUPPORTED_UPLOAD_TYPES.includes(file.type));
     if (invalidType) {
@@ -471,19 +491,19 @@ export function PhotosWorkspacePage() {
           preview: URL.createObjectURL(file),
           title: '',
           altText: '',
-          categoryId: replacementUploadCategoryId ?? '',
+          categoryId: defaultCategoryId,
           width: dimensions[index].width,
           height: dimensions[index].height,
           isPublished: true,
           isCategoryCover: Boolean(replacementUploadCategoryId),
           progress: 0,
           status: 'ready',
-          metadataStatus: replacementUploadCategoryId ? 'generation_available' : 'waiting_for_category',
+          metadataStatus: defaultCategoryId ? 'generation_available' : 'waiting_for_category',
           metadataProgress: null,
           titleEdited: false,
           altEdited: false,
           replacementForCategoryId: replacementUploadCategoryId ?? undefined,
-          categoryLocked: Boolean(replacementUploadCategoryId),
+          categoryLocked: Boolean(replacementUploadCategoryId || serviceSlug),
         })),
       ]);
       setUploadError(replacementUploadCategoryId && files.length > 1
@@ -866,12 +886,13 @@ export function PhotosWorkspacePage() {
   return (
     <div className="space-y-5">
       <AdminPageHeader
-        eyebrow="Portfolio library"
+        eyebrow={serviceSlug ? undefined : 'Portfolio library'}
+        compact={Boolean(serviceSlug)}
         title="Photos"
-        description={`${photos.length} photos · ${publishedCount} published · ${photos.length - publishedCount} drafts`}
+        description={`${serviceLabel ? `${serviceLabel} · ` : ''}${workspacePhotos.length} ${workspacePhotos.length === 1 ? 'photo' : 'photos'} · ${publishedCount} published · ${workspacePhotos.length - publishedCount} ${workspacePhotos.length - publishedCount === 1 ? 'draft' : 'drafts'}`}
         actions={canManage ? (
           <>
-            <AdminButton
+            {!serviceSlug && <AdminButton
               type="button"
               variant={reorderMode ? 'secondary' : 'quiet'}
               disabled={!canReorder}
@@ -883,13 +904,17 @@ export function PhotosWorkspacePage() {
             >
               <GripVertical className="h-4 w-4" />
               {reorderMode ? 'Finish reordering' : 'Reorder'}
-            </AdminButton>
-            <AdminButton type="button" onClick={() => fileInputRef.current?.click()}>
+            </AdminButton>}
+            <AdminButton type="button" disabled={!canUpload} onClick={() => fileInputRef.current?.click()}>
               <Upload className="h-4 w-4" /> Upload photos
             </AdminButton>
           </>
         ) : isReadOnly ? <ReadOnlyNotice /> : undefined}
       />
+
+      {canManage && serviceSlug && !canUpload && !error && (
+        <AdminAlert tone="info">Publish this service to enable photo uploads to its category.</AdminAlert>
+      )}
 
       {canManage && <input
         ref={fileInputRef}
@@ -902,14 +927,14 @@ export function PhotosWorkspacePage() {
 
       {error && (
         <div className="relative">
-          <AdminAlert>{error}</AdminAlert>
+          <AdminAlert><p>{error}</p><AdminButton type="button" variant="secondary" className="mt-3" onClick={() => void fetchPhotos()}>Try again</AdminButton></AdminAlert>
           <button type="button" onClick={() => setError(null)} aria-label="Dismiss error" className="absolute right-3 top-3 rounded-lg p-1 text-red-700 hover:bg-red-100">
             <X className="h-4 w-4" />
           </button>
         </div>
       )}
 
-      <section aria-label="Photo categories" className="overflow-hidden rounded-2xl border border-admin-border bg-admin-surface shadow-sm">
+      {!serviceSlug && <section aria-label="Photo categories" className="overflow-hidden rounded-2xl border border-admin-border bg-admin-surface shadow-sm">
         <div className="overflow-x-auto p-2">
           <div className="flex min-w-max gap-1" role="tablist">
             <CategoryTab active={!selectedCategory} count={photos.length} label="All photos" onClick={() => setSelectedCategory('')} />
@@ -924,7 +949,7 @@ export function PhotosWorkspacePage() {
             ))}
           </div>
         </div>
-      </section>
+      </section>}
 
       <AdminFilterBar className="space-y-3">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
@@ -958,7 +983,7 @@ export function PhotosWorkspacePage() {
           </div>
         </div>
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-admin-border pt-3 text-sm">
-          <span className="text-admin-subtle">Showing <strong className="text-admin-text">{visiblePhotos.length}</strong> of {photos.length}</span>
+          <span className="text-admin-subtle">Showing <strong className="text-admin-text">{visiblePhotos.length}</strong> of {workspacePhotos.length}</span>
           {canManage && !reorderMode && visiblePhotos.length > 0 && (
             <button type="button" onClick={() => setSelectedPhotos(previous => toggleVisibleSelection(previous, visibleIds))} className="inline-flex min-h-10 items-center gap-2 rounded-xl px-3 font-semibold text-admin-secondary hover:bg-admin-muted hover:text-admin-text">
               {allVisibleSelected ? <CheckSquare className="h-5 w-5 text-admin-primary" /> : <Square className="h-5 w-5" />}
@@ -989,10 +1014,10 @@ export function PhotosWorkspacePage() {
           description={filtersActive ? 'Try another category, publishing status, or search.' : 'Upload your first portfolio photo.'}
           action={filtersActive
             ? <AdminButton type="button" variant="secondary" onClick={() => { setSelectedCategory(''); setStatusFilter('all'); setSearchQuery(''); }}>Clear filters</AdminButton>
-            : canManage ? <AdminButton type="button" onClick={() => fileInputRef.current?.click()}><Upload className="h-4 w-4" /> Upload photos</AdminButton> : undefined}
+            : canUpload ? <AdminButton type="button" onClick={() => fileInputRef.current?.click()}><Upload className="h-4 w-4" /> Upload photos</AdminButton> : undefined}
         />
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+        <div className={`grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 ${serviceSlug ? '' : '2xl:grid-cols-4'}`}>
           {visiblePhotos.map(photo => (
             <PhotoCard
               key={photo.id}
@@ -1009,7 +1034,7 @@ export function PhotosWorkspacePage() {
                 else next.add(photo.id);
                 return next;
               })}
-              onPreview={() => setPreviewPhoto(photo)}
+              onPreview={() => { previewTriggerRef.current = document.activeElement as HTMLElement | null; setPreviewPhoto(photo); }}
               onEdit={() => setEditingPhoto(photo)}
               onPublish={() => void withPhotoPending(
                 photo.id,
@@ -1206,7 +1231,20 @@ export function PhotosWorkspacePage() {
         )}
       </AdminModal>}
 
-      {previewPhoto && <PhotoPreviewModal photo={previewPhoto} photos={visiblePhotos} onClose={() => setPreviewPhoto(null)} onNavigate={setPreviewPhoto} />}
+      {previewPhoto && <PhotoLightbox
+        photos={visiblePhotos.map(photo => ({
+          id: photo.id,
+          src: resolvePhotoUrl(photo.variants.large || photo.variants.original) || getPhotoSrc(photo),
+          fallbackSrc: getPhotoSrc(photo),
+          alt: photo.altText || photo.title,
+          title: photo.title,
+          meta: photo.isPublished ? 'Published' : 'Draft',
+        }))}
+        initialIndex={Math.max(0, visiblePhotos.findIndex(photo => photo.id === previewPhoto.id))}
+        returnFocus={previewTriggerRef.current}
+        onClose={() => setPreviewPhoto(null)}
+        label={serviceLabel ? `${serviceLabel} photos` : 'Portfolio photos'}
+      />}
       {canManage && editingPhoto && (
         <PhotoEditModal
           photo={editingPhoto}
@@ -1320,7 +1358,7 @@ function PhotoCard({
           </button>
         ) : null}
 
-        <div className="absolute right-3 top-3 flex flex-wrap justify-end gap-1.5">
+        <div className={`pointer-events-none absolute right-3 top-3 flex flex-wrap justify-end gap-1.5 ${canManage ? 'left-16' : 'left-3'}`}>
           {coverCategories.map(category => <span key={category.id} className="inline-flex items-center gap-1 rounded-full bg-violet-600 px-2.5 py-1 text-xs font-bold text-white shadow"><ImageIcon className="h-3 w-3" /> {category.name} cover</span>)}
           {photo.isFeatured && <span className="inline-flex items-center gap-1 rounded-full bg-amber-500 px-2.5 py-1 text-xs font-bold text-white shadow"><Star className="h-3 w-3 fill-current" /> Homepage featured</span>}
           <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold text-white shadow ${photo.isPublished ? 'bg-emerald-600' : 'bg-stone-600'}`}>

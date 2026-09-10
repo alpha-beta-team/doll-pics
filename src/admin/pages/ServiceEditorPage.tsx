@@ -26,6 +26,7 @@ import { ApiError } from '../api/http';
 import { AdminTabs, type AdminTab } from '../components/AdminTabs';
 import { ReadOnlyNotice } from '../components/ReadOnlyNotice';
 import { ServiceCardImageUpload } from '../components/ServiceCardImageUpload';
+import { ServicePhotosPanel } from '../components/ServicePhotosPanel';
 import {
   AdminAlert,
   AdminBreadcrumbs,
@@ -62,10 +63,11 @@ const EDITOR_TABS: AdminTab[] = [
   { id: 'details', label: 'Details', icon: Settings2 },
   { id: 'page', label: 'Page content', icon: FileText },
   { id: 'sections', label: 'Page sections', icon: PanelsTopLeft },
+  { id: 'photos', label: 'Photos', icon: ImageIcon },
   { id: 'seo', label: 'SEO & publishing', icon: Search },
 ];
 
-type EditorTab = 'details' | 'page' | 'sections' | 'seo';
+type EditorTab = 'details' | 'page' | 'sections' | 'photos' | 'seo';
 type EditorLocationState = { notice?: string } | null;
 type SaveToastState = { tone: 'success' | 'error'; message: string } | null;
 
@@ -73,6 +75,7 @@ const PUBLISH_FIELDS_BY_TAB: Record<EditorTab, ServicePublishField[]> = {
   details: ['label', 'path', 'description', 'icon', 'imageUrl'],
   page: ['heading', 'lead'],
   sections: ['sections'],
+  photos: [],
   seo: ['seoTitle', 'seoDescription'],
 };
 
@@ -109,7 +112,7 @@ const PUBLISH_FIELD_IDS: Record<ServicePublishField, string> = {
 };
 
 function editorTab(value: string | null): EditorTab {
-  return value === 'page' || value === 'sections' || value === 'seo'
+  return value === 'page' || value === 'sections' || value === 'photos' || value === 'seo'
     ? value
     : 'details';
 }
@@ -533,8 +536,15 @@ export function ServiceEditorPage() {
         label="Service editor"
       />
 
-      <fieldset disabled={!canManage} className={!canManage ? '[&_input]:bg-admin-muted [&_select]:bg-admin-muted [&_textarea]:bg-admin-muted' : ''}>
+      <fieldset disabled={!canManage && activeTab !== 'photos'} className={!canManage && activeTab !== 'photos' ? '[&_input]:bg-admin-muted [&_select]:bg-admin-muted [&_textarea]:bg-admin-muted' : ''}>
         <section id={panelId} role="tabpanel" aria-labelledby={tabId}>
+          {activeTab === 'photos' && (
+            <ServicePhotosPanel
+              key={id ?? 'new'}
+              serviceLabel={services.find((service) => service.id === id)?.label ?? ''}
+              isNew={isNew}
+            />
+          )}
           {activeTab === 'details' && (
             <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
               <AdminCard className="space-y-5 p-5 sm:p-6">
@@ -781,7 +791,7 @@ export function ServiceEditorPage() {
         </section>
       </fieldset>
 
-      {canManage && (
+      {canManage && (activeTab !== 'photos' || dirty) && (
         <div className="sticky bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-20 flex flex-col gap-3 rounded-2xl border border-admin-border bg-admin-surface/95 p-3 shadow-xl backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:px-4 md:bottom-3">
           <p className={`text-sm font-medium ${dirty ? 'text-amber-800' : 'text-admin-subtle'}`}>
             {dirty ? 'Unsaved changes' : 'All changes saved'}
