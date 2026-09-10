@@ -3,7 +3,7 @@
 **Audit ID:** F11  
 **Priority:** Medium  
 **Effort:** Medium (2–4 developer days)  
-**Status:** Ready for verification — implementation and local checks passed; deployment/content acceptance pending\
+**Status:** Ready for verification — production engineering checks passed; content-owner acceptance pending\
 **Responsible role:** Frontend/CMS engineer with content reviewer  
 **Assigned owner:** Frontend implementation; content owner for publication approval\
 **Chunk:** 3 — Rendering, media and metadata  
@@ -51,9 +51,9 @@ Historical context (retain its original records; do not copy old statuses into t
 ## Acceptance criteria
 
 - [ ] Each priority image intended for search has an accessible HTML page reference or appropriate supplemental discovery entry.
-- [x] The first gallery view remains bounded and usable without JavaScript; local browser checks passed.
+- [x] The first gallery view remains bounded and usable without JavaScript; local and live production browser checks passed.
 - [x] The cap is explicitly non-blocking for the measured intended collection; future full responses stop strict builds pending completeness review.
-- [ ] No private, unpublished, broken or duplicate-canonical destinations enter discovery output.
+- [x] No private, unpublished, broken or duplicate-canonical destinations were found in the current production discovery output: all 64 image responses, 32 public pages and 98 path checks passed.
 
 ## Verification
 
@@ -65,12 +65,12 @@ The release gate, fixture HTML/crawl checks, 24 browser cases, 15 crawler/exclus
 VITE_API_URL='' API_URL='' SEO_REQUIRE_CMS=false npm run check:release
 ```
 
-- [x] Record changed behavior, outcomes, working-tree base commit and fixture/browser evidence. Implementation is uncommitted and has not been deployed.
+- [x] Record changed behavior, outcomes and fixture/browser evidence. Implementation was committed as `527d2b1cf98affccfb77b5b6accc11e487f18ed2` and verified in production on 10 September 2026.
 - [x] Complete local scenario checks and record pagination/image-sitemap decisions above.
 
 ### Deployment
 
-After deploying this increment, run these commands from the frontend repository. Use the CMS API that belongs to that deployment; the production API below was verified during inventory.
+These commands passed against production on 10 September 2026 for commit `527d2b1cf98affccfb77b5b6accc11e487f18ed2`. The image check was run with `--image-sample 100`, verifying all 64 current genuine photos. [Saved production evidence](./evidence/f11-production-2026-09-10.json) also records 12 live browser cases. Rerun against the matching CMS API after subsequent deployments.
 
 ```sh
 npm run seo:html-smoke -- --require-cms --base-url https://dollpictures.in
@@ -83,9 +83,9 @@ npm run seo:images-smoke -- \
 
 The image check follows normal public anchors from Home without executing JavaScript, compares Gallery HTML against the public photo inventory, checks canonical destinations/exclusions and samples six image responses. Use `--image-sample 100` to check every discovered photo in the current bounded collection. A CMS publication change needs a successful rebuild/deploy before its HTML inventory matches; this check detects missing newly published photos or stale removed photos. Do not use a local CMS inventory to check production HTML.
 
-The existing production baseline is not evidence that the new anchors/exclusions have been deployed. No new sitemap needs separate acceptance.
+The new production crawl finds 64 genuine photos and 64 matching image links in Gallery initial HTML, with no missing IDs or excluded destinations. All 32 public pages were crawled. The three demo photo records remain in the public CMS response but are absent from rendered discovery output; stock service teaser images are also excluded. No new image sitemap needs separate acceptance.
 
-- [ ] Record preview/production URLs, deployment date, commit, relevant HTTP/DOM evidence and any unverified hosting target.
+- [x] Record production URL, build timestamp, commit and HTTP/DOM/browser evidence. Preview hosting and the Vercel deployment ID were not separately inspected; the served public catalog matches the F11 implementation commit.
 
 ### External
 
@@ -103,9 +103,9 @@ Promote through the existing release workflow only when this item's applicable g
 
 | Stage | State | Evidence |
 |---|---|---|
-| Remediation implementation | Implemented locally | Image anchors, full-gallery links, shared exclusions, strict cap guard and `seo:images-smoke` |
+| Remediation implementation | Deployed | `527d2b1cf98affccfb77b5b6accc11e487f18ed2`: image anchors, full-gallery links, shared exclusions, strict cap guard and `seo:images-smoke` |
 | Local remediation validation | Passed | Release gate, fixture HTML smoke, 24 browser cases, 15 crawl/exclusion cases and 10 build/lifecycle states; see linked evidence |
-| Preview/production acceptance | Pending | Baseline inventory and six real image responses recorded; deploy new code, run all three smoke checks and complete manual content/browser acceptance |
+| Preview/production acceptance | Engineering verification passed; content-owner acceptance pending | All three production smoke checks passed; 64 real image responses and 12 live Chromium cases verified. [Evidence](./evidence/f11-production-2026-09-10.json); approved collection scope remains for the content owner |
 | External checks | Pending | Content owner confirms approved collection; SEO owner monitors image indexing. Pagination and supplemental image sitemap are currently not applicable |
 
 Update this header, this record, the master row, chunk checkbox and totals together. Use `Ready for verification` when implementation and required local checks pass but applicable deployment/manual checks remain. Use `Complete` only after this item's acceptance criteria pass; record non-gating ongoing observations separately. `Blocked` requires a blocker, responsible role and concrete next action.
@@ -116,6 +116,7 @@ Update this header, this record, the master row, chunk checkbox and totals toget
 |---|---|---|---|
 | 2026-09-07 | Created the issue checklist; remediation remains Not started | Conversation audit at `ff8e0ad`; no new remediation evidence | Assign owner, recheck baseline, then follow prerequisites and ordered checklist |
 | 2026-09-10 | Implemented normal image links and broader Gallery discovery; filtered demo/unpublished records and guarded the build cap | [Local and production-baseline evidence](./evidence/f11-image-discovery-2026-09-10.json); 64 genuine photos, 3 placeholders, cap non-blocking | Deploy, run HTML/path/image smoke checks and obtain content/browser acceptance; Ready for verification |
+| 2026-09-10 | Verified deployed F11 on `527d2b1`: all three production smoke checks and 12 live browser cases passed | [Production evidence](./evidence/f11-production-2026-09-10.json): 64 genuine photos, 64 image links, all 64 image responses valid, 32 crawled pages and 98 path checks | Content owner confirms approved collection/exclusions; Search Console observations remain a later follow-up |
 
 ### Inventory and implementation contract — 10 September 2026
 
@@ -127,4 +128,8 @@ This increment retains the bounded 100-photo frontend query and six-photo servic
 
 No supplemental image sitemap is needed for this increment because every intended photo already has a normal Gallery HTML reference; the existing canonical page sitemap remains the discovery entry point. I01 remains the later home for substantive session stories, without fabricated photo-only SEO pages. [Google's image guidance](https://developers.google.com/search/docs/appearance/google-images) and [crawlable-link guidance](https://developers.google.com/search/docs/crawling-indexing/links-crawlable) support standard image markup and real anchors. [Image sitemaps](https://developers.google.com/search/docs/crawling-indexing/sitemaps/image-sitemaps) remain supplemental if a future collection needs them.
 
-The new crawler was also run against the old production deployment: it found all 64 genuine Gallery photos, but correctly failed for missing image anchors, the three seed Gallery records, two stock service teaser assets repeated across pages, and missing broader Gallery links. The teaser assets are outside the 67-photo inventory. The updated selector uses genuine category media or the existing text fallback; 8 focused preview/diagnostic checks and the final fixture crawl/browser checks passed. The production baseline is saved in the evidence report and must be replaced with a passing report after deployment.
+The new crawler was also run against the old production deployment: it found all 64 genuine Gallery photos, but correctly failed for missing image anchors, the three seed Gallery records, two stock service teaser assets repeated across pages, and missing broader Gallery links. The teaser assets are outside the 67-photo inventory. The updated selector uses genuine category media or the existing text fallback; 8 focused preview/diagnostic checks and the final fixture crawl/browser checks passed. That historical baseline is preserved; the later [production verification report](./evidence/f11-production-2026-09-10.json) records the passing deployed result.
+
+### Production browser acceptance — 10 September 2026
+
+Gallery, Wedding service and Wedding package pages passed 12 live Chromium cases at 390/1440 px with JavaScript on/off. Verified real image navigation without JavaScript, full-gallery navigation, lightbox next/Escape/focus restoration after hydration, service expansion/collapse where available, no horizontal overflow and no page/hydration errors or failed/excluded image requests. Three initial automation clicks occurred before the asynchronous React page module attached and correctly followed the native image link; those cases passed after waiting for the actual click handler. No application change was required. Mobile screenshots were visually reviewed. These checks establish production behavior; they do not establish client permission or replace content-owner approval.

@@ -8,6 +8,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import { PUBLIC_CORE_HTML_ROUTES, PUBLIC_HTML_ROUTES, publicHtmlKind, type PublicHtmlPath } from '../src/lib/publicHtmlRoutes';
 import { parsePublicSnapshot } from '../src/lib/publicSnapshot';
+import { isTransformableMediaUrl, mediaUrl, mediaSrcSet } from '../src/lib/images';
 import { resolveServicePage, resolvePackagePage, type ServiceNavLinkLike } from '../src/lib/seo-core';
 
 const servicePages = JSON.parse(readFileSync(new URL('../src/data/service-pages.json', import.meta.url), 'utf8')) as
@@ -100,6 +101,30 @@ export function validatePublicHtml(html: string, path: PublicHtmlPath, publicOri
           expect(source.status === 'cms' && !source.reason && !source.rejectedRecords,
             'release snapshot contains fallback or rejected CMS records');
         }
+      }
+      if (path === '/booking') {
+        const backgrounds = snapshot.data.bookingBackgrounds;
+        const first = backgrounds?.images[0];
+        const images = [...root?.querySelectorAll('#booking img') ?? []];
+        expect(root?.querySelectorAll('h1').length === 1, 'Booking must have exactly one heading');
+        expect(root?.querySelector('#booking-faq details'), 'Booking FAQ missing from initial HTML');
+        expect(root?.querySelector('#booking [data-booking-actions]'), 'Booking enquiry actions missing');
+        expect(images.length === (first ? 1 : 0), 'Booking must render only its first available background');
+        if (first) {
+          const image = images[0];
+          const responsiveFallback = !first.avifSrcSet && !first.webpSrcSet && isTransformableMediaUrl(first.src);
+          const src = responsiveFallback ? mediaUrl(first.src, 1600) : first.src;
+          const webp = responsiveFallback ? mediaSrcSet(first.src, [320, 480, 640, 720, 960, 1200, 1600], 'webp') : first.webpSrcSet;
+          expect(image?.getAttribute('src') === src && image.getAttribute('alt') === '', 'Booking first background differs from snapshot');
+          expect(image?.getAttribute('loading') === 'eager' && image.getAttribute('fetchpriority') === 'high', 'Booking first background lacks eager/high priority');
+          for (const [type, srcset] of [['image/avif', first.avifSrcSet], ['image/webp', webp]]) {
+            const source = image?.closest('picture')?.querySelector(`source[type="${type}"]`);
+            expect((source?.getAttribute('srcset') ?? undefined) === srcset, 'Booking responsive source differs from snapshot');
+            if (srcset) expect(source?.getAttribute('sizes') === '100vw', 'Booking responsive sizes differ');
+          }
+        }
+        if (requireCms) expect(backgrounds?.loaded, 'release requires loaded Booking backgrounds');
+        return failures;
       }
       if (path === '/stories') {
         const reviews = snapshot.data.testimonials;

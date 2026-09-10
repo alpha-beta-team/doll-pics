@@ -1,4 +1,5 @@
 import type { PortfolioPhoto } from '../lib/galleryPortfolio';
+import type { BookingBackgroundImage } from '../lib/bookingBackgrounds';
 import { packageCatalogSource, publicPackageCategories, readBuildPublicCatalog, resolvePublicCatalog, serviceCatalogSource, type PublicRouteCatalog } from '../lib/publicCatalog';
 import { photoLabels } from '../lib/photoLabels';
 import { isPublishedPortfolioPhoto } from '../lib/publicPhoto';
@@ -91,6 +92,7 @@ export interface SiteData {
   publicCatalog: PublicRouteCatalog;
   serviceMedia?: ServiceMediaSnapshot;
   galleryPortfolio?: { photos: PortfolioPhoto[]; loaded: boolean };
+  bookingBackgrounds?: { images: BookingBackgroundImage[]; loaded: boolean };
   siteContent: PublicSiteContent;
   heroSlides: PublicHeroSlide[];
   storyScenes: PublicStoryScene[];

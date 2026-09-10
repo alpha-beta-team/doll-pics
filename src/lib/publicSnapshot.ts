@@ -86,6 +86,14 @@ export function parsePublicSnapshot(text: string, pathname: string): PublicSnaps
           && ['video', 'description'].every(key => scene[key] === undefined || typeof scene[key] === 'string'))) return;
       if (['staffProfiles', 'behindScenes'].some(key => !(value.loaded as string[]).includes(key) && (data[key] as unknown[]).length > 0)) return;
     }
+    const booking = data.bookingBackgrounds;
+    if (path === '/booking') {
+      if (!record(booking) || typeof booking.loaded !== 'boolean'
+        || !arrayOf(booking.images, item => image(item) && record(item) && typeof item.categoryName === 'string'
+          && String(item.src).trim().length > 0 && !isExcludedPhotoUrl(String(item.src))
+          && ['avifSrcSet', 'webpSrcSet'].every(key => item[key] === undefined || typeof item[key] === 'string'))
+        || (!booking.loaded && (booking.images as unknown[]).length > 0)) return;
+    } else if (booking !== undefined) return;
     const portfolio = data.galleryPortfolio;
     if (path === '/gallery') {
       if (!record(portfolio) || typeof portfolio.loaded !== 'boolean'

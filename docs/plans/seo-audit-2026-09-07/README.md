@@ -7,7 +7,7 @@
 **Program status:** In progress\
 **Completion:** **10 / 19 items complete**
 
-**Current status:** 10 complete, F04 and F11 ready for verification, F13 in progress, 6 not started. F04 automated production checks passed; manual acceptance remains. F11 implementation/local checks passed; deployment and content/browser acceptance remain.
+**Current status:** 10 complete, F04 and F11 ready for verification, F13 in progress, 6 not started. F04 automated production checks passed; manual acceptance remains. F11 production HTML/path/image checks and live browser checks passed on `527d2b1`; content-owner acceptance remains. F13 Booking initial-image discovery is implemented locally; deployment/comparison is next.
 
 ## Objective and boundaries
 
@@ -88,8 +88,8 @@ Start with F01. Within a chunk, take ready items in the listed order; independen
 
 - [x] [F10](./10-authentic-category-media.md) — Use authentic and category-relevant portfolio media — Complete for implementation tracking; studio approval and deployed media checks remain pending
 - [ ] [F04](./04-public-html-expansion.md) — Ready for verification: all planned families implemented; CMS-strict HTML smoke and all 98 production path checks passed on `7a8fe9a`, including Stories, Contact, Privacy and Terms; manual acceptance remains
-- [ ] [F11](./11-image-discovery.md) — Ready for verification: image/gallery links, public photo exclusions, cap guard and no-interaction checker implemented; local release/browser/crawl checks passed; deployment/content acceptance remains
-- [ ] [F13](./13-performance-and-core-web-vitals.md) — In progress: Booking fixes verified in production; three mobile samples show CLS 0.00344 and LCP 7.07s; image discovery, broader profiling and field acceptance remain open
+- [ ] [F11](./11-image-discovery.md) — Ready for verification: deployed on `527d2b1`; production HTML, 98 path checks, all 64 photo responses and 12 live browser cases passed; content-owner acceptance remains
+- [ ] [F13](./13-performance-and-core-web-vitals.md) — In progress: Booking initial background HTML/snapshot reuse implemented and verified locally; fresh production baseline LCP 5.35s and CLS 0.00344; deployment comparison, broader profiling and field acceptance remain open
 - [ ] [F14](./14-social-preview-metadata.md) — Support route-specific social previews
 - [ ] [F15](./15-authored-meta-descriptions.md) — Preserve authored metadata descriptions
 - [ ] [F16](./16-sitemap-freshness.md) — Extend trustworthy sitemap modification dates
@@ -113,7 +113,7 @@ Start with F01. Within a chunk, take ready items in the listed order; independen
 | 4 — Content growth and ongoing verification | 3 | 0 | 3 | Not started |
 | **Overall** | **19** | **10** | **9** | **1 in progress, 2 ready for verification, 6 not started** |
 
-**Recommended next task:** deploy [F11 image discovery](./11-image-discovery.md), then run the HTML, path and new image-discovery smoke checks and review real photography/lightbox behavior. [F11 evidence](./evidence/f11-image-discovery-2026-09-10.json) records local validation and the production baseline of 64 genuine photos plus 3 demo placeholders; the 100-photo cap is currently non-blocking. Complete F04 manual content/browser acceptance separately; its [automated production checks passed](./evidence/f04-final-families-production-2026-09-09.json). F13 Booking production comparison is [recorded](./evidence/f13-booking-production-2026-09-09.md); LCP image discovery remains the next experiment. Totals remain **10 / 19 complete** for implementation tracking.
+**Recommended next task:** deploy the [F13 Booking discovery increment](./13-performance-and-core-web-vitals.md), run updated HTML/path smoke checks and compare three equivalent production Lighthouse samples with the [10 September baseline](./evidence/f13-booking-discovery-2026-09-10.json). Local release and focused checks passed; the controlled test removes JavaScript/CMS image-discovery delays, but production improvement is not yet verified. F11 content-owner acceptance and F04 manual acceptance remain separate follow-ups. Totals remain **10 / 19 complete** for implementation tracking.
 
 ## Parallel execution
 
@@ -122,11 +122,11 @@ Tasks are not all serial. Dependency gates still apply; implementation completio
 | Workstream | Can proceed now | Gate / coordination |
 |---|---|---|
 | Rendering — F04 | Complete manual content/browser acceptance of the deployed final four pages | Automated production HTML and path checks passed on `7a8fe9a`; review approved content, no-JavaScript visibility, themes and interactions |
-| Performance — F13 | Prepare a controlled earlier-discovery experiment for the Booking background; deployed CLS comparison passed | Compare against the 9 September baseline; coordinate public HTML/CMS changes with F04 |
+| Performance — F13 | Deploy Booking initial-image HTML and repeat production comparison | Compare against 10 September LCP baseline of 5.35s; preserve Gallery loading, rotation and enquiry behavior; broader/field work remains |
 | Metadata — F14, F15, F16 | Social previews, authored descriptions and sitemap dates | Existing implementation prerequisites are met; use approved imagery and coordinate edits to shared SEO/prerender files |
 | Business facts — I02 | Verify identity and structured-data facts | Requires authoritative business/content-owner confirmation |
 | Monitoring — I03 | Setup and baseline collection | Final closure waits for every prerequisite |
-| Image discovery — F11 | Deploy and verify implemented discovery changes | Run HTML/path/image checks using the matching public CMS inventory; content owner approves real photography and exclusions |
+| Image discovery — F11 | Content-owner acceptance; production engineering verification passed | Owner confirms approved photography and exclusions; all three smoke checks and 12 live browser cases passed on `527d2b1` |
 | Case studies — I01 | Collect approved sessions and draft content | Publication depends on F04, original media and client permission |
 
 Suggested practical split: continue F04 while F13 measurement and I02 verification run independently; handle F14/F15/F16 as a coordinated metadata workstream. Parallel work does not require deploying all changes together.
@@ -237,3 +237,5 @@ The creator validates these separately from remediation completion:
 | 2026-09-09 | Completed F04 Stories, Contact, Privacy and Terms implementation; release checks, 84 local browser cases and 40 snapshot/content rejection cases passed | 10 / 19 | F04 Ready for verification: deploy and run updated smoke checks, then complete manual acceptance |
 | 2026-09-09 | Verified final F04 families in production on `7a8fe9a`: CMS-strict HTML and 98 path checks passed; four direct HTTP/source probes confirmed matching roots and snapshots | 10 / 19 | Complete manual content/browser acceptance, then close F04 and proceed to F11 |
 | 2026-09-10 | Implemented F11 crawlable image links, broader Gallery navigation, photo exclusions, cap guard and image-discovery smoke tool; local release, 24 browser, 15 crawler and 10 build/lifecycle cases passed | 10 / 19 (F04 and F11 ready for verification, F13 in progress, 6 not started) | Deploy F11, run all three smoke checks and complete content/browser acceptance; F04 manual acceptance remains separate |
+| 2026-09-10 | Verified deployed F11 on `527d2b1`: production HTML smoke, all 98 path cases, 64 image responses and 12 live browser cases passed | 10 / 19 (F04 and F11 ready for verification, F13 in progress, 6 not started) | F11 content-owner acceptance remains; continue F13 independently and retain F04 manual acceptance |
+| 2026-09-10 | F13 fresh production baseline recorded; Booking background/FAQ initial HTML and snapshot reuse implemented locally, with release and focused checks passed | 10 / 19 (F04 and F11 ready for verification, F13 in progress, 6 not started) | Deploy F13 increment, run smoke checks and repeat three equivalent Lighthouse samples; broader and field acceptance remain open |

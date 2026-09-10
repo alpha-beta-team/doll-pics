@@ -1,0 +1,1520 @@
+{
+  "checkedAt": "2026-09-10T05:30:01.483225+00:00",
+  "task": "F13 Booking initial background discovery",
+  "status": "Implemented locally; production comparison pending; F13 remains In progress",
+  "worktreeBaseCommit": "527d2b1cf98affccfb77b5b6accc11e487f18ed2",
+  "productionBaseline": {
+    "deploymentBefore": {
+      "commit": "527d2b1cf98affccfb77b5b6accc11e487f18ed2",
+      "createdAt": "2026-09-10T04:22:13.662Z",
+      "publicOrigin": "https://dollpictures.in"
+    },
+    "deploymentAfter": {
+      "commit": "527d2b1cf98affccfb77b5b6accc11e487f18ed2",
+      "createdAt": "2026-09-10T04:22:13.662Z",
+      "publicOrigin": "https://dollpictures.in"
+    },
+    "method": "Three serial Lighthouse 12.8.2 mobile samples on current production; fresh browser/storage, simulated throttling; no builds or other task browser work during collection. CDN/network and unrelated host load uncontrolled. Not field CWV.",
+    "sameSettingsAsPreviousBaseline": true,
+    "medians": {
+      "first-contentful-paint": 2111.9435999999996,
+      "largest-contentful-paint": 5347.9418000000005,
+      "cumulative-layout-shift": 0.003442148842009878,
+      "total-blocking-time": 104,
+      "speed-index": 4039.4388119931828,
+      "score": 0.74
+    },
+    "lcpRangeMs": [
+      5251.673400000001,
+      8298.208
+    ],
+    "samples": [
+      {
+        "fetchedAt": "2026-09-10T04:38:33.616Z",
+        "version": "12.8.2",
+        "environment": {
+          "networkUserAgent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Mobile Safari/537.36",
+          "hostUserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+          "benchmarkIndex": 2926,
+          "credits": {}
+        },
+        "settings": {
+          "output": [
+            "json"
+          ],
+          "maxWaitForFcp": 30000,
+          "maxWaitForLoad": 45000,
+          "pauseAfterFcpMs": 1000,
+          "pauseAfterLoadMs": 1000,
+          "networkQuietThresholdMs": 1000,
+          "cpuQuietThresholdMs": 1000,
+          "formFactor": "mobile",
+          "throttling": {
+            "rttMs": 150,
+            "throughputKbps": 1638.4,
+            "requestLatencyMs": 562.5,
+            "downloadThroughputKbps": 1474.5600000000002,
+            "uploadThroughputKbps": 675,
+            "cpuSlowdownMultiplier": 4
+          },
+          "throttlingMethod": "simulate",
+          "screenEmulation": {
+            "mobile": true,
+            "width": 412,
+            "height": 823,
+            "deviceScaleFactor": 1.75,
+            "disabled": false
+          },
+          "emulatedUserAgent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Mobile Safari/537.36",
+          "auditMode": false,
+          "gatherMode": false,
+          "clearStorageTypes": [
+            "file_systems",
+            "shader_cache",
+            "service_workers",
+            "cache_storage"
+          ],
+          "disableStorageReset": false,
+          "debugNavigation": false,
+          "channel": "cli",
+          "usePassiveGathering": false,
+          "disableFullPageScreenshot": false,
+          "skipAboutBlank": false,
+          "blankPage": "about:blank",
+          "ignoreStatusCode": false,
+          "locale": "en-US",
+          "blockedUrlPatterns": null,
+          "additionalTraceCategories": null,
+          "extraHeaders": null,
+          "precomputedLanternData": null,
+          "onlyAudits": null,
+          "onlyCategories": [
+            "performance"
+          ],
+          "skipAudits": null
+        },
+        "score": 0.72,
+        "metrics": {
+          "first-contentful-paint": 1936.2475000000002,
+          "largest-contentful-paint": 8298.208,
+          "cumulative-layout-shift": 0.003442148842009878,
+          "total-blocking-time": 69,
+          "speed-index": 3988.450649986983
+        },
+        "runtimeError": null,
+        "warnings": [],
+        "audits": {
+          "lcp-discovery-insight": {
+            "id": "lcp-discovery-insight",
+            "title": "LCP request discovery",
+            "description": "Optimize LCP by making the LCP image [discoverable](https://web.dev/articles/optimize-lcp#1_eliminate_resource_load_delay) from the HTML immediately, and [avoiding lazy-loading](https://web.dev/articles/lcp-lazy-loading)",
+            "score": 0,
+            "scoreDisplayMode": "numeric",
+            "metricSavings": {
+              "LCP": 0
+            },
+            "details": {
+              "type": "list",
+              "items": [
+                {
+                  "type": "checklist",
+                  "items": {
+                    "priorityHinted": {
+                      "label": "fetchpriority=high applied",
+                      "value": true
+                    },
+                    "requestDiscoverable": {
+                      "label": "Request is discoverable in initial document",
+                      "value": false
+                    },
+                    "eagerlyLoaded": {
+                      "label": "lazy load not applied",
+                      "value": true
+                    }
+                  }
+                },
+                {
+                  "type": "node",
+                  "lhId": "page-0-IMG",
+                  "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,1,SECTION,0,DIV,0,PICTURE,1,IMG",
+                  "selector": "section#booking > div.absolute > picture.contents > img.animate-fade-in",
+                  "boundingRect": {
+                    "top": 334,
+                    "bottom": 1157,
+                    "left": 0,
+                    "right": 412,
+                    "width": 412,
+                    "height": 823
+                  },
+                  "snippet": "<img src=\"https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5\u2026\" alt=\"\" width=\"1600\" height=\"900\" sizes=\"100vw\" loading=\"eager\" decoding=\"async\" fetchpriority=\"high\" class=\"animate-fade-in absolute inset-0 h-full w-full object-cover\">",
+                  "nodeLabel": "section#booking > div.absolute > picture.contents > img.animate-fade-in"
+                }
+              ]
+            },
+            "guidanceLevel": 3,
+            "replacesAudits": [
+              "prioritize-lcp-image",
+              "lcp-lazy-loaded"
+            ]
+          },
+          "lcp-breakdown-insight": {
+            "id": "lcp-breakdown-insight",
+            "title": "LCP breakdown",
+            "description": "Each [subpart has specific improvement strategies](https://web.dev/articles/optimize-lcp#lcp-breakdown). Ideally, most of the LCP time should be spent on loading the resources, not within delays.",
+            "score": 1,
+            "scoreDisplayMode": "informative",
+            "metricSavings": {
+              "LCP": 0
+            },
+            "details": {
+              "type": "list",
+              "items": [
+                {
+                  "type": "table",
+                  "headings": [
+                    {
+                      "key": "label",
+                      "valueType": "text",
+                      "label": "Subpart"
+                    },
+                    {
+                      "key": "duration",
+                      "valueType": "ms",
+                      "label": "Duration"
+                    }
+                  ],
+                  "items": [
+                    {
+                      "subpart": "timeToFirstByte",
+                      "label": "Time to first byte",
+                      "duration": 1251.055
+                    },
+                    {
+                      "subpart": "resourceLoadDelay",
+                      "label": "Resource load delay",
+                      "duration": 961
+                    },
+                    {
+                      "subpart": "resourceLoadDuration",
+                      "label": "Resource load duration",
+                      "duration": 59.432
+                    },
+                    {
+                      "subpart": "elementRenderDelay",
+                      "label": "Element render delay",
+                      "duration": 33.314
+                    }
+                  ]
+                },
+                {
+                  "type": "node",
+                  "lhId": "page-0-IMG",
+                  "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,1,SECTION,0,DIV,0,PICTURE,1,IMG",
+                  "selector": "section#booking > div.absolute > picture.contents > img.animate-fade-in",
+                  "boundingRect": {
+                    "top": 334,
+                    "bottom": 1157,
+                    "left": 0,
+                    "right": 412,
+                    "width": 412,
+                    "height": 823
+                  },
+                  "snippet": "<img src=\"https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5\u2026\" alt=\"\" width=\"1600\" height=\"900\" sizes=\"100vw\" loading=\"eager\" decoding=\"async\" fetchpriority=\"high\" class=\"animate-fade-in absolute inset-0 h-full w-full object-cover\">",
+                  "nodeLabel": "section#booking > div.absolute > picture.contents > img.animate-fade-in"
+                }
+              ]
+            },
+            "guidanceLevel": 3,
+            "replacesAudits": [
+              "largest-contentful-paint-element"
+            ]
+          },
+          "largest-contentful-paint-element": {
+            "id": "largest-contentful-paint-element",
+            "title": "Largest Contentful Paint element",
+            "description": "This is the largest contentful element painted within the viewport. [Learn more about the Largest Contentful Paint element](https://developer.chrome.com/docs/lighthouse/performance/lighthouse-largest-contentful-paint/)",
+            "score": 0,
+            "scoreDisplayMode": "metricSavings",
+            "displayValue": "8,300\u00a0ms",
+            "metricSavings": {
+              "LCP": 5800
+            },
+            "details": {
+              "type": "list",
+              "items": [
+                {
+                  "type": "table",
+                  "headings": [
+                    {
+                      "key": "node",
+                      "valueType": "node",
+                      "label": "Element"
+                    }
+                  ],
+                  "items": [
+                    {
+                      "node": {
+                        "type": "node",
+                        "lhId": "page-0-IMG",
+                        "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,1,SECTION,0,DIV,0,PICTURE,1,IMG",
+                        "selector": "section#booking > div.absolute > picture.contents > img.animate-fade-in",
+                        "boundingRect": {
+                          "top": 334,
+                          "bottom": 1157,
+                          "left": 0,
+                          "right": 412,
+                          "width": 412,
+                          "height": 823
+                        },
+                        "snippet": "<img src=\"https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5\u2026\" alt=\"\" width=\"1600\" height=\"900\" sizes=\"100vw\" loading=\"eager\" decoding=\"async\" fetchpriority=\"high\" class=\"animate-fade-in absolute inset-0 h-full w-full object-cover\">",
+                        "nodeLabel": "section#booking > div.absolute > picture.contents > img.animate-fade-in"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "table",
+                  "headings": [
+                    {
+                      "key": "phase",
+                      "valueType": "text",
+                      "label": "Phase"
+                    },
+                    {
+                      "key": "percent",
+                      "valueType": "text",
+                      "label": "% of LCP"
+                    },
+                    {
+                      "key": "timing",
+                      "valueType": "ms",
+                      "label": "Timing"
+                    }
+                  ],
+                  "items": [
+                    {
+                      "phase": "TTFB",
+                      "timing": 1251.055,
+                      "percent": "15%"
+                    },
+                    {
+                      "phase": "Load Delay",
+                      "timing": 6714.324723737641,
+                      "percent": "81%"
+                    },
+                    {
+                      "phase": "Load Time",
+                      "timing": 212.8845147805805,
+                      "percent": "3%"
+                    },
+                    {
+                      "phase": "Render Delay",
+                      "timing": 119.94376148177889,
+                      "percent": "1%"
+                    }
+                  ]
+                }
+              ]
+            },
+            "guidanceLevel": 1
+          }
+        },
+        "relevantRequests": [
+          {
+            "url": "https://dollpictures.in/assets/index-CAVvConx.js",
+            "sessionTargetType": "page",
+            "protocol": "h3",
+            "rendererStartTime": 1268.0250000059605,
+            "networkRequestTime": 1274.4950000345707,
+            "networkEndTime": 1449.2780000269413,
+            "finished": true,
+            "transferSize": 111223,
+            "resourceSize": 348875,
+            "statusCode": 200,
+            "mimeType": "application/javascript",
+            "resourceType": "Script",
+            "priority": "High",
+            "experimentalFromMainFrame": true,
+            "entity": "dollpictures.in"
+          },
+          {
+            "url": "https://doll-backend-27n8.onrender.com/api/booking-backgrounds",
+            "sessionTargetType": "page",
+            "protocol": "h2",
+            "rendererStartTime": 1935.9880000054836,
+            "networkRequestTime": 1936.3120000064373,
+            "networkEndTime": 2208.9480000138283,
+            "finished": true,
+            "transferSize": 1523,
+            "resourceSize": 13177,
+            "statusCode": 200,
+            "mimeType": "application/json",
+            "resourceType": "Fetch",
+            "priority": "High",
+            "experimentalFromMainFrame": true,
+            "entity": "onrender.com"
+          },
+          {
+            "url": "https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5d906-95f2-40e3-ae22-6e8a0842c9ec.jpg",
+            "sessionTargetType": "page",
+            "protocol": "h3",
+            "rendererStartTime": 2211.6780000329018,
+            "networkRequestTime": 2211.9820000231266,
+            "networkEndTime": 2271.110000014305,
+            "finished": true,
+            "transferSize": 53726,
+            "resourceSize": 53322,
+            "statusCode": 200,
+            "mimeType": "image/webp",
+            "resourceType": "Image",
+            "priority": "High",
+            "experimentalFromMainFrame": true,
+            "entity": "imagekit.io"
+          }
+        ]
+      },
+      {
+        "fetchedAt": "2026-09-10T04:38:47.591Z",
+        "version": "12.8.2",
+        "environment": {
+          "networkUserAgent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Mobile Safari/537.36",
+          "hostUserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+          "benchmarkIndex": 2900,
+          "credits": {}
+        },
+        "settings": {
+          "output": [
+            "json"
+          ],
+          "maxWaitForFcp": 30000,
+          "maxWaitForLoad": 45000,
+          "pauseAfterFcpMs": 1000,
+          "pauseAfterLoadMs": 1000,
+          "networkQuietThresholdMs": 1000,
+          "cpuQuietThresholdMs": 1000,
+          "formFactor": "mobile",
+          "throttling": {
+            "rttMs": 150,
+            "throughputKbps": 1638.4,
+            "requestLatencyMs": 562.5,
+            "downloadThroughputKbps": 1474.5600000000002,
+            "uploadThroughputKbps": 675,
+            "cpuSlowdownMultiplier": 4
+          },
+          "throttlingMethod": "simulate",
+          "screenEmulation": {
+            "mobile": true,
+            "width": 412,
+            "height": 823,
+            "deviceScaleFactor": 1.75,
+            "disabled": false
+          },
+          "emulatedUserAgent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Mobile Safari/537.36",
+          "auditMode": false,
+          "gatherMode": false,
+          "clearStorageTypes": [
+            "file_systems",
+            "shader_cache",
+            "service_workers",
+            "cache_storage"
+          ],
+          "disableStorageReset": false,
+          "debugNavigation": false,
+          "channel": "cli",
+          "usePassiveGathering": false,
+          "disableFullPageScreenshot": false,
+          "skipAboutBlank": false,
+          "blankPage": "about:blank",
+          "ignoreStatusCode": false,
+          "locale": "en-US",
+          "blockedUrlPatterns": null,
+          "additionalTraceCategories": null,
+          "extraHeaders": null,
+          "precomputedLanternData": null,
+          "onlyAudits": null,
+          "onlyCategories": [
+            "performance"
+          ],
+          "skipAudits": null
+        },
+        "score": 0.74,
+        "metrics": {
+          "first-contentful-paint": 2247.5474000000004,
+          "largest-contentful-paint": 5347.9418000000005,
+          "cumulative-layout-shift": 0.003442148842009878,
+          "total-blocking-time": 104,
+          "speed-index": 4624.010888005814
+        },
+        "runtimeError": null,
+        "warnings": [],
+        "audits": {
+          "lcp-discovery-insight": {
+            "id": "lcp-discovery-insight",
+            "title": "LCP request discovery",
+            "description": "Optimize LCP by making the LCP image [discoverable](https://web.dev/articles/optimize-lcp#1_eliminate_resource_load_delay) from the HTML immediately, and [avoiding lazy-loading](https://web.dev/articles/lcp-lazy-loading)",
+            "score": 0,
+            "scoreDisplayMode": "numeric",
+            "metricSavings": {
+              "LCP": 0
+            },
+            "details": {
+              "type": "list",
+              "items": [
+                {
+                  "type": "checklist",
+                  "items": {
+                    "priorityHinted": {
+                      "label": "fetchpriority=high applied",
+                      "value": true
+                    },
+                    "requestDiscoverable": {
+                      "label": "Request is discoverable in initial document",
+                      "value": false
+                    },
+                    "eagerlyLoaded": {
+                      "label": "lazy load not applied",
+                      "value": true
+                    }
+                  }
+                },
+                {
+                  "type": "node",
+                  "lhId": "page-0-IMG",
+                  "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,1,SECTION,0,DIV,0,PICTURE,1,IMG",
+                  "selector": "section#booking > div.absolute > picture.contents > img.animate-fade-in",
+                  "boundingRect": {
+                    "top": 334,
+                    "bottom": 1157,
+                    "left": 0,
+                    "right": 412,
+                    "width": 412,
+                    "height": 823
+                  },
+                  "snippet": "<img src=\"https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5\u2026\" alt=\"\" width=\"1600\" height=\"900\" sizes=\"100vw\" loading=\"eager\" decoding=\"async\" fetchpriority=\"high\" class=\"animate-fade-in absolute inset-0 h-full w-full object-cover\">",
+                  "nodeLabel": "section#booking > div.absolute > picture.contents > img.animate-fade-in"
+                }
+              ]
+            },
+            "guidanceLevel": 3,
+            "replacesAudits": [
+              "prioritize-lcp-image",
+              "lcp-lazy-loaded"
+            ]
+          },
+          "lcp-breakdown-insight": {
+            "id": "lcp-breakdown-insight",
+            "title": "LCP breakdown",
+            "description": "Each [subpart has specific improvement strategies](https://web.dev/articles/optimize-lcp#lcp-breakdown). Ideally, most of the LCP time should be spent on loading the resources, not within delays.",
+            "score": 1,
+            "scoreDisplayMode": "informative",
+            "metricSavings": {
+              "LCP": 0
+            },
+            "details": {
+              "type": "list",
+              "items": [
+                {
+                  "type": "table",
+                  "headings": [
+                    {
+                      "key": "label",
+                      "valueType": "text",
+                      "label": "Subpart"
+                    },
+                    {
+                      "key": "duration",
+                      "valueType": "ms",
+                      "label": "Duration"
+                    }
+                  ],
+                  "items": [
+                    {
+                      "subpart": "timeToFirstByte",
+                      "label": "Time to first byte",
+                      "duration": 1370.093
+                    },
+                    {
+                      "subpart": "resourceLoadDelay",
+                      "label": "Resource load delay",
+                      "duration": 1218.142
+                    },
+                    {
+                      "subpart": "resourceLoadDuration",
+                      "label": "Resource load duration",
+                      "duration": 255.211
+                    },
+                    {
+                      "subpart": "elementRenderDelay",
+                      "label": "Element render delay",
+                      "duration": 6.854
+                    }
+                  ]
+                },
+                {
+                  "type": "node",
+                  "lhId": "page-0-IMG",
+                  "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,1,SECTION,0,DIV,0,PICTURE,1,IMG",
+                  "selector": "section#booking > div.absolute > picture.contents > img.animate-fade-in",
+                  "boundingRect": {
+                    "top": 334,
+                    "bottom": 1157,
+                    "left": 0,
+                    "right": 412,
+                    "width": 412,
+                    "height": 823
+                  },
+                  "snippet": "<img src=\"https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5\u2026\" alt=\"\" width=\"1600\" height=\"900\" sizes=\"100vw\" loading=\"eager\" decoding=\"async\" fetchpriority=\"high\" class=\"animate-fade-in absolute inset-0 h-full w-full object-cover\">",
+                  "nodeLabel": "section#booking > div.absolute > picture.contents > img.animate-fade-in"
+                }
+              ]
+            },
+            "guidanceLevel": 3,
+            "replacesAudits": [
+              "largest-contentful-paint-element"
+            ]
+          },
+          "largest-contentful-paint-element": {
+            "id": "largest-contentful-paint-element",
+            "title": "Largest Contentful Paint element",
+            "description": "This is the largest contentful element painted within the viewport. [Learn more about the Largest Contentful Paint element](https://developer.chrome.com/docs/lighthouse/performance/lighthouse-largest-contentful-paint/)",
+            "score": 0,
+            "scoreDisplayMode": "metricSavings",
+            "displayValue": "5,350\u00a0ms",
+            "metricSavings": {
+              "LCP": 2850
+            },
+            "details": {
+              "type": "list",
+              "items": [
+                {
+                  "type": "table",
+                  "headings": [
+                    {
+                      "key": "node",
+                      "valueType": "node",
+                      "label": "Element"
+                    }
+                  ],
+                  "items": [
+                    {
+                      "node": {
+                        "type": "node",
+                        "lhId": "page-0-IMG",
+                        "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,1,SECTION,0,DIV,0,PICTURE,1,IMG",
+                        "selector": "section#booking > div.absolute > picture.contents > img.animate-fade-in",
+                        "boundingRect": {
+                          "top": 334,
+                          "bottom": 1157,
+                          "left": 0,
+                          "right": 412,
+                          "width": 412,
+                          "height": 823
+                        },
+                        "snippet": "<img src=\"https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5\u2026\" alt=\"\" width=\"1600\" height=\"900\" sizes=\"100vw\" loading=\"eager\" decoding=\"async\" fetchpriority=\"high\" class=\"animate-fade-in absolute inset-0 h-full w-full object-cover\">",
+                        "nodeLabel": "section#booking > div.absolute > picture.contents > img.animate-fade-in"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "table",
+                  "headings": [
+                    {
+                      "key": "phase",
+                      "valueType": "text",
+                      "label": "Phase"
+                    },
+                    {
+                      "key": "percent",
+                      "valueType": "text",
+                      "label": "% of LCP"
+                    },
+                    {
+                      "key": "timing",
+                      "valueType": "ms",
+                      "label": "Timing"
+                    }
+                  ],
+                  "items": [
+                    {
+                      "phase": "TTFB",
+                      "timing": 1370.093,
+                      "percent": "26%"
+                    },
+                    {
+                      "phase": "Load Delay",
+                      "timing": 3486.738015106841,
+                      "percent": "65%"
+                    },
+                    {
+                      "phase": "Load Time",
+                      "timing": 478.2508076820159,
+                      "percent": "9%"
+                    },
+                    {
+                      "phase": "Render Delay",
+                      "timing": 12.859977211143814,
+                      "percent": "0%"
+                    }
+                  ]
+                }
+              ]
+            },
+            "guidanceLevel": 1
+          }
+        },
+        "relevantRequests": [
+          {
+            "url": "https://dollpictures.in/assets/index-CAVvConx.js",
+            "sessionTargetType": "page",
+            "protocol": "h2",
+            "rendererStartTime": 1427.7649999856949,
+            "networkRequestTime": 1433.5779999792576,
+            "networkEndTime": 1984.8840000033379,
+            "finished": true,
+            "transferSize": 111137,
+            "resourceSize": 348875,
+            "statusCode": 200,
+            "mimeType": "application/javascript",
+            "resourceType": "Script",
+            "priority": "High",
+            "experimentalFromMainFrame": true,
+            "entity": "dollpictures.in"
+          },
+          {
+            "url": "https://doll-backend-27n8.onrender.com/api/booking-backgrounds",
+            "sessionTargetType": "page",
+            "protocol": "h2",
+            "rendererStartTime": 2374.67199999094,
+            "networkRequestTime": 2375.0230000019073,
+            "networkEndTime": 2584.4059999883175,
+            "finished": true,
+            "transferSize": 1546,
+            "resourceSize": 13177,
+            "statusCode": 200,
+            "mimeType": "application/json",
+            "resourceType": "Fetch",
+            "priority": "High",
+            "experimentalFromMainFrame": true,
+            "entity": "onrender.com"
+          },
+          {
+            "url": "https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5d906-95f2-40e3-ae22-6e8a0842c9ec.jpg",
+            "sessionTargetType": "page",
+            "protocol": "h2",
+            "rendererStartTime": 2587.8510000109673,
+            "networkRequestTime": 2588.168000012636,
+            "networkEndTime": 2843.0620000064373,
+            "finished": true,
+            "transferSize": 53887,
+            "resourceSize": 53322,
+            "statusCode": 200,
+            "mimeType": "image/webp",
+            "resourceType": "Image",
+            "priority": "High",
+            "experimentalFromMainFrame": true,
+            "entity": "imagekit.io"
+          }
+        ]
+      },
+      {
+        "fetchedAt": "2026-09-10T04:39:02.050Z",
+        "version": "12.8.2",
+        "environment": {
+          "networkUserAgent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Mobile Safari/537.36",
+          "hostUserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+          "benchmarkIndex": 2926.5,
+          "credits": {}
+        },
+        "settings": {
+          "output": [
+            "json"
+          ],
+          "maxWaitForFcp": 30000,
+          "maxWaitForLoad": 45000,
+          "pauseAfterFcpMs": 1000,
+          "pauseAfterLoadMs": 1000,
+          "networkQuietThresholdMs": 1000,
+          "cpuQuietThresholdMs": 1000,
+          "formFactor": "mobile",
+          "throttling": {
+            "rttMs": 150,
+            "throughputKbps": 1638.4,
+            "requestLatencyMs": 562.5,
+            "downloadThroughputKbps": 1474.5600000000002,
+            "uploadThroughputKbps": 675,
+            "cpuSlowdownMultiplier": 4
+          },
+          "throttlingMethod": "simulate",
+          "screenEmulation": {
+            "mobile": true,
+            "width": 412,
+            "height": 823,
+            "deviceScaleFactor": 1.75,
+            "disabled": false
+          },
+          "emulatedUserAgent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Mobile Safari/537.36",
+          "auditMode": false,
+          "gatherMode": false,
+          "clearStorageTypes": [
+            "file_systems",
+            "shader_cache",
+            "service_workers",
+            "cache_storage"
+          ],
+          "disableStorageReset": false,
+          "debugNavigation": false,
+          "channel": "cli",
+          "usePassiveGathering": false,
+          "disableFullPageScreenshot": false,
+          "skipAboutBlank": false,
+          "blankPage": "about:blank",
+          "ignoreStatusCode": false,
+          "locale": "en-US",
+          "blockedUrlPatterns": null,
+          "additionalTraceCategories": null,
+          "extraHeaders": null,
+          "precomputedLanternData": null,
+          "onlyAudits": null,
+          "onlyCategories": [
+            "performance"
+          ],
+          "skipAudits": null
+        },
+        "score": 0.76,
+        "metrics": {
+          "first-contentful-paint": 2111.9435999999996,
+          "largest-contentful-paint": 5251.673400000001,
+          "cumulative-layout-shift": 0.006420468253428117,
+          "total-blocking-time": 107.5,
+          "speed-index": 4039.4388119931828
+        },
+        "runtimeError": null,
+        "warnings": [],
+        "audits": {
+          "lcp-discovery-insight": {
+            "id": "lcp-discovery-insight",
+            "title": "LCP request discovery",
+            "description": "Optimize LCP by making the LCP image [discoverable](https://web.dev/articles/optimize-lcp#1_eliminate_resource_load_delay) from the HTML immediately, and [avoiding lazy-loading](https://web.dev/articles/lcp-lazy-loading)",
+            "score": 0,
+            "scoreDisplayMode": "numeric",
+            "metricSavings": {
+              "LCP": 0
+            },
+            "details": {
+              "type": "list",
+              "items": [
+                {
+                  "type": "checklist",
+                  "items": {
+                    "priorityHinted": {
+                      "label": "fetchpriority=high applied",
+                      "value": true
+                    },
+                    "requestDiscoverable": {
+                      "label": "Request is discoverable in initial document",
+                      "value": false
+                    },
+                    "eagerlyLoaded": {
+                      "label": "lazy load not applied",
+                      "value": true
+                    }
+                  }
+                },
+                {
+                  "type": "node",
+                  "lhId": "page-0-IMG",
+                  "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,1,SECTION,0,DIV,0,PICTURE,1,IMG",
+                  "selector": "section#booking > div.absolute > picture.contents > img.animate-fade-in",
+                  "boundingRect": {
+                    "top": 334,
+                    "bottom": 1157,
+                    "left": 0,
+                    "right": 412,
+                    "width": 412,
+                    "height": 823
+                  },
+                  "snippet": "<img src=\"https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5\u2026\" alt=\"\" width=\"1600\" height=\"900\" sizes=\"100vw\" loading=\"eager\" decoding=\"async\" fetchpriority=\"high\" class=\"animate-fade-in absolute inset-0 h-full w-full object-cover\">",
+                  "nodeLabel": "section#booking > div.absolute > picture.contents > img.animate-fade-in"
+                }
+              ]
+            },
+            "guidanceLevel": 3,
+            "replacesAudits": [
+              "prioritize-lcp-image",
+              "lcp-lazy-loaded"
+            ]
+          },
+          "lcp-breakdown-insight": {
+            "id": "lcp-breakdown-insight",
+            "title": "LCP breakdown",
+            "description": "Each [subpart has specific improvement strategies](https://web.dev/articles/optimize-lcp#lcp-breakdown). Ideally, most of the LCP time should be spent on loading the resources, not within delays.",
+            "score": 1,
+            "scoreDisplayMode": "informative",
+            "metricSavings": {
+              "LCP": 0
+            },
+            "details": {
+              "type": "list",
+              "items": [
+                {
+                  "type": "table",
+                  "headings": [
+                    {
+                      "key": "label",
+                      "valueType": "text",
+                      "label": "Subpart"
+                    },
+                    {
+                      "key": "duration",
+                      "valueType": "ms",
+                      "label": "Duration"
+                    }
+                  ],
+                  "items": [
+                    {
+                      "subpart": "timeToFirstByte",
+                      "label": "Time to first byte",
+                      "duration": 1096.6310000305175
+                    },
+                    {
+                      "subpart": "resourceLoadDelay",
+                      "label": "Resource load delay",
+                      "duration": 1153.7719999694825
+                    },
+                    {
+                      "subpart": "resourceLoadDuration",
+                      "label": "Resource load duration",
+                      "duration": 68.876
+                    },
+                    {
+                      "subpart": "elementRenderDelay",
+                      "label": "Element render delay",
+                      "duration": 23.908
+                    }
+                  ]
+                },
+                {
+                  "type": "node",
+                  "lhId": "page-0-IMG",
+                  "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,1,SECTION,0,DIV,0,PICTURE,1,IMG",
+                  "selector": "section#booking > div.absolute > picture.contents > img.animate-fade-in",
+                  "boundingRect": {
+                    "top": 334,
+                    "bottom": 1157,
+                    "left": 0,
+                    "right": 412,
+                    "width": 412,
+                    "height": 823
+                  },
+                  "snippet": "<img src=\"https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5\u2026\" alt=\"\" width=\"1600\" height=\"900\" sizes=\"100vw\" loading=\"eager\" decoding=\"async\" fetchpriority=\"high\" class=\"animate-fade-in absolute inset-0 h-full w-full object-cover\">",
+                  "nodeLabel": "section#booking > div.absolute > picture.contents > img.animate-fade-in"
+                }
+              ]
+            },
+            "guidanceLevel": 3,
+            "replacesAudits": [
+              "largest-contentful-paint-element"
+            ]
+          },
+          "largest-contentful-paint-element": {
+            "id": "largest-contentful-paint-element",
+            "title": "Largest Contentful Paint element",
+            "description": "This is the largest contentful element painted within the viewport. [Learn more about the Largest Contentful Paint element](https://developer.chrome.com/docs/lighthouse/performance/lighthouse-largest-contentful-paint/)",
+            "score": 0,
+            "scoreDisplayMode": "metricSavings",
+            "displayValue": "5,250\u00a0ms",
+            "metricSavings": {
+              "LCP": 2750
+            },
+            "details": {
+              "type": "list",
+              "items": [
+                {
+                  "type": "table",
+                  "headings": [
+                    {
+                      "key": "node",
+                      "valueType": "node",
+                      "label": "Element"
+                    }
+                  ],
+                  "items": [
+                    {
+                      "node": {
+                        "type": "node",
+                        "lhId": "page-0-IMG",
+                        "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,1,SECTION,0,DIV,0,PICTURE,1,IMG",
+                        "selector": "section#booking > div.absolute > picture.contents > img.animate-fade-in",
+                        "boundingRect": {
+                          "top": 334,
+                          "bottom": 1157,
+                          "left": 0,
+                          "right": 412,
+                          "width": 412,
+                          "height": 823
+                        },
+                        "snippet": "<img src=\"https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5\u2026\" alt=\"\" width=\"1600\" height=\"900\" sizes=\"100vw\" loading=\"eager\" decoding=\"async\" fetchpriority=\"high\" class=\"animate-fade-in absolute inset-0 h-full w-full object-cover\">",
+                        "nodeLabel": "section#booking > div.absolute > picture.contents > img.animate-fade-in"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "table",
+                  "headings": [
+                    {
+                      "key": "phase",
+                      "valueType": "text",
+                      "label": "Phase"
+                    },
+                    {
+                      "key": "percent",
+                      "valueType": "text",
+                      "label": "% of LCP"
+                    },
+                    {
+                      "key": "timing",
+                      "valueType": "ms",
+                      "label": "Timing"
+                    }
+                  ],
+                  "items": [
+                    {
+                      "phase": "TTFB",
+                      "timing": 1096.6310000305175,
+                      "percent": "21%"
+                    },
+                    {
+                      "phase": "Load Delay",
+                      "timing": 3947.6055287616073,
+                      "percent": "75%"
+                    },
+                    {
+                      "phase": "Load Time",
+                      "timing": 153.85300968515548,
+                      "percent": "3%"
+                    },
+                    {
+                      "phase": "Render Delay",
+                      "timing": 53.583861522720326,
+                      "percent": "1%"
+                    }
+                  ]
+                }
+              ]
+            },
+            "guidanceLevel": 1
+          }
+        },
+        "relevantRequests": [
+          {
+            "url": "https://dollpictures.in/assets/index-CAVvConx.js",
+            "sessionTargetType": "page",
+            "protocol": "h2",
+            "rendererStartTime": 1108.6949999928474,
+            "networkRequestTime": 1114.17199999094,
+            "networkEndTime": 1524.7569999992847,
+            "finished": true,
+            "transferSize": 111135,
+            "resourceSize": 348875,
+            "statusCode": 200,
+            "mimeType": "application/javascript",
+            "resourceType": "Script",
+            "priority": "High",
+            "experimentalFromMainFrame": true,
+            "entity": "dollpictures.in"
+          },
+          {
+            "url": "https://doll-backend-27n8.onrender.com/api/booking-backgrounds",
+            "sessionTargetType": "page",
+            "protocol": "h2",
+            "rendererStartTime": 1743.1590000092983,
+            "networkRequestTime": 1743.5959999859333,
+            "networkEndTime": 2248.032000005245,
+            "finished": true,
+            "transferSize": 1546,
+            "resourceSize": 13177,
+            "statusCode": 200,
+            "mimeType": "application/json",
+            "resourceType": "Fetch",
+            "priority": "High",
+            "experimentalFromMainFrame": true,
+            "entity": "onrender.com"
+          },
+          {
+            "url": "https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5d906-95f2-40e3-ae22-6e8a0842c9ec.jpg",
+            "sessionTargetType": "page",
+            "protocol": "h3",
+            "rendererStartTime": 2249.967999994755,
+            "networkRequestTime": 2250.197999984026,
+            "networkEndTime": 2318.84399998188,
+            "finished": true,
+            "transferSize": 53725,
+            "resourceSize": 53322,
+            "statusCode": 200,
+            "mimeType": "image/webp",
+            "resourceType": "Image",
+            "priority": "High",
+            "experimentalFromMainFrame": true,
+            "entity": "imagekit.io"
+          }
+        ]
+      }
+    ]
+  },
+  "implementation": [
+    "Render /booking with the existing public HTML and validated snapshot flow; eagerly import its CTA and FAQ within the route module.",
+    "Resolve public Booking backgrounds once during prerender, seed normalized sources into the browser, and render only the first background as eager/high priority.",
+    "Keep responsive URLs, quality and rotation; Gallery retains its runtime/lazy behavior. First image paints without its entrance animation; subsequent transitions including wraparound preserve fading.",
+    "Use native picture/source/img discovery instead of an additional preload, avoiding duplicate format downloads.",
+    "Validate the build response and snapshot; strict CMS builds reject unavailable/malformed backgrounds, while optional builds preserve an empty background and browser recovery. Empty published collections remain valid.",
+    "Keep no-JavaScript Booking copy and FAQ visible, with telephone/WhatsApp links replacing non-working buttons."
+  ],
+  "controlled": {
+    "checkedAt": "2026-09-10T04:48:22.958Z",
+    "method": "Three alternating before/after fresh Chromium runs, 390x900, reduced motion, identical photo bytes; entry JS and Booking API each artificially delayed 1500ms; not production LCP or field data",
+    "results": [
+      {
+        "sample": 1,
+        "variant": "before",
+        "apiRequests": 1,
+        "timing": {
+          "image": [
+            {
+              "startTime": 3129.7000000178814,
+              "responseEnd": 3137.300000011921,
+              "initiatorType": "img"
+            }
+          ],
+          "lcp": [
+            {
+              "startTime": 1612,
+              "url": "",
+              "tag": "P"
+            },
+            {
+              "startTime": 1640,
+              "url": "",
+              "tag": "H2"
+            },
+            {
+              "startTime": 3172,
+              "url": "http://127.0.0.1:4180/fixture-media/booking-1.jpg",
+              "tag": "IMG"
+            }
+          ]
+        },
+        "errors": [],
+        "writes": []
+      },
+      {
+        "sample": 1,
+        "variant": "after",
+        "apiRequests": 0,
+        "timing": {
+          "image": [
+            {
+              "startTime": 5.5999999940395355,
+              "responseEnd": 9.900000005960464,
+              "initiatorType": "img"
+            }
+          ],
+          "lcp": [
+            {
+              "startTime": 36,
+              "url": "http://127.0.0.1:4180/fixture-media/booking-1.jpg",
+              "tag": "IMG"
+            }
+          ]
+        },
+        "errors": [],
+        "writes": []
+      },
+      {
+        "sample": 2,
+        "variant": "before",
+        "apiRequests": 1,
+        "timing": {
+          "image": [
+            {
+              "startTime": 3093.7000000178814,
+              "responseEnd": 3101,
+              "initiatorType": "img"
+            }
+          ],
+          "lcp": [
+            {
+              "startTime": 1576,
+              "url": "",
+              "tag": "P"
+            },
+            {
+              "startTime": 1612,
+              "url": "",
+              "tag": "H2"
+            },
+            {
+              "startTime": 3124,
+              "url": "http://127.0.0.1:4180/fixture-media/booking-1.jpg",
+              "tag": "IMG"
+            }
+          ]
+        },
+        "errors": [],
+        "writes": []
+      },
+      {
+        "sample": 2,
+        "variant": "after",
+        "apiRequests": 0,
+        "timing": {
+          "image": [
+            {
+              "startTime": 5.199999988079071,
+              "responseEnd": 9.099999994039536,
+              "initiatorType": "img"
+            }
+          ],
+          "lcp": [
+            {
+              "startTime": 40,
+              "url": "http://127.0.0.1:4180/fixture-media/booking-1.jpg",
+              "tag": "IMG"
+            }
+          ]
+        },
+        "errors": [],
+        "writes": []
+      },
+      {
+        "sample": 3,
+        "variant": "before",
+        "apiRequests": 1,
+        "timing": {
+          "image": [
+            {
+              "startTime": 3092.2000000178814,
+              "responseEnd": 3099.0999999940395,
+              "initiatorType": "img"
+            }
+          ],
+          "lcp": [
+            {
+              "startTime": 1576,
+              "url": "",
+              "tag": "P"
+            },
+            {
+              "startTime": 1612,
+              "url": "",
+              "tag": "H2"
+            },
+            {
+              "startTime": 3124,
+              "url": "http://127.0.0.1:4180/fixture-media/booking-1.jpg",
+              "tag": "IMG"
+            }
+          ]
+        },
+        "errors": [],
+        "writes": []
+      },
+      {
+        "sample": 3,
+        "variant": "after",
+        "apiRequests": 0,
+        "timing": {
+          "image": [
+            {
+              "startTime": 5.5999999940395355,
+              "responseEnd": 10.699999988079071,
+              "initiatorType": "img"
+            }
+          ],
+          "lcp": [
+            {
+              "startTime": 40,
+              "url": "http://127.0.0.1:4180/fixture-media/booking-1.jpg",
+              "tag": "IMG"
+            }
+          ]
+        },
+        "errors": [],
+        "writes": []
+      }
+    ]
+  },
+  "controlledImageRequestStartMedianMs": {
+    "before": 3093.7000000178814,
+    "after": 5.5999999940395355
+  },
+  "localRelease": {
+    "command": "VITE_API_URL='' API_URL='' SEO_REQUIRE_CMS=false npm run check:release",
+    "exitCode": 0,
+    "notes": "Typecheck, lint, 27 middleware checks, build/prerender/PWA generation passed; nine existing Fast Refresh warnings and chunk-size warnings remain."
+  },
+  "localHtmlSmoke": {
+    "command": "npm run seo:html-smoke -- --require-cms --base-url http://127.0.0.1:4180",
+    "exitCode": 0
+  },
+  "snapshotCases": [
+    {
+      "name": "Valid Booking snapshot and strict initial HTML",
+      "passed": true
+    },
+    {
+      "name": "wrong route",
+      "passed": true
+    },
+    {
+      "name": "missing Booking seed",
+      "passed": true
+    },
+    {
+      "name": "false loaded with images",
+      "passed": true
+    },
+    {
+      "name": "bad images type",
+      "passed": true
+    },
+    {
+      "name": "blank source",
+      "passed": true
+    },
+    {
+      "name": "private source",
+      "passed": true
+    },
+    {
+      "name": "stock source",
+      "passed": true
+    },
+    {
+      "name": "bad responsive source",
+      "passed": true
+    },
+    {
+      "name": "bad category",
+      "passed": true
+    },
+    {
+      "name": "lazy first image",
+      "passed": true
+    },
+    {
+      "name": "low priority",
+      "passed": true
+    },
+    {
+      "name": "wrong source",
+      "passed": true
+    },
+    {
+      "name": "wrong responsive source",
+      "passed": true
+    },
+    {
+      "name": "Booking data rejected on Gallery",
+      "passed": true
+    },
+    {
+      "name": "Malformed API rejected and real public API accepted",
+      "passed": true
+    }
+  ],
+  "buildStates": {
+    "checkedAt": "2026-09-10T05:22:59.890Z",
+    "results": [
+      {
+        "name": "published",
+        "passed": true,
+        "imagesInSnapshot": 2,
+        "imagesInHtml": 1
+      },
+      {
+        "name": "edited-order",
+        "passed": true,
+        "imagesInSnapshot": 2,
+        "imagesInHtml": 1
+      },
+      {
+        "name": "removed-first",
+        "passed": true,
+        "imagesInSnapshot": 1,
+        "imagesInHtml": 1
+      },
+      {
+        "name": "empty",
+        "passed": true,
+        "imagesInSnapshot": 0,
+        "imagesInHtml": 0
+      },
+      {
+        "name": "exclusions",
+        "passed": true,
+        "imagesInSnapshot": 2,
+        "imagesInHtml": 1
+      },
+      {
+        "name": "malformed",
+        "passed": true,
+        "rejected": true
+      },
+      {
+        "name": "unavailable-strict",
+        "passed": true,
+        "rejected": true
+      },
+      {
+        "name": "unavailable-optional",
+        "passed": true,
+        "imagesInSnapshot": 0,
+        "imagesInHtml": 0
+      }
+    ]
+  },
+  "browser": {
+    "checkedAt": "2026-09-10T05:24:49.322Z",
+    "scope": "Local production build; fixture CMS and image bytes; no submissions or external writes",
+    "results": [
+      {
+        "mode": "no-js",
+        "width": 390,
+        "passed": true,
+        "apiRequests": 0,
+        "errors": [],
+        "writes": []
+      },
+      {
+        "mode": "booking",
+        "width": 390,
+        "passed": true,
+        "apiRequests": 0,
+        "errors": [],
+        "writes": []
+      },
+      {
+        "mode": "gallery",
+        "width": 390,
+        "passed": true,
+        "apiRequests": 1,
+        "errors": [],
+        "writes": []
+      },
+      {
+        "mode": "prefill",
+        "width": 390,
+        "passed": true,
+        "apiRequests": 0,
+        "errors": [],
+        "writes": []
+      },
+      {
+        "mode": "bad-snapshot",
+        "width": 390,
+        "passed": true,
+        "apiRequests": 1,
+        "errors": [],
+        "writes": []
+      },
+      {
+        "mode": "no-js",
+        "width": 1440,
+        "passed": true,
+        "apiRequests": 0,
+        "errors": [],
+        "writes": []
+      },
+      {
+        "mode": "booking",
+        "width": 1440,
+        "passed": true,
+        "apiRequests": 0,
+        "errors": [],
+        "writes": []
+      },
+      {
+        "mode": "gallery",
+        "width": 1440,
+        "passed": true,
+        "apiRequests": 1,
+        "errors": [],
+        "writes": []
+      },
+      {
+        "mode": "prefill",
+        "width": 1440,
+        "passed": true,
+        "apiRequests": 0,
+        "errors": [],
+        "writes": []
+      },
+      {
+        "mode": "bad-snapshot",
+        "width": 1440,
+        "passed": true,
+        "apiRequests": 1,
+        "errors": [],
+        "writes": []
+      }
+    ]
+  },
+  "unavailableBrowser": {
+    "checkedAt": "2026-09-10T05:25:44.340Z",
+    "scope": "Local production build; fixture CMS and image bytes; no submissions or external writes",
+    "results": [
+      {
+        "mode": "unavailable",
+        "width": 390,
+        "passed": true,
+        "apiRequests": 1,
+        "errors": [],
+        "writes": []
+      },
+      {
+        "mode": "unavailable",
+        "width": 1440,
+        "passed": true,
+        "apiRequests": 1,
+        "errors": [],
+        "writes": []
+      }
+    ]
+  },
+  "visualReview": "Reviewed mobile no-JavaScript Booking and desktop interactive Booking screenshots; image, readable copy, fallback links and CTA layout were visible. Fixture photography bytes used; production photo/content acceptance is separate.",
+  "probeNotes": [
+    "An initial Gallery rotation probe began before its content settled in view; waiting for visible CTA copy passed at both widths.",
+    "Fixture rebuild tests use matching VITE_API_URL and API_URL; the repository intentionally prioritizes VITE_API_URL.",
+    "No .spec files added; no live CMS mutation, enquiry submission, commit, push or deployment performed."
+  ],
+  "remaining": [
+    "Deploy this increment and verify its served commit before comparing three serial Lighthouse runs with this baseline.",
+    "Run updated CMS-strict HTML and path smoke checks, then review actual Booking/Gallery images, rotation, enquiry prefill and FAQ on the deployment.",
+    "CMS cover/publication/order changes now require a successful frontend rebuild to refresh initial Booking HTML.",
+    "Broader desktop/interaction/CSS/route experiments and field CWV remain open; do not claim a production LCP gain from the artificial-delay test."
+  ],
+  "rotationWrapBrowser": {
+    "checkedAt": "2026-09-10T05:29:13.039Z",
+    "scope": "Local production build; fixture CMS and image bytes; no submissions or external writes",
+    "results": [
+      {
+        "mode": "booking",
+        "width": 390,
+        "passed": true,
+        "apiRequests": 0,
+        "errors": [],
+        "writes": []
+      },
+      {
+        "mode": "booking",
+        "width": 1440,
+        "passed": true,
+        "apiRequests": 0,
+        "errors": [],
+        "writes": []
+      }
+    ]
+  }
+}

@@ -61,15 +61,14 @@ Historical context (retain its original records; do not copy old statuses into t
 
 ### Local
 
-Commands below are for future remediation verification and were not run merely to create this plan. Run focused checks first; run full release gates only when relevant to the eventual change.
+The 10 September Booking discovery increment passed the release gate, CMS-strict fixture HTML smoke, controlled delayed-resource comparison, 16 snapshot/API checks, 8 build-state checks and 14 browser cases. [Evidence](./evidence/f13-booking-discovery-2026-09-10.json) separates local fixtures from the fresh production baseline.
 
 ```sh
-npm run typecheck
-npm run lint
-# Use focused browser verification for any eventual code change; no spec files are added.
+VITE_API_URL='' API_URL='' SEO_REQUIRE_CMS=false npm run check:release
+# Focused browser checks use temporary fixtures; no spec files added.
 ```
 
-- [ ] Record the changed behavior, command outcomes, commit and relevant fixture/browser evidence.
+- [x] Record changed behavior, command outcomes, base commit and fixture/browser evidence for the Booking increments; broader experiments remain open.
 - [ ] Complete the scenario-specific checks above; explain any non-applicable check.
 
 ### Deployment
@@ -94,9 +93,9 @@ Promote through the existing release workflow only when this item's applicable g
 
 | Stage | State | Evidence |
 |---|---|---|
-| Remediation implementation | In progress | Booking loading-space and first-background priority fixes are deployed in verified commit `90a068e`; remaining LCP discovery and broader performance work are open |
-| Local remediation validation | Focused checks passed | Controlled delayed-chunk before/after at 390/1440 px; four Booking/Gallery image-priority and enquiry cases; focused ESLint passed. Broader profiling remains pending |
-| Preview/production acceptance | Booking comparison recorded; overall acceptance pending | Three mobile samples on stable deployed commit `90a068e`: median CLS 0.00344, LCP 7.07s, TBT 32ms, score 74. Footer shift absent; LCP remains slow. See 9 September evidence |
+| Remediation implementation | In progress | Earlier Booking layout/priority fixes are deployed; initial background HTML and CMS snapshot reuse implemented locally on 10 September, pending deployment/comparison. Broader performance work remains open |
+| Local remediation validation | Focused checks passed | Release gate, strict fixture HTML, 6 controlled runs, 16 snapshot/API cases, 8 build states and 14 browser cases including wraparound rotation; see 10 September evidence |
+| Preview/production acceptance | New baseline recorded; discovery change not deployed | Three mobile samples on `527d2b1`: median LCP 5.35s (range 5.25–8.30s), CLS 0.00344, TBT 104ms, score 74. Background remains JS/CMS-discovered in that deployment. Repeat after deploying the new HTML increment |
 | External checks | Pending | PSI API returned HTTP 429; CrUX URL/origin and Search Console field data remain unverified |
 
 Update this header, this record, the master row, chunk checkbox and totals together. Use `Ready for verification` when implementation and required local checks pass but applicable deployment/manual checks remain. Use `Complete` only after this item's acceptance criteria pass; record non-gating ongoing observations separately. `Blocked` requires a blocker, responsible role and concrete next action.
@@ -155,3 +154,41 @@ This supersedes the earlier local-only/deployment-pending wording, while retaini
 | Date | Change | Evidence | Remaining blockers / next action |
 |---|---|---|---|
 | 2026-09-09 | Verified deployed Booking fixes and recorded three comparable mobile samples | Stable deployed commit `90a068e`, matching Lighthouse settings; CLS 0.00344, LCP 7.07s; deployed response headers | Frontend engineer: address CMS/JS image discovery with a controlled experiment; retain broader and field acceptance as pending |
+
+
+## Booking initial image discovery — 10 September 2026
+
+[Production baseline and local verification](./evidence/f13-booking-discovery-2026-09-10.json).
+
+Three serial Lighthouse 12.8.2 mobile samples on unchanged deployed commit `527d2b1cf98affccfb77b5b6accc11e487f18ed2` used Chrome 152 and exactly the same configuration as the prior baseline. Median LCP was **5.35s**, range **5.25–8.30s**; CLS **0.00344**, TBT **104ms**, FCP **2.11s**, and score **74**. All three identify the first Booking background as the LCP image and report that it is absent from initial HTML. The public `/booking-backgrounds` request still precedes its discovery. This refresh is a baseline for the next change, not evidence that the new code improved production; network/host variation remains uncontrolled.
+
+### Implemented locally
+
+`/booking` now uses the existing public HTML renderer and validated route snapshot. Its route module supplies eager CTA/FAQ components so server rendering emits the full section rather than a Suspense fallback. The build loads and projects public Booking backgrounds; the shared CTA uses those sources for its initial state and skips a redundant browser background request on this route. Only the first background is an initial HTML image, with the existing responsive `picture` sources and eager/high priority. Source quality, dimensions and rotation order are preserved. Later transitions, including the return to the first image, retain their fade; the first paint does not wait for an entrance animation.
+
+Native `picture`/`source`/`img` discovery is used instead of adding a second preload definition. This keeps browser format/width selection in one place and avoids duplicate-format requests, consistent with [responsive image guidance](https://web.dev/articles/preload-responsive-images). Eager route sections also avoid [React's renderToString Suspense fallback limitation](https://react.dev/reference/react-dom/server/renderToString).
+
+The snapshot is limited to Booking and rejects malformed, empty-source, cross-route and excluded-media data. Strict CMS builds reject an unavailable or malformed background endpoint; a valid empty collection remains valid. Optional builds render the gradient and recover through the existing browser request. Gallery keeps runtime loading and lazy/default image priority. Booking copy and native FAQ details remain visible without JavaScript, with telephone/WhatsApp links replacing inactive enquiry buttons. No backend write contract or image-quality setting changed.
+
+### Evidence and limits
+
+- Six controlled Chromium runs alternated the old committed build and new build using identical fixtures and photo bytes. With the entry script and Booking API each deliberately delayed **1.5 seconds**, median image-request start changed from **3094ms to 6ms**; the new route made **zero** background API requests and fetched the first image once. This demonstrates removal of those dependencies, not a production LCP improvement.
+- The final release gate and CMS-strict local HTML smoke passed. Sixteen snapshot/HTML/API cases cover malformed and cross-route seeds, priority/source mismatch and the current real public API response shape.
+- Eight build states cover publishing, reordered/edited covers, removal, empty data, excluded/duplicate photos, malformed data, strict failure and optional fallback.
+- Fourteen browser cases cover 390/1440 px, no-JavaScript content/FAQ/contact links, Booking and Gallery loading/rotation, enquiry opening/Escape, query prefill, invalid snapshot fallback, unavailable-snapshot recovery and wraparound fading. No page/hydration errors or attempted CMS/enquiry writes were recorded in passing cases. Fixture photography was used; mobile no-JavaScript and desktop screenshots were visually reviewed.
+- A Gallery probe initially ran before its CTA settled in view; waiting for the visible copy passed. This was a probe correction, not a Gallery code change. No spec files were added.
+
+### Deployment and next comparison
+
+CMS cover, publication and ordering changes require a successful frontend rebuild to refresh the initial Booking snapshot, matching the existing public HTML model. Deploy this increment with the existing production CMS environment, confirm its served commit, then run:
+
+```sh
+npm run seo:html-smoke -- --require-cms --base-url https://dollpictures.in
+npm run seo:paths-smoke -- --base-url https://dollpictures.in
+```
+
+Repeat the three serial Lighthouse samples from the 9 September runbook with the same settings, compare against the **10 September baseline**, and review actual Booking/Gallery photography, rotation, query prefill and enquiry behavior. Do not submit real enquiries during verification. No deployment was performed in this increment. F13 remains **In progress** because the production comparison, broader desktop/interaction/CSS/route work and field CWV remain open.
+
+| Date | Change | Evidence | Remaining blockers / next action |
+|---|---|---|---|
+| 2026-09-10 | Refreshed production baseline and implemented first Booking image in initial HTML with snapshot reuse | 3 production samples; controlled request dependency removal; release/HTML, 16 snapshot, 8 build and 14 browser checks passed | Deploy and compare three equivalent production samples; retain broader/field work as pending |

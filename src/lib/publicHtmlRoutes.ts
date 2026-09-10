@@ -21,7 +21,7 @@ export const PUBLIC_PACKAGE_HTML_ROUTES = {
 export const PUBLIC_CORE_HTML_ROUTES = {
   '/': 'home', '/about': 'about', '/work': 'work', '/gallery': 'gallery',
   '/services': 'services', '/packages': 'packages', '/stories': 'stories',
-  '/contact': 'contact', '/privacy': 'privacy', '/terms': 'terms',
+  '/contact': 'contact', '/privacy': 'privacy', '/terms': 'terms', '/booking': 'booking',
 } as const;
 export const PUBLIC_HTML_ROUTES = { ...PUBLIC_CORE_HTML_ROUTES, ...PUBLIC_SERVICE_HTML_ROUTES, ...PUBLIC_PACKAGE_HTML_ROUTES } as const;
 export type PublicHtmlPath = string;

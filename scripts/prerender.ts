@@ -1,4 +1,5 @@
 import { PORTFOLIO_PHOTO_LIMIT } from '../src/lib/publicHtmlRoutes';
+import { isBookingBackgroundResponse } from '../src/lib/bookingBackgrounds';
 import { resolveApiServiceCategory } from '../src/lib/serviceCategory';
 import { parsePublicSnapshot } from '../src/lib/publicSnapshot';
 import { serviceCatalogFromLinks } from '../src/lib/seo-core';
@@ -551,7 +552,7 @@ if (renderPaths.length) {
     for (const path of renderPaths) {
       const packagePage = publicHtmlKind(path, publicCatalog) === 'package';
       const category = packagePage ? publicCatalog.packageLinks.find(link => link.path === path)?.categorySlug : resolveApiServiceCategory(path, publicCatalog.serviceLinks.find(link => link.path === path)?.label);
-      const [cover, photos, hero, featured, gallery, offers, portfolio, staff, scenes, reviews] = await Promise.all([
+      const [cover, photos, hero, featured, gallery, offers, portfolio, staff, scenes, reviews, bookingBackgrounds] = await Promise.all([
         category ? loadOptional(`/categories/${category}`) : undefined,
         category ? loadOptional(`/photos?category=${category}&limit=${SERVICE_GALLERY_LIMIT}`) : undefined,
         path === '/' ? buildHeroSlides : undefined,
@@ -562,7 +563,9 @@ if (renderPaths.length) {
         path === '/about' ? loadOptional('/staff-profiles') : undefined,
         path === '/about' ? loadOptional('/behind-scenes') : undefined,
         path === '/stories' ? loadOptional('/testimonials') : undefined,
+        path === '/booking' ? loadOptional('/booking-backgrounds') : undefined,
       ]);
+      if (path === '/booking' && String(process.env.SEO_REQUIRE_CMS).toLowerCase() === 'true' && !isBookingBackgroundResponse(bookingBackgrounds)) throw new Error('CMS booking backgrounds unavailable or malformed for /booking');
       if (packagePage && String(process.env.SEO_REQUIRE_CMS).toLowerCase() === 'true' && !Array.isArray(offers)) throw new Error(`CMS packages unavailable for ${path}`);
       if (path === '/gallery' && String(process.env.SEO_REQUIRE_CMS).toLowerCase() === 'true' && !Array.isArray(portfolio)) throw new Error('CMS gallery photos unavailable for /gallery');
       if (path === '/gallery' && Array.isArray(portfolio) && portfolio.length >= PORTFOLIO_PHOTO_LIMIT) {
@@ -578,6 +581,7 @@ if (renderPaths.length) {
         photos: Array.isArray(photos) ? photos : undefined,
         offers: Array.isArray(offers) ? offers : undefined,
         portfolio: Array.isArray(portfolio) ? portfolio : undefined,
+        bookingBackgrounds,
         about: path === '/about' ? { staff: Array.isArray(staff) ? staff : undefined, scenes: Array.isArray(scenes) ? scenes : undefined } : undefined,
         stories: path === '/stories' ? { reviews: Array.isArray(reviews) ? reviews : undefined } : undefined,
         home: path === '/' ? { hero: Array.isArray(hero) ? hero : undefined, featured: Array.isArray(featured) ? featured : undefined, gallery: Array.isArray(gallery) ? gallery : undefined } : ['/work', '/contact'].includes(path) ? { featured: Array.isArray(featured) ? featured : undefined } : undefined }));
@@ -598,6 +602,7 @@ for (const page of Object.values(pages)) {
     if (page.path === '/gallery') html = html.replace('</head>', '<style>[data-public-html="/gallery"] #gallery img{opacity:1}[data-public-html="/gallery"] [data-gallery-placeholder]{display:none}</style></head>');
     if (page.path === '/work') html = html.replace('</head>', '<style>[data-public-html="/work"] #work .reveal,[data-public-html="/work"] #work .reveal-blur{opacity:1;transform:none;filter:none}</style></head>');
     if (page.path === '/about') html = html.replace('</head>', '<style>[data-public-html="/about"] main .reveal,[data-public-html="/about"] main .reveal-blur{opacity:1;transform:none;filter:none}</style></head>');
+    if (page.path === '/booking') html = html.replace('</head>', '<style>[data-public-html="/booking"] [data-booking-copy]>div,[data-public-html="/booking"] [data-booking-copy]>h2,[data-public-html="/booking"] [data-booking-copy]>p,[data-public-html="/booking"] #booking-faq .reveal{opacity:1!important;transform:none;animation:none}</style></head>');
     const serialized = serializeInlineJson(service.snapshot);
     if (!parsePublicSnapshot(serialized, page.path)) throw new Error(`Invalid public snapshot for ${page.path}`);
     html = html.replace(/<noscript>[\s\S]*?<\/noscript>/g, '');

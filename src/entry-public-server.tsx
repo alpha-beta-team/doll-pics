@@ -1,4 +1,7 @@
 import { About } from './pages/About';
+import { BookingPage } from './pages/BookingPage';
+import { bookingBackgroundImages, isBookingBackgroundResponse } from './lib/bookingBackgrounds';
+import { getPhotoSources } from './lib/api';
 import { Stories } from './pages/Stories';
 import { Contact } from './pages/Contact';
 import { Privacy } from './pages/Privacy';
@@ -24,7 +27,7 @@ import { type PublicSnapshot } from './lib/publicSnapshot';
 import type { PublicSiteContent, PublicPackageCategory, PublicPhoto, PublicCategory, PublicHeroSlide, PublicPackage, PublicStaffProfile, PublicBehindScene, PublicTestimonial } from './shared/types';
 
 const corePages = { home: Site, about: About, work: WorkPage, gallery: GalleryPage,
-  services: ServicesHub, packages: Packages, stories: Stories, contact: Contact, privacy: Privacy, terms: Terms };
+  services: ServicesHub, packages: Packages, stories: Stories, contact: Contact, privacy: Privacy, terms: Terms, booking: BookingPage };
 
 export async function renderPublicPage(input: {
   path: PublicHtmlPath;
@@ -35,6 +38,7 @@ export async function renderPublicPage(input: {
   photos?: PublicPhoto[];
   offers?: PublicPackage[];
   portfolio?: PublicPhoto[];
+  bookingBackgrounds?: unknown;
   about?: { staff?: PublicStaffProfile[]; scenes?: PublicBehindScene[] };
   stories?: { reviews?: PublicTestimonial[] };
   home?: { hero?: PublicHeroSlide[]; featured?: PublicPhoto[]; gallery?: PublicPhoto[] };
@@ -44,6 +48,10 @@ export async function renderPublicPage(input: {
   const kind = publicHtmlKind(input.path, data.publicCatalog);
   if (!kind) throw new Error(`Unpublished or unsupported public HTML route: ${input.path}`);
   if (kind === 'gallery') data.galleryPortfolio = { photos: normalizePhotos(input.portfolio ?? []), loaded: Array.isArray(input.portfolio) };
+  if (kind === 'booking') data.bookingBackgrounds = {
+    images: isBookingBackgroundResponse(input.bookingBackgrounds) ? bookingBackgroundImages(input.bookingBackgrounds, getPhotoSources) : [],
+    loaded: isBookingBackgroundResponse(input.bookingBackgrounds),
+  };
   if ((kind === 'work' || kind === 'contact') && !loaded.includes('featuredPhotos')) data.featuredWork = [];
   if (kind === 'stories' && !loaded.includes('testimonials')) data.testimonials = [];
   const packagePage = kind === 'package';

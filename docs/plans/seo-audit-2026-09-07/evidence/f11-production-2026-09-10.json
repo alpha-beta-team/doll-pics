@@ -1,0 +1,711 @@
+{
+  "checkedAt": "2026-09-10T04:36:27.977974+00:00",
+  "task": "F11 \u2014 deployed image discovery verification",
+  "baseUrl": "https://dollpictures.in",
+  "servedBuild": {
+    "commit": "527d2b1cf98affccfb77b5b6accc11e487f18ed2",
+    "createdAt": "2026-09-10T04:22:13.662Z",
+    "publicOrigin": "https://dollpictures.in"
+  },
+  "deploymentIdentity": "The public catalog serves commit 527d2b1cf98affccfb77b5b6accc11e487f18ed2, matching the local F11 implementation commit. Vercel deployment ID was not separately inspected.",
+  "result": "Production engineering verification passed; content-owner acceptance remains pending",
+  "commands": [
+    {
+      "command": "npm run seo:html-smoke -- --require-cms --base-url https://dollpictures.in",
+      "exitCode": 0,
+      "result": "Published HTML, CMS snapshots, metadata, sitemap, exclusions and true 404 passed"
+    },
+    {
+      "command": "npm run seo:paths-smoke -- --base-url https://dollpictures.in",
+      "exitCode": 0,
+      "result": "98 case/slash/query and unknown/private checks passed"
+    },
+    {
+      "command": "npm run seo:images-smoke -- --base-url https://dollpictures.in --api-url https://doll-backend-27n8.onrender.com/api --image-sample 100 --report /tmp/f11-deployed-images.json",
+      "exitCode": 0,
+      "result": "64 genuine published photographs discovered in initial HTML, 64 matching image links and 64 valid image responses; no crawl failures"
+    }
+  ],
+  "imageDiscovery": {
+    "checkedAt": "2026-09-10T04:31:32.974Z",
+    "baseUrl": "https://dollpictures.in",
+    "apiUrl": "https://doll-backend-27n8.onrender.com/api",
+    "build": {
+      "commit": "527d2b1cf98affccfb77b5b6accc11e487f18ed2",
+      "createdAt": "2026-09-10T04:22:13.662Z",
+      "publicOrigin": "https://dollpictures.in"
+    },
+    "inventory": {
+      "publishedRecords": 67,
+      "excludedRecords": 3,
+      "intendedPhotos": 64,
+      "galleryImages": 64,
+      "galleryImageLinks": 64,
+      "cap": 100,
+      "missingIds": []
+    },
+    "pages": [
+      {
+        "path": "/",
+        "imageCount": 14,
+        "internalLinks": 42
+      },
+      {
+        "path": "/about",
+        "imageCount": 0,
+        "internalLinks": 29
+      },
+      {
+        "path": "/baby-milestone-packages-erode",
+        "imageCount": 2,
+        "internalLinks": 48
+      },
+      {
+        "path": "/baby-milestone-photography-erode",
+        "imageCount": 11,
+        "internalLinks": 51
+      },
+      {
+        "path": "/baby-shower-packages-erode",
+        "imageCount": 7,
+        "internalLinks": 45
+      },
+      {
+        "path": "/baby-shower-photography-erode",
+        "imageCount": 12,
+        "internalLinks": 50
+      },
+      {
+        "path": "/birthday-event-photography-erode",
+        "imageCount": 6,
+        "internalLinks": 48
+      },
+      {
+        "path": "/booking",
+        "imageCount": 0,
+        "internalLinks": 0
+      },
+      {
+        "path": "/cake-smash-packages-erode",
+        "imageCount": 2,
+        "internalLinks": 47
+      },
+      {
+        "path": "/cake-smash-photography-erode",
+        "imageCount": 11,
+        "internalLinks": 51
+      },
+      {
+        "path": "/contact",
+        "imageCount": 1,
+        "internalLinks": 30
+      },
+      {
+        "path": "/ear-piercing-photography-erode",
+        "imageCount": 4,
+        "internalLinks": 48
+      },
+      {
+        "path": "/family-packages-erode",
+        "imageCount": 1,
+        "internalLinks": 47
+      },
+      {
+        "path": "/family-photography-erode",
+        "imageCount": 8,
+        "internalLinks": 52
+      },
+      {
+        "path": "/fashion-photography-erode",
+        "imageCount": 4,
+        "internalLinks": 48
+      },
+      {
+        "path": "/gallery",
+        "imageCount": 64,
+        "internalLinks": 29
+      },
+      {
+        "path": "/kids-photography-erode",
+        "imageCount": 4,
+        "internalLinks": 48
+      },
+      {
+        "path": "/maternity-packages-erode",
+        "imageCount": 5,
+        "internalLinks": 47
+      },
+      {
+        "path": "/maternity-photography-erode",
+        "imageCount": 13,
+        "internalLinks": 52
+      },
+      {
+        "path": "/newborn-baby-photography-erode",
+        "imageCount": 14,
+        "internalLinks": 51
+      },
+      {
+        "path": "/newborn-packages-erode",
+        "imageCount": 9,
+        "internalLinks": 49
+      },
+      {
+        "path": "/packages",
+        "imageCount": 0,
+        "internalLinks": 38
+      },
+      {
+        "path": "/pre-wedding-packages-erode",
+        "imageCount": 1,
+        "internalLinks": 46
+      },
+      {
+        "path": "/privacy",
+        "imageCount": 0,
+        "internalLinks": 31
+      },
+      {
+        "path": "/services",
+        "imageCount": 3,
+        "internalLinks": 42
+      },
+      {
+        "path": "/stories",
+        "imageCount": 0,
+        "internalLinks": 30
+      },
+      {
+        "path": "/terms",
+        "imageCount": 0,
+        "internalLinks": 32
+      },
+      {
+        "path": "/toddler-baby-photography-erode",
+        "imageCount": 12,
+        "internalLinks": 50
+      },
+      {
+        "path": "/toddler-baby-shoot-packages-erode",
+        "imageCount": 6,
+        "internalLinks": 47
+      },
+      {
+        "path": "/wedding-packages-erode",
+        "imageCount": 5,
+        "internalLinks": 53
+      },
+      {
+        "path": "/wedding-photography-erode",
+        "imageCount": 12,
+        "internalLinks": 52
+      },
+      {
+        "path": "/work",
+        "imageCount": 2,
+        "internalLinks": 29
+      }
+    ],
+    "imageResponses": [
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-milestone/2026/d4addef2-8f7b-4057-8a54-943b957b0184.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-milestone/2026/fc5d8107-291a-4fa8-af60-15c43902f554.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-milestone/2026/920fb749-44c3-4f22-a02a-9288b54b467a.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/17f4fe0d-96ce-47fe-ac8b-4f6316a2da92.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/1cc75d88-190d-4ee9-bb4c-699ed1c8c207.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/1a2d7543-357b-4fff-8631-82b4ba77a184.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/26724ca0-5d21-4457-9b52-6769fe20193b.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/3a7447dc-19d6-4e6b-9dcb-86d99c060055.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/79141696-460e-4b82-8b74-28ccb1ddba65.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/7888f651-0e2a-40e8-b0ed-b3e313b6f262.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/47a00099-a469-46a1-968c-b335995518e5.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/4f5a8c99-26f8-489c-bf93-f78cdc1f5c19.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/a286624a-20cb-4684-bb47-cb14bdae3062.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/882c088e-f9fc-4b70-867a-4718d15e436a.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/a68f3ddd-1322-495e-8e18-17c09f98355f.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/9e7595fb-c0b2-4018-8475-42524ae43a91.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/a8d8004e-4835-41cf-a09c-9fc16616cc03.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/bd280b9f-8160-4896-9807-183cbc9aac4b.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/bcdcc83b-5003-4eb2-96f1-ac8179ef6113.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/aa60a9bd-c819-429a-ba18-368937ede102.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/ea5b6555-723c-42b2-b27b-8ba23dc46138.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/c3b70ae9-03cf-4d31-819c-882f38f479ca.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/f25c21f6-b80a-4618-8bc8-bdd0f236ce8a.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/f4d62295-a016-4659-8011-ac70b6575bf9.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/family/2026/f010d37f-1e1c-4687-8828-042ae3fca5cd.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/cake-smash/2026/845667e9-ec4b-4775-8bd8-f7737f1e23b9.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/cake-smash/2026/b249e7aa-5871-4fd9-92f5-230e4ec104a0.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/cake-smash/2026/7798beef-2d7f-4211-afed-e15f514224af.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/maternity/2026/400b6c9c-6fbe-4dbf-840b-d68658c92e03.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/maternity/2026/a7ecb5fd-467a-40dc-9112-ababe5d1896e.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/maternity/2026/a87d7b16-85ff-4c38-8088-678883e0719e.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/maternity/2026/285b5976-d30d-4a5a-8365-ffccc1699c20.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/14a021f7-7627-4c2b-97a4-48d92e139103.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/0fa6acba-05b7-47b8-9be5-a7a3d22e30e5.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/0b183356-0f19-4712-8a78-e7700493bc95.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/maternity/2026/c2c0ee8f-d6ff-45e2-bf09-2df13a092334.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/29c53b65-f618-40e5-849f-e07a90c1f0bd.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/69010d13-989f-4989-9fa4-a219ba027481.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/4f32d14e-799c-4bf8-802d-a34d43ac676a.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/67437685-88c2-482b-b970-f3845a97d3ea.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/7f71da8f-0611-45b3-9ad1-86461c495d56.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/84277b80-536f-4258-aa05-f93738d3a3d2.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/8da8316a-ad86-48a2-a4cf-8d677e46eae1.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/86db0e48-e694-4e1f-8d79-ff907e58acf3.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/978b82ee-f9fc-485b-9366-ad26fd6210df.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/c3317465-d0c4-40c3-801d-805d568b9581.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/c67ff773-4292-4ccc-acda-ffefeac7d2d6.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/9d93e2f2-ef87-4e1c-b978-695f24fd90d5.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/f43aec79-9c23-4397-883a-92042b60d714.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/pre-wedding/2026/edd99042-a056-46e1-8ea9-0c685fd08447.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/toddler-baby-shoots/2026/473a1d55-00b5-4d55-9aef-3f8d5e242f50.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/cb65d430-4490-4635-b8d3-a54413937b1f.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/toddler-baby-shoots/2026/4ce0b299-519a-436d-a0ba-61ed2a44af07.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/toddler-baby-shoots/2026/7c7c0593-8b48-40cf-b3cc-0b0f56093877.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/toddler-baby-shoots/2026/68d8391a-7e39-4daa-a917-11591addb402.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/toddler-baby-shoots/2026/a3f0268a-fb6d-40df-9395-981915815231.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/toddler-baby-shoots/2026/bfdcae45-1d4d-4d75-9998-f50aba5285e0.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/wedding/2026/0ad6e2cf-bef6-4a25-98e1-57a2620ae8ca.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/toddler-baby-shoots/2026/a4faa63a-0334-4da8-8206-48e5c570b32f.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/toddler-baby-shoots/2026/bd8d0974-16c4-42fe-ad19-bdf6bca37657.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/wedding/2026/405e4cc6-70b7-432f-a7d5-1bb20adcf1e1.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/wedding/2026/81a5d906-95f2-40e3-ae22-6e8a0842c9ec.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/wedding/2026/844195de-b465-46c1-b7b2-3671e630bce1.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/wedding/2026/a3d08dbe-4281-4898-b6d5-3343ce22e710.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      }
+    ],
+    "failures": []
+  },
+  "browser": {
+    "checkedAt": "2026-09-10T04:34:22.768Z",
+    "baseUrl": "https://dollpictures.in",
+    "scope": "Fresh Chromium contexts; actual production HTML, API and images; no fixtures or mocked requests; service workers disabled to isolate public renderer",
+    "initialTimingResults": [
+      {
+        "path": "/gallery",
+        "javaScriptEnabled": true,
+        "width": 390,
+        "passed": false,
+        "error": "expect(locator).toBeVisible() failed\n\nLocator: getByRole('dialog')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" getByRole('dialog') with timeout 5000ms\n  - waiting for getByRole('dialog')\n",
+        "errors": [],
+        "badRequests": [],
+        "failedImages": []
+      },
+      {
+        "path": "/gallery",
+        "javaScriptEnabled": true,
+        "width": 1440,
+        "passed": false,
+        "error": "expect(locator).toBeVisible() failed\n\nLocator: getByRole('dialog')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" getByRole('dialog') with timeout 5000ms\n  - waiting for getByRole('dialog')\n",
+        "errors": [],
+        "badRequests": [],
+        "failedImages": []
+      },
+      {
+        "path": "/wedding-photography-erode",
+        "javaScriptEnabled": true,
+        "width": 390,
+        "passed": false,
+        "error": "expect(locator).toBeVisible() failed\n\nLocator: getByRole('dialog')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" getByRole('dialog') with timeout 5000ms\n  - waiting for getByRole('dialog')\n",
+        "errors": [],
+        "badRequests": [],
+        "failedImages": []
+      }
+    ],
+    "initialTimingNote": "Three initial clicks ran before asynchronous hydration and followed the working native image anchor. Retested these cases after the real React click handler attached; no application code changed.",
+    "results": [
+      {
+        "path": "/gallery",
+        "javaScriptEnabled": false,
+        "width": 390,
+        "passed": true,
+        "initialPhotos": 64,
+        "lightbox": false,
+        "errors": [],
+        "badRequests": [],
+        "failedImages": []
+      },
+      {
+        "path": "/gallery",
+        "javaScriptEnabled": false,
+        "width": 1440,
+        "passed": true,
+        "initialPhotos": 64,
+        "lightbox": false,
+        "errors": [],
+        "badRequests": [],
+        "failedImages": []
+      },
+      {
+        "path": "/wedding-photography-erode",
+        "javaScriptEnabled": false,
+        "width": 390,
+        "passed": true,
+        "initialPhotos": 5,
+        "lightbox": false,
+        "errors": [],
+        "badRequests": [],
+        "failedImages": []
+      },
+      {
+        "path": "/wedding-photography-erode",
+        "javaScriptEnabled": false,
+        "width": 1440,
+        "passed": true,
+        "initialPhotos": 5,
+        "lightbox": false,
+        "errors": [],
+        "badRequests": [],
+        "failedImages": []
+      },
+      {
+        "path": "/wedding-photography-erode",
+        "javaScriptEnabled": true,
+        "width": 1440,
+        "passed": true,
+        "initialPhotos": 5,
+        "lightbox": true,
+        "errors": [],
+        "badRequests": [],
+        "failedImages": []
+      },
+      {
+        "path": "/wedding-packages-erode",
+        "javaScriptEnabled": false,
+        "width": 390,
+        "passed": true,
+        "initialPhotos": 3,
+        "lightbox": false,
+        "errors": [],
+        "badRequests": [],
+        "failedImages": []
+      },
+      {
+        "path": "/wedding-packages-erode",
+        "javaScriptEnabled": true,
+        "width": 390,
+        "passed": true,
+        "initialPhotos": 3,
+        "lightbox": false,
+        "errors": [],
+        "badRequests": [],
+        "failedImages": []
+      },
+      {
+        "path": "/wedding-packages-erode",
+        "javaScriptEnabled": false,
+        "width": 1440,
+        "passed": true,
+        "initialPhotos": 3,
+        "lightbox": false,
+        "errors": [],
+        "badRequests": [],
+        "failedImages": []
+      },
+      {
+        "path": "/wedding-packages-erode",
+        "javaScriptEnabled": true,
+        "width": 1440,
+        "passed": true,
+        "initialPhotos": 3,
+        "lightbox": false,
+        "errors": [],
+        "badRequests": [],
+        "failedImages": []
+      },
+      {
+        "path": "/gallery",
+        "javaScriptEnabled": true,
+        "width": 390,
+        "passed": true,
+        "initialPhotos": 64,
+        "lightbox": true,
+        "errors": [],
+        "badRequests": [],
+        "failedImages": []
+      },
+      {
+        "path": "/gallery",
+        "javaScriptEnabled": true,
+        "width": 1440,
+        "passed": true,
+        "initialPhotos": 64,
+        "lightbox": true,
+        "errors": [],
+        "badRequests": [],
+        "failedImages": []
+      },
+      {
+        "path": "/wedding-photography-erode",
+        "javaScriptEnabled": true,
+        "width": 390,
+        "passed": true,
+        "initialPhotos": 5,
+        "lightbox": true,
+        "errors": [],
+        "badRequests": [],
+        "failedImages": []
+      }
+    ]
+  },
+  "visualReview": "Inspected live mobile Gallery, Wedding service and Wedding package screenshots: real photography is visible, service/package grids retain their layout and responsive cards stay within the viewport. No mocked image or CMS responses.",
+  "remaining": [
+    "Content owner confirms the approved public photo collection and the demo/stock exclusions.",
+    "SEO owner observes subsequent Search Console image indexing and performance; crawlability does not prove Google indexing.",
+    "F04 manual acceptance and broader device/accessibility checks remain separate; this increment covers Chromium at 390 and 1440 CSS pixels."
+  ]
+}

@@ -35,12 +35,15 @@ function SectionOnlyView({
   sectionId,
   pathname,
   sectionComponent,
+  bookingFaqComponent,
 }: {
   sectionId: string;
   pathname: string;
   sectionComponent?: ComponentType;
+  bookingFaqComponent?: ComponentType;
 }) {
   const Section = sectionComponent ?? SECTION_COMPONENTS[sectionId];
+  const Faq = bookingFaqComponent ?? BookingFaq;
   const seo = getPageSeo(pathname);
 
   useEffect(() => {
@@ -63,7 +66,7 @@ function SectionOnlyView({
           fallback={pathname === '/booking' ? <div className="min-h-screen" aria-hidden="true" /> : null}
         >
           <Section />
-          {pathname === '/booking' ? <BookingFaq /> : null}
+          {pathname === '/booking' ? <Faq /> : null}
         </Suspense>
       </main>
     </SiteShell>
@@ -80,23 +83,25 @@ function HomeView() {
   );
 }
 
-function SiteContent({ sectionComponent }: { sectionComponent?: ComponentType }) {
+type SiteProps = { sectionComponent?: ComponentType; bookingFaqComponent?: ComponentType };
+
+function SiteContent({ sectionComponent, bookingFaqComponent }: SiteProps) {
   const { pathname } = useLocation();
   const sectionId = PATH_TO_SECTION[pathname];
 
   usePageSeo();
 
   if (sectionId) {
-    return <SectionOnlyView sectionId={sectionId} pathname={pathname} sectionComponent={sectionComponent} />;
+    return <SectionOnlyView sectionId={sectionId} pathname={pathname} sectionComponent={sectionComponent} bookingFaqComponent={bookingFaqComponent} />;
   }
 
   return <HomeView />;
 }
 
-export function Site({ sectionComponent }: { sectionComponent?: ComponentType } = {}) {
+export function Site(props: SiteProps = {}) {
   return (
     <SmoothScroll>
-      <SiteContent sectionComponent={sectionComponent} />
+      <SiteContent {...props} />
     </SmoothScroll>
   );
 }

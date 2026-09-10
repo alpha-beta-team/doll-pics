@@ -18,9 +18,8 @@ import { trackWhatsAppClick } from '../../lib/analytics';
 import {
   getPhotoSources,
   publicApi,
-  type PhotoSources,
 } from '../../lib/api';
-import { usableBookingBackgrounds } from '../../lib/bookingBackgrounds';
+import { bookingBackgroundImages, isBookingBackgroundResponse, type BookingBackgroundImage } from '../../lib/bookingBackgrounds';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { ResponsiveImage } from '../ResponsiveImage';
 
@@ -39,31 +38,32 @@ export function BookingCTA() {
   const { ref, inView } = useInView<HTMLDivElement>();
   const [showForm, setShowForm] = useState(false);
   const [prefill, setPrefill] = useState<EnquiryPrefill | undefined>();
-  const { siteContent } = useSiteData();
+  const { siteContent, bookingBackgrounds } = useSiteData();
   const whatsappUrl = enquiryWhatsAppUrl(siteContent.whatsapp);
   const [searchParams] = useSearchParams();
   const { pathname } = useLocation();
+  const seed = pathname === '/booking' ? bookingBackgrounds : undefined;
   const navigate = useNavigate();
   const queryConsumed = useRef(false);
   const reducedMotion = useReducedMotion();
-  const [backgrounds, setBackgrounds] = useState<
-    Array<PhotoSources & { categoryName: string }>
-  >([]);
+  const [backgrounds, setBackgrounds] = useState<BookingBackgroundImage[]>(() => seed?.images ?? []);
   const [activeBackground, setActiveBackground] = useState(0);
   const [previousBackground, setPreviousBackground] = useState<number | null>(null);
 
   useEffect(() => {
+    if (seed?.loaded) {
+      setBackgrounds(seed.images);
+      setActiveBackground(0);
+      setPreviousBackground(null);
+      return;
+    }
     let cancelled = false;
     void publicApi
       .getBookingBackgrounds()
       .then((items) => {
         if (cancelled) return;
-        const images = usableBookingBackgrounds(items).flatMap((item) => {
-          const sources = getPhotoSources(item.coverPhoto);
-          return sources
-            ? [{ ...sources, categoryName: item.categoryName }]
-            : [];
-        });
+        if (!isBookingBackgroundResponse(items)) throw new Error('Invalid booking backgrounds');
+        const images = bookingBackgroundImages(items, getPhotoSources);
         setBackgrounds(images);
         setActiveBackground(0);
         setPreviousBackground(null);
@@ -75,7 +75,7 @@ export function BookingCTA() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [seed]);
 
   useEffect(() => {
     if (!inView || reducedMotion || backgrounds.length < 2) return;
@@ -182,7 +182,7 @@ export function BookingCTA() {
             height={900}
             loading={prioritizeBackground ? 'eager' : 'lazy'}
             fetchPriority={prioritizeBackground ? 'high' : undefined}
-            className="animate-fade-in absolute inset-0 h-full w-full object-cover"
+            className={`${prioritizeBackground && previousBackground === null ? '' : 'animate-fade-in '}absolute inset-0 h-full w-full object-cover`}
           />
         ) : null}
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/90" />
@@ -190,7 +190,7 @@ export function BookingCTA() {
 
       <CTAParticles />
 
-      <div ref={ref} className="relative z-10 text-center max-w-3xl mx-auto">
+      <div ref={ref} data-booking-copy className="relative z-10 text-center max-w-3xl mx-auto">
         <div
           className={`section-label mb-6 ${inView ? 'fade-in-up' : ''}`}
           style={{ opacity: inView ? undefined : 0.001 }}
@@ -215,6 +215,7 @@ export function BookingCTA() {
         </p>
 
         <div
+          data-booking-actions
           className={`mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 ${inView ? 'fade-in-up stagger-4' : ''}`}
           style={{ opacity: inView ? undefined : 0.001 }}
         >
@@ -237,8 +238,14 @@ export function BookingCTA() {
             </span>
           </button>
         </div>
+        {pathname === '/booking' ? <noscript>
+          <style>{'#booking [data-booking-actions]{display:none}'}</style>
+          <p className="relative z-10 mt-8 text-center text-white">
+            <a className="underline underline-offset-4" href={`tel:${siteContent.phone.replace(/\s/g, '')}`}>Call the studio</a>
+            {' or '}<a className="underline underline-offset-4" href={whatsappUrl}>enquire on WhatsApp</a>.
+          </p>
+        </noscript> : null}
       </div>
-
       {showForm && (
         <EnquiryModal
           prefill={prefill}
