@@ -192,3 +192,14 @@ Repeat the three serial Lighthouse samples from the 9 September runbook with the
 | Date | Change | Evidence | Remaining blockers / next action |
 |---|---|---|---|
 | 2026-09-10 | Refreshed production baseline and implemented first Booking image in initial HTML with snapshot reuse | 3 production samples; controlled request dependency removal; release/HTML, 16 snapshot, 8 build and 14 browser checks passed | Deploy and compare three equivalent production samples; retain broader/field work as pending |
+
+
+## Booking deployment verification — 10 September 2026
+
+[Production evidence](./evidence/f13-booking-production-2026-09-10.json). Served commit `795ba9b760dd18f08516045ca380b150e36b1417` was stable before and after verification. CMS-strict HTML, all 98 path cases and all 64 image responses passed. Eight live browser cases at 390/1440 px passed: Booking/Gallery rotation and image priority, enquiry opening/Escape, query prefill, native FAQ and no-JavaScript Booking contact/content. Mobile no-JavaScript and desktop screenshots were inspected. No business writes were attempted; analytics mutations were blocked by the probe.
+
+Three serial Lighthouse 12.8.2 mobile runs used exactly the baseline configuration and Chrome 152. All three confirm eager/high image discovery in initial HTML, with no background API request. However, median simulated LCP **regressed from 5.35s to 8.48s** (new range 7.72–8.74s), FCP from **2.11s to 4.44s**, and score from **74 to 64**. CLS median is **0**, versus 0.00344; TBT is **54ms**, versus 104ms. This is not a verified overall speed improvement.
+
+Sample 2 fetched the same 960px image once, starting at 455ms and finishing at 489ms in the observed trace, versus 2588–2843ms previously. Its observed render delay was 1013ms; the separate Lighthouse simulated breakdown attributes 5.89s (67%) to render delay. These timings use different measurement models and must not be combined. They identify the remaining phase, not its code-level cause. Network/host conditions were uncontrolled; sample 1 overlapped the tail of the HTTP path check, with no concurrent build/browser test. Browser checks ran after all three samples.
+
+The initial-discovery implementation is **deployed and functionally verified**. Performance acceptance remains open. Next: trace Booking first paint and image rendering, including styles and hydration scheduling, then run a controlled comparison before changing code. Broader desktop/route/interaction work and field CWV remain pending. F13 stays **In progress**; this supersedes the deployment-pending instructions above.

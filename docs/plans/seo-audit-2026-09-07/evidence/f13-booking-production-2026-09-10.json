@@ -1,0 +1,1589 @@
+{
+  "checkedAt": "2026-09-10T06:06:56.825211+00:00",
+  "task": "F13 Booking production verification",
+  "deploymentBefore": {
+    "commit": "795ba9b760dd18f08516045ca380b150e36b1417",
+    "createdAt": "2026-09-10T05:58:04.700Z",
+    "publicOrigin": "https://dollpictures.in"
+  },
+  "deploymentAfter": {
+    "commit": "795ba9b760dd18f08516045ca380b150e36b1417",
+    "createdAt": "2026-09-10T05:58:04.700Z",
+    "publicOrigin": "https://dollpictures.in"
+  },
+  "method": "Three serial Lighthouse 12.8.2 mobile samples; same settings as September 10 baseline. First sample overlapped the tail of the path smoke HTTP requests; no concurrent build or browser tests. Network and host conditions uncontrolled. Lab evidence, not field CWV.",
+  "baselineMedians": {
+    "first-contentful-paint": 2111.9435999999996,
+    "largest-contentful-paint": 5347.9418000000005,
+    "cumulative-layout-shift": 0.003442148842009878,
+    "total-blocking-time": 104,
+    "speed-index": 4039.4388119931828,
+    "score": 0.74
+  },
+  "medians": {
+    "first-contentful-paint": 4437.28505,
+    "largest-contentful-paint": 8476.407,
+    "cumulative-layout-shift": 0,
+    "total-blocking-time": 54,
+    "speed-index": 4437.28505,
+    "score": 0.64
+  },
+  "samples": [
+    {
+      "fetchedAt": "2026-09-10T06:04:52.825Z",
+      "version": "12.8.2",
+      "environment": {
+        "networkUserAgent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Mobile Safari/537.36",
+        "hostUserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+        "benchmarkIndex": 2912.5,
+        "credits": {}
+      },
+      "settings": {
+        "output": [
+          "json"
+        ],
+        "maxWaitForFcp": 30000,
+        "maxWaitForLoad": 45000,
+        "pauseAfterFcpMs": 1000,
+        "pauseAfterLoadMs": 1000,
+        "networkQuietThresholdMs": 1000,
+        "cpuQuietThresholdMs": 1000,
+        "formFactor": "mobile",
+        "throttling": {
+          "rttMs": 150,
+          "throughputKbps": 1638.4,
+          "requestLatencyMs": 562.5,
+          "downloadThroughputKbps": 1474.5600000000002,
+          "uploadThroughputKbps": 675,
+          "cpuSlowdownMultiplier": 4
+        },
+        "throttlingMethod": "simulate",
+        "screenEmulation": {
+          "mobile": true,
+          "width": 412,
+          "height": 823,
+          "deviceScaleFactor": 1.75,
+          "disabled": false
+        },
+        "emulatedUserAgent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Mobile Safari/537.36",
+        "auditMode": false,
+        "gatherMode": false,
+        "clearStorageTypes": [
+          "file_systems",
+          "shader_cache",
+          "service_workers",
+          "cache_storage"
+        ],
+        "disableStorageReset": false,
+        "debugNavigation": false,
+        "channel": "cli",
+        "usePassiveGathering": false,
+        "disableFullPageScreenshot": false,
+        "skipAboutBlank": false,
+        "blankPage": "about:blank",
+        "ignoreStatusCode": false,
+        "locale": "en-US",
+        "blockedUrlPatterns": null,
+        "additionalTraceCategories": null,
+        "extraHeaders": null,
+        "precomputedLanternData": null,
+        "onlyAudits": null,
+        "onlyCategories": [
+          "performance"
+        ],
+        "skipAudits": null
+      },
+      "metrics": {
+        "first-contentful-paint": 5242.3440500000015,
+        "largest-contentful-paint": 8476.407,
+        "cumulative-layout-shift": 0.008302393312125626,
+        "total-blocking-time": 105.97639999999956,
+        "speed-index": 5856.766716000046
+      },
+      "score": 0.61,
+      "audits": {
+        "lcp-discovery-insight": {
+          "id": "lcp-discovery-insight",
+          "title": "LCP request discovery",
+          "description": "Optimize LCP by making the LCP image [discoverable](https://web.dev/articles/optimize-lcp#1_eliminate_resource_load_delay) from the HTML immediately, and [avoiding lazy-loading](https://web.dev/articles/lcp-lazy-loading)",
+          "score": 1,
+          "scoreDisplayMode": "numeric",
+          "metricSavings": {
+            "LCP": 0
+          },
+          "details": {
+            "type": "list",
+            "items": [
+              {
+                "type": "checklist",
+                "items": {
+                  "priorityHinted": {
+                    "label": "fetchpriority=high applied",
+                    "value": true
+                  },
+                  "requestDiscoverable": {
+                    "label": "Request is discoverable in initial document",
+                    "value": true
+                  },
+                  "eagerlyLoaded": {
+                    "label": "lazy load not applied",
+                    "value": true
+                  }
+                }
+              },
+              {
+                "type": "node",
+                "lhId": "page-0-IMG",
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,2,SECTION,0,DIV,0,PICTURE,1,IMG",
+                "selector": "section#booking > div.absolute > picture.contents > img.absolute",
+                "boundingRect": {
+                  "top": 334,
+                  "bottom": 1157,
+                  "left": 0,
+                  "right": 412,
+                  "width": 412,
+                  "height": 823
+                },
+                "snippet": "<img src=\"https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5\u2026\" alt=\"\" width=\"1600\" height=\"900\" sizes=\"100vw\" loading=\"eager\" decoding=\"async\" fetchpriority=\"high\" class=\"absolute inset-0 h-full w-full object-cover\">",
+                "nodeLabel": "section#booking > div.absolute > picture.contents > img.absolute"
+              }
+            ]
+          },
+          "guidanceLevel": 3,
+          "replacesAudits": [
+            "prioritize-lcp-image",
+            "lcp-lazy-loaded"
+          ]
+        },
+        "lcp-breakdown-insight": {
+          "id": "lcp-breakdown-insight",
+          "title": "LCP breakdown",
+          "description": "Each [subpart has specific improvement strategies](https://web.dev/articles/optimize-lcp#lcp-breakdown). Ideally, most of the LCP time should be spent on loading the resources, not within delays.",
+          "score": 1,
+          "scoreDisplayMode": "informative",
+          "metricSavings": {
+            "LCP": 0
+          },
+          "details": {
+            "type": "list",
+            "items": [
+              {
+                "type": "table",
+                "headings": [
+                  {
+                    "key": "label",
+                    "valueType": "text",
+                    "label": "Subpart"
+                  },
+                  {
+                    "key": "duration",
+                    "valueType": "ms",
+                    "label": "Duration"
+                  }
+                ],
+                "items": [
+                  {
+                    "subpart": "timeToFirstByte",
+                    "label": "Time to first byte",
+                    "duration": 442.268
+                  },
+                  {
+                    "subpart": "resourceLoadDelay",
+                    "label": "Resource load delay",
+                    "duration": 104.864
+                  },
+                  {
+                    "subpart": "resourceLoadDuration",
+                    "label": "Resource load duration",
+                    "duration": 47.592
+                  },
+                  {
+                    "subpart": "elementRenderDelay",
+                    "label": "Element render delay",
+                    "duration": 1996.117
+                  }
+                ]
+              },
+              {
+                "type": "node",
+                "lhId": "page-0-IMG",
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,2,SECTION,0,DIV,0,PICTURE,1,IMG",
+                "selector": "section#booking > div.absolute > picture.contents > img.absolute",
+                "boundingRect": {
+                  "top": 334,
+                  "bottom": 1157,
+                  "left": 0,
+                  "right": 412,
+                  "width": 412,
+                  "height": 823
+                },
+                "snippet": "<img src=\"https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5\u2026\" alt=\"\" width=\"1600\" height=\"900\" sizes=\"100vw\" loading=\"eager\" decoding=\"async\" fetchpriority=\"high\" class=\"absolute inset-0 h-full w-full object-cover\">",
+                "nodeLabel": "section#booking > div.absolute > picture.contents > img.absolute"
+              }
+            ]
+          },
+          "guidanceLevel": 3,
+          "replacesAudits": [
+            "largest-contentful-paint-element"
+          ]
+        },
+        "largest-contentful-paint-element": {
+          "id": "largest-contentful-paint-element",
+          "title": "Largest Contentful Paint element",
+          "description": "This is the largest contentful element painted within the viewport. [Learn more about the Largest Contentful Paint element](https://developer.chrome.com/docs/lighthouse/performance/lighthouse-largest-contentful-paint/)",
+          "score": 0,
+          "scoreDisplayMode": "metricSavings",
+          "displayValue": "8,480\u00a0ms",
+          "metricSavings": {
+            "LCP": 6000
+          },
+          "details": {
+            "type": "list",
+            "items": [
+              {
+                "type": "table",
+                "headings": [
+                  {
+                    "key": "node",
+                    "valueType": "node",
+                    "label": "Element"
+                  }
+                ],
+                "items": [
+                  {
+                    "node": {
+                      "type": "node",
+                      "lhId": "page-0-IMG",
+                      "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,2,SECTION,0,DIV,0,PICTURE,1,IMG",
+                      "selector": "section#booking > div.absolute > picture.contents > img.absolute",
+                      "boundingRect": {
+                        "top": 334,
+                        "bottom": 1157,
+                        "left": 0,
+                        "right": 412,
+                        "width": 412,
+                        "height": 823
+                      },
+                      "snippet": "<img src=\"https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5\u2026\" alt=\"\" width=\"1600\" height=\"900\" sizes=\"100vw\" loading=\"eager\" decoding=\"async\" fetchpriority=\"high\" class=\"absolute inset-0 h-full w-full object-cover\">",
+                      "nodeLabel": "section#booking > div.absolute > picture.contents > img.absolute"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "table",
+                "headings": [
+                  {
+                    "key": "phase",
+                    "valueType": "text",
+                    "label": "Phase"
+                  },
+                  {
+                    "key": "percent",
+                    "valueType": "text",
+                    "label": "% of LCP"
+                  },
+                  {
+                    "key": "timing",
+                    "valueType": "ms",
+                    "label": "Timing"
+                  }
+                ],
+                "items": [
+                  {
+                    "phase": "TTFB",
+                    "timing": 738.991,
+                    "percent": "9%"
+                  },
+                  {
+                    "phase": "Load Delay",
+                    "timing": 1052.5949671999124,
+                    "percent": "12%"
+                  },
+                  {
+                    "phase": "Load Time",
+                    "timing": 154.16164013168645,
+                    "percent": "2%"
+                  },
+                  {
+                    "phase": "Render Delay",
+                    "timing": 6530.6593926684,
+                    "percent": "77%"
+                  }
+                ]
+              }
+            ]
+          },
+          "guidanceLevel": 1
+        }
+      },
+      "relevantRequests": [
+        {
+          "url": "https://dollpictures.in/booking",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 0,
+          "networkRequestTime": 0.4599999785423279,
+          "networkEndTime": 540.0469999909401,
+          "finished": true,
+          "transferSize": 45674,
+          "resourceSize": 358314,
+          "statusCode": 200,
+          "mimeType": "text/html",
+          "resourceType": "Document",
+          "priority": "VeryHigh",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5d906-95f2-40e3-ae22-6e8a0842c9ec.jpg",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 546.7380000054836,
+          "networkRequestTime": 547.2099999785423,
+          "networkEndTime": 594.3299999833107,
+          "finished": true,
+          "transferSize": 53706,
+          "resourceSize": 53322,
+          "statusCode": 200,
+          "mimeType": "image/webp",
+          "resourceType": "Image",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "imagekit.io"
+        }
+      ]
+    },
+    {
+      "fetchedAt": "2026-09-10T06:05:07.611Z",
+      "version": "12.8.2",
+      "environment": {
+        "networkUserAgent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Mobile Safari/537.36",
+        "hostUserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+        "benchmarkIndex": 2801,
+        "credits": {}
+      },
+      "settings": {
+        "output": [
+          "json"
+        ],
+        "maxWaitForFcp": 30000,
+        "maxWaitForLoad": 45000,
+        "pauseAfterFcpMs": 1000,
+        "pauseAfterLoadMs": 1000,
+        "networkQuietThresholdMs": 1000,
+        "cpuQuietThresholdMs": 1000,
+        "formFactor": "mobile",
+        "throttling": {
+          "rttMs": 150,
+          "throughputKbps": 1638.4,
+          "requestLatencyMs": 562.5,
+          "downloadThroughputKbps": 1474.5600000000002,
+          "uploadThroughputKbps": 675,
+          "cpuSlowdownMultiplier": 4
+        },
+        "throttlingMethod": "simulate",
+        "screenEmulation": {
+          "mobile": true,
+          "width": 412,
+          "height": 823,
+          "deviceScaleFactor": 1.75,
+          "disabled": false
+        },
+        "emulatedUserAgent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Mobile Safari/537.36",
+        "auditMode": false,
+        "gatherMode": false,
+        "clearStorageTypes": [
+          "file_systems",
+          "shader_cache",
+          "service_workers",
+          "cache_storage"
+        ],
+        "disableStorageReset": false,
+        "debugNavigation": false,
+        "channel": "cli",
+        "usePassiveGathering": false,
+        "disableFullPageScreenshot": false,
+        "skipAboutBlank": false,
+        "blankPage": "about:blank",
+        "ignoreStatusCode": false,
+        "locale": "en-US",
+        "blockedUrlPatterns": null,
+        "additionalTraceCategories": null,
+        "extraHeaders": null,
+        "precomputedLanternData": null,
+        "onlyAudits": null,
+        "onlyCategories": [
+          "performance"
+        ],
+        "skipAudits": null
+      },
+      "metrics": {
+        "first-contentful-paint": 4398.455250000001,
+        "largest-contentful-paint": 8743.037,
+        "cumulative-layout-shift": 0,
+        "total-blocking-time": 54,
+        "speed-index": 4398.455250000001
+      },
+      "score": 0.64,
+      "audits": {
+        "lcp-discovery-insight": {
+          "id": "lcp-discovery-insight",
+          "title": "LCP request discovery",
+          "description": "Optimize LCP by making the LCP image [discoverable](https://web.dev/articles/optimize-lcp#1_eliminate_resource_load_delay) from the HTML immediately, and [avoiding lazy-loading](https://web.dev/articles/lcp-lazy-loading)",
+          "score": 1,
+          "scoreDisplayMode": "numeric",
+          "metricSavings": {
+            "LCP": 0
+          },
+          "details": {
+            "type": "list",
+            "items": [
+              {
+                "type": "checklist",
+                "items": {
+                  "priorityHinted": {
+                    "label": "fetchpriority=high applied",
+                    "value": true
+                  },
+                  "requestDiscoverable": {
+                    "label": "Request is discoverable in initial document",
+                    "value": true
+                  },
+                  "eagerlyLoaded": {
+                    "label": "lazy load not applied",
+                    "value": true
+                  }
+                }
+              },
+              {
+                "type": "node",
+                "lhId": "page-0-IMG",
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,2,SECTION,0,DIV,0,PICTURE,1,IMG",
+                "selector": "section#booking > div.absolute > picture.contents > img.absolute",
+                "boundingRect": {
+                  "top": 334,
+                  "bottom": 1157,
+                  "left": 0,
+                  "right": 412,
+                  "width": 412,
+                  "height": 823
+                },
+                "snippet": "<img src=\"https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5\u2026\" alt=\"\" width=\"1600\" height=\"900\" sizes=\"100vw\" loading=\"eager\" decoding=\"async\" fetchpriority=\"high\" class=\"absolute inset-0 h-full w-full object-cover\">",
+                "nodeLabel": "section#booking > div.absolute > picture.contents > img.absolute"
+              }
+            ]
+          },
+          "guidanceLevel": 3,
+          "replacesAudits": [
+            "prioritize-lcp-image",
+            "lcp-lazy-loaded"
+          ]
+        },
+        "lcp-breakdown-insight": {
+          "id": "lcp-breakdown-insight",
+          "title": "LCP breakdown",
+          "description": "Each [subpart has specific improvement strategies](https://web.dev/articles/optimize-lcp#lcp-breakdown). Ideally, most of the LCP time should be spent on loading the resources, not within delays.",
+          "score": 1,
+          "scoreDisplayMode": "informative",
+          "metricSavings": {
+            "LCP": 0
+          },
+          "details": {
+            "type": "list",
+            "items": [
+              {
+                "type": "table",
+                "headings": [
+                  {
+                    "key": "label",
+                    "valueType": "text",
+                    "label": "Subpart"
+                  },
+                  {
+                    "key": "duration",
+                    "valueType": "ms",
+                    "label": "Duration"
+                  }
+                ],
+                "items": [
+                  {
+                    "subpart": "timeToFirstByte",
+                    "label": "Time to first byte",
+                    "duration": 374.967
+                  },
+                  {
+                    "subpart": "resourceLoadDelay",
+                    "label": "Resource load delay",
+                    "duration": 80.425
+                  },
+                  {
+                    "subpart": "resourceLoadDuration",
+                    "label": "Resource load duration",
+                    "duration": 34.395
+                  },
+                  {
+                    "subpart": "elementRenderDelay",
+                    "label": "Element render delay",
+                    "duration": 1013.482
+                  }
+                ]
+              },
+              {
+                "type": "node",
+                "lhId": "page-0-IMG",
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,2,SECTION,0,DIV,0,PICTURE,1,IMG",
+                "selector": "section#booking > div.absolute > picture.contents > img.absolute",
+                "boundingRect": {
+                  "top": 334,
+                  "bottom": 1157,
+                  "left": 0,
+                  "right": 412,
+                  "width": 412,
+                  "height": 823
+                },
+                "snippet": "<img src=\"https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5\u2026\" alt=\"\" width=\"1600\" height=\"900\" sizes=\"100vw\" loading=\"eager\" decoding=\"async\" fetchpriority=\"high\" class=\"absolute inset-0 h-full w-full object-cover\">",
+                "nodeLabel": "section#booking > div.absolute > picture.contents > img.absolute"
+              }
+            ]
+          },
+          "guidanceLevel": 3,
+          "replacesAudits": [
+            "largest-contentful-paint-element"
+          ]
+        },
+        "largest-contentful-paint-element": {
+          "id": "largest-contentful-paint-element",
+          "title": "Largest Contentful Paint element",
+          "description": "This is the largest contentful element painted within the viewport. [Learn more about the Largest Contentful Paint element](https://developer.chrome.com/docs/lighthouse/performance/lighthouse-largest-contentful-paint/)",
+          "score": 0,
+          "scoreDisplayMode": "metricSavings",
+          "displayValue": "8,740\u00a0ms",
+          "metricSavings": {
+            "LCP": 6250
+          },
+          "details": {
+            "type": "list",
+            "items": [
+              {
+                "type": "table",
+                "headings": [
+                  {
+                    "key": "node",
+                    "valueType": "node",
+                    "label": "Element"
+                  }
+                ],
+                "items": [
+                  {
+                    "node": {
+                      "type": "node",
+                      "lhId": "page-0-IMG",
+                      "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,2,SECTION,0,DIV,0,PICTURE,1,IMG",
+                      "selector": "section#booking > div.absolute > picture.contents > img.absolute",
+                      "boundingRect": {
+                        "top": 334,
+                        "bottom": 1157,
+                        "left": 0,
+                        "right": 412,
+                        "width": 412,
+                        "height": 823
+                      },
+                      "snippet": "<img src=\"https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5\u2026\" alt=\"\" width=\"1600\" height=\"900\" sizes=\"100vw\" loading=\"eager\" decoding=\"async\" fetchpriority=\"high\" class=\"absolute inset-0 h-full w-full object-cover\">",
+                      "nodeLabel": "section#booking > div.absolute > picture.contents > img.absolute"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "table",
+                "headings": [
+                  {
+                    "key": "phase",
+                    "valueType": "text",
+                    "label": "Phase"
+                  },
+                  {
+                    "key": "percent",
+                    "valueType": "text",
+                    "label": "% of LCP"
+                  },
+                  {
+                    "key": "timing",
+                    "valueType": "ms",
+                    "label": "Timing"
+                  }
+                ],
+                "items": [
+                  {
+                    "phase": "TTFB",
+                    "timing": 460.49350000000004,
+                    "percent": "5%"
+                  },
+                  {
+                    "phase": "Load Delay",
+                    "timing": 2189.7662532416657,
+                    "percent": "25%"
+                  },
+                  {
+                    "phase": "Load Time",
+                    "timing": 198.3494197424152,
+                    "percent": "2%"
+                  },
+                  {
+                    "phase": "Render Delay",
+                    "timing": 5894.427827015919,
+                    "percent": "67%"
+                  }
+                ]
+              }
+            ]
+          },
+          "guidanceLevel": 1
+        }
+      },
+      "relevantRequests": [
+        {
+          "url": "https://dollpictures.in/booking",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 0,
+          "networkRequestTime": 0.574999988079071,
+          "networkEndTime": 453.4679999947548,
+          "finished": true,
+          "transferSize": 45676,
+          "resourceSize": 358314,
+          "statusCode": 200,
+          "mimeType": "text/html",
+          "resourceType": "Document",
+          "priority": "VeryHigh",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5d906-95f2-40e3-ae22-6e8a0842c9ec.jpg",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 454.9729999899864,
+          "networkRequestTime": 455.26399996876717,
+          "networkEndTime": 489.36799997091293,
+          "finished": true,
+          "transferSize": 53724,
+          "resourceSize": 53322,
+          "statusCode": 200,
+          "mimeType": "image/webp",
+          "resourceType": "Image",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "imagekit.io"
+        }
+      ]
+    },
+    {
+      "fetchedAt": "2026-09-10T06:05:21.131Z",
+      "version": "12.8.2",
+      "environment": {
+        "networkUserAgent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Mobile Safari/537.36",
+        "hostUserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+        "benchmarkIndex": 2614,
+        "credits": {}
+      },
+      "settings": {
+        "output": [
+          "json"
+        ],
+        "maxWaitForFcp": 30000,
+        "maxWaitForLoad": 45000,
+        "pauseAfterFcpMs": 1000,
+        "pauseAfterLoadMs": 1000,
+        "networkQuietThresholdMs": 1000,
+        "cpuQuietThresholdMs": 1000,
+        "formFactor": "mobile",
+        "throttling": {
+          "rttMs": 150,
+          "throughputKbps": 1638.4,
+          "requestLatencyMs": 562.5,
+          "downloadThroughputKbps": 1474.5600000000002,
+          "uploadThroughputKbps": 675,
+          "cpuSlowdownMultiplier": 4
+        },
+        "throttlingMethod": "simulate",
+        "screenEmulation": {
+          "mobile": true,
+          "width": 412,
+          "height": 823,
+          "deviceScaleFactor": 1.75,
+          "disabled": false
+        },
+        "emulatedUserAgent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Mobile Safari/537.36",
+        "auditMode": false,
+        "gatherMode": false,
+        "clearStorageTypes": [
+          "file_systems",
+          "shader_cache",
+          "service_workers",
+          "cache_storage"
+        ],
+        "disableStorageReset": false,
+        "debugNavigation": false,
+        "channel": "cli",
+        "usePassiveGathering": false,
+        "disableFullPageScreenshot": false,
+        "skipAboutBlank": false,
+        "blankPage": "about:blank",
+        "ignoreStatusCode": false,
+        "locale": "en-US",
+        "blockedUrlPatterns": null,
+        "additionalTraceCategories": null,
+        "extraHeaders": null,
+        "precomputedLanternData": null,
+        "onlyAudits": null,
+        "onlyCategories": [
+          "performance"
+        ],
+        "skipAudits": null
+      },
+      "metrics": {
+        "first-contentful-paint": 4437.28505,
+        "largest-contentful-paint": 7717.2446,
+        "cumulative-layout-shift": 0,
+        "total-blocking-time": 29.5,
+        "speed-index": 4437.28505
+      },
+      "score": 0.65,
+      "audits": {
+        "lcp-discovery-insight": {
+          "id": "lcp-discovery-insight",
+          "title": "LCP request discovery",
+          "description": "Optimize LCP by making the LCP image [discoverable](https://web.dev/articles/optimize-lcp#1_eliminate_resource_load_delay) from the HTML immediately, and [avoiding lazy-loading](https://web.dev/articles/lcp-lazy-loading)",
+          "score": 1,
+          "scoreDisplayMode": "numeric",
+          "metricSavings": {
+            "LCP": 0
+          },
+          "details": {
+            "type": "list",
+            "items": [
+              {
+                "type": "checklist",
+                "items": {
+                  "priorityHinted": {
+                    "label": "fetchpriority=high applied",
+                    "value": true
+                  },
+                  "requestDiscoverable": {
+                    "label": "Request is discoverable in initial document",
+                    "value": true
+                  },
+                  "eagerlyLoaded": {
+                    "label": "lazy load not applied",
+                    "value": true
+                  }
+                }
+              },
+              {
+                "type": "node",
+                "lhId": "page-0-IMG",
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,2,SECTION,0,DIV,0,PICTURE,1,IMG",
+                "selector": "section#booking > div.absolute > picture.contents > img.absolute",
+                "boundingRect": {
+                  "top": 334,
+                  "bottom": 1157,
+                  "left": 0,
+                  "right": 412,
+                  "width": 412,
+                  "height": 823
+                },
+                "snippet": "<img src=\"https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5\u2026\" alt=\"\" width=\"1600\" height=\"900\" sizes=\"100vw\" loading=\"eager\" decoding=\"async\" fetchpriority=\"high\" class=\"absolute inset-0 h-full w-full object-cover\">",
+                "nodeLabel": "section#booking > div.absolute > picture.contents > img.absolute"
+              }
+            ]
+          },
+          "guidanceLevel": 3,
+          "replacesAudits": [
+            "prioritize-lcp-image",
+            "lcp-lazy-loaded"
+          ]
+        },
+        "lcp-breakdown-insight": {
+          "id": "lcp-breakdown-insight",
+          "title": "LCP breakdown",
+          "description": "Each [subpart has specific improvement strategies](https://web.dev/articles/optimize-lcp#lcp-breakdown). Ideally, most of the LCP time should be spent on loading the resources, not within delays.",
+          "score": 1,
+          "scoreDisplayMode": "informative",
+          "metricSavings": {
+            "LCP": 0
+          },
+          "details": {
+            "type": "list",
+            "items": [
+              {
+                "type": "table",
+                "headings": [
+                  {
+                    "key": "label",
+                    "valueType": "text",
+                    "label": "Subpart"
+                  },
+                  {
+                    "key": "duration",
+                    "valueType": "ms",
+                    "label": "Duration"
+                  }
+                ],
+                "items": [
+                  {
+                    "subpart": "timeToFirstByte",
+                    "label": "Time to first byte",
+                    "duration": 430.887
+                  },
+                  {
+                    "subpart": "resourceLoadDelay",
+                    "label": "Resource load delay",
+                    "duration": 104.445
+                  },
+                  {
+                    "subpart": "resourceLoadDuration",
+                    "label": "Resource load duration",
+                    "duration": 33.98
+                  },
+                  {
+                    "subpart": "elementRenderDelay",
+                    "label": "Element render delay",
+                    "duration": 967.141
+                  }
+                ]
+              },
+              {
+                "type": "node",
+                "lhId": "page-0-IMG",
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,2,SECTION,0,DIV,0,PICTURE,1,IMG",
+                "selector": "section#booking > div.absolute > picture.contents > img.absolute",
+                "boundingRect": {
+                  "top": 334,
+                  "bottom": 1157,
+                  "left": 0,
+                  "right": 412,
+                  "width": 412,
+                  "height": 823
+                },
+                "snippet": "<img src=\"https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5\u2026\" alt=\"\" width=\"1600\" height=\"900\" sizes=\"100vw\" loading=\"eager\" decoding=\"async\" fetchpriority=\"high\" class=\"absolute inset-0 h-full w-full object-cover\">",
+                "nodeLabel": "section#booking > div.absolute > picture.contents > img.absolute"
+              }
+            ]
+          },
+          "guidanceLevel": 3,
+          "replacesAudits": [
+            "largest-contentful-paint-element"
+          ]
+        },
+        "largest-contentful-paint-element": {
+          "id": "largest-contentful-paint-element",
+          "title": "Largest Contentful Paint element",
+          "description": "This is the largest contentful element painted within the viewport. [Learn more about the Largest Contentful Paint element](https://developer.chrome.com/docs/lighthouse/performance/lighthouse-largest-contentful-paint/)",
+          "score": 0,
+          "scoreDisplayMode": "metricSavings",
+          "displayValue": "7,720\u00a0ms",
+          "metricSavings": {
+            "LCP": 5200
+          },
+          "details": {
+            "type": "list",
+            "items": [
+              {
+                "type": "table",
+                "headings": [
+                  {
+                    "key": "node",
+                    "valueType": "node",
+                    "label": "Element"
+                  }
+                ],
+                "items": [
+                  {
+                    "node": {
+                      "type": "node",
+                      "lhId": "page-0-IMG",
+                      "path": "1,HTML,1,BODY,0,DIV,0,DIV,3,MAIN,2,SECTION,0,DIV,0,PICTURE,1,IMG",
+                      "selector": "section#booking > div.absolute > picture.contents > img.absolute",
+                      "boundingRect": {
+                        "top": 334,
+                        "bottom": 1157,
+                        "left": 0,
+                        "right": 412,
+                        "width": 412,
+                        "height": 823
+                      },
+                      "snippet": "<img src=\"https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5\u2026\" alt=\"\" width=\"1600\" height=\"900\" sizes=\"100vw\" loading=\"eager\" decoding=\"async\" fetchpriority=\"high\" class=\"absolute inset-0 h-full w-full object-cover\">",
+                      "nodeLabel": "section#booking > div.absolute > picture.contents > img.absolute"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "table",
+                "headings": [
+                  {
+                    "key": "phase",
+                    "valueType": "text",
+                    "label": "Phase"
+                  },
+                  {
+                    "key": "percent",
+                    "valueType": "text",
+                    "label": "% of LCP"
+                  },
+                  {
+                    "key": "timing",
+                    "valueType": "ms",
+                    "label": "Timing"
+                  }
+                ],
+                "items": [
+                  {
+                    "phase": "TTFB",
+                    "timing": 486.5195,
+                    "percent": "6%"
+                  },
+                  {
+                    "phase": "Load Delay",
+                    "timing": 2203.764627251742,
+                    "percent": "29%"
+                  },
+                  {
+                    "phase": "Load Time",
+                    "timing": 169.23709322482273,
+                    "percent": "2%"
+                  },
+                  {
+                    "phase": "Render Delay",
+                    "timing": 4857.723379523435,
+                    "percent": "63%"
+                  }
+                ]
+              }
+            ]
+          },
+          "guidanceLevel": 1
+        }
+      },
+      "relevantRequests": [
+        {
+          "url": "https://dollpictures.in/booking",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 0,
+          "networkRequestTime": 0.48799997568130493,
+          "networkEndTime": 532.7360000014305,
+          "finished": true,
+          "transferSize": 45672,
+          "resourceSize": 358314,
+          "statusCode": 200,
+          "mimeType": "text/html",
+          "resourceType": "Document",
+          "priority": "VeryHigh",
+          "experimentalFromMainFrame": true,
+          "entity": "dollpictures.in"
+        },
+        {
+          "url": "https://ik.imagekit.io/dollpictures/tr:w-960,q-78,f-auto/wedding/2026/81a5d906-95f2-40e3-ae22-6e8a0842c9ec.jpg",
+          "sessionTargetType": "page",
+          "protocol": "h3",
+          "rendererStartTime": 534.936999976635,
+          "networkRequestTime": 535.2229999899864,
+          "networkEndTime": 568.9169999957085,
+          "finished": true,
+          "transferSize": 53725,
+          "resourceSize": 53322,
+          "statusCode": 200,
+          "mimeType": "image/webp",
+          "resourceType": "Image",
+          "priority": "High",
+          "experimentalFromMainFrame": true,
+          "entity": "imagekit.io"
+        }
+      ]
+    }
+  ],
+  "settingsMatchBaseline": true,
+  "conclusion": "Initial HTML image discovery verified in all three runs; no Booking background API request. Simulated LCP regressed; performance acceptance remains open. Sample 2 modeled render delay is 5.89 seconds (67% of LCP); this identifies the phase, not a confirmed code root cause.",
+  "browser": {
+    "checkedAt": "2026-09-10T06:06:53.942Z",
+    "scope": "Live production; real CMS and image responses; mutation requests blocked; no submissions",
+    "results": [
+      {
+        "mode": "no-js",
+        "width": 390,
+        "passed": true,
+        "apiRequests": 0,
+        "errors": [],
+        "writes": []
+      },
+      {
+        "mode": "booking",
+        "width": 390,
+        "passed": true,
+        "apiRequests": 0,
+        "errors": [],
+        "writes": []
+      },
+      {
+        "mode": "gallery",
+        "width": 390,
+        "passed": true,
+        "apiRequests": 1,
+        "errors": [],
+        "writes": []
+      },
+      {
+        "mode": "prefill",
+        "width": 390,
+        "passed": true,
+        "apiRequests": 0,
+        "errors": [],
+        "writes": []
+      },
+      {
+        "mode": "no-js",
+        "width": 1440,
+        "passed": true,
+        "apiRequests": 0,
+        "errors": [],
+        "writes": []
+      },
+      {
+        "mode": "booking",
+        "width": 1440,
+        "passed": true,
+        "apiRequests": 0,
+        "errors": [],
+        "writes": []
+      },
+      {
+        "mode": "gallery",
+        "width": 1440,
+        "passed": true,
+        "apiRequests": 1,
+        "errors": [],
+        "writes": []
+      },
+      {
+        "mode": "prefill",
+        "width": 1440,
+        "passed": true,
+        "apiRequests": 0,
+        "errors": [],
+        "writes": []
+      }
+    ]
+  },
+  "imageSmoke": {
+    "checkedAt": "2026-09-10T06:06:30.991Z",
+    "baseUrl": "https://dollpictures.in",
+    "apiUrl": "https://doll-backend-27n8.onrender.com/api",
+    "build": {
+      "commit": "795ba9b760dd18f08516045ca380b150e36b1417",
+      "createdAt": "2026-09-10T05:58:04.700Z",
+      "publicOrigin": "https://dollpictures.in"
+    },
+    "inventory": {
+      "publishedRecords": 67,
+      "excludedRecords": 3,
+      "intendedPhotos": 64,
+      "galleryImages": 64,
+      "galleryImageLinks": 64,
+      "cap": 100,
+      "missingIds": []
+    },
+    "pages": [
+      {
+        "path": "/",
+        "imageCount": 14,
+        "internalLinks": 42
+      },
+      {
+        "path": "/about",
+        "imageCount": 0,
+        "internalLinks": 29
+      },
+      {
+        "path": "/baby-milestone-packages-erode",
+        "imageCount": 2,
+        "internalLinks": 48
+      },
+      {
+        "path": "/baby-milestone-photography-erode",
+        "imageCount": 11,
+        "internalLinks": 51
+      },
+      {
+        "path": "/baby-shower-packages-erode",
+        "imageCount": 7,
+        "internalLinks": 45
+      },
+      {
+        "path": "/baby-shower-photography-erode",
+        "imageCount": 12,
+        "internalLinks": 50
+      },
+      {
+        "path": "/birthday-event-photography-erode",
+        "imageCount": 6,
+        "internalLinks": 48
+      },
+      {
+        "path": "/booking",
+        "imageCount": 1,
+        "internalLinks": 29
+      },
+      {
+        "path": "/cake-smash-packages-erode",
+        "imageCount": 2,
+        "internalLinks": 47
+      },
+      {
+        "path": "/cake-smash-photography-erode",
+        "imageCount": 11,
+        "internalLinks": 51
+      },
+      {
+        "path": "/contact",
+        "imageCount": 1,
+        "internalLinks": 30
+      },
+      {
+        "path": "/ear-piercing-photography-erode",
+        "imageCount": 4,
+        "internalLinks": 48
+      },
+      {
+        "path": "/family-packages-erode",
+        "imageCount": 1,
+        "internalLinks": 47
+      },
+      {
+        "path": "/family-photography-erode",
+        "imageCount": 8,
+        "internalLinks": 52
+      },
+      {
+        "path": "/fashion-photography-erode",
+        "imageCount": 4,
+        "internalLinks": 48
+      },
+      {
+        "path": "/gallery",
+        "imageCount": 64,
+        "internalLinks": 29
+      },
+      {
+        "path": "/kids-photography-erode",
+        "imageCount": 4,
+        "internalLinks": 48
+      },
+      {
+        "path": "/maternity-packages-erode",
+        "imageCount": 5,
+        "internalLinks": 47
+      },
+      {
+        "path": "/maternity-photography-erode",
+        "imageCount": 13,
+        "internalLinks": 52
+      },
+      {
+        "path": "/newborn-baby-photography-erode",
+        "imageCount": 14,
+        "internalLinks": 51
+      },
+      {
+        "path": "/newborn-packages-erode",
+        "imageCount": 9,
+        "internalLinks": 49
+      },
+      {
+        "path": "/packages",
+        "imageCount": 0,
+        "internalLinks": 38
+      },
+      {
+        "path": "/pre-wedding-packages-erode",
+        "imageCount": 1,
+        "internalLinks": 46
+      },
+      {
+        "path": "/privacy",
+        "imageCount": 0,
+        "internalLinks": 31
+      },
+      {
+        "path": "/services",
+        "imageCount": 3,
+        "internalLinks": 42
+      },
+      {
+        "path": "/stories",
+        "imageCount": 0,
+        "internalLinks": 30
+      },
+      {
+        "path": "/terms",
+        "imageCount": 0,
+        "internalLinks": 32
+      },
+      {
+        "path": "/toddler-baby-photography-erode",
+        "imageCount": 12,
+        "internalLinks": 50
+      },
+      {
+        "path": "/toddler-baby-shoot-packages-erode",
+        "imageCount": 6,
+        "internalLinks": 47
+      },
+      {
+        "path": "/wedding-packages-erode",
+        "imageCount": 5,
+        "internalLinks": 53
+      },
+      {
+        "path": "/wedding-photography-erode",
+        "imageCount": 12,
+        "internalLinks": 52
+      },
+      {
+        "path": "/work",
+        "imageCount": 2,
+        "internalLinks": 29
+      }
+    ],
+    "imageResponses": [
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-milestone/2026/920fb749-44c3-4f22-a02a-9288b54b467a.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-milestone/2026/fc5d8107-291a-4fa8-af60-15c43902f554.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/17f4fe0d-96ce-47fe-ac8b-4f6316a2da92.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-milestone/2026/d4addef2-8f7b-4057-8a54-943b957b0184.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/1a2d7543-357b-4fff-8631-82b4ba77a184.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/26724ca0-5d21-4457-9b52-6769fe20193b.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/3a7447dc-19d6-4e6b-9dcb-86d99c060055.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/1cc75d88-190d-4ee9-bb4c-699ed1c8c207.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/4f5a8c99-26f8-489c-bf93-f78cdc1f5c19.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/47a00099-a469-46a1-968c-b335995518e5.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/7888f651-0e2a-40e8-b0ed-b3e313b6f262.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/79141696-460e-4b82-8b74-28ccb1ddba65.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/882c088e-f9fc-4b70-867a-4718d15e436a.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/a68f3ddd-1322-495e-8e18-17c09f98355f.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/9e7595fb-c0b2-4018-8475-42524ae43a91.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/a286624a-20cb-4684-bb47-cb14bdae3062.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/bd280b9f-8160-4896-9807-183cbc9aac4b.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/a8d8004e-4835-41cf-a09c-9fc16616cc03.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/aa60a9bd-c819-429a-ba18-368937ede102.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/bcdcc83b-5003-4eb2-96f1-ac8179ef6113.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/c3b70ae9-03cf-4d31-819c-882f38f479ca.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/f25c21f6-b80a-4618-8bc8-bdd0f236ce8a.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/ea5b6555-723c-42b2-b27b-8ba23dc46138.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-shower/2026/f4d62295-a016-4659-8011-ac70b6575bf9.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/family/2026/f010d37f-1e1c-4687-8828-042ae3fca5cd.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/cake-smash/2026/845667e9-ec4b-4775-8bd8-f7737f1e23b9.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/cake-smash/2026/7798beef-2d7f-4211-afed-e15f514224af.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/cake-smash/2026/b249e7aa-5871-4fd9-92f5-230e4ec104a0.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/maternity/2026/400b6c9c-6fbe-4dbf-840b-d68658c92e03.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/maternity/2026/285b5976-d30d-4a5a-8365-ffccc1699c20.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/maternity/2026/a7ecb5fd-467a-40dc-9112-ababe5d1896e.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/maternity/2026/a87d7b16-85ff-4c38-8088-678883e0719e.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/maternity/2026/c2c0ee8f-d6ff-45e2-bf09-2df13a092334.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/0b183356-0f19-4712-8a78-e7700493bc95.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/0fa6acba-05b7-47b8-9be5-a7a3d22e30e5.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/14a021f7-7627-4c2b-97a4-48d92e139103.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/29c53b65-f618-40e5-849f-e07a90c1f0bd.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/67437685-88c2-482b-b970-f3845a97d3ea.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/69010d13-989f-4989-9fa4-a219ba027481.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/4f32d14e-799c-4bf8-802d-a34d43ac676a.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/7f71da8f-0611-45b3-9ad1-86461c495d56.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/84277b80-536f-4258-aa05-f93738d3a3d2.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/86db0e48-e694-4e1f-8d79-ff907e58acf3.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/8da8316a-ad86-48a2-a4cf-8d677e46eae1.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/9d93e2f2-ef87-4e1c-b978-695f24fd90d5.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/978b82ee-f9fc-485b-9366-ad26fd6210df.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/c3317465-d0c4-40c3-801d-805d568b9581.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/c67ff773-4292-4ccc-acda-ffefeac7d2d6.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/pre-wedding/2026/edd99042-a056-46e1-8ea9-0c685fd08447.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/cb65d430-4490-4635-b8d3-a54413937b1f.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/toddler-baby-shoots/2026/473a1d55-00b5-4d55-9aef-3f8d5e242f50.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/newborn/2026/f43aec79-9c23-4397-883a-92042b60d714.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/toddler-baby-shoots/2026/68d8391a-7e39-4daa-a917-11591addb402.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/toddler-baby-shoots/2026/4ce0b299-519a-436d-a0ba-61ed2a44af07.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/toddler-baby-shoots/2026/a3f0268a-fb6d-40df-9395-981915815231.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/toddler-baby-shoots/2026/7c7c0593-8b48-40cf-b3cc-0b0f56093877.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/toddler-baby-shoots/2026/bfdcae45-1d4d-4d75-9998-f50aba5285e0.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/toddler-baby-shoots/2026/bd8d0974-16c4-42fe-ad19-bdf6bca37657.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/wedding/2026/0ad6e2cf-bef6-4a25-98e1-57a2620ae8ca.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/toddler-baby-shoots/2026/a4faa63a-0334-4da8-8206-48e5c570b32f.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/wedding/2026/81a5d906-95f2-40e3-ae22-6e8a0842c9ec.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/wedding/2026/405e4cc6-70b7-432f-a7d5-1bb20adcf1e1.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/wedding/2026/a3d08dbe-4281-4898-b6d5-3343ce22e710.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      },
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/wedding/2026/844195de-b465-46c1-b7b2-3671e630bce1.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      }
+    ],
+    "failures": []
+  },
+  "smoke": {
+    "cmsStrictHtml": "passed",
+    "publicPaths": "98 passed"
+  },
+  "browserProbeNote": "Initial probe incorrectly counted blocked analytics POST requests as business writes. Corrected accounting to API mutations, retaining all non-read requests blocked; all eight cases passed. No CMS or enquiry writes."
+}

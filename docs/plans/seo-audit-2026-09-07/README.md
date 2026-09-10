@@ -7,7 +7,7 @@
 **Program status:** In progress\
 **Completion:** **10 / 19 items complete**
 
-**Current status:** 10 complete, F04 and F11 ready for verification, F13 in progress, 6 not started. F04 automated production checks passed; manual acceptance remains. F11 production HTML/path/image checks and live browser checks passed on `527d2b1`; content-owner acceptance remains. F13 Booking initial-image discovery is implemented locally; deployment/comparison is next.
+**Current status:** 10 complete, F04 and F11 ready for verification, F13 in progress, 6 not started. F04 automated production checks passed; manual acceptance remains. F11 production HTML/path/image checks and live browser checks passed on `527d2b1`; content-owner acceptance remains. F13 Booking initial-image discovery is deployed and functionally verified on `795ba9b`; simulated LCP regressed to 8.48s, so rendering-delay investigation is next.
 
 ## Objective and boundaries
 
@@ -113,7 +113,7 @@ Start with F01. Within a chunk, take ready items in the listed order; independen
 | 4 — Content growth and ongoing verification | 3 | 0 | 3 | Not started |
 | **Overall** | **19** | **10** | **9** | **1 in progress, 2 ready for verification, 6 not started** |
 
-**Recommended next task:** deploy the [F13 Booking discovery increment](./13-performance-and-core-web-vitals.md), run updated HTML/path smoke checks and compare three equivalent production Lighthouse samples with the [10 September baseline](./evidence/f13-booking-discovery-2026-09-10.json). Local release and focused checks passed; the controlled test removes JavaScript/CMS image-discovery delays, but production improvement is not yet verified. F11 content-owner acceptance and F04 manual acceptance remain separate follow-ups. Totals remain **10 / 19 complete** for implementation tracking.
+**Recommended next task:** investigate the F13 Booking rendering delay using the [production comparison](./evidence/f13-booking-production-2026-09-10.json). Initial HTML discovery and all smoke/browser checks pass on `795ba9b`, but median simulated LCP regressed from 5.35s to 8.48s. Trace first paint, styles and hydration, then validate a scoped fix with a controlled comparison. F11 content-owner acceptance and F04 manual acceptance remain separate. Totals remain **10 / 19 complete**; F13 stays **In progress**.
 
 ## Parallel execution
 
@@ -239,3 +239,5 @@ The creator validates these separately from remediation completion:
 | 2026-09-10 | Implemented F11 crawlable image links, broader Gallery navigation, photo exclusions, cap guard and image-discovery smoke tool; local release, 24 browser, 15 crawler and 10 build/lifecycle cases passed | 10 / 19 (F04 and F11 ready for verification, F13 in progress, 6 not started) | Deploy F11, run all three smoke checks and complete content/browser acceptance; F04 manual acceptance remains separate |
 | 2026-09-10 | Verified deployed F11 on `527d2b1`: production HTML smoke, all 98 path cases, 64 image responses and 12 live browser cases passed | 10 / 19 (F04 and F11 ready for verification, F13 in progress, 6 not started) | F11 content-owner acceptance remains; continue F13 independently and retain F04 manual acceptance |
 | 2026-09-10 | F13 fresh production baseline recorded; Booking background/FAQ initial HTML and snapshot reuse implemented locally, with release and focused checks passed | 10 / 19 (F04 and F11 ready for verification, F13 in progress, 6 not started) | Deploy F13 increment, run smoke checks and repeat three equivalent Lighthouse samples; broader and field acceptance remain open |
+
+| 2026-09-10 | F13 Booking deployed on `795ba9b`: HTML/98 paths/64 images and 8 live browser cases passed; three equivalent mobile samples confirm HTML image discovery but LCP regressed to 8.48s | 10 / 19 | Investigate rendering delay; performance and field acceptance remain open |
