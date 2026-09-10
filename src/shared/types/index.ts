@@ -285,6 +285,7 @@ export type PublicPhoto = {
   location?: string;
   year?: string;
   isFeatured?: boolean;
+  isPublished?: boolean;
   storageKey?: string;
   width?: number;
   height?: number;

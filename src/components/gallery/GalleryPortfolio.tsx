@@ -223,11 +223,15 @@ function GalleryTile({ photo, index, layout, onOpen }: GalleryTileProps) {
 
   return (
     <figure className={`min-w-0 self-start ${layout}`}>
-      <button
-        type="button"
+      <a
+        href={photo.lightboxSrc}
         data-cursor="view"
         aria-label={`${failed ? "Image unavailable" : "View frame"}: ${photo.sources.alt}`}
-        onClick={(event) => onOpen(index, event.currentTarget)}
+        onClick={(event) => {
+          if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+          event.preventDefault();
+          onOpen(index, event.currentTarget);
+        }}
         className="group relative block w-full overflow-hidden bg-ink-900 text-left outline-none focus-visible:ring-2 focus-visible:ring-gold-300 focus-visible:ring-offset-4 focus-visible:ring-offset-ink-950"
         style={{ aspectRatio: `${photo.width} / ${photo.height}` }}
       >
@@ -282,7 +286,7 @@ function GalleryTile({ photo, index, layout, onOpen }: GalleryTileProps) {
           className="pointer-events-none absolute inset-0 border border-white/0 transition-colors duration-500 group-hover:border-white/20 group-focus-visible:border-gold-300/60"
           aria-hidden="true"
         />
-      </button>
+      </a>
 
       <figcaption className="mt-4 flex items-start justify-between gap-6 border-t border-hairline/10 pt-3">
         <div className="flex min-w-0 items-baseline gap-3">

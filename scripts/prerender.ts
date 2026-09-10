@@ -565,6 +565,11 @@ if (renderPaths.length) {
       ]);
       if (packagePage && String(process.env.SEO_REQUIRE_CMS).toLowerCase() === 'true' && !Array.isArray(offers)) throw new Error(`CMS packages unavailable for ${path}`);
       if (path === '/gallery' && String(process.env.SEO_REQUIRE_CMS).toLowerCase() === 'true' && !Array.isArray(portfolio)) throw new Error('CMS gallery photos unavailable for /gallery');
+      if (path === '/gallery' && Array.isArray(portfolio) && portfolio.length >= PORTFOLIO_PHOTO_LIMIT) {
+        const message = `Gallery reached the ${PORTFOLIO_PHOTO_LIMIT}-photo API limit; verify complete image discovery and implement stable pagination before releasing a larger collection (F11).`;
+        if (String(process.env.SEO_REQUIRE_CMS).toLowerCase() === 'true') throw new Error(message);
+        console.warn(message);
+      }
       if (['/work', '/contact'].includes(path) && String(process.env.SEO_REQUIRE_CMS).toLowerCase() === 'true' && !Array.isArray(featured)) throw new Error(`CMS featured photos unavailable for ${path}`);
       if (path === '/stories' && String(process.env.SEO_REQUIRE_CMS).toLowerCase() === 'true' && !Array.isArray(reviews)) throw new Error('CMS testimonials unavailable for /stories');
       if (path === '/about' && String(process.env.SEO_REQUIRE_CMS).toLowerCase() === 'true' && (!Array.isArray(staff) || !Array.isArray(scenes))) throw new Error('CMS About collections unavailable for /about');

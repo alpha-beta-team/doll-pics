@@ -149,6 +149,9 @@ function PackageCategoryPageContent() {
               </h2>
             </div>
             <PackageWorkGrid images={portfolio} />
+            <p className="mx-auto mt-8 max-w-7xl text-center">
+              <Link to="/gallery" className="text-sm text-gold-300 underline underline-offset-4 hover:text-gold-200">Explore the full gallery</Link>
+            </p>
           </section>
         ) : <p className="mx-auto max-w-7xl px-6 py-12 text-ink-200">Photographs for this category are currently unavailable. <Link to="/contact" className="underline">Contact us to discuss your session.</Link></p>}
 
@@ -303,13 +306,15 @@ function PackageWorkGrid({ images }: { images: ServiceImage[] }) {
   return (
     <div
       ref={ref}
+      data-package-work
       className={`mx-auto grid max-w-7xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 ${
         inView ? 'reveal in' : 'reveal'
       }`}
     >
       {images.map((image, index) => (
-        <div
+        <a
           key={image.src}
+          href={image.src}
           data-cursor="view"
           className={`group relative aspect-[4/5] overflow-hidden rounded-2xl reveal-blur ${
             inView ? 'in' : ''
@@ -328,7 +333,7 @@ function PackageWorkGrid({ images }: { images: ServiceImage[] }) {
             className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-60" />
-        </div>
+        </a>
       ))}
     </div>
   );

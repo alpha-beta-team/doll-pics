@@ -1,6 +1,7 @@
 import type { PortfolioPhoto } from '../lib/galleryPortfolio';
 import { packageCatalogSource, publicPackageCategories, readBuildPublicCatalog, resolvePublicCatalog, serviceCatalogSource, type PublicRouteCatalog } from '../lib/publicCatalog';
 import { photoLabels } from '../lib/photoLabels';
+import { isPublishedPortfolioPhoto } from '../lib/publicPhoto';
 import type { ServiceMediaSnapshot } from '../lib/serviceMedia';
 import { PublicRequestError, publicFailure } from '../lib/publicRequest';
 import {
@@ -205,11 +206,7 @@ const normalizedFallbackGallery: GalleryImageItem[] = fallbackGalleryImages.map(
 );
 
 function isPlaceholderPhoto(photo: PublicPhoto): boolean {
-  const original = photo.variants?.original?.url ?? '';
-  return (
-    photo.storageKey?.startsWith('seed/') === true ||
-    original.includes('picsum.photos')
-  );
+  return !isPublishedPortfolioPhoto(photo);
 }
 
 function isLegacyHeroSlide(slide: PublicHeroSlide): boolean {

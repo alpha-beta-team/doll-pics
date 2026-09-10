@@ -1,6 +1,7 @@
 import type { PackageNavLink } from './navigation';
 import { normalizePathname } from './navigation';
 import type { ServiceImage } from './serviceImages';
+import { isExcludedPhotoUrl } from './publicPhoto';
 
 export const SERVICE_CATEGORY_SLUGS: Record<string, string> = {
   '/wedding-photography-erode': 'wedding',
@@ -28,7 +29,7 @@ export function servicePackageLink(path: string, packages: PackageNavLink[]) {
 
 const MISSING_LOCAL_IMAGES = new Set(['/images/services/maternity.jpg', '/images/services/newborn.jpg', '/images/services/family.jpg', '/images/services/toddler.jpg', '/images/services/baby-shower.jpg', '/images/services/ear-piercing.jpg', '/images/services/kids-photography.jpg']);
 export function usableServiceImage(src: string): boolean {
-  if (!src.trim()) return false;
+  if (!src.trim() || isExcludedPhotoUrl(src)) return false;
   try {
     const url = new URL(src, 'https://dollpictures.in');
     return !(['dollpictures.in', 'www.dollpictures.in'].includes(url.hostname) && MISSING_LOCAL_IMAGES.has(url.pathname));

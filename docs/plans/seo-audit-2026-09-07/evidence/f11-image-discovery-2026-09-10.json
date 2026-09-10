@@ -1,0 +1,880 @@
+{
+  "checkedAt": "2026-09-10T03:23:08.204305+00:00",
+  "task": "F11 \u2014 crawlable image discovery",
+  "status": "Ready for verification",
+  "worktreeBaseCommit": "be8e09fafb6bb3e05093686870e08e09d1c2e386",
+  "implementation": "Uncommitted working-tree changes; not deployed",
+  "productionInventoryBaseline": {
+    "checkedAt": "2026-09-10T02:54:13.491Z",
+    "apiOrigin": "https://doll-backend-27n8.onrender.com/api",
+    "build": {
+      "commit": "be8e09fafb6bb3e05093686870e08e09d1c2e386",
+      "createdAt": "2026-09-10T02:50:11.735Z",
+      "publicOrigin": "https://dollpictures.in"
+    },
+    "publishedPhotoCount": 67,
+    "uniquePhotoIds": 67,
+    "limitedPhotoCount": 67,
+    "gallerySnapshotPhotos": 67,
+    "galleryInitialImages": 67,
+    "notInGallery": [],
+    "seedPhotos": 3,
+    "photoCategories": [
+      "baby-shower",
+      "cake-smash",
+      "baby-milestone",
+      "toddler-baby-shoots",
+      "wedding",
+      "pre-wedding",
+      "maternity",
+      "family",
+      "newborn",
+      "indoor",
+      "outdoor"
+    ]
+  },
+  "intendedCollection": {
+    "technicalBasis": "Current public CMS photos excluding seed/stock placeholders; content-owner approval remains pending",
+    "genuinePublishedPhotos": 64,
+    "seedPlaceholdersExcluded": 3,
+    "capIsCurrentlyBlocking": false,
+    "pagination": "Not needed for measured inventory; strict builds reject a full 100-record response pending completeness review"
+  },
+  "localValidation": {
+    "release": {
+      "command": "VITE_API_URL='' API_URL='' SEO_REQUIRE_CMS=false npm run check:release",
+      "exitCode": 0,
+      "details": "Typecheck, lint, 27 emitted middleware checks, build/prerender and PWA generation passed. Nine existing Fast Refresh lint warnings and chunk-size warning remain."
+    },
+    "htmlSmoke": {
+      "command": "npm run seo:html-smoke -- --require-cms --base-url http://127.0.0.1:4180",
+      "exitCode": 0,
+      "scope": "Isolated production build with public CMS fixtures"
+    },
+    "noInteractionCrawl": {
+      "checkedAt": "2026-09-10T03:21:54.233Z",
+      "baseUrl": "http://127.0.0.1:4180",
+      "apiUrl": "http://127.0.0.1:4191/api",
+      "build": {
+        "commit": "be8e09fafb6bb3e05093686870e08e09d1c2e386",
+        "createdAt": "2026-09-10T03:20:45.401Z",
+        "publicOrigin": "https://dollpictures.in"
+      },
+      "inventory": {
+        "publishedRecords": 15,
+        "excludedRecords": 3,
+        "intendedPhotos": 12,
+        "galleryImages": 12,
+        "galleryImageLinks": 12,
+        "cap": 100,
+        "missingIds": []
+      },
+      "pages": [
+        {
+          "path": "/",
+          "imageCount": 8,
+          "internalLinks": 35
+        },
+        {
+          "path": "/about",
+          "imageCount": 2,
+          "internalLinks": 22
+        },
+        {
+          "path": "/baby-milestone-packages-erode",
+          "imageCount": 0,
+          "internalLinks": 40
+        },
+        {
+          "path": "/baby-shower-packages-erode",
+          "imageCount": 0,
+          "internalLinks": 37
+        },
+        {
+          "path": "/booking",
+          "imageCount": 0,
+          "internalLinks": 0
+        },
+        {
+          "path": "/cake-smash-packages-erode",
+          "imageCount": 0,
+          "internalLinks": 40
+        },
+        {
+          "path": "/contact",
+          "imageCount": 1,
+          "internalLinks": 23
+        },
+        {
+          "path": "/editorial-photography",
+          "imageCount": 1,
+          "internalLinks": 33
+        },
+        {
+          "path": "/family-packages-erode",
+          "imageCount": 0,
+          "internalLinks": 40
+        },
+        {
+          "path": "/gallery",
+          "imageCount": 12,
+          "internalLinks": 22
+        },
+        {
+          "path": "/maternity-packages-erode",
+          "imageCount": 0,
+          "internalLinks": 40
+        },
+        {
+          "path": "/maternity-photography-erode",
+          "imageCount": 1,
+          "internalLinks": 36
+        },
+        {
+          "path": "/newborn-baby-photography-erode",
+          "imageCount": 1,
+          "internalLinks": 35
+        },
+        {
+          "path": "/newborn-packages-erode",
+          "imageCount": 0,
+          "internalLinks": 41
+        },
+        {
+          "path": "/packages",
+          "imageCount": 0,
+          "internalLinks": 32
+        },
+        {
+          "path": "/plans/brand-portrait",
+          "imageCount": 0,
+          "internalLinks": 39
+        },
+        {
+          "path": "/pre-wedding-packages-erode",
+          "imageCount": 0,
+          "internalLinks": 40
+        },
+        {
+          "path": "/privacy",
+          "imageCount": 0,
+          "internalLinks": 24
+        },
+        {
+          "path": "/services",
+          "imageCount": 0,
+          "internalLinks": 28
+        },
+        {
+          "path": "/sessions/brand-portrait",
+          "imageCount": 1,
+          "internalLinks": 34
+        },
+        {
+          "path": "/stories",
+          "imageCount": 1,
+          "internalLinks": 23
+        },
+        {
+          "path": "/terms",
+          "imageCount": 0,
+          "internalLinks": 25
+        },
+        {
+          "path": "/toddler-baby-shoot-packages-erode",
+          "imageCount": 0,
+          "internalLinks": 38
+        },
+        {
+          "path": "/wedding-packages-erode",
+          "imageCount": 9,
+          "internalLinks": 41
+        },
+        {
+          "path": "/wedding-photography-erode",
+          "imageCount": 9,
+          "internalLinks": 38
+        },
+        {
+          "path": "/work",
+          "imageCount": 3,
+          "internalLinks": 22
+        }
+      ],
+      "imageResponses": [
+        {
+          "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/wedding/qa/f11-0.jpg",
+          "status": 200,
+          "contentType": "image/jpeg"
+        },
+        {
+          "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/wedding/qa/f11-10.jpg",
+          "status": 200,
+          "contentType": "image/jpeg"
+        },
+        {
+          "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/wedding/qa/f11-2.jpg",
+          "status": 200,
+          "contentType": "image/jpeg"
+        },
+        {
+          "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/wedding/qa/f11-4.jpg",
+          "status": 200,
+          "contentType": "image/jpeg"
+        },
+        {
+          "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/wedding/qa/f11-6.jpg",
+          "status": 200,
+          "contentType": "image/jpeg"
+        },
+        {
+          "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/wedding/qa/f11-8.jpg",
+          "status": 200,
+          "contentType": "image/jpeg"
+        }
+      ],
+      "failures": [],
+      "scope": "Real local HTML and public catalog; synthetic photo inventory and image responses. Fixture includes stock service preview URLs and excluded photo records; rendered discovery output excludes them."
+    },
+    "crawlerCases": [
+      {
+        "mode": "valid",
+        "passed": true
+      },
+      {
+        "mode": "missing-image",
+        "passed": true
+      },
+      {
+        "mode": "missing-anchor",
+        "passed": true
+      },
+      {
+        "mode": "wrong-anchor",
+        "passed": true
+      },
+      {
+        "mode": "private-image",
+        "passed": true
+      },
+      {
+        "mode": "placeholder",
+        "passed": true
+      },
+      {
+        "mode": "wrong-canonical",
+        "passed": true
+      },
+      {
+        "mode": "broken-image",
+        "passed": true
+      },
+      {
+        "mode": "html-image",
+        "passed": true
+      },
+      {
+        "mode": "noindex-image",
+        "passed": true
+      },
+      {
+        "mode": "head-fallback",
+        "passed": true
+      },
+      {
+        "mode": "over-cap",
+        "passed": true
+      },
+      {
+        "mode": "malformed-inventory",
+        "passed": true
+      },
+      {
+        "mode": "missing-broader-link",
+        "passed": true
+      },
+      {
+        "mode": "identity normalization, URL exclusion and stale placeholder snapshot rejection",
+        "passed": true
+      }
+    ],
+    "browserCases": [
+      {
+        "path": "/gallery",
+        "javaScriptEnabled": false,
+        "width": 390,
+        "theme": "light",
+        "passed": true,
+        "initialImages": 12
+      },
+      {
+        "path": "/gallery",
+        "javaScriptEnabled": false,
+        "width": 390,
+        "theme": "dark",
+        "passed": true,
+        "initialImages": 12
+      },
+      {
+        "path": "/gallery",
+        "javaScriptEnabled": false,
+        "width": 1440,
+        "theme": "light",
+        "passed": true,
+        "initialImages": 12
+      },
+      {
+        "path": "/gallery",
+        "javaScriptEnabled": false,
+        "width": 1440,
+        "theme": "dark",
+        "passed": true,
+        "initialImages": 12
+      },
+      {
+        "path": "/gallery",
+        "javaScriptEnabled": true,
+        "width": 390,
+        "theme": "light",
+        "passed": true,
+        "initialImages": 12
+      },
+      {
+        "path": "/gallery",
+        "javaScriptEnabled": true,
+        "width": 390,
+        "theme": "dark",
+        "passed": true,
+        "initialImages": 12
+      },
+      {
+        "path": "/gallery",
+        "javaScriptEnabled": true,
+        "width": 1440,
+        "theme": "light",
+        "passed": true,
+        "initialImages": 12
+      },
+      {
+        "path": "/gallery",
+        "javaScriptEnabled": true,
+        "width": 1440,
+        "theme": "dark",
+        "passed": true,
+        "initialImages": 12
+      },
+      {
+        "path": "/wedding-photography-erode",
+        "javaScriptEnabled": false,
+        "width": 390,
+        "theme": "light",
+        "passed": true,
+        "initialImages": 6
+      },
+      {
+        "path": "/wedding-photography-erode",
+        "javaScriptEnabled": false,
+        "width": 390,
+        "theme": "dark",
+        "passed": true,
+        "initialImages": 6
+      },
+      {
+        "path": "/wedding-photography-erode",
+        "javaScriptEnabled": false,
+        "width": 1440,
+        "theme": "light",
+        "passed": true,
+        "initialImages": 6
+      },
+      {
+        "path": "/wedding-photography-erode",
+        "javaScriptEnabled": false,
+        "width": 1440,
+        "theme": "dark",
+        "passed": true,
+        "initialImages": 6
+      },
+      {
+        "path": "/wedding-photography-erode",
+        "javaScriptEnabled": true,
+        "width": 390,
+        "theme": "light",
+        "passed": true,
+        "initialImages": 6
+      },
+      {
+        "path": "/wedding-photography-erode",
+        "javaScriptEnabled": true,
+        "width": 390,
+        "theme": "dark",
+        "passed": true,
+        "initialImages": 6
+      },
+      {
+        "path": "/wedding-photography-erode",
+        "javaScriptEnabled": true,
+        "width": 1440,
+        "theme": "light",
+        "passed": true,
+        "initialImages": 6
+      },
+      {
+        "path": "/wedding-photography-erode",
+        "javaScriptEnabled": true,
+        "width": 1440,
+        "theme": "dark",
+        "passed": true,
+        "initialImages": 6
+      },
+      {
+        "path": "/wedding-packages-erode",
+        "javaScriptEnabled": false,
+        "width": 390,
+        "theme": "light",
+        "passed": true,
+        "initialImages": 7
+      },
+      {
+        "path": "/wedding-packages-erode",
+        "javaScriptEnabled": false,
+        "width": 390,
+        "theme": "dark",
+        "passed": true,
+        "initialImages": 7
+      },
+      {
+        "path": "/wedding-packages-erode",
+        "javaScriptEnabled": false,
+        "width": 1440,
+        "theme": "light",
+        "passed": true,
+        "initialImages": 7
+      },
+      {
+        "path": "/wedding-packages-erode",
+        "javaScriptEnabled": false,
+        "width": 1440,
+        "theme": "dark",
+        "passed": true,
+        "initialImages": 7
+      },
+      {
+        "path": "/wedding-packages-erode",
+        "javaScriptEnabled": true,
+        "width": 390,
+        "theme": "light",
+        "passed": true,
+        "initialImages": 7
+      },
+      {
+        "path": "/wedding-packages-erode",
+        "javaScriptEnabled": true,
+        "width": 390,
+        "theme": "dark",
+        "passed": true,
+        "initialImages": 7
+      },
+      {
+        "path": "/wedding-packages-erode",
+        "javaScriptEnabled": true,
+        "width": 1440,
+        "theme": "light",
+        "passed": true,
+        "initialImages": 7
+      },
+      {
+        "path": "/wedding-packages-erode",
+        "javaScriptEnabled": true,
+        "width": 1440,
+        "theme": "dark",
+        "passed": true,
+        "initialImages": 7
+      }
+    ],
+    "browserNotes": "24 Chromium cases across Gallery, Wedding service and Wedding package; JS on/off, 390/1440 widths and both themes. Verified real image navigation without JS, lightbox next/Escape/focus restoration with JS, service show-more/show-less, broader gallery links, no overflow or hydration/page errors. Public image bytes and CMS APIs mocked; service workers blocked. Mobile no-JS screenshots visually reviewed. No .spec files added. Final run also checks that configured stock service previews produce no image/anchor destinations or image requests; raw CMS teaser configuration can remain in the catalog snapshot.",
+    "buildStates": {
+      "checkedAt": "2026-09-10T03:15:20.700Z",
+      "results": [
+        {
+          "name": "below-cap",
+          "passed": true,
+          "initialPhotos": 99
+        },
+        {
+          "name": "at-cap",
+          "passed": true,
+          "rejected": true,
+          "reason": "Gallery reached the 100-photo API limit"
+        },
+        {
+          "name": "above-cap",
+          "passed": true,
+          "rejected": true,
+          "reason": "Gallery reached the 100-photo API limit"
+        },
+        {
+          "name": "empty",
+          "passed": true,
+          "initialPhotos": 0
+        },
+        {
+          "name": "published",
+          "passed": true,
+          "initialPhotos": 1
+        },
+        {
+          "name": "edited",
+          "passed": true,
+          "initialPhotos": 1
+        },
+        {
+          "name": "unpublished",
+          "passed": true,
+          "initialPhotos": 0
+        },
+        {
+          "name": "removed",
+          "passed": true,
+          "initialPhotos": 0
+        },
+        {
+          "name": "unavailable-strict",
+          "passed": true,
+          "rejected": true,
+          "reason": "CMS gallery photos unavailable for /gallery"
+        },
+        {
+          "name": "unavailable-optional",
+          "passed": true,
+          "initialPhotos": 0
+        }
+      ]
+    },
+    "failedFixtureImageProbe": "An unmocked request for a synthetic ImageKit fixture correctly failed with HTTP 404; passing fixture cases inject image responses, while real asset samples are recorded separately.",
+    "servicePreviewAndDiagnosticCases": [
+      {
+        "name": "Stock service preview selects genuine category photo",
+        "passed": true
+      },
+      {
+        "name": "Stock service preview with no photos uses text fallback",
+        "passed": true
+      },
+      {
+        "name": "Stock service preview never borrows another category",
+        "passed": true
+      },
+      {
+        "name": "Genuine configured preview is preserved",
+        "passed": true
+      },
+      {
+        "name": "Unusable local preview still selects category photo",
+        "passed": true
+      },
+      {
+        "name": "Stock candidate never becomes a replacement preview",
+        "passed": true
+      },
+      {
+        "name": "Private and non-HTTP previews are excluded",
+        "passed": true
+      },
+      {
+        "name": "Crawler fetch failures identify the failing resource",
+        "passed": true
+      }
+    ]
+  },
+  "realPublicImageResponses": {
+    "checkedAt": "2026-09-10T03:13:30.639Z",
+    "scope": "Read-only six-image response sample of existing production photography; F11 code not deployed",
+    "results": [
+      {
+        "photoId": "6a7b346584d000db1eea5a89",
+        "url": "https://ik.imagekit.io/dollpictures/baby-shower/2026/3a7447dc-19d6-4e6b-9dcb-86d99c060055.jpg?tr=w-1200,q-78,f-auto",
+        "status": 200,
+        "contentType": "image/jpeg",
+        "robots": null
+      },
+      {
+        "photoId": "6a7b343b84d000db1eea5a16",
+        "url": "https://ik.imagekit.io/dollpictures/baby-shower/2026/882c088e-f9fc-4b70-867a-4718d15e436a.jpg?tr=w-1200,q-78,f-auto",
+        "status": 200,
+        "contentType": "image/jpeg",
+        "robots": null
+      },
+      {
+        "photoId": "6a7b268d84d000db1eea54bf",
+        "url": "https://ik.imagekit.io/dollpictures/cake-smash/2026/b249e7aa-5871-4fd9-92f5-230e4ec104a0.jpg?tr=w-1200,q-78,f-auto",
+        "status": 200,
+        "contentType": "image/jpeg",
+        "robots": null
+      },
+      {
+        "photoId": "6a7b121dbc4d17d453fc9013",
+        "url": "https://ik.imagekit.io/dollpictures/toddler-baby-shoots/2026/bfdcae45-1d4d-4d75-9998-f50aba5285e0.jpg?tr=w-1200,q-78,f-auto",
+        "status": 200,
+        "contentType": "image/jpeg",
+        "robots": null
+      },
+      {
+        "photoId": "6a7984c888bbcc5e0c910ba9",
+        "url": "https://ik.imagekit.io/dollpictures/maternity/2026/c2c0ee8f-d6ff-45e2-bf09-2df13a092334.jpg?tr=w-1200,q-78,f-auto",
+        "status": 200,
+        "contentType": "image/jpeg",
+        "robots": null
+      },
+      {
+        "photoId": "6a785c496f9d01f89f33be52",
+        "url": "https://ik.imagekit.io/dollpictures/wedding/2026/405e4cc6-70b7-432f-a7d5-1bb20adcf1e1.jpg?tr=w-1200,q-78,f-auto",
+        "status": 200,
+        "contentType": "image/jpeg",
+        "robots": null
+      }
+    ]
+  },
+  "notIntroduced": [
+    "Backend pagination API",
+    "Supplemental image sitemap",
+    "Photo-only landing pages"
+  ],
+  "remaining": [
+    "Deploy frontend changes and record the new commit/deployment identity.",
+    "Run CMS-strict HTML, path and image-discovery smoke checks against that deployment and save the reports.",
+    "Content owner: confirm the intended published collection and exclusions; review real mobile/desktop lightbox and no-JavaScript image navigation.",
+    "Search Console image indexing/performance observations remain a later SEO-owner follow-up; local crawlability does not establish Google indexing."
+  ],
+  "productionCrawlerBaseline": {
+    "checkedAt": "2026-09-10T03:17:21.393Z",
+    "baseUrl": "https://dollpictures.in",
+    "apiUrl": "https://doll-backend-27n8.onrender.com/api",
+    "build": {
+      "commit": "be8e09fafb6bb3e05093686870e08e09d1c2e386",
+      "createdAt": "2026-09-10T02:50:11.735Z",
+      "publicOrigin": "https://dollpictures.in"
+    },
+    "inventory": {
+      "publishedRecords": 67,
+      "excludedRecords": 3,
+      "intendedPhotos": 64,
+      "galleryImages": 64,
+      "galleryImageLinks": 0,
+      "cap": 100,
+      "missingIds": []
+    },
+    "pages": [
+      {
+        "path": "/",
+        "imageCount": 14,
+        "internalLinks": 42
+      },
+      {
+        "path": "/about",
+        "imageCount": 0,
+        "internalLinks": 29
+      },
+      {
+        "path": "/baby-milestone-packages-erode",
+        "imageCount": 2,
+        "internalLinks": 47
+      },
+      {
+        "path": "/baby-milestone-photography-erode",
+        "imageCount": 12,
+        "internalLinks": 50
+      },
+      {
+        "path": "/baby-shower-packages-erode",
+        "imageCount": 7,
+        "internalLinks": 44
+      },
+      {
+        "path": "/baby-shower-photography-erode",
+        "imageCount": 14,
+        "internalLinks": 49
+      },
+      {
+        "path": "/birthday-event-photography-erode",
+        "imageCount": 8,
+        "internalLinks": 48
+      },
+      {
+        "path": "/booking",
+        "imageCount": 0,
+        "internalLinks": 0
+      },
+      {
+        "path": "/cake-smash-packages-erode",
+        "imageCount": 2,
+        "internalLinks": 46
+      },
+      {
+        "path": "/cake-smash-photography-erode",
+        "imageCount": 12,
+        "internalLinks": 50
+      },
+      {
+        "path": "/contact",
+        "imageCount": 1,
+        "internalLinks": 30
+      },
+      {
+        "path": "/ear-piercing-photography-erode",
+        "imageCount": 6,
+        "internalLinks": 48
+      },
+      {
+        "path": "/family-packages-erode",
+        "imageCount": 1,
+        "internalLinks": 46
+      },
+      {
+        "path": "/family-photography-erode",
+        "imageCount": 10,
+        "internalLinks": 51
+      },
+      {
+        "path": "/fashion-photography-erode",
+        "imageCount": 6,
+        "internalLinks": 48
+      },
+      {
+        "path": "/gallery",
+        "imageCount": 67,
+        "internalLinks": 29
+      },
+      {
+        "path": "/kids-photography-erode",
+        "imageCount": 6,
+        "internalLinks": 48
+      },
+      {
+        "path": "/maternity-packages-erode",
+        "imageCount": 5,
+        "internalLinks": 46
+      },
+      {
+        "path": "/maternity-photography-erode",
+        "imageCount": 15,
+        "internalLinks": 51
+      },
+      {
+        "path": "/newborn-baby-photography-erode",
+        "imageCount": 16,
+        "internalLinks": 50
+      },
+      {
+        "path": "/newborn-packages-erode",
+        "imageCount": 9,
+        "internalLinks": 48
+      },
+      {
+        "path": "/packages",
+        "imageCount": 0,
+        "internalLinks": 38
+      },
+      {
+        "path": "/pre-wedding-packages-erode",
+        "imageCount": 1,
+        "internalLinks": 45
+      },
+      {
+        "path": "/privacy",
+        "imageCount": 0,
+        "internalLinks": 31
+      },
+      {
+        "path": "/services",
+        "imageCount": 5,
+        "internalLinks": 42
+      },
+      {
+        "path": "/stories",
+        "imageCount": 0,
+        "internalLinks": 30
+      },
+      {
+        "path": "/terms",
+        "imageCount": 0,
+        "internalLinks": 32
+      },
+      {
+        "path": "/toddler-baby-photography-erode",
+        "imageCount": 14,
+        "internalLinks": 49
+      },
+      {
+        "path": "/toddler-baby-shoot-packages-erode",
+        "imageCount": 6,
+        "internalLinks": 46
+      },
+      {
+        "path": "/wedding-packages-erode",
+        "imageCount": 5,
+        "internalLinks": 52
+      },
+      {
+        "path": "/wedding-photography-erode",
+        "imageCount": 14,
+        "internalLinks": 51
+      },
+      {
+        "path": "/work",
+        "imageCount": 2,
+        "internalLinks": 29
+      }
+    ],
+    "imageResponses": [
+      {
+        "url": "https://ik.imagekit.io/dollpictures/tr:w-1200,q-78,f-auto/baby-milestone/2026/920fb749-44c3-4f22-a02a-9288b54b467a.jpg",
+        "status": 200,
+        "contentType": "image/jpeg"
+      }
+    ],
+    "failures": [
+      "/gallery: gallery photograph lacks a matching image anchor",
+      "/gallery: excluded image in initial HTML",
+      "/gallery: gallery contains an image outside the published inventory",
+      "/wedding-photography-erode: excluded image in initial HTML",
+      "/wedding-photography-erode: category photographs lack a broader gallery link",
+      "/maternity-photography-erode: excluded image in initial HTML",
+      "/maternity-photography-erode: category photographs lack a broader gallery link",
+      "/newborn-baby-photography-erode: excluded image in initial HTML",
+      "/newborn-baby-photography-erode: category photographs lack a broader gallery link",
+      "/family-photography-erode: excluded image in initial HTML",
+      "/family-photography-erode: category photographs lack a broader gallery link",
+      "/baby-shower-photography-erode: excluded image in initial HTML",
+      "/baby-shower-photography-erode: category photographs lack a broader gallery link",
+      "/toddler-baby-photography-erode: excluded image in initial HTML",
+      "/toddler-baby-photography-erode: category photographs lack a broader gallery link",
+      "/baby-milestone-photography-erode: excluded image in initial HTML",
+      "/ear-piercing-photography-erode: excluded image in initial HTML",
+      "/cake-smash-photography-erode: excluded image in initial HTML",
+      "/cake-smash-photography-erode: category photographs lack a broader gallery link",
+      "/kids-photography-erode: excluded image in initial HTML",
+      "/birthday-event-photography-erode: excluded image in initial HTML",
+      "/fashion-photography-erode: excluded image in initial HTML",
+      "/services: excluded image in initial HTML",
+      "/maternity-packages-erode: category photographs lack a broader gallery link",
+      "/wedding-packages-erode: category photographs lack a broader gallery link",
+      "/newborn-packages-erode: category photographs lack a broader gallery link",
+      "/baby-shower-packages-erode: category photographs lack a broader gallery link",
+      "/toddler-baby-shoot-packages-erode: category photographs lack a broader gallery link",
+      "/family-packages-erode: category photographs lack a broader gallery link",
+      "/pre-wedding-packages-erode: category photographs lack a broader gallery link",
+      "/baby-milestone-packages-erode: category photographs lack a broader gallery link",
+      "/cake-smash-packages-erode: category photographs lack a broader gallery link"
+    ],
+    "interpretation": "Expected failures against the old deployment: missing Gallery image anchors, three Gallery seed placeholders, two Pexels service preview assets repeated across service pages, and missing broader gallery links. New implementation is not deployed. An initial run timed out; the read-only retry completed."
+  },
+  "additionalServicePreviewExclusions": {
+    "source": "Existing public CMS service teaser configuration; not counted as published photo records",
+    "assets": [
+      "https://images.pexels.com/photos/796444/pexels-photo-796444.jpeg",
+      "https://images.pexels.com/photos/1721932/pexels-photo-1721932.jpeg"
+    ],
+    "behavior": "Use available genuine category photos or the existing text fallback. CMS records are unchanged."
+  }
+}

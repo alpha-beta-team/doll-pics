@@ -1,4 +1,5 @@
 import { photoLabels } from './photoLabels';
+import { isPublishedPortfolioPhoto } from './publicPhoto';
 import { getPhotoSources } from './api';
 import type { PublicPhoto } from '../shared/types';
 import type { ServiceImage } from './serviceImages';
@@ -12,11 +13,7 @@ export interface ServiceMediaSnapshot {
 
 export function serviceImagesFromApi(photos: PublicPhoto[], categoryName?: string): ServiceImage[] {
   return photos
-    .filter(
-      (photo) =>
-        !photo.storageKey?.startsWith('seed/') &&
-        !photo.variants?.original?.url?.includes('picsum.photos'),
-    )
+    .filter(isPublishedPortfolioPhoto)
     .flatMap<ServiceImage>((photo) => {
       const sources = getPhotoSources(photo, categoryName);
       if (!sources) return [];
@@ -34,4 +31,3 @@ export function serviceImagesFromApi(photos: PublicPhoto[], categoryName?: strin
       }];
     });
 }
-

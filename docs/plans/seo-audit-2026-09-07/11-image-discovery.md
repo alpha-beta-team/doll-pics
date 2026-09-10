@@ -3,9 +3,9 @@
 **Audit ID:** F11  
 **Priority:** Medium  
 **Effort:** Medium (2–4 developer days)  
-**Status:** Not started  
+**Status:** Ready for verification — implementation and local checks passed; deployment/content acceptance pending\
 **Responsible role:** Frontend/CMS engineer with content reviewer  
-**Assigned owner:** Unassigned  
+**Assigned owner:** Frontend implementation; content owner for publication approval\
 **Chunk:** 3 — Rendering, media and metadata  
 **Baseline:** Conversation audit, 7 September 2026, repository revision `ff8e0ad`
 
@@ -15,7 +15,7 @@
 
 Priority approved photography has a normal HTML discovery path without requiring clicks to reveal its only reference.
 
-## Current evidence
+## Audit baseline evidence
 
 - [`src/pages/ServicePage.tsx:527`](../../../src/pages/ServicePage.tsx#L527) — Only six gallery images initially render before expansion.
 - [`src/pages/ServicePage.tsx:692`](../../../src/pages/ServicePage.tsx#L692) — Show more is interaction-driven.
@@ -24,7 +24,7 @@ Priority approved photography has a normal HTML discovery path without requiring
 
 The collection cap is a completeness defect only if the intended published collection exceeds it. Interactive lightboxes need not each become indexed pages.
 
-Evidence describes the audit baseline, not a fresh deployment check. Recheck these code references before implementing; existing historical plan completion does not complete this new item.
+These references describe the audit baseline. Current implementation and verification results are recorded below; historical completion alone does not complete this item.
 
 ## Boundaries
 
@@ -41,37 +41,49 @@ Historical context (retain its original records; do not copy old statuses into t
 
 ## Ordered checklist
 
-- [ ] Inventory intended published images versus initial HTML discovery and document whether the 100-photo limit truncates the intended collection.
-- [ ] Keep a curated representative gallery in each rendered public page and link to broader approved work.
-- [ ] Use I01 session pages for substantive session-level discovery; do not make I01 a hard prerequisite for initial gallery improvement.
-- [ ] If the measured collection exceeds the cap, add backend-supported stable pagination and real anchor destinations before changing the frontend query; document the contract in this file before coding that extension.
-- [ ] Include only published approved originals in any supplemental image sitemap, associated with their canonical landing pages.
-- [ ] Crawl without interaction, compare discovered URLs/images to the intended set and test pagination limits if introduced.
+- [x] Inventory intended published images versus initial HTML discovery and document whether the 100-photo limit truncates the intended collection.
+- [x] Keep a curated representative gallery in each rendered public page and link to broader approved work.
+- [x] Keep substantive session-level discovery in I01; it is deferred and is not a prerequisite for this increment.
+- [x] Pagination is not applicable to the measured 64-photo intended collection. Preserve the bounded query and reject a full 100-record response in strict builds; document a stable backend pagination contract before extending it.
+- [x] Supplemental image sitemap: not applicable; none introduced. All intended photos already have Gallery HTML references, and canonical page sitemap behavior is unchanged.
+- [x] Local no-interaction crawl and inventory comparison passed; tested the 99/100/101 boundary. Repeat the crawl against the new deployment.
 
 ## Acceptance criteria
 
 - [ ] Each priority image intended for search has an accessible HTML page reference or appropriate supplemental discovery entry.
-- [ ] The first gallery view remains bounded and usable without JavaScript.
-- [ ] Any intended collection beyond a cap has a verified discovery route; otherwise the cap is explicitly documented as non-blocking.
+- [x] The first gallery view remains bounded and usable without JavaScript; local browser checks passed.
+- [x] The cap is explicitly non-blocking for the measured intended collection; future full responses stop strict builds pending completeness review.
 - [ ] No private, unpublished, broken or duplicate-canonical destinations enter discovery output.
 
 ## Verification
 
 ### Local
 
-Commands below are for future remediation verification and were not run merely to create this plan. Run focused checks first; run full release gates only when relevant to the eventual change.
+The release gate, fixture HTML/crawl checks, 24 browser cases, 15 crawler/exclusion cases, 8 service-preview/diagnostic cases and 10 build/lifecycle states passed. [Evidence](./evidence/f11-image-discovery-2026-09-10.json) separates local mocked responses from six real public image response samples. No spec files were added.
 
 ```sh
-npm run test:seo
-npm run test:browser
+VITE_API_URL='' API_URL='' SEO_REQUIRE_CMS=false npm run check:release
 ```
 
-- [ ] Record the changed behavior, command outcomes, commit and relevant fixture/browser evidence.
-- [ ] Complete the scenario-specific checks above; explain any non-applicable check.
+- [x] Record changed behavior, outcomes, working-tree base commit and fixture/browser evidence. Implementation is uncommitted and has not been deployed.
+- [x] Complete local scenario checks and record pagination/image-sitemap decisions above.
 
 ### Deployment
 
-Perform a no-interaction crawl and image-response sample on the deployed content set; verify any image sitemap independently.
+After deploying this increment, run these commands from the frontend repository. Use the CMS API that belongs to that deployment; the production API below was verified during inventory.
+
+```sh
+npm run seo:html-smoke -- --require-cms --base-url https://dollpictures.in
+npm run seo:paths-smoke -- --base-url https://dollpictures.in
+npm run seo:images-smoke -- \
+  --base-url https://dollpictures.in \
+  --api-url https://doll-backend-27n8.onrender.com/api \
+  --report ./image-discovery-report.json
+```
+
+The image check follows normal public anchors from Home without executing JavaScript, compares Gallery HTML against the public photo inventory, checks canonical destinations/exclusions and samples six image responses. Use `--image-sample 100` to check every discovered photo in the current bounded collection. A CMS publication change needs a successful rebuild/deploy before its HTML inventory matches; this check detects missing newly published photos or stale removed photos. Do not use a local CMS inventory to check production HTML.
+
+The existing production baseline is not evidence that the new anchors/exclusions have been deployed. No new sitemap needs separate acceptance.
 
 - [ ] Record preview/production URLs, deployment date, commit, relevant HTTP/DOM evidence and any unverified hosting target.
 
@@ -79,11 +91,11 @@ Perform a no-interaction crawl and image-response sample on the deployed content
 
 Search Console image-search data and indexing are follow-up observations; client permission and approved collection scope come from the content owner.
 
-- [ ] Record applicable external results or an explicit pending follow-up with responsible role and next action.
+- [x] Pending follow-ups recorded: content owner confirms intended photos/client approval and reviews the real gallery after deployment; SEO owner records Search Console image-search observations after indexing has had time to update.
 
 ## Rollout and rollback
 
-Remove the new discovery links/sitemap entries if they reference incorrect content; retain approved canonical pages and media.
+Revert this frontend increment if the new image links or exclusions regress approved content or gallery interactions. Preserve canonical pages and the existing page sitemap; no image sitemap was introduced.
 
 Promote through the existing release workflow only when this item's applicable gates pass. Use QA fixtures/mocked submissions for writes during verification. Stop if public content, canonical/indexing signals, hydration or protected behavior regress.
 
@@ -91,10 +103,10 @@ Promote through the existing release workflow only when this item's applicable g
 
 | Stage | State | Evidence |
 |---|---|---|
-| Remediation implementation | Not started | Plan only; no application changes made |
-| Local remediation validation | Pending | Audit baseline is not proof of a future fix |
-| Preview/production acceptance | Pending | Requires deployed verification |
-| External checks | Pending | Apply the requirements above; label non-applicable checks explicitly |
+| Remediation implementation | Implemented locally | Image anchors, full-gallery links, shared exclusions, strict cap guard and `seo:images-smoke` |
+| Local remediation validation | Passed | Release gate, fixture HTML smoke, 24 browser cases, 15 crawl/exclusion cases and 10 build/lifecycle states; see linked evidence |
+| Preview/production acceptance | Pending | Baseline inventory and six real image responses recorded; deploy new code, run all three smoke checks and complete manual content/browser acceptance |
+| External checks | Pending | Content owner confirms approved collection; SEO owner monitors image indexing. Pagination and supplemental image sitemap are currently not applicable |
 
 Update this header, this record, the master row, chunk checkbox and totals together. Use `Ready for verification` when implementation and required local checks pass but applicable deployment/manual checks remain. Use `Complete` only after this item's acceptance criteria pass; record non-gating ongoing observations separately. `Blocked` requires a blocker, responsible role and concrete next action.
 
@@ -103,4 +115,16 @@ Update this header, this record, the master row, chunk checkbox and totals toget
 | Date | Change | Evidence | Remaining blockers / next action |
 |---|---|---|---|
 | 2026-09-07 | Created the issue checklist; remediation remains Not started | Conversation audit at `ff8e0ad`; no new remediation evidence | Assign owner, recheck baseline, then follow prerequisites and ordered checklist |
+| 2026-09-10 | Implemented normal image links and broader Gallery discovery; filtered demo/unpublished records and guarded the build cap | [Local and production-baseline evidence](./evidence/f11-image-discovery-2026-09-10.json); 64 genuine photos, 3 placeholders, cap non-blocking | Deploy, run HTML/path/image smoke checks and obtain content/browser acceptance; Ready for verification |
 
+### Inventory and implementation contract — 10 September 2026
+
+The user authorized F11 after F04 implementation and automated production checks passed; F04 manual acceptance remains a separate follow-up. Treat the currently published public CMS photo collection as the intended technical discovery set, excluding known seed/stock placeholders; content-owner approval remains a separate check. No CMS publication flags are changed.
+
+Production build `be8e09fafb6bb3e05093686870e08e09d1c2e386` (built `2026-09-10T02:50:11.735Z`) serves 67 gallery photos. At `2026-09-10T02:54:13.491Z`, both public `/photos` (unlimited metadata inventory) and `/photos?limit=100` returned the same 67 IDs, all present in Gallery initial HTML. Three are known `seed/*` Picsum placeholders, leaving 64 genuine published photos. The 100-photo cap is therefore non-blocking for the measured intended collection. Public backend source applies `isPublished: true`, sorts by `order` and descending `createdAt`, and clamps an explicitly requested limit to 100; it has no pagination contract.
+
+This increment retains the bounded 100-photo frontend query and six-photo service preview. It filters seed/stock/unpublished records from public portfolio mapping and rejects stock service teaser images in the shared preview selector, adds ordinary image anchors with the existing JavaScript lightbox as enhancement, and adds prominent service/package links to `/gallery`. A no-interaction crawl compares initial HTML images with the existing public `/photos` inventory and samples image responses. Strict CMS builds must stop at a full 100-record gallery response until completeness is reviewed; if the intended set exceeds the cap, document and implement a stable backend pagination contract with real page anchors before extending the frontend query. No pagination API is introduced for the current 64-photo set.
+
+No supplemental image sitemap is needed for this increment because every intended photo already has a normal Gallery HTML reference; the existing canonical page sitemap remains the discovery entry point. I01 remains the later home for substantive session stories, without fabricated photo-only SEO pages. [Google's image guidance](https://developers.google.com/search/docs/appearance/google-images) and [crawlable-link guidance](https://developers.google.com/search/docs/crawling-indexing/links-crawlable) support standard image markup and real anchors. [Image sitemaps](https://developers.google.com/search/docs/crawling-indexing/sitemaps/image-sitemaps) remain supplemental if a future collection needs them.
+
+The new crawler was also run against the old production deployment: it found all 64 genuine Gallery photos, but correctly failed for missing image anchors, the three seed Gallery records, two stock service teaser assets repeated across pages, and missing broader Gallery links. The teaser assets are outside the 67-photo inventory. The updated selector uses genuine category media or the existing text fallback; 8 focused preview/diagnostic checks and the final fixture crawl/browser checks passed. The production baseline is saved in the evidence report and must be replaced with a passing report after deployment.

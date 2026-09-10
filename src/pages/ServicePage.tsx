@@ -640,14 +640,18 @@ function ServiceCategoryGallery({
           {renderedImages.map((image, index) => {
             const isVisible = expanded || index < INITIAL_SERVICE_GALLERY_COUNT;
             return (
-              <button
+              <a
                 key={image.src}
-                type="button"
+                href={image.src}
                 tabIndex={isVisible ? 0 : -1}
                 aria-hidden={!isVisible}
                 data-cursor="view"
                 aria-label={`Open ${image.alt}`}
-                onClick={(event) => onOpen(index, event.currentTarget)}
+                onClick={(event) => {
+                  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                  event.preventDefault();
+                  onOpen(index, event.currentTarget);
+                }}
                 className={`group relative aspect-[4/5] overflow-hidden rounded-2xl text-left outline-none reveal-blur focus-visible:ring-2 focus-visible:ring-gold-300 focus-visible:ring-offset-4 focus-visible:ring-offset-ink-950 ${
                   hasRevealed && isVisible ? 'in' : ''
                 }`}
@@ -665,7 +669,7 @@ function ServiceCategoryGallery({
                   className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105 group-focus-visible:scale-105"
                 />
                 <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-60" />
-              </button>
+              </a>
             );
           })}
         </div>
@@ -695,6 +699,9 @@ function ServiceCategoryGallery({
           </button>
         </div>
       ) : null}
+      <p className="mx-auto mt-8 max-w-7xl text-center">
+        <Link to="/gallery" className="text-sm text-gold-300 underline underline-offset-4 hover:text-gold-200">Explore the full gallery</Link>
+      </p>
     </section>
   );
 }

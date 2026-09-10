@@ -7,7 +7,7 @@
 **Program status:** In progress\
 **Completion:** **10 / 19 items complete**
 
-**Current status:** 10 complete, F04 ready for verification, F13 in progress, 7 not started. F04 implementation, local validation and automated production checks passed; manual content/browser acceptance remains pending.
+**Current status:** 10 complete, F04 and F11 ready for verification, F13 in progress, 6 not started. F04 automated production checks passed; manual acceptance remains. F11 implementation/local checks passed; deployment and content/browser acceptance remain.
 
 ## Objective and boundaries
 
@@ -47,7 +47,7 @@ IDs F01–F16 preserve audit traceability. I01–I03 cover the additional improv
 | F12 | [Complete mobile menu and route focus behavior](./12-mobile-navigation-and-focus.md) | Medium | Small | — | Complete |
 | F10 | [Use authentic and category-relevant portfolio media](./10-authentic-category-media.md) | Medium | Medium | — | Complete |
 | F04 | [Expand public HTML rendering incrementally](./04-public-html-expansion.md) | High | Large | [F02](./02-publication-and-route-catalog.md), [F03](./03-cms-service-sections.md), [F05](./05-noscript-contrast.md), [F06](./06-cms-release-readiness.md), [F10](./10-authentic-category-media.md) | Ready for verification |
-| F11 | [Provide crawlable discovery for intended photography](./11-image-discovery.md) | Medium | Medium | [F02](./02-publication-and-route-catalog.md), [F04](./04-public-html-expansion.md), [F10](./10-authentic-category-media.md) | Not started |
+| F11 | [Provide crawlable discovery for intended photography](./11-image-discovery.md) | Medium | Medium | [F02](./02-publication-and-route-catalog.md), [F04](./04-public-html-expansion.md), [F10](./10-authentic-category-media.md) | Ready for verification |
 | F13 | [Measure and improve public-page performance](./13-performance-and-core-web-vitals.md) | Medium | Medium | — | In progress |
 | F14 | [Support route-specific social previews](./14-social-preview-metadata.md) | Low | Medium | [F02](./02-publication-and-route-catalog.md), [F10](./10-authentic-category-media.md) | Not started |
 | F15 | [Preserve authored metadata descriptions](./15-authored-meta-descriptions.md) | Low | Small | — | Not started |
@@ -88,7 +88,7 @@ Start with F01. Within a chunk, take ready items in the listed order; independen
 
 - [x] [F10](./10-authentic-category-media.md) — Use authentic and category-relevant portfolio media — Complete for implementation tracking; studio approval and deployed media checks remain pending
 - [ ] [F04](./04-public-html-expansion.md) — Ready for verification: all planned families implemented; CMS-strict HTML smoke and all 98 production path checks passed on `7a8fe9a`, including Stories, Contact, Privacy and Terms; manual acceptance remains
-- [ ] [F11](./11-image-discovery.md) — Provide crawlable discovery for intended photography
+- [ ] [F11](./11-image-discovery.md) — Ready for verification: image/gallery links, public photo exclusions, cap guard and no-interaction checker implemented; local release/browser/crawl checks passed; deployment/content acceptance remains
 - [ ] [F13](./13-performance-and-core-web-vitals.md) — In progress: Booking fixes verified in production; three mobile samples show CLS 0.00344 and LCP 7.07s; image discovery, broader profiling and field acceptance remain open
 - [ ] [F14](./14-social-preview-metadata.md) — Support route-specific social previews
 - [ ] [F15](./15-authored-meta-descriptions.md) — Preserve authored metadata descriptions
@@ -111,9 +111,9 @@ Start with F01. Within a chunk, take ready items in the listed order; independen
 | 2 — Indexing and usability | 4 | 4 | 0 | Complete for implementation tracking |
 | 3 — Rendering, media and metadata | 7 | 1 | 6 | In progress |
 | 4 — Content growth and ongoing verification | 3 | 0 | 3 | Not started |
-| **Overall** | **19** | **10** | **9** | **1 in progress, 1 ready for verification, 7 not started** |
+| **Overall** | **19** | **10** | **9** | **1 in progress, 2 ready for verification, 6 not started** |
 
-**Recommended next task:** complete manual content/browser acceptance for [F04](./04-public-html-expansion.md), then proceed to [F11 image discovery](./11-image-discovery.md). [Final-family production evidence](./evidence/f04-final-families-production-2026-09-09.json) records CMS-strict HTML smoke and all 98 path checks passing on `7a8fe9a`, with matching initial content/snapshots for Stories, Contact, Privacy and Terms. Automated checks do not replace content approval or browser review. F13 Booking production comparison is [recorded](./evidence/f13-booking-production-2026-09-09.md): the footer shift is resolved in three samples; LCP image discovery remains the next experiment. Totals remain **10 / 19 complete** for implementation tracking.
+**Recommended next task:** deploy [F11 image discovery](./11-image-discovery.md), then run the HTML, path and new image-discovery smoke checks and review real photography/lightbox behavior. [F11 evidence](./evidence/f11-image-discovery-2026-09-10.json) records local validation and the production baseline of 64 genuine photos plus 3 demo placeholders; the 100-photo cap is currently non-blocking. Complete F04 manual content/browser acceptance separately; its [automated production checks passed](./evidence/f04-final-families-production-2026-09-09.json). F13 Booking production comparison is [recorded](./evidence/f13-booking-production-2026-09-09.md); LCP image discovery remains the next experiment. Totals remain **10 / 19 complete** for implementation tracking.
 
 ## Parallel execution
 
@@ -126,7 +126,7 @@ Tasks are not all serial. Dependency gates still apply; implementation completio
 | Metadata — F14, F15, F16 | Social previews, authored descriptions and sitemap dates | Existing implementation prerequisites are met; use approved imagery and coordinate edits to shared SEO/prerender files |
 | Business facts — I02 | Verify identity and structured-data facts | Requires authoritative business/content-owner confirmation |
 | Monitoring — I03 | Setup and baseline collection | Final closure waits for every prerequisite |
-| Image discovery — F11 | Inventory/preparation | Implementation depends on F04 and approved media |
+| Image discovery — F11 | Deploy and verify implemented discovery changes | Run HTML/path/image checks using the matching public CMS inventory; content owner approves real photography and exclusions |
 | Case studies — I01 | Collect approved sessions and draft content | Publication depends on F04, original media and client permission |
 
 Suggested practical split: continue F04 while F13 measurement and I02 verification run independently; handle F14/F15/F16 as a coordinated metadata workstream. Parallel work does not require deploying all changes together.
@@ -236,3 +236,4 @@ The creator validates these separately from remediation completion:
 | 2026-09-09 | F13 verified deployed Booking fixes on `90a068e`; three comparable mobile samples: CLS 0.62908 → 0.00344, LCP 8.62s → 7.07s, score 51 → 74 | 10 / 19 | Continue CMS/JS background-discovery experiment; broader performance and field acceptance remain pending |
 | 2026-09-09 | Completed F04 Stories, Contact, Privacy and Terms implementation; release checks, 84 local browser cases and 40 snapshot/content rejection cases passed | 10 / 19 | F04 Ready for verification: deploy and run updated smoke checks, then complete manual acceptance |
 | 2026-09-09 | Verified final F04 families in production on `7a8fe9a`: CMS-strict HTML and 98 path checks passed; four direct HTTP/source probes confirmed matching roots and snapshots | 10 / 19 | Complete manual content/browser acceptance, then close F04 and proceed to F11 |
+| 2026-09-10 | Implemented F11 crawlable image links, broader Gallery navigation, photo exclusions, cap guard and image-discovery smoke tool; local release, 24 browser, 15 crawler and 10 build/lifecycle cases passed | 10 / 19 (F04 and F11 ready for verification, F13 in progress, 6 not started) | Deploy F11, run all three smoke checks and complete content/browser acceptance; F04 manual acceptance remains separate |

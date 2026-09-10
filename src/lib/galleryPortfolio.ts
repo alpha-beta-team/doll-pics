@@ -1,4 +1,5 @@
 import { photoLabels } from './photoLabels';
+import { isPublishedPortfolioPhoto } from './publicPhoto';
 import { getPhotoLightboxUrl, getPhotoSources, type PhotoSources } from './api';
 import type { PublicPhoto } from '../shared/types';
 
@@ -20,6 +21,7 @@ function photoId(photo: PublicPhoto, index: number): string {
 
 export function normalizePhotos(photos: PublicPhoto[]): PortfolioPhoto[] {
   return photos
+    .filter(isPublishedPortfolioPhoto)
     .map<PortfolioPhoto | null>((photo, index) => {
       const sources = getPhotoSources(photo);
       const lightboxSrc = getPhotoLightboxUrl(photo);
@@ -39,4 +41,3 @@ export function normalizePhotos(photos: PublicPhoto[]): PortfolioPhoto[] {
     })
     .filter((photo): photo is PortfolioPhoto => photo !== null);
 }
-

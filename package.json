@@ -21,6 +21,7 @@
     "build:cms": "SEO_REQUIRE_CMS=true npm run build",
     "check:cms-release": "tsx scripts/check-public-html-deployment.ts --release",
     "seo:paths-smoke": "tsx scripts/check-public-paths-deployment.ts",
+    "seo:images-smoke": "tsx scripts/check-image-discovery.ts",
     "test:pwa": "tsx --test tests/pwa/*.test.ts && node --test tests/pwa/*.test.mjs",
     "test:pwa:browser": "playwright test --config playwright.pwa.config.ts"
   },

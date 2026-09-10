@@ -1,4 +1,5 @@
 import { parseBuildPublicCatalog } from './publicCatalog';
+import { isExcludedPhotoUrl } from './publicPhoto';
 import type { SiteData, CmsResource } from '../contexts/SiteDataContext';
 import { publicHtmlKind, type PublicHtmlPath } from './publicHtmlRoutes';
 
@@ -91,6 +92,7 @@ export function parsePublicSnapshot(text: string, pathname: string): PublicSnaps
         || !arrayOf(portfolio.photos, photo => record(photo) && strings(photo, ['id', 'title', 'location', 'year', 'lightboxSrc'])
           && ['width', 'height'].every(key => typeof photo[key] === 'number' && Number.isFinite(photo[key]) && Number(photo[key]) > 0)
           && record(photo.sources) && strings(photo.sources, ['src', 'alt'])
+          && !isExcludedPhotoUrl(String(photo.sources.src)) && !isExcludedPhotoUrl(String(photo.lightboxSrc))
           && ['avifSrcSet', 'webpSrcSet'].every(key => photo.sources && record(photo.sources) && (photo.sources[key] === undefined || typeof photo.sources[key] === 'string'))
           && (photo.blurPlaceholder === undefined || typeof photo.blurPlaceholder === 'string'))
         || (!portfolio.loaded && (portfolio.photos as unknown[]).length > 0)) return;

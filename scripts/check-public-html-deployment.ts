@@ -183,6 +183,7 @@ export function validatePublicHtml(html: string, path: PublicHtmlPath, publicOri
         expect(portfolio && images.length === portfolio.photos.length, 'gallery image count differs from snapshot');
         for (const photo of portfolio?.photos ?? []) {
           expect(images.some(image => image.getAttribute('src') === photo.sources.src && image.getAttribute('alt') === photo.sources.alt), 'gallery image/source alt differs from snapshot');
+          expect(images.some(image => image.getAttribute('src') === photo.sources.src && image.closest('a')?.getAttribute('href') === photo.lightboxSrc), 'gallery photograph lacks a crawlable image link');
           expect(text(root?.querySelector('#gallery')?.textContent).includes(text(photo.title)), 'gallery caption missing');
         }
         if (portfolio && !portfolio.photos.length) expect(text(root?.querySelector('#gallery')?.textContent).includes(portfolio.loaded ? 'There are no published photographs in the gallery yet.' : 'We could not load the gallery right now.'), 'missing gallery empty/unavailable state');
@@ -203,6 +204,7 @@ export function validatePublicHtml(html: string, path: PublicHtmlPath, publicOri
           for (const inclusion of offer.inclusions) expect(content.includes(text(inclusion)), `package inclusion missing: ${offer.name}`);
         }
         if (!offers.length) expect(content.includes('Packages will be available soon.'), 'missing empty package state');
+        if (root?.querySelector('main img')) expect(root.querySelector('main a[href="/gallery"]'), 'package page lacks broader gallery discovery');
         return failures;
       }
       if (hub) {
@@ -241,6 +243,7 @@ export function validatePublicHtml(html: string, path: PublicHtmlPath, publicOri
       const media = snapshot.data.serviceMedia;
       const available = [...(media?.cover ?? []), ...(media?.photos ?? [])].filter(image => image.src.trim());
       if (available.length) {
+        expect(root?.querySelector('main a[href="/gallery"]'), 'service page lacks broader gallery discovery');
         const imagePaths = [...root?.querySelectorAll('#overview img[src], #service-gallery img[src]') ?? []]
           .map(image => image.getAttribute('src')?.split('?')[0]);
         expect(available.some(image => imagePaths.includes(image.src.split('?')[0])), 'snapshot imagery missing from rendered service');

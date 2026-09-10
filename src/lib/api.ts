@@ -1,4 +1,5 @@
 import { photoLabels } from './photoLabels';
+import { IMAGEKIT_ENDPOINT } from './publicPhoto';
 import { createPublicFetch } from './publicRequest';
 export { ApiError } from './publicRequest';
 import { captureAttribution } from './attribution';
@@ -34,7 +35,6 @@ export type {
 } from '../shared/types';
 
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3001/api';
-const IMAGEKIT_ENDPOINT = 'https://ik.imagekit.io/dollpictures';
 // Include candidates near the actual mobile card widths. Without these, a
 // 260-650 px rendered image is rounded up to an 800 px download.
 const IMAGEKIT_WIDTHS = [320, 480, 640, 720, 960, 1200, 1600] as const;
