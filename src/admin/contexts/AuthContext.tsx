@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useCallback, useEffect, useRef, ty
 import type { StaffAccount } from '../types';
 import { api } from '../api/client';
 import { authStorage } from '../api/authStorage';
+import { verifySession } from '../api/verifySession';
 
 type AuthStatus = 'checking' | 'authenticated' | 'anonymous' | 'error';
 type AuthState = { status: AuthStatus; user: StaffAccount | null; token: string | null; error: string | null };
@@ -35,7 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     verification.current = controller;
     setState({ ...anonymous, token, status: 'checking' });
     try {
-      const user = await api.getCurrentUser(controller.signal);
+      const user = await verifySession(signal => api.getCurrentUser(signal), controller.signal);
       if (attempt !== generation.current || controller.signal.aborted) return;
       if (!user) { authStorage.clear(); setState(anonymous); return; }
       authStorage.setUser(user);
@@ -52,6 +53,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void retryVerification();
     return () => { invalidate(); };
   }, [invalidate, retryVerification]);
+
+  useEffect(() => {
+    const recover = () => {
+      if (document.visibilityState === 'hidden' || !navigator.onLine || verification.current) return;
+      if (state.status === 'error' || state.status === 'checking') void retryVerification();
+    };
+    const visibility = () => {
+      // A suspended mobile app can resume with an expired request/timer.
+      // Cancel unfinished verification while hidden, then start fresh on return.
+      if (document.visibilityState === 'hidden') {
+        if (verification.current) invalidate();
+      } else recover();
+    };
+    document.addEventListener('visibilitychange', visibility);
+    window.addEventListener('online', recover);
+    window.addEventListener('pageshow', recover);
+    return () => {
+      document.removeEventListener('visibilitychange', visibility);
+      window.removeEventListener('online', recover);
+      window.removeEventListener('pageshow', recover);
+    };
+  }, [state.status, retryVerification, invalidate]);
 
   const login = useCallback(async (email: string, password: string) => {
     const attempt = invalidate();
