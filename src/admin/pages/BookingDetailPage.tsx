@@ -44,7 +44,7 @@ import { FollowUpPanel } from '../components/FollowUpPanel';
 import { CustomerLookupPanel } from '../components/CustomerLookupPanel';
 import { WhatsAppComposer } from '../components/WhatsAppComposer';
 import { VoiceNotesPanel } from '../components/VoiceNotesPanel';
-import { ApiError } from '../api/http';
+import { conflictRequirements, saveWithScheduleConfirmation, scheduleConfirmationOptions } from '../components/scheduleConfirmation';
 import type { WhatsAppTemplateId } from '../components/whatsappTemplates';
 import { ImportantDatesPanel } from '../components/ImportantDatesPanel';
 import { AdminTabs } from '../components/AdminTabs';
@@ -220,7 +220,7 @@ function BookingDetailWorkspace() {
   };
 
   const transition = async (status: BookingStatus) => {
-    if (!booking) return;
+    if (!booking || saving) return;
     const restoring = booking.status === 'cancelled';
     const copy: Record<BookingStatus, { title: string; description: string; confirmLabel: string }> = {
       draft: {
@@ -261,23 +261,15 @@ function BookingDetailWorkspace() {
     setSaving(true);
     setError('');
     try {
-      const updated = await api.transitionBooking(booking.id, status);
-      sync(updated); setSuccess('Booking status updated');
+      const result = await saveWithScheduleConfirmation(
+        flags => api.transitionBooking(booking.id, status, flags.acknowledgeUntimedConflict, flags.acknowledgeTimedConflict),
+        async conflicts => restoring && await confirmDialog(scheduleConfirmationOptions(conflicts, true)) ? conflictRequirements(conflicts) : null,
+      );
+      if (!result.saved) return;
+      sync(result.value); setSuccess('Booking status updated');
       if (status === 'cancelled') setMessageOpen('booking_cancelled');
     } catch (err) {
-      if (restoring && err instanceof ApiError && err.code === 'UNTIMED_CONFIRMATION_REQUIRED') {
-        const accepted = await confirmDialog({
-          title: 'Another booking has no time',
-          description: 'There is an active booking on this date without a time. Restore only after checking it will not clash.',
-          confirmLabel: 'Restore booking',
-        });
-        if (accepted) {
-          try { sync(await api.transitionBooking(booking.id, status, true)); }
-          catch (retryError) { setError(retryError instanceof Error ? retryError.message : 'Restore failed'); }
-        }
-      } else {
-        setError(err instanceof Error ? err.message : 'Operation failed');
-      }
+      setError(err instanceof Error ? err.message : 'Operation failed');
     } finally { setSaving(false); }
   };
 

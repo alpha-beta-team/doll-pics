@@ -94,11 +94,12 @@ export const bookingsApi = {
     id: string,
     status: BookingStatus,
     acknowledgeUntimedConflict?: boolean,
+    acknowledgeTimedConflict?: boolean,
   ): Promise<Booking> {
     return bookingRequest(`/admin/bookings/${id}/status`, {
       method: 'PATCH',
       auth: true,
-      body: JSON.stringify({ status, acknowledgeUntimedConflict }),
+      body: JSON.stringify({ status, acknowledgeUntimedConflict, acknowledgeTimedConflict }),
     });
   },
 

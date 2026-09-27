@@ -91,3 +91,31 @@ export function formatScheduleTime(value: string) {
     hour: 'numeric', minute: '2-digit', timeZone: SCHEDULE_TIMEZONE,
   }).format(new Date(`2000-01-01T${value}:00+05:30`)).toUpperCase();
 }
+
+/** Pack intersecting cards into columns, including the minimum rendered card height. */
+export function layoutScheduleBookings(bookings: ScheduleBookingItem[], minimumMinutes = 0) {
+  const sorted = bookings.filter(item => item.startTime && item.endTime).slice().sort((a, b) =>
+    a.startTime.localeCompare(b.startTime) || a.endTime.localeCompare(b.endTime) || a.id.localeCompare(b.id));
+  const result: Array<{ item: ScheduleBookingItem; column: number; columns: number }> = [];
+  let group: typeof result = [];
+  let columnEnds: number[] = [];
+  let groupEnd = -1;
+  const finish = () => {
+    group.forEach(entry => { entry.columns = columnEnds.length; });
+    result.push(...group);
+    group = [];
+    columnEnds = [];
+  };
+  for (const item of sorted) {
+    const start = timeToMinutes(item.startTime);
+    const end = Math.max(timeToMinutes(item.endTime), start + minimumMinutes);
+    if (start >= groupEnd) finish();
+    const available = columnEnds.findIndex(value => value <= start);
+    const column = available < 0 ? columnEnds.length : available;
+    columnEnds[column] = end;
+    group.push({ item, column, columns: 1 });
+    groupEnd = Math.max(start >= groupEnd ? -1 : groupEnd, end);
+  }
+  finish();
+  return result;
+}

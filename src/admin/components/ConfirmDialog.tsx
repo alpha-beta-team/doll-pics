@@ -93,7 +93,7 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
             aria-modal="true"
             aria-labelledby="confirm-dialog-title"
             aria-describedby={options.description ? 'confirm-dialog-description' : undefined}
-            className="w-full max-w-md rounded-2xl border border-admin-border bg-admin-surface p-6 shadow-[0_24px_70px_rgba(35,31,27,0.24)]"
+            className="max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-2xl border border-admin-border bg-admin-surface p-6 shadow-[0_24px_70px_rgba(35,31,27,0.24)]"
           >
             <div className="flex items-start gap-4">
               <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${isDanger ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}>
@@ -106,7 +106,7 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
                   {options.title}
                 </h2>
                 {options.description && (
-                  <p id="confirm-dialog-description" className="mt-2 text-sm leading-6 text-slate-600">
+                  <p id="confirm-dialog-description" className="whitespace-pre-line mt-2 text-sm leading-6 text-slate-600">
                     {options.description}
                   </p>
                 )}

@@ -6,7 +6,7 @@ import {
   ChevronRight,
   X,
 } from 'lucide-react';
-import type { Booking, BookingWritePayload, Enquiry, EnquirySource, Package, PaymentMethod, ScheduleConflictResponse, ServiceNavLink, StaffAccountOption } from '../types';
+import type { Booking, BookingWritePayload, Enquiry, EnquirySource, Package, PaymentMethod, ServiceNavLink, StaffAccountOption } from '../types';
 import {
   BOOKING_WIZARD_FIELD_LABELS,
   BOOKING_WIZARD_STEPS,
@@ -22,13 +22,15 @@ import {
   validateBookingWizardStep,
   type BookingWizardFieldErrors,
 } from './bookingForm.utils';
-import { bookingDurationLabel, bookingTimeWindowError } from '../../shared/bookingTime';
+import { bookingDurationLabel } from '../../shared/bookingTime';
 import { CustomerLookupPanel } from './CustomerLookupPanel';
 import type { CustomerLookupResponse } from '../types';
 import { ApiError } from '../api/http';
 import { api } from '../api/client';
 import { useFeatureAccess } from '../access/useFeatureAccess';
-import { useConfirmDialog } from '../hooks/useConfirmDialog';
+import { useScheduleAvailability, useScheduleConfirmation, type ScheduleAvailability } from '../hooks/useScheduleAvailability';
+import { ScheduleAvailabilityNotice } from './ScheduleAvailabilityNotice';
+import { saveWithScheduleConfirmation } from './scheduleConfirmation';
 import { endTimeFor, formatScheduleTime, minutesToTime, timeToMinutes } from '../pages/schedule.utils';
 import { useAuth } from '../contexts/AuthContext';
 import { canViewBookingPricing } from '../access/roles';
@@ -78,63 +80,6 @@ function localDateTime(value?: string) {
   return new Date(date.getTime() - offset).toISOString().slice(0, 16);
 }
 
-type ScheduleAvailability = {
-  conflicts: ScheduleConflictResponse | null;
-  checking: boolean;
-  error: string;
-};
-
-function useScheduleAvailability(
-  bookingDate: string,
-  startTime: string,
-  endTime: string,
-  excludeBookingId?: string,
-): ScheduleAvailability {
-  const [conflicts, setConflicts] = useState<ScheduleConflictResponse | null>(null);
-  const [checking, setChecking] = useState(false);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    const invalidWindow = !bookingDate || !startTime || !endTime
-      || Boolean(bookingTimeWindowError(bookingDate, startTime, endTime));
-    if (invalidWindow) {
-      setConflicts(null);
-      setChecking(false);
-      setError('');
-      return;
-    }
-
-    const controller = new AbortController();
-    setChecking(true);
-    setConflicts(null);
-    setError('');
-    const timer = window.setTimeout(() => {
-      void api.checkScheduleConflicts({
-        bookingDate,
-        startTime,
-        endTime,
-        excludeBookingId,
-      }, controller.signal)
-        .then(setConflicts)
-        .catch(err => {
-          if ((err as Error).name !== 'AbortError') {
-            setError(err instanceof Error ? err.message : 'Could not check schedule availability.');
-          }
-        })
-        .finally(() => {
-          if (!controller.signal.aborted) setChecking(false);
-        });
-    }, 250);
-
-    return () => {
-      window.clearTimeout(timer);
-      controller.abort();
-    };
-  }, [bookingDate, endTime, excludeBookingId, startTime]);
-
-  return { conflicts, checking, error };
-}
-
 export function BookingFormModal(props: Props) {
   const [existingBookingId, setExistingBookingId] = useState('');
   const request = useRef<{ payload: string; id: string }>();
@@ -172,7 +117,6 @@ function BookingWizard({
   const [enquiry, setEnquiry] = useState<Enquiry | null>(initialEnquiry || null);
   const [selectingEnquiry, setSelectingEnquiry] = useState(false);
   const selectionVersion = useRef(0);
-  const confirm = useConfirmDialog();
   const { canView: canViewPayments } = useFeatureAccess('payments');
   const { user } = useAuth();
   const canEditBookingPricing = canViewBookingPricing(user?.role);
@@ -224,8 +168,15 @@ function BookingWizard({
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<BookingWizardFieldErrors>({});
   const [saving, setSaving] = useState(false);
-  const [acknowledgeUntimedConflict, setAcknowledgeUntimedConflict] = useState(false);
-  useEffect(() => setAcknowledgeUntimedConflict(false), [bookingDate, startTime, endTime]);
+  const submitting = useRef(false);
+  const advancing = useRef(false);
+  const scheduleChanged = !booking || bookingDate !== booking.bookingDate
+    || startTime !== (booking.startTime || '') || endTime !== (booking.endTime || '');
+  const acknowledgeSchedule = useScheduleConfirmation(JSON.stringify([booking?.id, bookingDate, startTime, endTime]));
+  const changeTime = () => {
+    setStep(1);
+    window.setTimeout(() => document.getElementById('booking-start-time')?.focus(), 0);
+  };
   const [step, setStep] = useState(restoredStep);
   const [highestCompletedStep, setHighestCompletedStep] = useState(
     initialHighestCompletedStep(restoredStep),
@@ -241,6 +192,7 @@ function BookingWizard({
     startTime,
     endTime,
     booking?.id,
+    scheduleChanged,
   );
   const selectEnquiry = async (id: string) => {
     const version = ++selectionVersion.current;
@@ -285,6 +237,7 @@ function BookingWizard({
   const restoreFocusRef = useRef<HTMLElement | null>(null);
   const onCloseRef = useRef(onClose);
   const closeAndDiscardDraft = useCallback(() => {
+    if (submitting.current) return;
     discardBookingFormDraft(localStorage, draftKey);
     onClose();
   }, [draftKey, onClose]);
@@ -304,6 +257,8 @@ function BookingWizard({
     }, 0);
 
     const handleKeyDown = (event: KeyboardEvent) => {
+      // The confirmation dialog owns Escape and focus while above this wizard.
+      if (document.querySelector('[role="alertdialog"]')) return;
       if (event.key === 'Escape') {
         event.preventDefault();
         onCloseRef.current();
@@ -389,7 +344,7 @@ function BookingWizard({
   };
 
   const submit = async () => {
-    if (saving || selectingEnquiry) return;
+    if (submitting.current || selectingEnquiry) return;
     const customerErrors = validateBookingWizardStep(0, validationValues());
     if (enquiry && customerPhone === enquiry.phone) delete customerErrors.customerPhone;
     if (Object.keys(customerErrors).length) {
@@ -422,15 +377,11 @@ function BookingWizard({
       setStep(1);
       return setError('Schedule availability could not be verified. Change the time or try again.');
     }
-    if (scheduleAvailability.conflicts?.blocked) {
-      setStep(1);
-      return setError('This time overlaps another active booking. Choose another time.');
-    }
+    submitting.current = true;
     setSaving(true);
     setError('');
     setFieldErrors({});
     const payload: BookingWritePayload = {
-      acknowledgeUntimedConflict: acknowledgeUntimedConflict || undefined,
       ...(!booking && !enquiry && newShootConfirmed ? { separateShootReason: separateShootReason.trim(), reviewedRecordIds } : {}),
       customerName: customerName.trim(),
       customerPhone: customerPhone.trim(),
@@ -457,7 +408,12 @@ function BookingWizard({
       preferredLanguage: 'en',
     };
     try {
-      await onSave(payload);
+      const accepted = await acknowledgeSchedule(scheduleAvailability.conflicts);
+      if (!accepted) { changeTime(); return; }
+      const result = await saveWithScheduleConfirmation(
+        flags => onSave({ ...payload, ...flags }), acknowledgeSchedule, accepted,
+      );
+      if (!result.saved) { changeTime(); return; }
       localStorage.removeItem(draftKey);
     } catch (err) {
       if (err instanceof ApiError && err.code === 'CUSTOMER_RECORD_RESOLUTION_REQUIRED') {
@@ -466,35 +422,15 @@ function BookingWizard({
         setCustomerLookup(null);
         setLookupRefresh(value => value + 1);
       }
-      if (err instanceof ApiError && err.code === 'UNTIMED_CONFIRMATION_REQUIRED') {
-        const accepted = await confirm({
-          title: 'Another booking has no time',
-          description: 'There is an active booking on this date without a time. Continue only after checking it will not clash.',
-          confirmLabel: 'Continue booking',
-        });
-        if (accepted) {
-          setAcknowledgeUntimedConflict(true);
-          try {
-            await onSave({ ...payload, acknowledgeUntimedConflict: true });
-            localStorage.removeItem(draftKey);
-            return;
-          } catch (retryError) {
-            if (retryError instanceof ApiError && retryError.code === 'CUSTOMER_RECORD_RESOLUTION_REQUIRED') {
-              setStep(0); setNewShootConfirmed(false); setCustomerLookup(null); setLookupRefresh(value => value + 1);
-            }
-            setError(retryError instanceof Error ? retryError.message : 'Failed to save booking');
-            return;
-          }
-        }
-      }
       setError(err instanceof Error ? err.message : 'Failed to save booking');
     } finally {
+      submitting.current = false;
       setSaving(false);
     }
   };
 
-  const nextStep = () => {
-    if (selectingEnquiry) return;
+  const nextStep = async () => {
+    if (selectingEnquiry || advancing.current) return;
     const nextErrors = validateBookingWizardStep(step, validationValues());
     if (step === 0 && enquiry && customerPhone === enquiry.phone) delete nextErrors.customerPhone;
     if (Object.keys(nextErrors).length) {
@@ -509,7 +445,12 @@ function BookingWizard({
     if (step === 0 && !booking && !enquiry && (customerLookupChecking || !customerLookup)) return setError('Wait a moment while customer history is checked.');
     if (step === 1 && scheduleAvailability.checking) return setError('Wait while schedule availability is checked.');
     if (step === 1 && scheduleAvailability.error) return setError('Schedule availability could not be verified. Change the time or try again.');
-    if (step === 1 && scheduleAvailability.conflicts?.blocked) return setError('This time overlaps another active booking. Choose another time.');
+    if (step === 1) {
+      advancing.current = true;
+      try {
+        if (!await acknowledgeSchedule(scheduleAvailability.conflicts)) { changeTime(); return; }
+      } finally { advancing.current = false; }
+    }
     setError('');
     setFieldErrors({});
     setHighestCompletedStep(current => Math.max(current, step));
@@ -647,7 +588,7 @@ function BookingWizard({
         </div>
         <div className="grid grid-cols-2 gap-2 border-t border-slate-200 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-5">
           <button type="button" onClick={step === 0 ? closeAndDiscardDraft : () => { setError(''); setFieldErrors({}); setStep(value => value - 1); }} className="h-12 rounded-xl border border-slate-300 px-4 text-sm font-semibold text-slate-700 outline-none hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-blue-500">{step === 0 ? 'Cancel' : 'Back'}</button>
-          {step < 3 ? <button type="button" onClick={nextStep} disabled={step === 1 && (scheduleAvailability.checking || Boolean(scheduleAvailability.error) || Boolean(scheduleAvailability.conflicts?.blocked))} className="h-12 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white outline-none hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">{step === 1 && scheduleAvailability.checking ? 'Checking…' : 'Next'}</button> : <button type="button" onClick={() => void submit()} disabled={saving || scheduleAvailability.checking || Boolean(scheduleAvailability.error) || Boolean(scheduleAvailability.conflicts?.blocked)} className="h-12 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white outline-none hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50">{saving ? 'Saving…' : 'Save booking'}</button>}
+          {step < 3 ? <button type="button" onClick={() => void nextStep()} disabled={step === 1 && (scheduleAvailability.checking || Boolean(scheduleAvailability.error))} className="h-12 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white outline-none hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">{step === 1 && scheduleAvailability.checking ? 'Checking…' : 'Next'}</button> : <button type="button" onClick={() => void submit()} disabled={saving || scheduleAvailability.checking || Boolean(scheduleAvailability.error)} className="h-12 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white outline-none hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50">{saving ? 'Saving…' : 'Save booking'}</button>}
         </div>
       </div>
     </div>
@@ -742,7 +683,7 @@ function ShootDurationSelector({
           const crossesMidnight = startTime ? timeToMinutes(startTime) + hours * 60 >= 24 * 60 : false;
           const disabled = !canChooseDuration || crossesMidnight;
           const selected = selectedPreset === hours && !customOpen;
-          const selectedBlocked = selected && Boolean(availability.conflicts?.blocked);
+          const selectedOverlap = selected && Boolean(availability.conflicts?.timedConflicts.length);
           const calculatedEndTime = startTime && !crossesMidnight ? endTimeFor(startTime, hours) : '';
           return (
             <button
@@ -752,10 +693,10 @@ function ShootDurationSelector({
               disabled={disabled}
               aria-pressed={selected}
               onClick={() => choosePreset(hours)}
-              className={`flex min-h-14 items-center justify-between rounded-xl border px-4 text-left outline-none transition focus-visible:ring-2 focus-visible:ring-blue-500 ${selectedBlocked ? 'border-red-500 bg-red-50 text-red-800' : selected ? 'border-emerald-600 bg-emerald-50 text-emerald-900' : 'border-slate-300 bg-white text-slate-800 hover:border-blue-400'} disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400`}
+              className={`flex min-h-14 items-center justify-between rounded-xl border px-4 text-left outline-none transition focus-visible:ring-2 focus-visible:ring-blue-500 ${selectedOverlap ? 'border-blue-400 bg-blue-50 text-blue-900' : selected ? 'border-emerald-600 bg-emerald-50 text-emerald-900' : 'border-slate-300 bg-white text-slate-800 hover:border-blue-400'} disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400`}
             >
               <span><strong className="block text-sm">{hours} hour{hours === 1 ? '' : 's'}</strong><span className="mt-0.5 block text-xs">{calculatedEndTime ? `${formatScheduleTime(startTime)}–${formatScheduleTime(calculatedEndTime)}` : crossesMidnight ? 'Ends after midnight' : 'Select a start time first'}</span></span>
-              {selectedBlocked ? <span className="text-xs font-semibold">Unavailable</span> : selected ? <Check className="h-5 w-5 text-emerald-600" aria-hidden="true" /> : <ChevronRight className="h-5 w-5" aria-hidden="true" />}
+              {selectedOverlap ? <span className="text-xs font-semibold">Existing bookings</span> : selected ? <Check className="h-5 w-5 text-emerald-600" aria-hidden="true" /> : <ChevronRight className="h-5 w-5" aria-hidden="true" />}
             </button>
           );
         })}
@@ -775,30 +716,10 @@ function ShootDurationSelector({
       {customOpen && <div className="mt-2 rounded-xl border border-slate-200 bg-white p-3"><label className="text-sm text-slate-700">Shoot ends at<input id="booking-end-time" autoFocus type="time" min={startTime || undefined} value={customEndTime} onChange={event => { setCustomEndTime(event.target.value); setCustomError(''); }} className={`mt-1 h-11 w-full rounded-lg border bg-white px-3 text-sm outline-none focus:ring-2 ${customError || error ? 'border-red-400 focus:border-red-500 focus:ring-red-100' : 'border-slate-300 focus:border-blue-500 focus:ring-blue-100'}`} /></label>{customError && <p className="mt-1 text-xs font-medium text-red-600">{customError}</p>}<button type="button" onClick={applyCustom} className="mt-3 h-11 w-full rounded-xl bg-blue-600 text-sm font-semibold text-white hover:bg-blue-700">Apply custom duration</button></div>}
 
       {error && <p id="booking-time-error" className="mt-2 text-xs font-medium text-red-600">{error}</p>}
-      {!error && startTime && endTime && !availability.conflicts?.blocked && <p className="mt-2 text-xs font-medium text-emerald-700">Selected: {formatScheduleTime(startTime)}–{formatScheduleTime(endTime)} · {bookingDurationLabel(startTime, endTime)}</p>}
+      {!error && startTime && endTime && <p className="mt-2 text-xs font-medium text-emerald-700">Selected: {formatScheduleTime(startTime)}–{formatScheduleTime(endTime)} · {bookingDurationLabel(startTime, endTime)}</p>}
       <ScheduleAvailabilityNotice availability={availability} />
     </section>
   );
-}
-
-function ScheduleAvailabilityNotice({ availability }: { availability: ScheduleAvailability }) {
-  if (availability.checking) {
-    return <p className="mt-3 text-sm font-medium text-slate-500" role="status">Checking schedule availability…</p>;
-  }
-  if (availability.error) {
-    return <div className="mt-3 flex gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700" role="alert"><AlertCircle className="h-5 w-5 shrink-0" /><span><strong>Availability check failed.</strong> {availability.error}</span></div>;
-  }
-  if (availability.conflicts?.timedConflicts.length) {
-    return <div className="mt-3 space-y-2" aria-live="polite">{availability.conflicts.timedConflicts.map(conflict => <div key={conflict.id} className="flex gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"><AlertCircle className="h-5 w-5 shrink-0" /><span><strong>Time unavailable.</strong> {conflict.customerName} is booked {formatScheduleTime(conflict.startTime)}–{formatScheduleTime(conflict.endTime)}.</span></div>)}</div>;
-  }
-  if (availability.conflicts?.requiresUntimedConfirmation) {
-    const count = availability.conflicts.untimedConflicts.length;
-    return <div className="mt-3 flex gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800" role="status"><AlertTriangle className="h-5 w-5 shrink-0" /><span>{count} active booking{count === 1 ? '' : 's'} on this date {count === 1 ? 'has' : 'have'} no time. Confirmation will be required before saving.</span></div>;
-  }
-  if (availability.conflicts) {
-    return <p className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-emerald-700" role="status"><Check className="h-4 w-4" />This time is available.</p>;
-  }
-  return null;
 }
 
 function readBookingDraft(key: string): BookingDraft | null {

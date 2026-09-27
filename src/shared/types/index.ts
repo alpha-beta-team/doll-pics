@@ -79,6 +79,7 @@ export type ScheduleConflictResponse = {
   timedConflicts: ScheduleBookingItem[];
   untimedConflicts: ScheduleBookingItem[];
   blocked: boolean;
+  requiresTimedConfirmation: boolean;
   requiresUntimedConfirmation: boolean;
 };
 
@@ -86,6 +87,7 @@ export type RescheduleBookingPayload = {
   bookingDate: string;
   startTime: string;
   endTime: string;
+  acknowledgeTimedConflict?: boolean;
   acknowledgeUntimedConflict?: boolean;
 };
 
@@ -475,6 +477,7 @@ export type ConvertEnquiryPayload = {
   advanceMethod?: PaymentMethod;
   whatsappOptIn?: boolean;
   whatsappNotificationsEnabled?: boolean;
+  acknowledgeTimedConflict?: boolean;
   acknowledgeUntimedConflict?: boolean;
 };
 
@@ -803,6 +806,7 @@ export type BookingWritePayload = {
   whatsappOptIn?: boolean;
   whatsappNotificationsEnabled?: boolean;
   preferredLanguage?: string;
+  acknowledgeTimedConflict?: boolean;
   acknowledgeUntimedConflict?: boolean;
 };
 
