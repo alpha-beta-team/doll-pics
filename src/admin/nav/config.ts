@@ -171,7 +171,7 @@ export const PRIMARY_NAVIGATION: NavigationNode[] = [
 
 export const UTILITY_NAVIGATION: NavigationNode[] = [
   leaf('integrations', 'Integrations', '/admin/integrations', Plug, 10, 'integrations', { featureFlag: 'integrations' }),
-  leaf('help', 'Quick Guide / Help', '/admin/help', HelpCircle, 20),
+  { ...leaf('help', 'Quick Guide / Help', '/admin/help', HelpCircle, 20), access: { feature: 'owner_overview', level: 'view' } },
 ];
 
 export const ADMIN_FEATURE_FLAGS: AdminFeatureFlags = {

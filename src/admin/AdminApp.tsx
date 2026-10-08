@@ -98,7 +98,7 @@ export default function AdminApp() {
             <Route path="/" element={<RequireAuth />}>
               <Route index element={<DefaultAdminRedirect />} />
               <Route path="access-denied" element={<AccessDeniedPage />} />
-              <Route path="help" element={<HelpPage />} />
+              <Route element={<AccessRoute feature="owner_overview" />}><Route path="help" element={<HelpPage />} /></Route>
               <Route element={<AccessRoute feature="owner_overview" />}><Route path="owner" element={<OwnerOverviewPage />} /></Route>
               <Route element={<AccessRoute feature="today" />}><Route path="today" element={<TodayPage />} /></Route>
               <Route element={<AccessRoute feature="enquiries" />}>

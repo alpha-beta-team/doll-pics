@@ -72,6 +72,16 @@ export function isOwnerLockedFeature(area: StaffAccessArea): boolean {
   return Boolean((FEATURE_CATALOG[area] as FeatureDetails).ownerLocked);
 }
 
+const ROLE_WORKSPACE_FEATURES: Partial<Record<StaffAccountRole, readonly StaffAccessArea[]>> = {
+  sales: ['today', 'schedule', 'enquiries', 'bookings'],
+  content_manager: ['enquiries', 'bookings'],
+};
+
+export function isRoleRestrictedFeature(role: StaffAccountRole, area: StaffAccessArea): boolean {
+  const features = ROLE_WORKSPACE_FEATURES[role];
+  return features !== undefined && !features.includes(area);
+}
+
 type RoleDetails = {
   label: string;
   shortLabel: string;
@@ -102,13 +112,13 @@ export const ROLE_CATALOG: Record<StaffAccountRole, RoleDetails> = {
   sales: {
     label: 'Sales',
     shortLabel: 'Studio operations',
-    description: 'Manage enquiries, bookings, schedules, occasions, and quotations.',
+    description: 'Access Today and manage enquiries, bookings, and schedules.',
     badgeClassName: 'bg-blue-100 text-blue-800',
     selectionClassName: 'border-blue-500 bg-blue-50 ring-blue-200',
     access: {
       owner_overview: 'none',
-      dashboard: 'view', today: 'manage', enquiries: 'manage', bookings: 'manage', schedule: 'manage',
-      occasions: 'manage', quotations: 'manage', payments: 'none', photos: 'none', categories: 'none',
+      dashboard: 'none', today: 'manage', enquiries: 'manage', bookings: 'manage', schedule: 'manage',
+      occasions: 'none', quotations: 'none', payments: 'none', photos: 'none', categories: 'none',
       packages: 'none', package_categories: 'none', hero_slides: 'none', story_scenes: 'none',
       statistics: 'none', testimonials: 'none', behind_scenes: 'none', staff_profiles: 'none',
       services: 'none', site_content: 'none', integrations: 'none', staff_accounts: 'none', salary_management: 'none',
@@ -174,6 +184,7 @@ export function getEffectiveAccess(
 ): StaffAccessLevel {
   if (isOwnerLockedFeature(area)) return role === 'owner' ? ROLE_CATALOG.owner.access[area] : 'none';
   if (role === 'owner') return ROLE_CATALOG.owner.access[area];
+  if (isRoleRestrictedFeature(role, area)) return 'none';
   return overrides?.[area] ?? ROLE_CATALOG[role].access[area];
 }
 
@@ -205,7 +216,7 @@ export function getDefaultAdminRoute(user: StaffAccount | null | undefined): str
   if (canView(user, 'today')) return '/admin/today';
   if (canView(user, 'dashboard')) return '/admin/dashboard';
   const first = FEATURE_ORDER.find((feature) => canView(user, feature));
-  return first ? FEATURE_CATALOG[first].routes[0] : '/admin/help';
+  return first ? FEATURE_CATALOG[first].routes[0] : '/admin/access-denied';
 }
 
 export function getPostLoginRoute(

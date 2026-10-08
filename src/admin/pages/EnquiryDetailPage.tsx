@@ -30,13 +30,14 @@ export function EnquiryDetailPage() {
 function EnquiryDetailWorkspace() {
   const { canManage, isReadOnly } = useFeatureAccess('enquiries');
   const { canView: canViewBookings } = useFeatureAccess('bookings');
+  const { canView: canViewQuotations } = useFeatureAccess('quotations');
   const { user } = useAuth();
   const canViewPhone = hasStaffPermission(user, 'mask_phone_number');
   const { id = '' } = useParams();
   const navigate = useNavigate();
   const confirm = useConfirmDialog();
   const [params, setParams] = useSearchParams();
-  const tabs = [{ id: 'overview', label: 'Overview' }, { id: 'customer', label: 'Customer' }, { id: 'notes', label: 'Notes' }, ...(canManage ? [{ id: 'quotations', label: 'Quotations' }] : [])];
+  const tabs = [{ id: 'overview', label: 'Overview' }, { id: 'customer', label: 'Customer' }, { id: 'notes', label: 'Notes' }, ...(canManage && canViewQuotations ? [{ id: 'quotations', label: 'Quotations' }] : [])];
   const tab = tabs.some(value => value.id === params.get('tab')) ? params.get('tab')! : 'overview';
   const selectTab = (value: string) => setParams(previous => { const next = new URLSearchParams(previous); next.set('tab', value); return next; });
   const [visited, setVisited] = useState(() => new Set([tab]));
@@ -142,7 +143,7 @@ function EnquiryDetailWorkspace() {
     </DetailTabPanel>
     <DetailTabPanel namespace="enquiry-details" id="notes" active={tab === 'notes'}><DetailSection title="Internal notes" action={canManage ? <button className="min-h-11 text-sm font-semibold text-admin-primary" onClick={() => setEditing(true)}>Edit notes</button> : undefined}><p className="whitespace-pre-wrap break-words text-sm text-admin-secondary">{item.notes || 'No internal notes recorded.'}</p></DetailSection></DetailTabPanel>
     {canManage && (visited.has('notes') || tab === 'notes') && <VoiceNotesPanel compact recordType="enquiry" recordId={item.id} hidden={tab !== 'notes'} />}
-    {canManage && <DetailTabPanel namespace="enquiry-details" id="quotations" active={tab === 'quotations'}>{(visited.has('quotations') || tab === 'quotations') && <QuotationEnquiryPanel enquiryId={item.id} compact />}</DetailTabPanel>}
+    {canManage && canViewQuotations && <DetailTabPanel namespace="enquiry-details" id="quotations" active={tab === 'quotations'}>{(visited.has('quotations') || tab === 'quotations') && <QuotationEnquiryPanel enquiryId={item.id} compact />}</DetailTabPanel>}
     {followUpOpen && canManage && !closed && <DetailDialog title={item.nextFollowUpAt ? 'Edit follow-up' : 'Schedule follow-up'} onClose={() => void closeFollowUp()}>{followUpError && <p role="alert" className="mb-3 text-sm text-red-700">{followUpError}</p>}    {canManage && !closed && <FollowUpPanel
       value={followUpAt}
       note={followUpNote}

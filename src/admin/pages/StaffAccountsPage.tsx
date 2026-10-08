@@ -23,6 +23,7 @@ import {
   FEATURE_CATALOG,
   FEATURE_GROUPS,
   isOwnerLockedFeature,
+  isRoleRestrictedFeature,
   ROLE_ACCESS_AREAS,
   ROLE_CATALOG,
   ROLE_ORDER,
@@ -805,7 +806,8 @@ function PermissionOverridesPanel({
                         const defaultLevel = ROLE_CATALOG[role].access[area.id];
                         const selectedValue: OverrideChoice = overrides[area.id] ?? 'inherit';
                         const customized = selectedValue !== 'inherit';
-                        const locked = isOwnerLockedFeature(area.id);
+                        const ownerLocked = isOwnerLockedFeature(area.id);
+                        const locked = ownerLocked || isRoleRestrictedFeature(role, area.id);
                         const choices: Array<{ value: OverrideChoice; label: string }> = [
                           { value: 'inherit', label: 'Default' },
                           ...FEATURE_CATALOG[area.id].supportedLevels.map((level) => ({
@@ -819,12 +821,12 @@ function PermissionOverridesPanel({
                               <div className="flex min-w-0 items-center gap-2">
                                 {customized && <span className="h-2 w-2 shrink-0 rounded-full bg-violet-600" aria-label="Customized" />}
                                 <span className="text-sm font-semibold text-admin-text">{area.label}</span>
-                                {locked && <LockKeyhole className="h-3.5 w-3.5 text-amber-700" aria-label="Owner only" />}
+                                {locked && <LockKeyhole className="h-3.5 w-3.5 text-amber-700" aria-label={ownerLocked ? 'Owner only' : 'Unavailable for this role'} />}
                               </div>
                               <AccessBadge level={defaultLevel} />
                             </div>
                             {locked ? (
-                              <p className="mt-2 text-xs text-admin-subtle">Owner only · protected by existing backend guards</p>
+                              <p className="mt-2 text-xs text-admin-subtle">{ownerLocked ? 'Owner only · protected by existing backend guards' : role === 'content_manager' ? 'Unavailable for this role. Access is limited to Enquiries and Bookings.' : 'Unavailable for this role. Access is limited to Today, Schedule, Enquiries, and Bookings.'}</p>
                             ) : (
                               <div className="mt-2 grid grid-cols-4 rounded-lg border border-admin-control bg-admin-muted p-1" aria-label={`Custom access for ${area.label}`}>
                                 {choices.map((choice) => (
