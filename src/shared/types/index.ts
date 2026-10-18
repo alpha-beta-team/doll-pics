@@ -578,6 +578,7 @@ export type Booking = {
   packageListedPrice: number | null;
   packagePricingMode: PricingMode | '';
   agreedTotal: number | null;
+  bookingDiscountAmount?: number;
   assignedStaffAccountId?: string;
   assignedStaffAccountName: string;
   payments: BookingPayment[];
@@ -809,6 +810,7 @@ export type BookingWritePayload = {
   notes?: string;
   packageId?: string | null;
   agreedTotal?: number | null;
+  bookingDiscountAmount?: number;
   assignedStaffAccountId?: string | null;
   advanceAmount?: number;
   advancePaidAt?: string;
