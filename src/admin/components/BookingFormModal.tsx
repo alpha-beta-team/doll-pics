@@ -25,6 +25,8 @@ import {
 import { bookingDurationLabel } from '../../shared/bookingTime';
 import { CustomerLookupPanel } from './CustomerLookupPanel';
 import type { CustomerLookupResponse } from '../types';
+import { SaleBookingPricing } from './SaleBookingPricing';
+import { useBookingPricing } from '../hooks/useBookingPricing';
 import { ApiError } from '../api/http';
 import { api } from '../api/client';
 import { useFeatureAccess } from '../access/useFeatureAccess';
@@ -48,6 +50,7 @@ type Props = {
 };
 
 type BookingDraft = {
+  requestKey?: string;
   customerName: string;
   customerPhone: string;
   customerEmail: string;
@@ -125,6 +128,7 @@ function BookingWizard({
     : 'new';
   const draftKey = `doll_admin_booking_draft:${booking?.id || initialEnquiry?.id || scheduleDraftSuffix}`;
   const stored = readBookingDraft(draftKey);
+  const [requestKey] = useState(() => stored?.requestKey ?? crypto.randomUUID());
   const restoredStep = stored?.step && stored.step >= 0 && stored.step <= 3 ? stored.step : 0;
   const [customerName, setCustomerName] = useState(stored?.customerName ?? booking?.customerName ?? enquiry?.name ?? '');
   const [customerPhone, setCustomerPhone] = useState(stored?.customerPhone ?? booking?.customerPhone ?? enquiry?.phone ?? '');
@@ -146,6 +150,7 @@ function BookingWizard({
       ? stored?.agreedTotal ?? (booking?.agreedTotal == null ? '' : String(booking.agreedTotal))
       : '',
   );
+  const salePricing = useBookingPricing(packageId, Boolean(booking && booking.packageId === packageId));
   const [assignedStaffAccountId, setAssignedStaffAccountId] = useState(
     stored?.assignedStaffAccountId ?? booking?.assignedStaffAccountId ?? '',
   );
@@ -290,13 +295,14 @@ function BookingWizard({
 
   useEffect(() => {
     const draft: BookingDraft = {
+      requestKey,
       customerName, customerPhone, customerEmail, source, shootType, preferredEvent,
       bookingDate, startTime, endTime, location, packageId, agreedTotal, assignedStaffAccountId,
       advanceAmount, advanceMethod, paymentDueDate, nextFollowUpAt, followUpNote, notes, whatsappOptIn,
       whatsappNotificationsEnabled, step,
     };
     localStorage.setItem(draftKey, JSON.stringify(draft));
-  }, [advanceAmount, advanceMethod, agreedTotal, assignedStaffAccountId, bookingDate, customerEmail, customerName, customerPhone, draftKey, endTime, followUpNote, location, nextFollowUpAt, notes, packageId, paymentDueDate, preferredEvent, shootType, source, startTime, step, whatsappNotificationsEnabled, whatsappOptIn]);
+  }, [advanceAmount, advanceMethod, agreedTotal, assignedStaffAccountId, bookingDate, customerEmail, customerName, customerPhone, draftKey, endTime, followUpNote, location, nextFollowUpAt, notes, packageId, paymentDueDate, preferredEvent, requestKey, shootType, source, startTime, step, whatsappNotificationsEnabled, whatsappOptIn]);
 
   const handlePackage = (id: string) => {
     setPackageId(id);
@@ -383,6 +389,7 @@ function BookingWizard({
     setFieldErrors({});
     const payload: BookingWritePayload = {
       ...(!booking && !enquiry && newShootConfirmed ? { separateShootReason: separateShootReason.trim(), reviewedRecordIds } : {}),
+      requestKey: booking ? undefined : requestKey,
       customerName: customerName.trim(),
       customerPhone: customerPhone.trim(),
       customerEmail: customerEmail.trim() || undefined,
@@ -394,6 +401,8 @@ function BookingWizard({
       endTime,
       location: location.trim(),
       packageId: packageId || null,
+      expectedPricingToken: salePricing.preview?.pricing?.token,
+      pricingOverrideReason: salePricing.reason.trim() || undefined,
       agreedTotal: canEditBookingPricing ? (agreedTotal === '' ? null : Number(agreedTotal)) : undefined,
       assignedStaffAccountId: assignedStaffAccountId || null,
       advanceAmount: canViewPayments && enquiry && Number(advanceAmount) > 0 ? Number(advanceAmount) : undefined,
@@ -407,6 +416,10 @@ function BookingWizard({
       whatsappNotificationsEnabled: whatsappOptIn && whatsappNotificationsEnabled,
       preferredLanguage: 'en',
     };
+    if (packageId && !(booking && booking.packageId === packageId) && !salePricing.preview) { setSaving(false); setError('Load and review the package price before saving.'); return; }
+    payload.requestKey = payload.requestKey ?? requestKey;
+    payload.expectedPricingToken = salePricing.preview?.pricing?.token;
+    payload.pricingOverrideReason = salePricing.reason.trim() || undefined;
     try {
       const accepted = await acknowledgeSchedule(scheduleAvailability.conflicts);
       if (!accepted) { changeTime(); return; }
@@ -563,6 +576,7 @@ function BookingWizard({
             <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Package and ownership</h3>
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.package}<select id="booking-package" data-wizard-autofocus className={`${input} mt-1`} value={packageId} onChange={e => handlePackage(e.target.value)}><option value="">No package</option>{selectedPackageOutsideFilter && <option value={selectedPackageOutsideFilter.id}>{selectedPackageOutsideFilter.name} (current · other service)</option>}{matchingPackages.map(item => <option key={item.id} value={item.id}>{item.name}{item.isPublished ? '' : ' (unpublished)'}</option>)}</select><span className="mt-1 block text-xs text-slate-500">Showing {shootType} packages only.</span></label>
+              {canEditBookingPricing && packageId && <SaleBookingPricing pricing={salePricing} onApply={setAgreedTotal} />}
               {canEditBookingPricing && <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.agreedTotal}<input id="booking-agreed-total" type="number" min="0" className={`${input} mt-1`} value={agreedTotal} onChange={e => setAgreedTotal(e.target.value)} placeholder="Not decided" /></label>}
               <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.assignedStaffAccount}<select className={`${input} mt-1`} value={assignedStaffAccountId} onChange={e => setAssignedStaffAccountId(e.target.value)}><option value="">Unassigned</option>{booking?.assignedStaffAccountId && !staffAccounts.some(account => account.id === booking.assignedStaffAccountId) && <option value={booking.assignedStaffAccountId}>{booking.assignedStaffAccountName || 'Previous assignee'} (current)</option>}{staffAccounts.map(account => <option key={account.id} value={account.id}>{account.name}{account.jobTitle ? ` · ${account.jobTitle}` : ''}</option>)}</select></label>
               {canViewPayments && <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.paymentDueDate}<input type="date" className={`${input} mt-1`} value={paymentDueDate} onChange={e => setPaymentDueDate(e.target.value)} /></label>}

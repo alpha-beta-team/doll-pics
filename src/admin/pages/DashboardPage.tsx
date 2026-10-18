@@ -1,3 +1,4 @@
+import { SalesSummary } from '../components/SalesSummary';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -324,6 +325,7 @@ export function DashboardPage() {
 
   return (
     <div className="mx-auto w-full max-w-[1600px] space-y-6">
+      <SalesSummary refreshing={isRefreshing} />
       <AdminPageHeader
         eyebrow={<span className="inline-flex items-center gap-2">Studio pulse{isUsingMockData && <span className="rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 text-[10px] tracking-normal text-violet-700">Sample data</span>}</span>}
         title="Reports Summary"

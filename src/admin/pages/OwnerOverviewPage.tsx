@@ -1,5 +1,6 @@
 import { CampaignPerformance } from '../components/CampaignPerformance';
 import { leadSourceLabel } from '../components/leadSource';
+import { SalesSummary } from '../components/SalesSummary';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -179,6 +180,7 @@ export function OwnerOverviewPage() {
 
       {error && <AdminAlert><span>{error}</span><button type="button" onClick={() => void load()} className="ml-2 font-semibold underline">Try again</button></AdminAlert>}
 
+      <SalesSummary dateFrom={range.dateFrom} dateTo={range.dateTo} refreshing={refreshing} />
       {loading && !report ? (
         <AdminCard><AdminLoadingState label="Preparing your business overview…" /></AdminCard>
       ) : report ? (

@@ -111,6 +111,8 @@ export function BookingCTA() {
     const shootType = resolveShootType(shootTypeParam);
     setPrefill({
       packageName: packageName || undefined,
+      packageId: searchParams.get('packageId') || undefined,
+      campaignId: searchParams.get('campaignId') || undefined,
       shootType,
       preferredEvent: packageName || undefined,
       message: packageName

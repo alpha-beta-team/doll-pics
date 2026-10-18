@@ -139,6 +139,7 @@ export function mapPackage(doc: Record<string, unknown>): Package {
   const locationType = (doc.locationType as Package['locationType']) ?? '';
   return {
     id: base.id,
+    pricing: doc.pricing as Package['pricing'],
     name: (doc.name as string) ?? '',
     categoryId,
     categoryName: categoryName || undefined,
@@ -169,6 +170,7 @@ export function mapPackage(doc: Record<string, unknown>): Package {
 export function mapEnquiry(doc: Record<string, unknown>): Enquiry {
   const base = normalizeId(doc);
   return {
+    saleContext: doc.saleContext as Enquiry['saleContext'],
     id: base.id,
     name: (doc.name as string) ?? '',
     email: (doc.email as string) ?? '',
@@ -234,6 +236,7 @@ export function mapBooking(doc: Record<string, unknown>): Booking {
     notes: (doc.notes as string) ?? '',
     packageId: doc.packageId ? String(doc.packageId) : undefined,
     packageName: (doc.packageName as string) ?? '',
+    pricingSnapshot: doc.pricingSnapshot as Booking['pricingSnapshot'],
     packageListedPrice: doc.packageListedPrice == null ? null : Number(doc.packageListedPrice),
     packagePricingMode: (doc.packagePricingMode as Booking['packagePricingMode']) ?? '',
     agreedTotal: doc.agreedTotal == null ? null : Number(doc.agreedTotal),

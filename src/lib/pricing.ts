@@ -1,3 +1,6 @@
+import type { PackagePricing } from '../shared/types/sales';
+import { livePackageOffer } from './sales';
+
 /** Format a number as Indian Rupee with Indian locale grouping (e.g. ₹1,00,000). */
 export function formatINR(amount: number): string {
   return `₹${amount.toLocaleString('en-IN')}`;
@@ -18,11 +21,11 @@ export function whatsappDigits(whatsapp: string): string {
   return whatsapp.replace(/\D/g, '');
 }
 
-export function packageWhatsAppUrl(whatsapp: string, packageName: string): string {
+export function packageWhatsAppUrl(whatsapp: string, packageName: string, saleName?: string): string {
   const digits = whatsappDigits(whatsapp);
   if (!digits) return '/#booking';
   const text = encodeURIComponent(
-    `Hi! I'm interested in booking "${packageName}". Could you please share more details?`,
+    `Hi! I'm interested in booking "${packageName}".${saleName ? ` I saw the ${saleName} offer; please confirm eligibility.` : ''} Could you please share more details?`,
   );
   return `https://wa.me/${digits}?text=${text}`;
 }
@@ -60,11 +63,16 @@ export function enquiryWhatsAppUrl(
 }
 
 export function packageEnquirePath(pkg: {
+  id?: string;
+  pricing?: PackagePricing;
   name: string;
   shootType?: string;
   categoryName?: string;
-}): string {
+}, now = Date.now()): string {
   const params = new URLSearchParams();
+  if (pkg.id) params.set('packageId', pkg.id);
+  const campaignId = livePackageOffer(pkg, now)?.campaignId;
+  if (campaignId) params.set('campaignId', campaignId);
   if (pkg.name.trim()) params.set('package', pkg.name.trim());
   const shootType = pkg.categoryName?.trim() || pkg.shootType?.trim();
   if (shootType) params.set('shootType', shootType);

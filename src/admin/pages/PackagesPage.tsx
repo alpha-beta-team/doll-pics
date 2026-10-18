@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../api/client';
 import type { LocationType, Package, PackageCategory } from '../types';
@@ -88,6 +90,7 @@ interface PackageGroup {
 }
 
 export function PackagesPage() {
+  const { user } = useAuth();
   const { canManage, isReadOnly } = useFeatureAccess('packages');
   const confirmDialog = useConfirmDialog();
   const [packages, setPackages] = useState<Package[]>([]);
@@ -334,6 +337,7 @@ export function PackagesPage() {
           <p className="text-gray-500 mt-1">
             Manage photography packages grouped by category
           </p>
+          {user?.role === 'owner' && <Link to="/admin/sales" className="mt-2 inline-block text-sm font-semibold text-blue-700 underline">Manage sales & seasonal offers</Link>}
         </div>
         <button
           type="button"

@@ -126,6 +126,7 @@ function EnquiryDetailWorkspace() {
       {closed && <p className="mt-3 text-sm text-admin-subtle">{item.stage === 'booked' ? 'This enquiry has been converted.' : 'This enquiry is closed. Reopen its stage before converting.'}{item.convertedBookingId && canViewBookings && <Link className="ml-2 font-semibold text-admin-primary underline" to={`/admin/bookings/${item.convertedBookingId}`}>Open booking</Link>}</p>}
     </header>
     <div className="sticky top-16 z-10 rounded-xl border border-admin-border bg-admin-surface shadow-sm"><AdminTabs label="Enquiry details" tabs={tabs} value={tab} onChange={selectTab} wrap compact /></div>
+    {item.saleContext && <section className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-slate-800"><h2 className="font-semibold">Enquired about {item.saleContext.campaignName}</h2><p className="mt-1">The offer is checked again at booking confirmation. This enquiry does not reserve a discounted price.</p></section>}
     <DetailTabPanel namespace="enquiry-details" id="overview" active={tab === 'overview'}>
       <div className="grid items-start gap-4 lg:grid-cols-2">
         <DetailSection title="Next follow-up" action={canManage && !closed ? <button className="min-h-11 text-sm font-semibold text-admin-primary" onClick={openFollowUp}>{item.nextFollowUpAt ? 'Edit follow-up' : 'Schedule follow-up'}</button> : undefined}>

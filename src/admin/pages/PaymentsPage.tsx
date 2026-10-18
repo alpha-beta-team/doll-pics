@@ -1,3 +1,4 @@
+import { SalesSummary } from '../components/SalesSummary';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -153,6 +154,7 @@ export function PaymentsPage() {
         }}
       />
 
+      <SalesSummary dateFrom={range.dateFrom} dateTo={range.dateTo} refreshing={refreshing} />
       {error && <AdminAlert>{error}</AdminAlert>}
 
       {loading ? (

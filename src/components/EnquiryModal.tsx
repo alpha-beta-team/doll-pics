@@ -44,6 +44,8 @@ function WhatsAppIcon({ className }: { className?: string }) {
 }
 
 export interface EnquiryPrefill {
+  packageId?: string;
+  campaignId?: string;
   packageName?: string;
   shootType?: ShootTypeOption;
   preferredEvent?: string;
@@ -139,6 +141,8 @@ export function EnquiryModal({
       : message;
     try {
       await publicApi.createEnquiry({
+        packageId: prefill?.packageId,
+        campaignId: prefill?.campaignId,
         name: name.trim(),
         email: email.trim() || undefined,
         phone: phone.trim(),

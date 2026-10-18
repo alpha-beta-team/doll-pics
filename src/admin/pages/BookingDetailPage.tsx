@@ -261,8 +261,16 @@ function BookingDetailWorkspace() {
     setSaving(true);
     setError('');
     try {
+      let pricing: { expectedPricingToken?: string; agreedTotal?: number } | undefined;
+      if (status === 'confirmed' && booking.status === 'draft' && !booking.pricingSnapshot && booking.packageId) {
+        const preview = await api.getPricingPreview(booking.packageId);
+        const amount = preview.pricingMode === 'price' ? preview.pricing?.effectivePrice : booking.agreedTotal;
+        if (amount == null) throw new Error('Enter the final agreed total before confirming.');
+        if (!await confirmDialog({ title: 'Confirm booking price', description: `Final agreed total: ${money(amount)}${preview.pricing?.activeOffer ? ` · ${preview.pricing.activeOffer.name}` : ''}. This price will be saved to the booking.`, confirmLabel: 'Confirm price & booking' })) return;
+        pricing = { expectedPricingToken: preview.pricing?.token, agreedTotal: amount };
+      }
       const result = await saveWithScheduleConfirmation(
-        flags => api.transitionBooking(booking.id, status, flags.acknowledgeUntimedConflict, flags.acknowledgeTimedConflict),
+        flags => api.transitionBooking(booking.id, status, flags.acknowledgeUntimedConflict, flags.acknowledgeTimedConflict, pricing),
         async conflicts => restoring && await confirmDialog(scheduleConfirmationOptions(conflicts, true)) ? conflictRequirements(conflicts) : null,
       );
       if (!result.saved) return;
@@ -548,7 +556,7 @@ function BookingDetailWorkspace() {
         <div className="grid items-start gap-4 lg:grid-cols-2">
           <Card title="Shoot details"><div className="grid grid-cols-2 gap-3"><Field label="Service">{booking.shootType || 'Not set'}</Field><Field label="Event">{booking.preferredEvent || 'Not set'}</Field><Field label="Package">{booking.packageName || 'No package'}</Field><Field label="Duration">{bookingDurationLabel(booking.startTime, booking.endTime) || 'Not set'}</Field></div>{booking.notes && <p className="mt-3 whitespace-pre-wrap break-words text-sm">{booking.notes}</p>}</Card>
           {canManageBooking && <Card title="Next follow-up" action={<button className="text-sm font-semibold text-admin-primary" onClick={() => openEditor('followup')}>{booking.nextFollowUpAt ? 'Edit follow-up' : 'Schedule follow-up'}</button>}><p className="text-sm">{booking.nextFollowUpAt ? formatDateTime(booking.nextFollowUpAt) : 'Follow-up not scheduled'}</p>{booking.followUpNote && <p className="mt-2 whitespace-pre-wrap text-sm text-admin-subtle">{booking.followUpNote}</p>}{booking.nextFollowUpAt && <button disabled={saving} className="mt-2 min-h-11 text-sm font-semibold text-admin-primary" onClick={() => void run(() => api.completeBookingFollowUp(booking.id), 'Follow-up completed')}>Mark complete</button>}</Card>}
-          {canViewPayments && <Card title="Payment summary" action={<button className="text-sm font-semibold text-admin-primary" onClick={() => setPaymentModal('new')}>Add payment</button>}><BookingPaymentSummary booking={booking} /><button className="mt-3 min-h-11 text-sm text-admin-primary underline" onClick={() => selectTab('payments')}>View payments</button></Card>}
+          {canViewPayments && <Card title="Payment summary" action={<button className="text-sm font-semibold text-admin-primary" onClick={() => setPaymentModal('new')}>Add payment</button>}>{booking.pricingSnapshot?.campaignId && <div className="mb-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm"><p className="font-semibold">{booking.pricingSnapshot.campaignName}</p><p>Original: <del>{money(booking.pricingSnapshot.basePrice)}</del> · Sale: {money(booking.pricingSnapshot.salePrice)} · {booking.pricingSnapshot.isStartingFrom ? 'Estimated saving' : 'Campaign saving'}: {money(booking.pricingSnapshot.discountAmount)}</p>{booking.pricingSnapshot.adjustmentAmount !== 0 && <p>Final price adjustment: {money(booking.pricingSnapshot.adjustmentAmount)} · {booking.pricingSnapshot.overrideReason}</p>}<p className="mt-1 text-xs">Booked prices are preserved after the sale ends.</p></div>}<BookingPaymentSummary booking={booking} /><button className="mt-3 min-h-11 text-sm text-admin-primary underline" onClick={() => selectTab('payments')}>View payments</button></Card>}
           {canManageBooking && <Card title="Delivery" action={<button className="text-sm font-semibold text-admin-primary" onClick={() => selectTab('delivery')}>Prepare delivery</button>}><p className="text-sm">{booking.deliverySentAt ? `Delivered ${formatDateTime(booking.deliverySentAt)}` : hasDeliveryLink ? 'Links saved · Not marked delivered' : 'Delivery links not set'}</p></Card>}
         </div>
       </BookingTabPanel>

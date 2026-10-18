@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom';
 import { useSiteData } from '../../contexts/SiteDataContext';
 import { useInView } from '../../hooks/useScroll';
+import { PackageLoadStatus } from '../packages/PackageLoadStatus';
 import { PackagesGrid } from '../packages/PackagesGrid';
 
 export function PackagesPreview() {
-  const { packages, siteContent, packageNavLinks } = useSiteData();
+  const { packages, siteContent, packageNavLinks, packagesLoading, packagesError, retryPackages } = useSiteData();
   const { ref, inView } = useInView<HTMLDivElement>();
   const previewPackages = packages.slice(0, 3);
 
@@ -48,7 +49,8 @@ export function PackagesPreview() {
       </div>
 
       <div className="relative mx-auto max-w-7xl">
-        <PackagesGrid packages={previewPackages} whatsapp={siteContent.whatsapp} />
+        <PackageLoadStatus loading={packagesLoading} error={packagesError} hasPackages={previewPackages.length > 0} onRetry={retryPackages} />
+        {(previewPackages.length > 0 || (!packagesLoading && !packagesError)) && <PackagesGrid packages={previewPackages} whatsapp={siteContent.whatsapp} />}
 
         <div className="mt-14 flex justify-center">
           <Link

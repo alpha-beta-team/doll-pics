@@ -7,6 +7,7 @@ import { SmoothScroll } from '../components/SmoothScroll';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/sections/Footer';
 import { ContactFabHost } from '../components/packages/ContactFabs';
+import { PackageLoadStatus } from '../components/packages/PackageLoadStatus';
 import { PackagesGrid } from '../components/packages/PackagesGrid';
 import { ResponsiveImage } from '../components/ResponsiveImage';
 import { useInView } from '../hooks/useScroll';
@@ -36,7 +37,9 @@ function PackageCategoryPageContent() {
     packages,
     packageNavLinks,
     publicCatalog,
-    loading,
+    packagesLoading,
+    packagesError,
+    retryPackages,
   } = useSiteData();
   const nav = packageNavLinks.find((link) => link.path === path) ?? null;
   const page = nav ? resolvePackagePage(path, nav) : null;
@@ -125,17 +128,10 @@ function PackageCategoryPageContent() {
             </p>
           </div>
           <div className="relative mx-auto max-w-7xl">
-            {loading ? (
-              <div className="flex justify-center py-24">
-                <div className="h-8 w-8 animate-spin rounded-full border-2 border-gold-400 border-t-transparent" />
-              </div>
-            ) : (
-              <PackagesGrid
-                packages={categoryPackages}
-                whatsapp={siteContent.whatsapp}
-                presentation="comparison"
-              />
-            )}
+            <PackageLoadStatus loading={packagesLoading} error={packagesError} hasPackages={categoryPackages.length > 0} onRetry={retryPackages} />
+            {(categoryPackages.length > 0 || (!packagesLoading && !packagesError)) && <PackagesGrid
+              packages={categoryPackages} whatsapp={siteContent.whatsapp} presentation="comparison" />}
+
           </div>
         </section>
 
