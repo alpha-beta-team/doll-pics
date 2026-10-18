@@ -240,6 +240,7 @@ export function mapBooking(doc: Record<string, unknown>): Booking {
     packageListedPrice: doc.packageListedPrice == null ? null : Number(doc.packageListedPrice),
     packagePricingMode: (doc.packagePricingMode as Booking['packagePricingMode']) ?? '',
     agreedTotal: doc.agreedTotal == null ? null : Number(doc.agreedTotal),
+    bookingDiscountAmount: doc.bookingDiscountAmount == null ? 0 : Number(doc.bookingDiscountAmount),
     assignedStaffAccountId: doc.assignedStaffAccountId ? String(doc.assignedStaffAccountId) : undefined,
     assignedStaffAccountName: (doc.assignedStaffAccountName as string) ?? '',
     payments: rawPayments.map(payment => ({
