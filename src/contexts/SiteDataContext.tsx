@@ -1,3 +1,4 @@
+import { usePublicPackages } from '../hooks/usePublicPackages';
 import type { PortfolioPhoto } from '../lib/galleryPortfolio';
 import type { BookingBackgroundImage } from '../lib/bookingBackgrounds';
 import { packageCatalogSource, publicPackageCategories, readBuildPublicCatalog, resolvePublicCatalog, serviceCatalogSource, type PublicRouteCatalog } from '../lib/publicCatalog';
@@ -100,6 +101,9 @@ export interface SiteData {
   galleryImages: GalleryImageItem[];
   services: ServiceItem[];
   packages: PublicPackage[];
+  packagesLoading: boolean;
+  packagesError: string;
+  retryPackages: () => void;
   packageCategories: PublicPackageCategory[];
   packageNavLinks: PackageNavLink[];
   stats: PublicStat[];
@@ -295,6 +299,9 @@ const fallbackData: Omit<SiteData, 'loading' | 'fromApi'> = {
   galleryImages: normalizedFallbackGallery,
   services: servicesFromNavLinks(fallbackCatalog.serviceLinks),
   packages: [],
+  packagesLoading: false,
+  packagesError: '',
+  retryPackages: () => {},
   packageCategories: publicPackageCategories(fallbackCatalog),
   packageNavLinks: fallbackCatalog.packageLinks,
   stats: fallbackStats,
@@ -328,7 +335,7 @@ const BUCKET_RESOURCES: Record<DataBucket, CmsResource[]> = {
   home: ['storyScenes', 'stats', 'testimonials', 'behindScenes'],
   reviews: ['testimonials'],
   media: ['featuredPhotos', 'galleryPhotos'],
-  packages: ['packages'],
+  packages: [],
   about: ['staffProfiles', 'behindScenes'],
   contact: ['featuredPhotos'],
 };
@@ -419,7 +426,7 @@ export async function createPrerenderSiteData(content?: PublicSiteContent, categ
   if (home?.featured) { data.featuredWork = featuredFromPhotos(home.featured); loaded.push('featuredPhotos'); }
   if (home?.gallery) { data.galleryImages = galleryFromPhotos(home.gallery); loaded.push('galleryPhotos'); }
   if (offers) {
-    const keys: Array<keyof PublicPackage> = ['name', 'shootType', 'categorySlug', 'categoryName', 'description', 'inclusions', 'icon', 'imageUrl', 'pricingMode', 'price', 'durationLabel', 'advanceAmount', 'notes', 'slotTimings', 'locationType', 'themeGuideUrl'];
+    const keys: Array<keyof PublicPackage> = ['id', 'pricing', 'name', 'shootType', 'categorySlug', 'categoryName', 'description', 'inclusions', 'icon', 'imageUrl', 'pricingMode', 'price', 'durationLabel', 'advanceAmount', 'notes', 'slotTimings', 'locationType', 'themeGuideUrl'];
     data.packages = offers.map(offer => normalizePublicPackage(Object.fromEntries(keys.filter(key => offer[key] !== undefined).map(key => [key, offer[key]])) as PublicPackage));
     loaded.push('packages');
   }
@@ -439,6 +446,8 @@ export async function createPrerenderSiteData(content?: PublicSiteContent, categ
   return { data, loaded };
 }
 
+const loadSalePackages = (signal?: AbortSignal) => publicApi.getPackages({ signal });
+
 export function SiteDataProvider({ children, initialData, initialLoaded = [] }: {
   children: ReactNode; initialData?: SiteData; initialLoaded?: CmsResource[];
 }) {
@@ -449,6 +458,9 @@ export function SiteDataProvider({ children, initialData, initialLoaded = [] }: 
     const catalog = readBuildPublicCatalog();
     return catalog ? { ...initial, ...catalogPatch(initial, catalog.sources) } : initial;
   });
+  const packageResource = usePublicPackages(loadSalePackages,
+    normalizePathname(pathname) === '/' || normalizePathname(pathname) === '/packages' ||
+    data.packageNavLinks.some(link => link.path === normalizePathname(pathname)), data.packages);
   const mounted = useRef(false);
   const loaded = useRef(new Set<CmsResource>(initialLoaded));
   const failed = useRef(new Map<CmsResource, number>());
@@ -559,7 +571,7 @@ export function SiteDataProvider({ children, initialData, initialLoaded = [] }: 
     return () => { cancelled = true; clearTimeout(id); };
   }, [pathname, data.loading, data.packageNavLinks, data.siteContent.serviceNavLinks, requestResource]);
 
-  return <SiteDataContext.Provider value={data}>{children}</SiteDataContext.Provider>;
+  return <SiteDataContext.Provider value={{ ...data, packages: packageResource.packages.map(normalizePublicPackage), packagesLoading: packageResource.packagesLoading, packagesError: packageResource.packagesError, retryPackages: packageResource.retryPackages }}>{children}</SiteDataContext.Provider>;
 }
 
 export function useSiteData() {

@@ -1,3 +1,6 @@
+import { BadgePercent } from 'lucide-react';
+import { categoryOfferCounts } from '../lib/sales';
+import { useSaleClock } from '../hooks/useSaleClock';
 import { Link } from 'react-router-dom';
 import { useSiteData } from '../contexts/SiteDataContext';
 import { CustomCursor } from '../components/CustomCursor';
@@ -9,7 +12,9 @@ import { useInView } from '../hooks/useScroll';
 import { usePageSeo } from '../hooks/usePageSeo';
 
 function PackagesContent() {
-  const { packageNavLinks, loading } = useSiteData();
+  const { packageNavLinks, packages, loading } = useSiteData();
+  const now = useSaleClock(packages.some(pkg => Boolean(pkg.pricing?.activeOffer)));
+  const offerCounts = categoryOfferCounts(packages, now);
   const { ref, inView } = useInView<HTMLDivElement>();
 
   usePageSeo();
@@ -61,6 +66,17 @@ function PackagesContent() {
                       <p className="mb-3 text-[0.65rem] font-semibold uppercase tracking-[0.22em] text-gold-400">
                         {link.label}
                       </p>
+                      {Boolean(offerCounts.get(link.categorySlug)) && (
+                        <div className="mb-4 space-y-2">
+                          <span className="inline-flex items-center gap-2 rounded-full border border-gold-400/40 bg-gold-400/10 px-3 py-1.5 text-xs font-semibold text-gold-300">
+                            <BadgePercent className="h-4 w-4" aria-hidden="true" />
+                            Offers available
+                          </span>
+                          <p className="text-xs text-ink-100/75">
+                            Live savings on {offerCounts.get(link.categorySlug)} {offerCounts.get(link.categorySlug) === 1 ? 'package' : 'packages'}
+                          </p>
+                        </div>
+                      )}
                       <h2 className="font-display text-[1.75rem] font-light leading-tight text-ink-50 transition-colors group-hover:text-gold-300">
                         {link.label} packages
                       </h2>

@@ -23,8 +23,10 @@ import { quotationsApi } from './quotations';
 import { reportsApi } from './reports';
 import { attendanceApi } from './attendance';
 import { salaryApi } from './salary';
+import { salesApi } from './sales';
 
 export const api = {
+  ...salesApi,
   ...authApi,
   ...photosApi,
   ...categoriesApi,

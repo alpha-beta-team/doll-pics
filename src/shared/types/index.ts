@@ -220,7 +220,10 @@ export type PublicPackageCategory = {
 
 export type LocationType = '' | 'studio' | 'home' | 'outdoor';
 
+import type { PackagePricing, PricingSnapshot } from './sales';
+
 export type Package = CmsMeta & {
+  pricing?: PackagePricing;
   name: string;
   categoryId: string;
   categoryName?: string;
@@ -242,6 +245,8 @@ export type Package = CmsMeta & {
 };
 
 export type PublicPackage = {
+  id?: string;
+  pricing?: PackagePricing;
   name: string;
   /** @deprecated Prefer categoryName */
   shootType?: string;
@@ -410,6 +415,7 @@ export type PublicStaffProfile = Pick<StaffProfile, 'name' | 'jobTitle' | 'bio' 
 
 export type Enquiry = {
   attribution?: MarketingAttribution;
+  saleContext?: { packageId: string; campaignId: string; campaignName: string; capturedAt: string } | null;
   id: string;
   name: string;
   email: string;
@@ -461,6 +467,9 @@ export type AdminEnquiryWritePayload = {
 
 export type ConvertEnquiryPayload = {
   creationRequestId?: string;
+  requestKey?: string;
+  expectedPricingToken?: string;
+  pricingOverrideReason?: string;
   bookingDate: string;
   startTime?: string;
   endTime?: string;
@@ -493,6 +502,8 @@ export type MarketingAttribution = {
 
 export type CreateEnquiryPayload = {
   attribution?: MarketingAttribution;
+  packageId?: string;
+  campaignId?: string;
   name: string;
   email?: string;
   phone: string;
@@ -543,6 +554,7 @@ export type WhatsAppMessageSummary = {
 export type Booking = {
   attribution?: MarketingAttribution;
   separateShootDecision?: { reason: string; reviewedRecordIds: string[]; actorId: string; decidedAt: string };
+  pricingSnapshot?: PricingSnapshot | null;
   id: string;
   customerName: string;
   customerPhone: string;
@@ -566,6 +578,7 @@ export type Booking = {
   packageListedPrice: number | null;
   packagePricingMode: PricingMode | '';
   agreedTotal: number | null;
+  bookingDiscountAmount?: number;
   assignedStaffAccountId?: string;
   assignedStaffAccountName: string;
   payments: BookingPayment[];
@@ -777,6 +790,9 @@ export type BookingWritePayload = {
   creationRequestId?: string;
   separateShootReason?: string;
   reviewedRecordIds?: string[];
+  requestKey?: string;
+  expectedPricingToken?: string;
+  pricingOverrideReason?: string;
   customerName: string;
   customerPhone: string;
   customerEmail?: string;
@@ -794,6 +810,7 @@ export type BookingWritePayload = {
   notes?: string;
   packageId?: string | null;
   agreedTotal?: number | null;
+  bookingDiscountAmount?: number;
   assignedStaffAccountId?: string | null;
   advanceAmount?: number;
   advancePaidAt?: string;

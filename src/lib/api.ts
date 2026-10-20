@@ -195,7 +195,7 @@ export const publicApi = {
       `/categories/${encodeURIComponent(slug)}`,
       init,
     ),
-  getPackages: (init?: RequestInit) => publicFetch<PublicPackage[]>('/packages', init),
+  getPackages: (init?: RequestInit) => publicFetch<PublicPackage[]>('/packages', { ...init, cache: 'no-store' }),
   getPackageCategories: (init?: RequestInit) =>
     publicFetch<PublicPackageCategory[]>('/package-categories', init),
   getHeroSlides: (init?: RequestInit) => publicFetch<PublicHeroSlide[]>('/hero-slides', init),

@@ -157,6 +157,7 @@ export const PRIMARY_NAVIGATION: NavigationNode[] = [
         featureFlag: 'website',
         subgroupLabel: 'Services & Packages',
       },
+      { id: 'sales', label: 'Sales & Offers', route: '/admin/sales', icon: Tags, displayOrder: 55, subgroupLabel: 'Services & Packages', access: { feature: 'owner_overview', level: 'manage' } },
       leaf('all-packages', 'All Packages', '/admin/packages', Package, 50, 'packages', { subgroupLabel: 'Services & Packages' }),
       leaf('package-categories', 'Package Categories', '/admin/package-categories', Tags, 60, 'package_categories', { subgroupLabel: 'Services & Packages' }),
       leaf('photos', 'Photos', '/admin/photos', Images, 70, 'photos', { subgroupLabel: 'Portfolio' }),

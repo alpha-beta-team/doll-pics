@@ -1,10 +1,12 @@
+import { livePackageOffer } from '../../lib/sales';
+import { useSaleClock } from '../../hooks/useSaleClock';
+import { SalePrice } from './SalePrice';
 import { Link } from 'react-router-dom';
 import { Check } from 'lucide-react';
 import type { PublicPackage } from '../../lib/api';
 import { trackWhatsAppClick, type WhatsAppCtaLocation } from '../../lib/analytics';
 import {
   formatINR,
-  formatPackagePrice,
   packageEnquirePath,
   packageWhatsAppUrl,
 } from '../../lib/pricing';
@@ -39,9 +41,9 @@ export function PackageCard({
   presentation = 'preview',
   ctaLocation = 'booking_page',
 }: PackageCardProps) {
-  const priceLabel = formatPackagePrice(pkg.pricingMode, pkg.price);
-  const enquireHref = packageEnquirePath(pkg);
-  const whatsappHref = packageWhatsAppUrl(whatsapp, pkg.name);
+  const now = useSaleClock(Boolean(pkg.pricing?.activeOffer));
+  const enquireHref = packageEnquirePath(pkg, now);
+  const whatsappHref = packageWhatsAppUrl(whatsapp, pkg.name, livePackageOffer(pkg, now)?.name);
   const whatsappAvailable = whatsappHref.startsWith('http');
   const inclusions = pkg.inclusions ?? [];
   const durationLabel = pkg.durationLabel?.trim() ?? '';
@@ -120,15 +122,7 @@ export function PackageCard({
           </div>
         ) : null}
 
-        <p
-          className={`font-display font-light tracking-tight ${
-            isComparison
-              ? 'mt-6 text-left text-[2.65rem] leading-[0.95] text-gold-300 md:text-5xl'
-              : 'mt-4 text-center text-4xl leading-none text-gradient-gold md:text-5xl'
-          }`}
-        >
-          {priceLabel}
-        </p>
+        <div className={isComparison ? '' : 'text-center'}><SalePrice pkg={pkg} /></div>
 
         {advanceAmount != null ? (
           <p

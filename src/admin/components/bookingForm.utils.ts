@@ -120,7 +120,7 @@ export function packagesForShootType(packages: Package[], shootType: string): Pa
 export function packagePrefill(packages: Package[], id: string, currentShootType: string) {
   const selected = packages.find(item => item.id === id);
   return {
-    agreedTotal: selected?.price == null ? undefined : String(selected.price),
+    agreedTotal: selected?.pricingMode === 'startingFrom' ? '' : selected?.pricing?.effectivePrice != null ? String(selected.pricing.effectivePrice) : selected?.price == null ? undefined : String(selected.price),
     shootType: selected
       ? selected.categoryName || selected.shootType || currentShootType
       : currentShootType,

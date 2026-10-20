@@ -25,6 +25,7 @@ import {
 import { bookingDurationLabel } from '../../shared/bookingTime';
 import { CustomerLookupPanel } from './CustomerLookupPanel';
 import type { CustomerLookupResponse } from '../types';
+import { useBookingPricing } from '../hooks/useBookingPricing';
 import { ApiError } from '../api/http';
 import { api } from '../api/client';
 import { useFeatureAccess } from '../access/useFeatureAccess';
@@ -35,6 +36,7 @@ import { endTimeFor, formatScheduleTime, minutesToTime, timeToMinutes } from '..
 import { useAuth } from '../contexts/AuthContext';
 import { canViewBookingPricing } from '../access/roles';
 import { LeadSourceSelect } from './LeadSourceSelect';
+import { BOOKING_DISCOUNTS, changeBookingDiscount } from './bookingDiscount';
 
 type Props = {
   booking?: Booking | null;
@@ -48,6 +50,7 @@ type Props = {
 };
 
 type BookingDraft = {
+  requestKey?: string;
   customerName: string;
   customerPhone: string;
   customerEmail: string;
@@ -60,6 +63,7 @@ type BookingDraft = {
   location: string;
   packageId: string;
   agreedTotal: string;
+  discount?: number;
   assignedStaffAccountId: string;
   advanceAmount: string;
   advanceMethod: PaymentMethod;
@@ -125,6 +129,7 @@ function BookingWizard({
     : 'new';
   const draftKey = `doll_admin_booking_draft:${booking?.id || initialEnquiry?.id || scheduleDraftSuffix}`;
   const stored = readBookingDraft(draftKey);
+  const [requestKey] = useState(() => stored?.requestKey ?? crypto.randomUUID());
   const restoredStep = stored?.step && stored.step >= 0 && stored.step <= 3 ? stored.step : 0;
   const [customerName, setCustomerName] = useState(stored?.customerName ?? booking?.customerName ?? enquiry?.name ?? '');
   const [customerPhone, setCustomerPhone] = useState(stored?.customerPhone ?? booking?.customerPhone ?? enquiry?.phone ?? '');
@@ -146,6 +151,25 @@ function BookingWizard({
       ? stored?.agreedTotal ?? (booking?.agreedTotal == null ? '' : String(booking.agreedTotal))
       : '',
   );
+  const [discount, setDiscount] = useState(() =>
+    canEditBookingPricing && BOOKING_DISCOUNTS.includes(stored?.discount ?? booking?.bookingDiscountAmount ?? 0)
+      ? stored?.discount ?? booking?.bookingDiscountAmount ?? 0 : 0,
+  );
+  const [discountError, setDiscountError] = useState('');
+  // Manual edits and package prices establish a new amount without an active discount.
+  const replaceAgreedTotal = (value: string) => {
+    setAgreedTotal(value);
+    setDiscount(0);
+    setDiscountError('');
+  };
+  const handleDiscount = (value: number) => {
+    const result = changeBookingDiscount(agreedTotal, discount, value);
+    if (result.error) { setDiscountError(result.error); return; }
+    setAgreedTotal(result.amount);
+    setDiscount(value);
+    setDiscountError('');
+  };
+  const salePricing = useBookingPricing(packageId, Boolean(booking && booking.packageId === packageId));
   const [assignedStaffAccountId, setAssignedStaffAccountId] = useState(
     stored?.assignedStaffAccountId ?? booking?.assignedStaffAccountId ?? '',
   );
@@ -212,7 +236,8 @@ function BookingWizard({
       const selectedPackage = packages.find(item => item.id === packageId);
       if (selectedPackage && !packageMatchesShootType(selectedPackage, nextService)) {
         setPackageId('');
-        if (selectedPackage.price != null && agreedTotal === String(selectedPackage.price)) setAgreedTotal('');
+        if (selectedPackage.price != null && agreedTotal === String(selectedPackage.price)) replaceAgreedTotal('');
+        else replaceAgreedTotal(agreedTotal);
       }
       setPreferredEvent(current => current || row.preferredEvent);
       setBookingDate(current => current || row.bookingDate);
@@ -290,18 +315,20 @@ function BookingWizard({
 
   useEffect(() => {
     const draft: BookingDraft = {
+      requestKey,
       customerName, customerPhone, customerEmail, source, shootType, preferredEvent,
-      bookingDate, startTime, endTime, location, packageId, agreedTotal, assignedStaffAccountId,
+      bookingDate, startTime, endTime, location, packageId, agreedTotal, discount, assignedStaffAccountId,
       advanceAmount, advanceMethod, paymentDueDate, nextFollowUpAt, followUpNote, notes, whatsappOptIn,
       whatsappNotificationsEnabled, step,
     };
     localStorage.setItem(draftKey, JSON.stringify(draft));
-  }, [advanceAmount, advanceMethod, agreedTotal, assignedStaffAccountId, bookingDate, customerEmail, customerName, customerPhone, draftKey, endTime, followUpNote, location, nextFollowUpAt, notes, packageId, paymentDueDate, preferredEvent, shootType, source, startTime, step, whatsappNotificationsEnabled, whatsappOptIn]);
+  }, [advanceAmount, advanceMethod, agreedTotal, discount, assignedStaffAccountId, bookingDate, customerEmail, customerName, customerPhone, draftKey, endTime, followUpNote, location, nextFollowUpAt, notes, packageId, paymentDueDate, preferredEvent, requestKey, shootType, source, startTime, step, whatsappNotificationsEnabled, whatsappOptIn]);
 
   const handlePackage = (id: string) => {
     setPackageId(id);
     const prefill = packagePrefill(packages, id, shootType);
-    if (canEditBookingPricing && prefill.agreedTotal !== undefined) setAgreedTotal(prefill.agreedTotal);
+    if (canEditBookingPricing && prefill.agreedTotal !== undefined) replaceAgreedTotal(prefill.agreedTotal);
+    else replaceAgreedTotal(agreedTotal);
     setShootType(prefill.shootType);
   };
 
@@ -310,7 +337,8 @@ function BookingWizard({
     const selectedPackage = packages.find(item => item.id === packageId);
     if (selectedPackage && !packageMatchesShootType(selectedPackage, nextShootType)) {
       setPackageId('');
-      if (selectedPackage.price != null && agreedTotal === String(selectedPackage.price)) setAgreedTotal('');
+      if (selectedPackage.price != null && agreedTotal === String(selectedPackage.price)) replaceAgreedTotal('');
+      else replaceAgreedTotal(agreedTotal);
     }
   };
 
@@ -383,6 +411,7 @@ function BookingWizard({
     setFieldErrors({});
     const payload: BookingWritePayload = {
       ...(!booking && !enquiry && newShootConfirmed ? { separateShootReason: separateShootReason.trim(), reviewedRecordIds } : {}),
+      requestKey: booking ? undefined : requestKey,
       customerName: customerName.trim(),
       customerPhone: customerPhone.trim(),
       customerEmail: customerEmail.trim() || undefined,
@@ -394,6 +423,9 @@ function BookingWizard({
       endTime,
       location: location.trim(),
       packageId: packageId || null,
+      expectedPricingToken: salePricing.preview?.pricing?.token,
+      pricingOverrideReason: salePricing.reason.trim() || undefined,
+      bookingDiscountAmount: canEditBookingPricing ? discount : undefined,
       agreedTotal: canEditBookingPricing ? (agreedTotal === '' ? null : Number(agreedTotal)) : undefined,
       assignedStaffAccountId: assignedStaffAccountId || null,
       advanceAmount: canViewPayments && enquiry && Number(advanceAmount) > 0 ? Number(advanceAmount) : undefined,
@@ -407,6 +439,10 @@ function BookingWizard({
       whatsappNotificationsEnabled: whatsappOptIn && whatsappNotificationsEnabled,
       preferredLanguage: 'en',
     };
+    if (packageId && !(booking && booking.packageId === packageId) && !salePricing.preview) { setSaving(false); setError(salePricing.error || 'Package pricing is loading. Please try saving again.'); submitting.current = false; return; }
+    payload.requestKey = payload.requestKey ?? requestKey;
+    payload.expectedPricingToken = salePricing.preview?.pricing?.token;
+    payload.pricingOverrideReason = salePricing.reason.trim() || undefined;
     try {
       const accepted = await acknowledgeSchedule(scheduleAvailability.conflicts);
       if (!accepted) { changeTime(); return; }
@@ -563,7 +599,10 @@ function BookingWizard({
             <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Package and ownership</h3>
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.package}<select id="booking-package" data-wizard-autofocus className={`${input} mt-1`} value={packageId} onChange={e => handlePackage(e.target.value)}><option value="">No package</option>{selectedPackageOutsideFilter && <option value={selectedPackageOutsideFilter.id}>{selectedPackageOutsideFilter.name} (current · other service)</option>}{matchingPackages.map(item => <option key={item.id} value={item.id}>{item.name}{item.isPublished ? '' : ' (unpublished)'}</option>)}</select><span className="mt-1 block text-xs text-slate-500">Showing {shootType} packages only.</span></label>
-              {canEditBookingPricing && <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.agreedTotal}<input id="booking-agreed-total" type="number" min="0" className={`${input} mt-1`} value={agreedTotal} onChange={e => setAgreedTotal(e.target.value)} placeholder="Not decided" /></label>}
+              {canEditBookingPricing && <label className="text-sm text-slate-700">Discount (₹)<select id="booking-discount" className={`${input} mt-1`} value={discount} onChange={e => handleDiscount(Number(e.target.value))} aria-invalid={Boolean(discountError)} aria-describedby="booking-discount-help">
+                {BOOKING_DISCOUNTS.map(value => <option key={value} value={value}>{value === 0 ? 'No discount' : `₹${value.toLocaleString('en-IN')}`}</option>)}
+              </select><span id="booking-discount-help" className={`mt-1 block text-xs ${discountError ? 'text-red-600' : 'text-slate-500'}`} role={discountError ? 'alert' : undefined}>{discountError || 'Deducted from the agreed amount. Editing the amount resets the discount.'}</span></label>}
+              {canEditBookingPricing && <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.agreedTotal}<input id="booking-agreed-total" type="number" min="0" className={`${input} mt-1`} value={agreedTotal} onChange={e => replaceAgreedTotal(e.target.value)} placeholder="Not decided" /></label>}
               <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.assignedStaffAccount}<select className={`${input} mt-1`} value={assignedStaffAccountId} onChange={e => setAssignedStaffAccountId(e.target.value)}><option value="">Unassigned</option>{booking?.assignedStaffAccountId && !staffAccounts.some(account => account.id === booking.assignedStaffAccountId) && <option value={booking.assignedStaffAccountId}>{booking.assignedStaffAccountName || 'Previous assignee'} (current)</option>}{staffAccounts.map(account => <option key={account.id} value={account.id}>{account.name}{account.jobTitle ? ` · ${account.jobTitle}` : ''}</option>)}</select></label>
               {canViewPayments && <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.paymentDueDate}<input type="date" className={`${input} mt-1`} value={paymentDueDate} onChange={e => setPaymentDueDate(e.target.value)} /></label>}
               {canViewPayments && enquiry && <label className="text-sm text-slate-700">{BOOKING_WIZARD_FIELD_LABELS.advanceAmount}<input type="number" min="0" className={`${input} mt-1`} value={advanceAmount} onChange={e => setAdvanceAmount(e.target.value)} /></label>}
