@@ -124,8 +124,8 @@ export function SchedulePage() {
 
   useEffect(() => {
     if (!canManage) return;
-    void Promise.all([api.getPackages(), api.getSiteContent().catch(() => null), api.getAssignableStaffAccounts()])
-      .then(([packageRows, siteContent, accountRows]) => { setPackages(packageRows); setBookingServices(siteContent?.serviceNavLinks ?? []); setStaffAccounts(accountRows); })
+    void Promise.all([api.getPackages(), api.getPhotographyServices().catch(() => []), api.getAssignableStaffAccounts()])
+      .then(([packageRows, services, accountRows]) => { setPackages(packageRows); setBookingServices(services); setStaffAccounts(accountRows); })
       .catch(() => undefined);
   }, [canManage]);
 

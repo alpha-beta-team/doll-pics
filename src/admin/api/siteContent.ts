@@ -1,4 +1,4 @@
-import type { ImageTransform, SiteContent } from '../types';
+import type { ImageTransform, ServiceNavLink, SiteContent } from '../types';
 import { request } from './http';
 import { mapSiteContent } from './mappers';
 
@@ -18,6 +18,11 @@ async function getSiteContent(): Promise<SiteContent> {
 
 export const siteContentApi = {
   getSiteContent,
+
+  async getPhotographyServices(): Promise<ServiceNavLink[]> {
+    const doc = await request<Record<string, unknown>>('/site-content');
+    return mapSiteContent(doc).serviceNavLinks;
+  },
 
   uploadServiceCardImage(
     file: File,

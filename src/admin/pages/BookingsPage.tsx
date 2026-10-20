@@ -163,13 +163,14 @@ export function BookingsPage() {
     if (formDataLoaded) return true;
     if (formDataPromise.current) return formDataPromise.current;
     formDataPromise.current = (async () => {
+      setError('');
       try {
-        const [packageRows, siteContent] = await Promise.all([
+        const [packageRows, services] = await Promise.all([
           api.getPackages(),
-          api.getSiteContent().catch(() => null),
+          api.getPhotographyServices(),
         ]);
         setPackages(packageRows);
-        setBookingServices(siteContent?.serviceNavLinks ?? []);
+        setBookingServices(services);
         setFormDataLoaded(true);
         return true;
       } catch (loadError) {

@@ -168,9 +168,9 @@ function BookingDetailWorkspace() {
   const loadResources = useCallback(async () => {
     if (!canManageBooking) return;
     setResourcesLoading(true); setResourcesError('');
-    const results = await Promise.allSettled([api.getPackages(), api.getSiteContent(), api.getAssignableStaffAccounts(), api.getReviewConfig()]);
+    const results = await Promise.allSettled([api.getPackages(), api.getPhotographyServices(), api.getAssignableStaffAccounts(), api.getReviewConfig()]);
     if (results[0].status === 'fulfilled') setPackages(results[0].value);
-    if (results[1].status === 'fulfilled') setBookingServices(results[1].value.serviceNavLinks ?? []);
+    if (results[1].status === 'fulfilled') setBookingServices(results[1].value);
     if (results[2].status === 'fulfilled') setStaffAccounts(results[2].value);
     if (results[3].status === 'fulfilled') setReviewUrl(results[3].value.googleReviewUrl);
     if (results.some(result => result.status === 'rejected')) setResourcesError('Some editing options could not be loaded. Retry before editing.');
