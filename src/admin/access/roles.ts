@@ -208,7 +208,7 @@ export function canManage(user: StaffAccount | null | undefined, area: StaffAcce
 }
 
 export function canViewBookingPricing(role: StaffAccountRole | null | undefined): boolean {
-  return role === 'owner' || role === 'sales';
+  return role === 'owner' || role === 'sales' || role === 'content_manager';
 }
 
 export function getDefaultAdminRoute(user: StaffAccount | null | undefined): string {
