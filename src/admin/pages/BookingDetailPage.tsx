@@ -1,3 +1,5 @@
+import './booking-detail.css';
+import { CustomerBookingPanel } from '../components/CustomerBookingPanel';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
@@ -5,6 +7,8 @@ import {
   ArrowLeft,
   CalendarCheck,
   CheckCircle,
+  Copy,
+  ArrowUpRight,
   ExternalLink,
   MessageCircle,
   MapPin,
@@ -99,7 +103,7 @@ function money(value: number | null | undefined) {
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return <div><p className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</p><div className="mt-1 text-sm text-slate-800">{children}</div></div>;
+  return <div><dt className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</dt><dd className="mt-1 text-sm text-slate-800">{children}</dd></div>;
 }
 
 const Card = BookingSection;
@@ -129,6 +133,8 @@ function BookingDetailWorkspace() {
   const [success, setSuccess] = useState('');
   useEffect(() => { if (!success) return; const timer = window.setTimeout(() => setSuccess(''), 5000); return () => window.clearTimeout(timer); }, [success]);
   const [editorError, setEditorError] = useState('');
+  const [visibleMessages, setVisibleMessages] = useState(8);
+  const [copyNotice, setCopyNotice] = useState('');
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [messagesError, setMessagesError] = useState('');
   const [resourcesError, setResourcesError] = useState('');
@@ -444,45 +450,60 @@ function BookingDetailWorkspace() {
   const calendarStatus = booking.calendarSyncStatus || 'not_applicable';
   const primaryAction = actions.find(action => 'primary' in action && action.primary);
   const overflowActions = actions.filter(action => !('primary' in action && action.primary));
+  const canRequestReview = booking.status === 'delivered' && !['received', 'skipped'].includes(booking.reviewStatus)
+    && Boolean(reviewUrl) && !booking.whatsappOptOutAt;
+  const canEdit = canManageBooking && !resourcesLoading && !resourcesError;
+  const deliveryLabel = booking.deliverySentAt ? `Delivered ${formatDay(booking.deliverySentAt)}`
+    : hasDeliveryLink ? 'Links ready · Not marked delivered' : 'No links added';
+  const paymentLabel = booking.agreedTotal == null ? 'Price not set'
+    : booking.paymentSummary.balanceDue == null ? 'Balance not recorded'
+    : booking.paymentSummary.balanceDue < 0 ? `${money(Math.abs(booking.paymentSummary.balanceDue))} overpaid`
+    : booking.paymentSummary.balanceDue === 0 ? 'Paid in full' : `${money(booking.paymentSummary.balanceDue)} outstanding`;
+  const copyLink = async (url: string) => {
+    try { await navigator.clipboard.writeText(url); setCopyNotice('Link copied.'); }
+    catch { setCopyNotice('Could not copy. Select the link to copy it, or try again.'); }
+  };
+
 
   return (
-    <div className="mx-auto max-w-6xl space-y-4">
+    <div className="booking-detail mx-auto max-w-6xl space-y-4">
       <button onClick={() => navigate('/admin/bookings')} className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900"><ArrowLeft className="h-4 w-4" />Back to bookings</button>
       {error && <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"><AlertCircle className="h-5 w-5" />{error}<button className="ml-auto" onClick={() => setError('')}><X className="h-4 w-4" /></button></div>}
 
       {success && <div role="status" aria-live="polite" className="fixed right-3 top-20 z-[80] flex max-w-[calc(100vw-1.5rem)] items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900 shadow-lg"><CheckCircle className="h-4 w-4 shrink-0" />{success}<button onClick={() => setSuccess('')} aria-label="Dismiss confirmation" className="flex h-8 w-8 items-center justify-center"><X className="h-4 w-4" /></button></div>}
-      <header className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <header className="bd-header rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-start lg:justify-between">
           <div className="min-w-0 lg:flex-1 lg:basis-96">
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <h1 className="min-w-0 break-words text-xl font-semibold tracking-tight text-slate-900 sm:text-3xl">{booking.customerName}</h1>
-              <span className={`rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${statusStyles[booking.status]}`}>{booking.status.replace('_', ' ')}</span>
+              <h1 className="bd-title min-w-0 break-words text-xl font-semibold tracking-tight text-slate-900 sm:text-3xl">{booking.customerName}</h1>
+              <span className={`bd-status rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${statusStyles[booking.status]}`}>{booking.status.replace('_', ' ')}</span>
             </div>
             <p className="mt-1 text-sm font-medium text-slate-700">{booking.shootType.trim().toLowerCase() === 'other' && booking.preferredEvent ? booking.preferredEvent : booking.packageName || booking.shootType || 'Photography session'}</p>
-            <div className="mt-3 space-y-1.5 text-xs text-slate-500 sm:text-sm lg:flex lg:flex-wrap lg:gap-x-4 lg:gap-y-1 lg:space-y-0">
+            <div className="bd-meta mt-3 space-y-1.5 text-xs text-slate-500 sm:text-sm lg:flex lg:flex-wrap lg:gap-x-4 lg:gap-y-1 lg:space-y-0">
               <div className="flex items-start gap-2">
-                <Phone className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                <Phone className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" /><span className="bd-meta-label">Contact: </span>
                 {canViewPhone && booking.customerPhone ? (
                   <a href={`tel:${booking.customerPhone}`} className="min-w-0 break-words rounded text-admin-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-focus">{booking.customerPhone}</a>
                 ) : <span>{booking.customerPhone || 'Not recorded'}</span>}
               </div>
-              <div className="flex items-start gap-2"><CalendarCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" /><div className="flex flex-wrap gap-x-2 gap-y-0.5"><span>{formatDay(booking.bookingDate)}</span>{booking.startTime && booking.endTime && <span>{[booking.startTime, booking.endTime].map(time => new Date(`2000-01-01T${time}:00+05:30`).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' })).join(' – ')}</span>}</div></div>
-              <div className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" /><span className="min-w-0 break-words">{booking.location || 'Location not set'}</span></div>
-              <div className="flex items-start gap-2"><UserRound className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" /><span className="min-w-0 break-words">{booking.assignedStaffAccountName || 'No staff assigned'}</span>{canManageBooking && <button disabled={resourcesLoading || Boolean(resourcesError)} onClick={() => openEditor('assignment')} className="min-h-6 shrink-0 font-semibold text-admin-primary underline disabled:opacity-50">{booking.assignedStaffAccountId ? 'Change' : 'Assign'}</button>}</div>
+              <div className="flex items-start gap-2"><CalendarCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" /><span className="bd-meta-label">Shoot: </span><div className="flex flex-wrap gap-x-2 gap-y-0.5"><span>{formatDay(booking.bookingDate)}</span>{booking.startTime && booking.endTime && <span>{[booking.startTime, booking.endTime].map(time => new Date(`2000-01-01T${time}:00+05:30`).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' })).join(' – ')}</span>}</div></div>
+              <div className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" /><span className="bd-meta-label">Location: </span><span className="min-w-0 break-words">{booking.location || 'Location not set'}</span></div>
+              <div className="flex items-start gap-2"><UserRound className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" /><span className="bd-meta-label">Assigned to: </span><span className="min-w-0 break-words">{booking.assignedStaffAccountName || 'No staff assigned'}</span>{canManageBooking && <button disabled={resourcesLoading || Boolean(resourcesError)} onClick={() => openEditor('assignment')} className="min-h-6 shrink-0 font-semibold text-admin-primary underline disabled:opacity-50">{booking.assignedStaffAccountId ? 'Change' : 'Assign'}</button>}</div>
             </div>
           </div>
 
           {canManageBooking ? (
-            <div className="grid w-full grid-cols-[minmax(0,1fr)_minmax(0,1fr)_2.75rem] gap-2 border-t border-slate-100 pt-3 lg:flex lg:w-auto lg:max-w-full lg:shrink-0 lg:flex-wrap lg:border-0 lg:pt-0">
-              {booking.status === 'shoot_completed' && <button type="button" onClick={() => selectTab('delivery')} className="col-span-3 min-h-11 rounded-lg bg-admin-primary px-4 text-sm font-semibold text-white lg:flex-none">Prepare delivery</button>}
+            <div className="bd-header-actions grid w-full grid-cols-[minmax(0,1fr)_minmax(0,1fr)_2.75rem] gap-2 border-t border-slate-100 pt-3 lg:flex lg:w-auto lg:max-w-full lg:shrink-0 lg:flex-wrap lg:border-0 lg:pt-0">
+              {canRequestReview && <button type="button" disabled={saving} onClick={() => setMessageOpen('review_request')} className="bd-button bd-button-primary">Request review</button>}
+              {booking.status === 'shoot_completed' && <button type="button" onClick={() => selectTab('delivery')} className="bd-button bd-button-primary col-span-3 min-h-11 rounded-lg bg-admin-primary px-4 text-sm font-semibold text-white lg:flex-none">{hasDeliveryLink ? 'Review delivery' : 'Prepare delivery'}</button>}
               {primaryAction && (
                 <button
                   type="button"
                   disabled={saving}
                   onClick={() => void transition(primaryAction.status)}
-                  className="col-span-3 inline-flex min-h-11 min-w-0 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold leading-5 text-white shadow-sm transition-colors hover:bg-blue-700 disabled:opacity-50 sm:px-4 sm:text-sm lg:flex-none"
+                  className="bd-button bd-button-primary col-span-3 inline-flex min-h-11 min-w-0 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold leading-5 text-white shadow-sm transition-colors hover:bg-blue-700 disabled:opacity-50 sm:px-4 sm:text-sm lg:flex-none"
                 >
-                  <CheckCircle className="h-4 w-4 shrink-0" />{primaryAction.label}
+                  <CheckCircle className="h-4 w-4 shrink-0" />{primaryAction.status === 'shoot_completed' ? 'Mark shoot complete' : primaryAction.label}
                 </button>
               )}
               <button
@@ -490,7 +511,7 @@ function BookingDetailWorkspace() {
                 aria-label="Message customer on WhatsApp"
                 title="WhatsApp"
                 onClick={() => setMessageOpen('booking_confirmation')}
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-emerald-300 px-3 text-sm bg-emerald-50 text-emerald-700 transition-colors hover:bg-emerald-100"
+                className="bd-button bd-button-whatsapp inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-emerald-300 px-3 text-sm bg-emerald-50 text-emerald-700 transition-colors hover:bg-emerald-100"
               >
                 <MessageCircle className="h-4 w-4 shrink-0" /><span>WhatsApp</span>
               </button>
@@ -500,7 +521,7 @@ function BookingDetailWorkspace() {
                 title="Edit booking"
                 disabled={resourcesLoading || Boolean(resourcesError)}
                 onClick={() => setEditing(true)}
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
+                className="bd-button inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
               >
                 <Pencil className="h-4 w-4 shrink-0" /><span>Edit</span>
               </button>
@@ -512,7 +533,7 @@ function BookingDetailWorkspace() {
                     aria-expanded={actionMenuOpen}
                     aria-haspopup="menu"
                     onClick={() => setActionMenuOpen(open => !open)}
-                    className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-slate-300 text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
+                    className="bd-button inline-flex h-11 w-11 items-center justify-center rounded-lg border border-slate-300 text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
                   >
                     <MoreHorizontal className="h-5 w-5" />
                   </button>
@@ -540,47 +561,78 @@ function BookingDetailWorkspace() {
             </div>
           ) : isReadOnly ? <ReadOnlyNotice /> : null}
         </div>
+        <dl className="bd-summary-strip">
+          <div><dt>Booking</dt><dd className="capitalize">{booking.status.replace(/_/g, ' ')}</dd></div>
+          {canViewPayments && <div className="bd-summary-payment"><dt>Payment</dt><dd>{paymentLabel}</dd></div>}
+          <div><dt>Delivery</dt><dd>{deliveryLabel}</dd></div>
+        </dl>
       </header>
 
       {resourcesLoading && <p role="status" className="text-sm text-admin-subtle">Loading editing and assignment options…</p>}
       {resourcesError && <p role="alert" className="text-sm text-amber-800">{resourcesError} <button className="underline" onClick={() => void loadResources()}>Retry</button></p>}
-      <div className="sticky top-16 z-10 rounded-xl border border-admin-border bg-admin-surface shadow-sm">
-        <AdminTabs tabs={tabs} value={tab} onChange={selectTab} label="Booking details" wrap compact />
+      <div className="bd-tabs sticky top-16 z-10 rounded-xl border border-admin-border bg-admin-surface shadow-sm">
+        <AdminTabs tabs={tabs} value={tab} onChange={selectTab} label="Booking details" />
       </div>
-      {((canManageBooking && followUpOverdue) || calendarStatus === 'failed' || (booking.status === 'confirmed' && booking.bookingDate && booking.bookingDate < kolkataToday())) && <div role="status" className="flex flex-wrap gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+      {((canManageBooking && followUpOverdue) || calendarStatus === 'failed' || (booking.status === 'confirmed' && booking.bookingDate && booking.bookingDate < kolkataToday())) && <div role="status" className="bd-attention flex flex-wrap gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
         {canManageBooking && followUpOverdue && <button className="underline" onClick={() => openEditor('followup')}>Follow-up overdue</button>}
         {calendarStatus === 'failed' && <button className="underline" onClick={() => selectTab('activity')}>Calendar needs attention</button>}
-        {booking.status === 'confirmed' && booking.bookingDate && booking.bookingDate < kolkataToday() && <span>Shoot date has passed. Completed? {canManageBooking && <button disabled={saving} onClick={() => void transition('shoot_completed')} className="min-h-11 font-semibold underline disabled:opacity-50">Complete shoot</button>}</span>}
+        {booking.status === 'confirmed' && booking.bookingDate && booking.bookingDate < kolkataToday() && <span><strong>Shoot status needs updating.</strong> Scheduled for {formatDay(booking.bookingDate)}.{canManageBooking && ' Mark complete above if the session took place.'}</span>}
       </div>}
       <BookingTabPanel id="overview" active={tab === 'overview'}>
-        <div className="grid items-start gap-4 lg:grid-cols-2">
-          <Card title="Shoot details"><div className="grid grid-cols-2 gap-3"><Field label="Service">{booking.shootType || 'Not set'}</Field><Field label="Event">{booking.preferredEvent || 'Not set'}</Field><Field label="Package">{booking.packageName || 'No package'}</Field><Field label="Duration">{bookingDurationLabel(booking.startTime, booking.endTime) || 'Not set'}</Field></div>{booking.notes && <p className="mt-3 whitespace-pre-wrap break-words text-sm">{booking.notes}</p>}</Card>
-          {canManageBooking && <Card title="Next follow-up" action={<button className="text-sm font-semibold text-admin-primary" onClick={() => openEditor('followup')}>{booking.nextFollowUpAt ? 'Edit follow-up' : 'Schedule follow-up'}</button>}><p className="text-sm">{booking.nextFollowUpAt ? formatDateTime(booking.nextFollowUpAt) : 'Follow-up not scheduled'}</p>{booking.followUpNote && <p className="mt-2 whitespace-pre-wrap text-sm text-admin-subtle">{booking.followUpNote}</p>}{booking.nextFollowUpAt && <button disabled={saving} className="mt-2 min-h-11 text-sm font-semibold text-admin-primary" onClick={() => void run(() => api.completeBookingFollowUp(booking.id), 'Follow-up completed')}>Mark complete</button>}</Card>}
-          {canViewPayments && <Card title="Payment summary" action={<button className="text-sm font-semibold text-admin-primary" onClick={() => setPaymentModal('new')}>Add payment</button>}>{booking.pricingSnapshot?.campaignId && <div className="mb-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm"><p className="font-semibold">{booking.pricingSnapshot.campaignName}</p><p>Original: <del>{money(booking.pricingSnapshot.basePrice)}</del> · Sale: {money(booking.pricingSnapshot.salePrice)} · {booking.pricingSnapshot.isStartingFrom ? 'Estimated saving' : 'Campaign saving'}: {money(booking.pricingSnapshot.discountAmount)}</p>{booking.pricingSnapshot.adjustmentAmount !== 0 && <p>Final price adjustment: {money(booking.pricingSnapshot.adjustmentAmount)} · {booking.pricingSnapshot.overrideReason}</p>}<p className="mt-1 text-xs">Booked prices are preserved after the sale ends.</p></div>}<BookingPaymentSummary booking={booking} /><button className="mt-3 min-h-11 text-sm text-admin-primary underline" onClick={() => selectTab('payments')}>View payments</button></Card>}
-          {canManageBooking && <Card title="Delivery" action={<button className="text-sm font-semibold text-admin-primary" onClick={() => selectTab('delivery')}>Prepare delivery</button>}><p className="text-sm">{booking.deliverySentAt ? `Delivered ${formatDateTime(booking.deliverySentAt)}` : hasDeliveryLink ? 'Links saved · Not marked delivered' : 'Delivery links not set'}</p></Card>}
+        <div className="bd-overview">
+          <div className="bd-overview-main">
+            <Card title="Shoot details"><dl className="bd-details-grid"><Field label="Service">{booking.shootType || 'Not set'}</Field>{booking.preferredEvent && booking.preferredEvent.trim().toLowerCase() !== booking.shootType.trim().toLowerCase() && <Field label="Event">{booking.preferredEvent}</Field>}<Field label="Package">{booking.packageName || 'No package selected'}</Field><Field label="Duration">{bookingDurationLabel(booking.startTime, booking.endTime) || 'Not set'}</Field></dl>{booking.notes && <div className="bd-notes"><p className="bd-eyebrow">Shoot notes</p><p className="whitespace-pre-wrap break-words text-sm">{booking.notes}</p></div>}</Card>
+            {canManageBooking && <Card title="Delivery readiness" action={<button className="bd-link" onClick={() => selectTab('delivery')}>{hasDeliveryLink ? 'Review delivery' : 'Add delivery links'}<ArrowUpRight className="h-4 w-4" /></button>}><p className="text-sm">{deliveryLabel}</p><p className="bd-helper">Save your delivery links, preview the message, then confirm delivery separately.</p></Card>}
+            <Card title="Recent schedule changes"><ScheduleHistory booking={booking} limit={3} />{!!booking.scheduleHistory.length && <button className="bd-link" onClick={() => selectTab('activity')}>View activity<ArrowUpRight className="h-4 w-4" /></button>}</Card>
+          </div>
+          <aside className="bd-overview-side" aria-label="Payment and follow-up">
+            {canViewPayments && <Card title="Payment summary" action={<button className="bd-button bd-button-primary" onClick={() => setPaymentModal('new')}>Record payment</button>}>{booking.pricingSnapshot?.campaignId && <div className="mb-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm"><p className="font-semibold">{booking.pricingSnapshot.campaignName}</p><p>Original: <del>{money(booking.pricingSnapshot.basePrice)}</del> · Sale: {money(booking.pricingSnapshot.salePrice)} · {booking.pricingSnapshot.isStartingFrom ? 'Estimated saving' : 'Campaign saving'}: {money(booking.pricingSnapshot.discountAmount)}</p>{booking.pricingSnapshot.adjustmentAmount !== 0 && <p>Final price adjustment: {money(booking.pricingSnapshot.adjustmentAmount)} · {booking.pricingSnapshot.overrideReason}</p>}<p className="mt-1 text-xs">Booked prices are preserved after the sale ends.</p></div>}<BookingPaymentSummary booking={booking} onEditDueDate={canEdit ? () => setEditing(true) : undefined} /><button className="bd-link ml-4" onClick={() => selectTab('payments')}>View payments</button></Card>}
+            {canManageBooking && <Card title="Next follow-up" action={<button className="bd-link" onClick={() => openEditor('followup')}>{booking.nextFollowUpAt ? 'Edit follow-up' : 'Schedule follow-up'}</button>}><p className="text-sm">{booking.nextFollowUpAt ? formatDateTime(booking.nextFollowUpAt) : 'No follow-up scheduled'}</p>{booking.followUpNote && <p className="mt-2 whitespace-pre-wrap text-sm text-admin-subtle">{booking.followUpNote}</p>}{booking.nextFollowUpAt && <button disabled={saving} className="bd-link" onClick={() => void run(() => api.completeBookingFollowUp(booking.id), 'Follow-up completed')}>Mark complete</button>}</Card>}
+          </aside>
         </div>
       </BookingTabPanel>
-      {canViewPayments && <BookingTabPanel id="payments" active={tab === 'payments'}><BookingPaymentDetails booking={booking} onAdd={() => setPaymentModal('new')} onEdit={setPaymentModal} onDelete={payment => void deletePayment(payment)} /></BookingTabPanel>}
-      {canManageBooking && <BookingTabPanel id="delivery" active={tab === 'delivery'}>      {canManageBooking && <Card title="Delivery / Google Drive" action={<button onClick={() => openEditor('delivery')} disabled={saving} className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white">Edit links</button>}>
-        <div className="space-y-3">{[['Gallery folder', booking.driveGalleryUrl], ['Edited photos', booking.driveEditedUrl], ['RAW files', booking.driveRawsUrl]].map(([label, url]) => <div key={label}><p className="text-xs text-admin-subtle">{label}</p>{url ? <a className="break-all text-sm text-admin-primary underline" href={/^https?:\/\//i.test(url) ? url : undefined} target="_blank" rel="noopener noreferrer">{url}</a> : <p className="text-sm text-admin-subtle">Not set</p>}</div>)}</div>
-        {booking.driveNotes && <p className="mt-3 whitespace-pre-wrap break-words text-sm">{booking.driveNotes}</p>}
-        {!hasDeliveryLink && <p className="mt-3 text-sm text-admin-subtle">Add and save a delivery link before sharing or marking this booking delivered.</p>}
-        {hasDeliveryLink && <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4"><p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">WhatsApp message preview</p><p className="whitespace-pre-wrap text-sm leading-6 text-slate-700">{deliveryWhatsAppMessage(deliveryContext)}</p></div>}
-        <div className="mt-4 flex flex-wrap gap-2"><button onClick={openDelivery} disabled={!hasDeliveryLink || !whatsappDigits(booking.customerPhone)} className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-40"><MessageCircle className="h-4 w-4" />Review and open WhatsApp</button>{booking.status === 'shoot_completed' && <button onClick={() => void markDelivered()} disabled={!hasDeliveryLink || saving} className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-40"><CalendarCheck className="h-4 w-4" />Mark delivered</button>}{booking.deliverySentAt && <span className="inline-flex items-center gap-1.5 text-sm text-violet-700"><CheckCircle className="h-4 w-4" />Delivered {formatDateTime(booking.deliverySentAt)}</span>}</div>
-      </Card>}
-
-</BookingTabPanel>}
-      <BookingTabPanel id="customer" active={tab === 'customer'}>        <BookingCustomerDetails booking={booking} canViewPhone={canViewPhone} />
+      {canViewPayments && <BookingTabPanel id="payments" active={tab === 'payments'}><BookingPaymentDetails booking={booking} onAdd={() => setPaymentModal('new')} onEdit={setPaymentModal} onDelete={payment => void deletePayment(payment)} onEditDueDate={canEdit ? () => setEditing(true) : undefined} /></BookingTabPanel>}
+      {canManageBooking && <BookingTabPanel id="delivery" active={tab === 'delivery'}>
+        <Card title="1. Prepare delivery links" action={<button onClick={() => openEditor('delivery')} disabled={saving} className="bd-button bd-button-primary">{hasDeliveryLink ? 'Edit links' : 'Add delivery links'}</button>}>
+          <p className="bd-helper">Save the files you want to share with this customer.</p>
+          <div className="bd-delivery-links">{[['Gallery folder', booking.driveGalleryUrl], ['Edited photos', booking.driveEditedUrl], ['RAW files', booking.driveRawsUrl]].map(([label, url]) => <div className="bd-delivery-row" key={label}><div className="min-w-0"><p className="font-semibold text-sm">{label}</p>{url ? <a className="bd-saved-url" href={/^https?:\/\//i.test(url) ? url : undefined} target="_blank" rel="noopener noreferrer">{url}</a> : <p className="bd-helper">No link added</p>}</div>{url && <div className="bd-row-actions"><a className="bd-button" aria-label={`Open ${label}`} href={/^https?:\/\//i.test(url) ? url : undefined} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" />Open</a><button className="bd-button" aria-label={`Copy ${label}`} onClick={() => void copyLink(url)}><Copy className="h-4 w-4" />Copy</button><button className="bd-link" aria-label={`Edit ${label}`} disabled={saving} onClick={() => openEditor('delivery')}>Edit</button></div>}</div>)}</div>
+          {copyNotice && <p role="status" className="bd-helper">{copyNotice}</p>}
+          {booking.driveNotes && <div className="bd-notes"><p className="bd-eyebrow">Delivery note</p><p className="whitespace-pre-wrap break-words text-sm">{booking.driveNotes}</p></div>}
+        </Card>
+        <Card title="2. Preview customer message">
+          {hasDeliveryLink ? <div className="bd-message-preview"><p className="whitespace-pre-wrap text-sm leading-6">{deliveryWhatsAppMessage(deliveryContext)}</p></div> : <p className="bd-helper">Add and save a delivery link to preview the customer message.</p>}
+          <button onClick={openDelivery} disabled={!hasDeliveryLink || !whatsappDigits(booking.customerPhone)} className="bd-button bd-button-whatsapp mt-4"><MessageCircle className="h-4 w-4" />Review and open WhatsApp</button>
+          <p className="bd-helper">Opening WhatsApp does not mark this booking as delivered.</p>
+          {!whatsappDigits(booking.customerPhone) && <p className="bd-helper">Add a valid customer phone number before sharing on WhatsApp.</p>}
+        </Card>
+        <Card title="3. Confirm delivery">
+          {booking.deliverySentAt && <p className="inline-flex items-center gap-2 text-sm"><CheckCircle className="h-4 w-4" />Delivered {formatDateTime(booking.deliverySentAt)}</p>}
+          <p className="bd-helper">Confirm delivery after you have shared the files with the customer.</p>
+          {booking.status === 'shoot_completed' && <button onClick={() => void markDelivered()} disabled={!hasDeliveryLink || saving} className="bd-button bd-button-primary mt-3">Mark delivered</button>}
+          {!['shoot_completed', 'delivered'].includes(booking.status) && <p className="bd-helper">The shoot must be marked complete before confirming delivery.</p>}
+          {!hasDeliveryLink && <p className="bd-helper">Save at least one delivery link before marking delivered.</p>}
+        </Card>
+      </BookingTabPanel>}
+      <BookingTabPanel id="customer" active={tab === 'customer'}>{user?.role === 'owner' && (visited.has('customer') || tab === 'customer') && <CustomerBookingPanel booking={booking} />}        <BookingCustomerDetails booking={booking} canViewPhone={canViewPhone} />
 
 {(visited.has('customer') || tab === 'customer') && <>      {canManageBooking && canViewPhone && <CustomerLookupPanel phone={booking.customerPhone} current={{ type: 'booking', id: booking.id }} />}
       {canManageBooking && canViewPhone && <ImportantDatesPanel compact phone={booking.customerPhone} customerName={booking.customerName} email={booking.customerEmail} source={{ type: 'booking', id: booking.id }} />}
 </>}</BookingTabPanel>
       <BookingTabPanel id="activity" active={tab === 'activity'}>
-        {booking.separateShootDecision && <Card title="Different shoot confirmed"><p className="whitespace-pre-wrap break-words text-sm">{booking.separateShootDecision.reason}</p><p className="mt-2 text-xs text-admin-subtle">Staff: {booking.separateShootDecision.actorId} · {formatDateTime(booking.separateShootDecision.decidedAt)}</p><p className="mt-1 text-xs text-admin-subtle">{booking.separateShootDecision.reviewedRecordIds.length} matching records reviewed</p></Card>}        {canManageBooking && <Card title="WhatsApp automation" action={<button onClick={() => void loadMessages()} className="text-slate-400" aria-label="Refresh messages"><RefreshCw className="h-4 w-4" /></button>}>
-          <div className="grid gap-4 sm:grid-cols-2"><Field label="Consent">{booking.whatsappOptIn ? `Recorded ${formatDateTime(booking.whatsappOptInAt)}` : 'Not recorded'}</Field><Field label="Source">{booking.whatsappOptInSource || '—'}</Field><Field label="Opt-out">{booking.whatsappOptOutAt ? formatDateTime(booking.whatsappOptOutAt) : 'No'}</Field><Field label="Language">English</Field></div>
-          <button onClick={toggleNotifications} disabled={!booking.whatsappOptIn || Boolean(booking.whatsappOptOutAt) || saving} className={`mt-4 rounded-lg px-3 py-2 text-sm font-medium ${booking.whatsappNotificationsEnabled ? 'bg-emerald-600 text-white' : 'border border-slate-300 text-slate-700'} disabled:opacity-50`}>{booking.whatsappNotificationsEnabled ? 'Automated updates enabled' : 'Enable automated updates'}</button>
-          {messagesLoading && <p role="status">Loading messages…</p>}{messagesError && <p role="alert" className="mt-3 text-sm text-red-700">{messagesError} <button onClick={() => void loadMessages()}>Retry</button></p>}
-          <div className="mt-5 divide-y divide-slate-100">{messages.slice(0, 8).map(message => <div key={message.id} className="flex items-center gap-3 py-3"><MessageCircle className="h-4 w-4 text-emerald-600" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-slate-700">{message.eventType.replace(/_/g, ' ')}</p><p className="text-xs text-slate-500">{formatDateTime(message.scheduledAt)} · {message.status}</p>{message.failureReason && <p className="mt-1 text-xs text-red-600">{message.failureReason}</p>}</div>{message.status === 'failed' && <button onClick={() => void retryMessage(message.id)} className="text-xs font-medium text-blue-600">Retry</button>}</div>)}{!messagesLoading && !messagesError && !messages.length && <p className="py-4 text-center text-sm text-slate-500">No automated messages yet.</p>}</div>
+        <Card title="Schedule history"><ScheduleHistory booking={booking} /></Card>
+        {canManageBooking && <Card title="Message history" action={<button onClick={() => void loadMessages()} className="bd-button" aria-label="Refresh messages"><RefreshCw className="h-4 w-4" />Refresh</button>}>
+          {messagesLoading && <p role="status" className="bd-helper">Loading messages…</p>}
+          {messagesError && <p role="alert" className="text-sm text-red-700">{messagesError} <button className="bd-link" onClick={() => void loadMessages()}>Retry</button></p>}
+          <div className="divide-y divide-admin-border">{messages.slice(0, visibleMessages).map(message => <div key={message.id} className="bd-message-row"><MessageCircle className="h-4 w-4 shrink-0" /><div className="min-w-0 flex-1"><p className="text-sm font-medium break-words">{message.eventType.replace(/_/g, ' ')}</p><p className="bd-helper">{formatDateTime(message.scheduledAt)} · {message.status}</p>{message.failureReason && <p className="text-xs text-red-700">{message.failureReason}</p>}</div>{message.status === 'failed' && <button disabled={saving} onClick={() => void retryMessage(message.id)} className="bd-link">Retry</button>}</div>)}</div>
+          {!messagesLoading && !messagesError && !messages.length && <p className="bd-helper">No automated messages recorded.</p>}
+          {messages.length > visibleMessages && <button className="bd-link" onClick={() => setVisibleMessages(count => count + 8)}>Show more messages ({messages.length - visibleMessages} remaining)</button>}
+        </Card>}
+        {canManageBooking && (visited.has('activity') || tab === 'activity') && <VoiceNotesPanel compact recordType="booking" recordId={booking.id} hidden={tab !== 'activity'} />}
+
+        {booking.separateShootDecision && <Card title="Different shoot confirmed"><p className="whitespace-pre-wrap break-words text-sm">{booking.separateShootDecision.reason}</p><p className="mt-2 text-xs text-admin-subtle">Staff: {booking.separateShootDecision.actorId} · {formatDateTime(booking.separateShootDecision.decidedAt)}</p><p className="mt-1 text-xs text-admin-subtle">{booking.separateShootDecision.reviewedRecordIds.length} matching records reviewed</p></Card>}        {canManageBooking && <Card title="Communication settings">
+          <div className="bd-switch-row"><div><p className="font-semibold text-sm">Automated WhatsApp updates</p><p className="bd-helper">{booking.whatsappNotificationsEnabled ? 'Enabled' : 'Disabled'} · Requires customer consent</p></div><button type="button" role="switch" aria-label="Automated WhatsApp updates" aria-checked={booking.whatsappNotificationsEnabled} onClick={toggleNotifications} disabled={!booking.whatsappOptIn || Boolean(booking.whatsappOptOutAt) || saving} className="bd-switch"><span /></button></div>
+          <dl className="bd-details-grid mt-4"><Field label="Consent">{booking.whatsappOptIn ? `Recorded ${formatDateTime(booking.whatsappOptInAt)}` : 'Not recorded'}</Field><Field label="Source">{booking.whatsappOptInSource || '—'}</Field><Field label="Opt-out">{booking.whatsappOptOutAt ? formatDateTime(booking.whatsappOptOutAt) : 'No'}</Field><Field label="Language">English</Field></dl>
+          {booking.whatsappOptOutAt && <p className="bd-helper">This customer opted out of automated WhatsApp updates.</p>}
         </Card>}
 
         <Card
@@ -606,7 +658,7 @@ function BookingDetailWorkspace() {
                   {calendarStatusLabels[calendarStatus]}
                 </span>
                 <p className="mt-1 text-xs text-slate-500">
-                  {booking.calendarSyncedAt ? `Last checked ${formatDateTime(booking.calendarSyncedAt)}` : 'No completed sync yet'}
+                  {booking.calendarSyncedAt ? `Last synced ${formatDateTime(booking.calendarSyncedAt)}` : 'No completed sync yet'}
                 </p>
               </div>
             </div>
@@ -638,16 +690,9 @@ function BookingDetailWorkspace() {
           {booking.whatsappOptOutAt && !['received', 'skipped'].includes(booking.reviewStatus) && <p className="mt-3 text-sm text-amber-700">Review template is disabled because this customer opted out of WhatsApp.</p>}
           {!!booking.reviewHistory.length && <div className="mt-4 divide-y divide-slate-100 border-t border-slate-100">{booking.reviewHistory.slice(0, 5).map(entry => <p key={entry.id || entry.changedAt} className="py-2 text-xs text-slate-500"><span className="capitalize">{entry.action}</span> · {formatDateTime(entry.changedAt)} · {entry.changedBy.name}</p>)}</div>}
         </Card>}
-       <Card title="Schedule history">
-        <div className="divide-y divide-slate-100">
-          {booking.scheduleHistory.map(entry => <div key={entry.id || entry.changedAt} className="py-4 first:pt-0 last:pb-0"><div className="flex flex-wrap items-center justify-between gap-2"><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${entry.action === 'cancelled' ? 'bg-red-100 text-red-700' : entry.action === 'restored' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}`}>{entry.action}</span><span className="text-xs text-slate-500">{formatDateTime(entry.changedAt)} · {entry.changedBy.name}</span></div><div className="mt-2 grid gap-2 text-sm text-slate-600 sm:grid-cols-[1fr_auto_1fr]"><span>{formatDay(entry.previous.bookingDate)} · {formatTimeWindow(entry.previous.startTime, entry.previous.endTime)} · {entry.previous.status.replace('_', ' ')}</span><span aria-hidden="true">→</span><span>{formatDay(entry.next.bookingDate)} · {formatTimeWindow(entry.next.startTime, entry.next.endTime)} · {entry.next.status.replace('_', ' ')}</span></div></div>)}
-          {!booking.scheduleHistory.length && <p className="py-4 text-center text-sm text-slate-500">No schedule changes yet.</p>}
-        </div>
-      </Card>
 
 </BookingTabPanel>
-      {canManageBooking && (visited.has('activity') || tab === 'activity') && <VoiceNotesPanel compact recordType="booking" recordId={booking.id} hidden={tab !== 'activity'} />}
-      {editor && <BookingDialog title={editor === 'assignment' ? 'Assign staff' : editor === 'followup' ? 'Schedule follow-up' : 'Edit delivery links'} onClose={() => void closeEditor()}>
+      {editor && <BookingDialog className="booking-detail booking-detail-dialog" title={editor === 'assignment' ? 'Assign staff' : editor === 'followup' ? 'Schedule follow-up' : 'Edit delivery links'} onClose={() => void closeEditor()}>
         {editorError && <p role="alert" className="mb-3 text-sm text-red-700">{editorError}</p>}
         {editor === 'assignment' ? <><label className="block text-sm">Assigned staff<select value={assignee} onChange={event => setAssignee(event.target.value)} className="mt-2 min-h-11 w-full rounded-lg border border-admin-border bg-admin-surface px-3"><option value="">No staff assigned</option>{booking.assignedStaffAccountId && !staffAccounts.some(staff => staff.id === booking.assignedStaffAccountId) && <option value={booking.assignedStaffAccountId}>{booking.assignedStaffAccountName || 'Current assignee'}</option>}{staffAccounts.map(staff => <option key={staff.id} value={staff.id}>{staff.name}</option>)}</select></label>{!staffAccounts.length && <p className="mt-2 text-sm text-admin-subtle">No assignable staff available.</p>}<button disabled={saving} onClick={() => void saveEditor()} className="mt-4 min-h-11 rounded-lg bg-admin-primary px-4 text-sm font-semibold text-white">{saving ? 'Saving…' : 'Save assignment'}</button></> : editor === 'followup' ? <>        {canManageBooking && <FollowUpPanel
           className="lg:col-span-2"
@@ -693,5 +738,11 @@ function PaymentModal({ payment, onClose, onSave }: { payment: BookingPayment | 
     try { await onSave({ amount: Number(amount), paidAt: new Date(`${paidAt}T12:00:00`).toISOString(), method, reference, note }); }
     catch (err) { setError(err instanceof Error ? err.message : 'Failed to save payment'); setSaving(false); }
   };
-  return <BookingDialog title={payment ? 'Edit payment' : 'Record payment'} onClose={() => { if (!saving) onClose(); }}>{error && <p className="mt-3 text-sm text-red-600">{error}</p>}<div className="mt-4 grid gap-3 sm:grid-cols-2"><label className="text-sm">Amount (₹)<input type="number" min="1" value={amount} onChange={e => setAmount(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label><label className="text-sm">Payment date<input type="date" value={paidAt} onChange={e => setPaidAt(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label><label className="text-sm">Method<select value={method} onChange={e => setMethod(e.target.value as PaymentMethod)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2">{['cash', 'upi', 'bank_transfer', 'card', 'other'].map(item => <option key={item} value={item}>{item.replace('_', ' ')}</option>)}</select></label><label className="text-sm">Reference<input value={reference} onChange={e => setReference(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label><label className="text-sm sm:col-span-2">Note<input value={note} onChange={e => setNote(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label></div><div className="mt-5 flex justify-end gap-2"><button onClick={onClose} className="rounded-lg border border-slate-300 px-4 py-2 text-sm">Cancel</button><button onClick={() => void submit()} disabled={saving} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">Save payment</button></div></BookingDialog>;
+  return <BookingDialog className="booking-detail booking-detail-dialog" title={payment ? 'Edit payment' : 'Record payment'} onClose={() => { if (!saving) onClose(); }}>{error && <p className="mt-3 text-sm text-red-600">{error}</p>}<div className="mt-4 grid gap-3 sm:grid-cols-2"><label className="text-sm">Amount (₹)<input type="number" min="1" value={amount} onChange={e => setAmount(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label><label className="text-sm">Payment date<input type="date" value={paidAt} onChange={e => setPaidAt(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label><label className="text-sm">Method<select value={method} onChange={e => setMethod(e.target.value as PaymentMethod)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2">{['cash', 'upi', 'bank_transfer', 'card', 'other'].map(item => <option key={item} value={item}>{item.replace('_', ' ')}</option>)}</select></label><label className="text-sm">Reference<input value={reference} onChange={e => setReference(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label><label className="text-sm sm:col-span-2">Note<input value={note} onChange={e => setNote(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label></div><div className="mt-5 flex justify-end gap-2"><button onClick={onClose} className="rounded-lg border border-slate-300 px-4 py-2 text-sm">Cancel</button><button onClick={() => void submit()} disabled={saving} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">Save payment</button></div></BookingDialog>;
+}
+
+function ScheduleHistory({ booking, limit }: { booking: Booking; limit?: number }) {
+  const sorted = [...booking.scheduleHistory].sort((a, b) => (Date.parse(b.changedAt) || 0) - (Date.parse(a.changedAt) || 0));
+  const history = limit ? sorted.slice(0, limit) : sorted;
+  return <div className="bd-history">{history.map(entry => <div key={entry.id || entry.changedAt} className="bd-history-event"><div className="flex flex-wrap items-center justify-between gap-2"><span className="text-sm font-semibold capitalize">{entry.action}</span><span className="bd-helper">{formatDateTime(entry.changedAt)} · {entry.changedBy.name}</span></div><div className="mt-2 grid gap-2 text-sm sm:grid-cols-[1fr_auto_1fr]"><span>{formatDay(entry.previous.bookingDate)} · {formatTimeWindow(entry.previous.startTime, entry.previous.endTime)} · {entry.previous.status.replace(/_/g, ' ')}</span><span aria-hidden="true">→</span><span>{formatDay(entry.next.bookingDate)} · {formatTimeWindow(entry.next.startTime, entry.next.endTime)} · {entry.next.status.replace(/_/g, ' ')}</span></div></div>)}{!history.length && <p className="bd-helper">No schedule changes recorded.</p>}</div>;
 }

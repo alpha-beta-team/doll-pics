@@ -79,6 +79,41 @@ export function visibleHourBounds(bookings: ScheduleBookingItem[]) {
   };
 }
 
+/** Unbooked periods within preset hours, based only on known booking times. */
+export function unbookedWindows(bookings: ScheduleBookingItem[], date: string) {
+  const start = DEFAULT_START_HOUR * 60;
+  const end = DEFAULT_END_HOUR * 60;
+  const occupied = bookings.filter(item => item.bookingDate === date && item.status !== 'cancelled'
+    && item.startTime && item.endTime)
+    .map(item => ({ start: Math.max(start, timeToMinutes(item.startTime)), end: Math.min(end, timeToMinutes(item.endTime)) }))
+    .filter(window => window.end > window.start).sort((a, b) => a.start - b.start);
+  const gaps: Array<{ startTime: string; endTime: string }> = [];
+  let cursor = start;
+  for (const window of occupied) {
+    if (window.start > cursor) gaps.push({ startTime: minutesToTime(cursor), endTime: minutesToTime(window.start) });
+    cursor = Math.max(cursor, window.end);
+  }
+  if (cursor < end) gaps.push({ startTime: minutesToTime(cursor), endTime: minutesToTime(end) });
+  return gaps;
+}
+
+/** Group intersecting rendered cards so a narrow week column can offer a readable day preview. */
+export function scheduleBookingGroups(bookings: ScheduleBookingItem[], minimumMinutes: number) {
+  const sorted = bookings.filter(item => item.startTime && item.endTime).slice()
+    .sort((a, b) => a.startTime.localeCompare(b.startTime) || a.id.localeCompare(b.id));
+  const groups: Array<{ start: number; end: number; items: ScheduleBookingItem[] }> = [];
+  for (const item of sorted) {
+    const start = timeToMinutes(item.startTime);
+    const end = Math.max(timeToMinutes(item.endTime), start + minimumMinutes);
+    const previous = groups[groups.length - 1];
+    if (previous && start < previous.end) {
+      previous.end = Math.max(previous.end, end);
+      previous.items.push(item);
+    } else groups.push({ start, end, items: [item] });
+  }
+  return groups;
+}
+
 export function formatScheduleDay(value: string, options?: Intl.DateTimeFormatOptions) {
   return new Intl.DateTimeFormat('en-IN', options ?? {
     weekday: 'short', day: 'numeric', month: 'short',

@@ -189,6 +189,8 @@ export function mapEnquiry(doc: Record<string, unknown>): Enquiry {
     attribution: normalizeAttribution(doc.attribution),
     nextFollowUpAt: doc.nextFollowUpAt ? String(doc.nextFollowUpAt) : undefined,
     followUpNote: String(doc.followUpNote ?? ''),
+    lastCall: doc.lastCall as Enquiry['lastCall'],
+    callHistory: Array.isArray(doc.callHistory) ? doc.callHistory as Enquiry['callHistory'] : undefined,
     lastFollowUpCompletedAt: doc.lastFollowUpCompletedAt
       ? String(doc.lastFollowUpCompletedAt)
       : undefined,

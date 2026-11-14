@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, CalendarCheck, Edit3, MessageCircle, Phone, MapPin, Clock3 } from 'lucide-react';
+import { EnquiryCallHistory, EnquiryCallOutcomeForm } from '../components/enquiries/EnquiryCallOutcomeForm';
 import { api } from '../api/client';
 import { EnquiryFormModal } from '../components/EnquiryFormModal';
 import { EnquiryStageBadge } from '../components/EnquiryStageBadge';
@@ -134,6 +135,8 @@ function EnquiryDetailWorkspace() {
           {canManage && !closed && item.nextFollowUpAt && <button disabled={saving} onClick={() => void complete()} className="mt-2 min-h-11 text-sm font-semibold text-admin-primary">Mark complete</button>}
         </DetailSection>
         <DetailSection title="Enquiry stage">{canManage ? <><label className="block text-sm text-admin-secondary">Stage<select aria-label="Enquiry stage" value={item.stage} disabled={saving || item.stage === 'booked'} onChange={event => void setStage(event.target.value as EnquiryStage)} className="mt-2 min-h-11 w-full rounded-lg border border-admin-border bg-admin-surface px-3 text-admin-text">{stages.map(stage => <option key={stage} value={stage} disabled={stage === 'booked'}>{stageLabel(stage)}</option>)}</select></label><p className="mt-2 text-xs text-admin-subtle">{item.stage === 'booked' ? 'Manage the converted booking using Open booking.' : 'Use Convert to booking to mark this enquiry as booked.'}</p></> : <EnquiryStageBadge stage={item.stage} />}</DetailSection>
+        {canManage && !closed && <DetailSection title="Log call outcome"><EnquiryCallOutcomeForm enquiry={item} onSaved={value => { setItem(value); setSuccess('Call outcome saved.'); }} /></DetailSection>}
+        <DetailSection title="Call history"><EnquiryCallHistory enquiry={item} /></DetailSection>
         <DetailSection title="Shoot preferences"><dl className="grid gap-3 text-sm sm:grid-cols-2"><Detail label="Service" value={item.shootType} /><Detail label="Preferred date" value={dateLabel(item.bookingDate)} /><Detail label="Preferred time" value={item.startTime && item.endTime ? formatTimeWindow(item.startTime, item.endTime) : ''} /><Detail label="Location" value={item.location} /></dl></DetailSection>
         <DetailSection title="Customer message"><p className="whitespace-pre-wrap break-words text-sm text-admin-secondary">{item.message || 'No customer message recorded.'}</p></DetailSection>
       </div>

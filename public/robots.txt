@@ -5,6 +5,7 @@ Disallow: /employee/
 Disallow: /kiosk/
 Disallow: /api/
 Disallow: /preview/
+Disallow: /customer-booking/
 Disallow: /quotation/
 
 Sitemap: https://dollpictures.in/sitemap.xml

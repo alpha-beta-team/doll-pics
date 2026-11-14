@@ -17,16 +17,18 @@ type EnquiryCardProps = {
   canContact: boolean;
   canViewPhone: boolean;
   onOpen: () => void;
+  onFollowUp?: () => void;
+  duplicateCount?: number;
 };
 
 function stopCardNavigation(event: MouseEvent<HTMLAnchorElement | HTMLButtonElement>) {
   event.stopPropagation();
 }
 
-function FollowUpLabel({ enquiry }: { enquiry: Enquiry }) {
+function FollowUpLabel({ enquiry, editable = false }: { enquiry: Enquiry; editable?: boolean }) {
   if (!enquiry.nextFollowUpAt) {
     if (enquiry.stage === 'booked') return <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700"><CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />Booking confirmed</span>;
-    if (enquiry.stage !== 'follow_up') return <span className="text-xs text-admin-subtle">No follow-up scheduled</span>;
+    if (enquiry.stage !== 'follow_up') return <span className={editable ? 'text-xs font-semibold text-admin-primary underline decoration-dotted underline-offset-4' : 'text-xs text-admin-subtle'}>{editable ? 'Schedule follow-up' : 'No follow-up scheduled'}</span>;
     return <span className="rounded-md bg-slate-100 px-2 py-1 text-xs text-slate-600">Follow-up required</span>;
   }
   const urgency = followUpUrgency(enquiry.nextFollowUpAt);
@@ -119,9 +121,10 @@ function StatusBadge({ enquiry }: { enquiry: Enquiry }) {
   );
 }
 
-export function EnquiryCard({ enquiry, canContact, canViewPhone, onOpen }: EnquiryCardProps) {
+export function EnquiryCard({ enquiry, canContact, canViewPhone, onOpen, onFollowUp, duplicateCount = 0 }: EnquiryCardProps) {
   const service = enquiry.shootType || enquiry.preferredEvent || 'Service not decided';
   const customer = enquiry.name || 'Unnamed customer';
+  const canEditFollowUp = canContact && Boolean(onFollowUp) && !['booked', 'closed_lost'].includes(enquiry.stage);
   const avatarColor = AVATAR_COLORS[Array.from(customer).reduce((sum, letter) => sum + letter.charCodeAt(0), 0) % AVATAR_COLORS.length];
   const openFromKeyboard = (event: KeyboardEvent<HTMLElement>) => {
     if (event.target !== event.currentTarget) return;
@@ -138,6 +141,8 @@ export function EnquiryCard({ enquiry, canContact, canViewPhone, onOpen }: Enqui
             <h3 className="break-words text-sm font-semibold leading-5 text-admin-text">{customer}</h3>
             <StatusBadge enquiry={enquiry} />
           </div>
+          {duplicateCount > 1 && <p className="mt-1 text-[11px] font-semibold text-amber-700" title="Matching phone numbers among active enquiries in this list">Possible duplicate · {duplicateCount} enquiries</p>}
+          {enquiry.lastCall && <p className="mt-1 text-[11px] text-admin-subtle">Last call: {enquiry.lastCall.outcome.replace(/_/g, ' ')}</p>}
           {enquiry.phone && <p className="mt-1 break-all text-xs text-admin-subtle">{canViewPhone ? enquiry.phone : 'Phone hidden'}</p>}
         </div>
       </div>
@@ -152,7 +157,9 @@ export function EnquiryCard({ enquiry, canContact, canViewPhone, onOpen }: Enqui
         <p className="mt-0.5 text-[11px] text-slate-400">{receivedDetail(enquiry.createdAt)}</p>
       </div>
       </div>
-      <div className={`enquiry-follow-up min-w-0 ${!enquiry.nextFollowUpAt && enquiry.stage !== 'follow_up' ? 'enquiry-follow-up-empty' : ''}`}><FollowUpLabel enquiry={enquiry} /></div>
+      <div className={`enquiry-follow-up min-w-0 ${!canEditFollowUp && !enquiry.nextFollowUpAt && enquiry.stage !== 'follow_up' ? 'enquiry-follow-up-empty' : ''}`}>
+        {canEditFollowUp ? <button type="button" className="enquiry-follow-up-trigger max-w-full rounded-lg text-left outline-none hover:bg-admin-muted focus-visible:ring-2 focus-visible:ring-admin-focus" aria-label={`${enquiry.nextFollowUpAt ? 'Manage' : 'Schedule'} follow-up for ${customer}`} onClick={event => { stopCardNavigation(event); onFollowUp?.(); }}><FollowUpLabel enquiry={enquiry} editable /></button> : <FollowUpLabel enquiry={enquiry} />}
+      </div>
       <div className="enquiry-actions"><EnquiryActions enquiry={enquiry} customer={customer} canContact={canContact} canViewPhone={canViewPhone} onOpen={onOpen} /></div>
     </article>
   );

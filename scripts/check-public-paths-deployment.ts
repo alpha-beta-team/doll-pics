@@ -20,7 +20,7 @@ export async function checkPublicPaths(baseUrl: string, fetchImpl = fetch) {
       }
     }
   }
-  for (const path of ['/F08-Unknown-Route/', '/quotation/F08_AbC-xY9/', '/admin/F08_AbC-xY9/', '/employee/F08_AbC-xY9/', '/kiosk/F08_AbC-xY9/']) {
+  for (const path of ['/F08-Unknown-Route/', '/quotation/F08_AbC-xY9/', '/customer-booking/F08_AbC-xY9/', '/admin/F08_AbC-xY9/', '/employee/F08_AbC-xY9/', '/kiosk/F08_AbC-xY9/']) {
     checked++;
     const result = await fetchImpl(new URL(path + query, baseUrl), { redirect: 'manual', signal: AbortSignal.timeout(20_000) });
     if (result.headers.has('location') || (path.startsWith('/F08-') && result.status !== 404)) {

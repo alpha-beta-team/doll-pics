@@ -66,6 +66,7 @@ async function navigation(event) {
 self.addEventListener('fetch', event => {
   const request = event.request;
   const url = new URL(request.url);
+  if (/^\/(customer-booking|api\/customer-bookings)(\/|$)/.test(url.pathname)) return;
   if (request.method !== 'GET' || url.origin !== self.location.origin || /^\/api(\/|$)/.test(url.pathname) || request.headers.has('Authorization')) return;
   if (request.mode === 'navigate') {
     if (PRIVATE_PATH.test(url.pathname)) event.respondWith(navigation(event));

@@ -154,6 +154,7 @@ export function OwnerOverviewPage() {
       + report.attention.draftsMissingDetails
       + report.attention.overdueBookings
       + report.attention.financeRecords
+      + (report.attention.overdueDeliveries ?? 0)
     : 0;
 
   return (
@@ -378,9 +379,10 @@ function AttentionGrid({ report }: { report: OwnerOverviewReport }) {
     { label: 'Follow-ups overdue', value: report.attention.overdueFollowUps, detail: 'Enquiry and booking follow-ups', to: '/admin/today#today-followups', icon: Clock3, tone: 'bg-amber-50 text-amber-700' },
     { label: 'Drafts missing details', value: report.attention.draftsMissingDetails, detail: 'Incomplete booking records', to: '/admin/bookings', icon: FileWarning, tone: 'bg-violet-50 text-violet-700' },
     { label: 'Payments overdue', value: report.attention.overdueBookings, detail: money(report.finance.summary.overdueNow), to: '/admin/payments', icon: CircleDollarSign, tone: 'bg-rose-50 text-rose-700' },
+    ...(report.attention.overdueDeliveries !== undefined ? [{ label: 'Delivery overdue', value: report.attention.overdueDeliveries, detail: 'Completed shoots past their delivery date', to: '/admin/delivery?filter=overdue', icon: CalendarClock, tone: 'bg-rose-50 text-rose-700' }] : []),
     { label: 'Finance records', value: report.attention.financeRecords, detail: 'Missing or inconsistent finance data', to: '/admin/payments', icon: AlertTriangle, tone: 'bg-orange-50 text-orange-700' },
   ];
-  return <div className="grid sm:grid-cols-2 xl:grid-cols-5">
+  return <div className="grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
     {items.map(({ label, value, detail, to, icon: Icon, tone }) => <Link key={label} to={to} className="group flex items-center gap-2.5 border-b border-admin-border p-3 last:border-b-0 sm:p-3.5 xl:border-b-0 xl:border-r xl:last:border-r-0"><span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${tone}`}><Icon className="h-3.5 w-3.5" /></span><div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold text-admin-text group-hover:text-admin-primary">{label}</p><p className="mt-0.5 truncate text-[10px] text-admin-subtle">{detail}</p></div><span className={value ? 'text-base font-semibold text-admin-text' : 'text-emerald-600'}>{value || <CheckCircle2 className="h-4 w-4" />}</span><ChevronRight className="h-3.5 w-3.5 text-admin-subtle" /></Link>)}
   </div>;
 }

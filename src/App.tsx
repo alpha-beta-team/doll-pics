@@ -34,6 +34,7 @@ const LandingResolver = lazy(() =>
     default: m.LandingResolver,
   })),
 );
+const CustomerBookingPage = lazy(() => import('./pages/CustomerBookingPage').then(m => ({ default: m.CustomerBookingPage })));
 const AdminApp = lazy(() => import('./admin/AdminApp'));
 const EmployeeApp = lazy(() => import('./employee/EmployeeApp'));
 const KioskApp = lazy(() => import('./kiosk/KioskApp'));
@@ -92,6 +93,8 @@ export function AppRoutes({ snapshot, PilotPage }: AppProps) {
     <>
       <GoogleAnalytics />
       <Routes>
+        <Route path="/customer-booking/:token" element={<Suspense fallback={<PublicLoading />}><CustomerBookingPage /></Suspense>} />
+        <Route path="/customer-booking" element={<Suspense fallback={<PublicLoading />}><CustomerBookingPage /></Suspense>} />
         <Route
           path="/admin/*"
           element={

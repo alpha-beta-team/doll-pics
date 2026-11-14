@@ -13,6 +13,7 @@ type SalesWorkspaceHeaderProps = {
   onServiceCategoryChange: (value: string) => void;
   panelId: string;
   readOnlyNotice?: ReactNode;
+  serviceControl?: ReactNode;
 };
 
 export function SalesWorkspaceHeader({
@@ -27,6 +28,7 @@ export function SalesWorkspaceHeader({
   onServiceCategoryChange,
   panelId,
   readOnlyNotice,
+  serviceControl,
 }: SalesWorkspaceHeaderProps) {
   const displayedCategories = studioBadge ? serviceCategories.filter(category => category.value) : serviceCategories;
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
@@ -73,7 +75,7 @@ export function SalesWorkspaceHeader({
         <div className="sales-header-services flex min-w-0 flex-1 items-center gap-2 px-2 py-2 sm:px-3">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             {!studioBadge && <span className="hidden shrink-0 px-1 text-[11px] font-bold uppercase tracking-[0.13em] text-admin-subtle md:inline">Service</span>}
-            <div className="min-w-0 flex-1 overflow-x-auto px-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {serviceControl ?? <div className="min-w-0 flex-1 overflow-x-auto px-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <div role={studioBadge ? 'group' : 'tablist'} aria-label="Filter by photography service" className="flex min-w-max items-center gap-1.5">
                 {displayedCategories.map((category, index) => {
                   const selected = serviceCategory === category.value;
@@ -98,7 +100,7 @@ export function SalesWorkspaceHeader({
                   );
                 })}
               </div>
-            </div>
+            </div>}
           </div>
           <div className="flex min-w-0 shrink-0 items-center justify-end gap-1">
             {listControls}

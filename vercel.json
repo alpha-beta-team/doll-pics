@@ -46,6 +46,14 @@
     {
       "source": "/quotation/:path*",
       "destination": "/app-shell"
+    },
+    {
+      "source": "/customer-booking",
+      "destination": "/app-shell"
+    },
+    {
+      "source": "/customer-booking/:path*",
+      "destination": "/app-shell"
     }
   ],
   "headers": [
@@ -107,6 +115,22 @@
     },
     {
       "source": "/quotation/:path*",
+      "headers": [
+        { "key": "Cache-Control", "value": "private, no-store" },
+        { "key": "Referrer-Policy", "value": "no-referrer" },
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/customer-booking",
+      "headers": [
+        { "key": "Cache-Control", "value": "private, no-store" },
+        { "key": "Referrer-Policy", "value": "no-referrer" },
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/customer-booking/:path*",
       "headers": [
         { "key": "Cache-Control", "value": "private, no-store" },
         { "key": "Referrer-Policy", "value": "no-referrer" },

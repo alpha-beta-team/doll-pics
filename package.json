@@ -22,6 +22,10 @@
     "check:cms-release": "tsx scripts/check-public-html-deployment.ts --release",
     "seo:paths-smoke": "tsx scripts/check-public-paths-deployment.ts",
     "seo:images-smoke": "tsx scripts/check-image-discovery.ts",
+    "test:delivery-queue": "tsx --tsconfig tsconfig.app.json --test tests/delivery-queue.test.ts",
+    "test:enquiry-workflow": "tsx --tsconfig tsconfig.app.json --test tests/enquiry-workflow.test.tsx tests/enquiry-follow-up.test.ts",
+    "test:enquiry-follow-up": "tsx --tsconfig tsconfig.app.json --test tests/enquiry-follow-up.test.ts",
+    "test:customer-booking": "tsx --tsconfig tsconfig.app.json --test tests/customer-booking.test.tsx && node --test tests/pwa/worker.test.mjs",
     "test:sales": "tsx --tsconfig tsconfig.app.json --test --test-concurrency=1 src/hooks/usePublicPackages.spec.ts src/admin/components/saleSelection.spec.ts src/admin/components/SaleDetails.spec.tsx src/contexts/SiteDataContext.spec.mjs src/admin/pages/SaleDetailsPage.spec.mjs"
   },
   "dependencies": {

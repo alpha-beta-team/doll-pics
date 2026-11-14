@@ -17,9 +17,12 @@ import {
   EnquirySortControl,
 } from '../components/enquiries/EnquiryStatusFilter';
 import { EnquiryPrioritySummary } from '../components/enquiries/EnquiryPrioritySummary';
-import { EnquiryViewSelect } from '../components/enquiries/EnquiryListHeader';
+import { EnquiryServiceSelect, EnquiryViewSelect } from '../components/enquiries/EnquiryListHeader';
 import { EnquiryPagination } from '../components/enquiries/EnquiryPagination';
 import { EnquiryCard, EnquiryCardSkeleton } from '../components/enquiries/EnquiryCard';
+import { EnquirySidePanel } from '../components/enquiries/EnquirySidePanel';
+import { canonicalIndianPhone } from '../components/customerLookup.utils';
+import { EnquiryFollowUpDialog } from '../components/enquiries/EnquiryFollowUpDialog';
 import { SalesWorkspaceHeader } from '../components/sales/SalesWorkspaceHeader';
 import {
   buildServiceCategoryOptions,
@@ -49,6 +52,8 @@ type OccasionContact = {
 
 export function WorkEnquiriesPage() {
   const { canManage, isReadOnly } = useFeatureAccess('enquiries');
+  const { canView: canViewQuotations } = useFeatureAccess('quotations');
+  const { canView: canViewBookings } = useFeatureAccess('bookings');
   const { user } = useAuth();
   const canViewPhone = hasStaffPermission(user, 'mask_phone_number');
   const navigate = useNavigate();
@@ -72,6 +77,9 @@ export function WorkEnquiriesPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
+  const [selectedEnquiryId, setSelectedEnquiryId] = useState('');
+  const [followUp, setFollowUp] = useState<Enquiry | null>(null);
+  const [followUpSuccess, setFollowUpSuccess] = useState('');
   const [occasionContact] = useState<OccasionContact | undefined>(
     () => (location.state as { occasionContact?: OccasionContact } | null)?.occasionContact,
   );
@@ -104,6 +112,19 @@ export function WorkEnquiriesPage() {
     && items.some(item => serviceCategoryMatches(item, requestedServiceCategory))
     ? requestedServiceCategory
     : '';
+  const duplicatePhones = useMemo(() => {
+    const counts = new Map<string, number>();
+    if (canViewPhone) items.filter(item => !['booked', 'closed_lost'].includes(item.stage)).forEach(item => {
+      const phone = canonicalIndianPhone(item.phone);
+      if (phone) counts.set(phone, (counts.get(phone) || 0) + 1);
+    });
+    return counts;
+  }, [items, canViewPhone]);
+  const applySavedEnquiry = (updated: Enquiry) => {
+    requestVersion.current += 1;
+    setRefreshing(false); setLoading(false); setError('');
+    setItems(previous => previous.map(item => item.id === updated.id ? { ...item, ...updated } : item));
+  };
   const itemsForSelectedService = useMemo(
     () => items.filter(item => serviceCategoryMatches(item, serviceCategory)),
     [items, serviceCategory],
@@ -255,11 +276,12 @@ export function WorkEnquiriesPage() {
           />
         )}
         serviceCategories={serviceCategories}
+        serviceControl={<EnquiryServiceSelect categories={serviceCategories} value={serviceCategory} onChange={selectServiceCategory} />}
         serviceCategory={serviceCategory}
         onServiceCategoryChange={selectServiceCategory}
         panelId="enquiry-list-panel"
         readOnlyNotice={isReadOnly ? <ReadOnlyNotice /> : undefined}
-        listControls={<div className="flex items-center gap-3"><span className="hidden whitespace-nowrap text-xs text-admin-subtle sm:inline">Sort by:</span><EnquirySortControl value={sort} onChange={setSort} /></div>}
+        listControls={<div className="enquiry-sort-controls flex items-center gap-3"><span className="hidden whitespace-nowrap text-xs text-admin-subtle sm:inline">Sort by:</span><EnquirySortControl value={sort} onChange={setSort} /></div>}
         actions={(
           <EnquiryToolbar
             query={query}
@@ -277,6 +299,7 @@ export function WorkEnquiriesPage() {
 
       </div>
       <div className="enquiry-list-content space-y-5">
+      {followUpSuccess && <div role="status" className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-800"><span className="min-w-0 flex-1">{followUpSuccess}</span><button type="button" aria-label="Dismiss follow-up confirmation" onClick={() => setFollowUpSuccess('')} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-admin-focus"><X className="h-4 w-4" /></button></div>}
       {(reportMode || filtersOpen) && <section aria-label="Source reporting filters" className="rounded-xl border border-admin-border bg-admin-surface p-3">
         <div className="flex flex-wrap items-end gap-3"><label className="min-w-0 flex-1 text-xs font-semibold text-admin-subtle">Source<select aria-label="Enquiry source" value={source} onChange={event => { const next = new URLSearchParams(params); if (event.target.value) next.set('source', event.target.value); else next.delete('source'); setParams(next); }} className="mt-1 min-h-11 w-full rounded-lg border border-admin-border bg-admin-surface px-2 text-sm text-admin-text"><option value="">All sources</option>{LEAD_SOURCE_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}<option value="not_recorded">Not recorded</option></select></label>{(['dateFrom', 'dateTo'] as const).map(key => <label key={key} className="text-xs font-semibold text-admin-subtle">{key === 'dateFrom' ? 'Created from' : 'Created through'}<input aria-label={key === 'dateFrom' ? 'Created from' : 'Created through'} type="date" value={key === 'dateFrom' ? dateFrom : dateTo} onChange={event => { const next = new URLSearchParams(params); if (event.target.value) next.set(key, event.target.value); else next.delete(key); setParams(next); }} className="mt-1 block min-h-11 max-w-full rounded-lg border border-admin-border bg-admin-surface px-2 text-sm text-admin-text" /></label>)}{reportMode && <button className="min-h-11 text-sm font-semibold text-admin-primary underline" onClick={clearFilters}>Clear filters</button>}</div>
         {reportMode && <p className="mt-2 text-xs text-admin-subtle">{source === 'not_recorded' ? 'Not recorded' : source ? leadSourceLabel(source as Enquiry['source']) : 'All sources'} · Creation dates in India time. All stages included unless narrowed below.</p>}
@@ -352,11 +375,9 @@ export function WorkEnquiriesPage() {
                 enquiry={item}
                 canContact={canManage}
                 canViewPhone={canViewPhone}
-                onOpen={() => navigate(
-                  item.stage === 'booked' && item.convertedBookingId
-                    ? `/admin/bookings/${item.convertedBookingId}`
-                    : `/admin/enquiries/${item.id}`,
-                )}
+                onFollowUp={canManage ? () => { setFollowUpSuccess(''); setFollowUp(item); } : undefined}
+                duplicateCount={!['booked', 'closed_lost'].includes(item.stage) ? duplicatePhones.get(canonicalIndianPhone(item.phone)) || 0 : 0}
+                onOpen={() => setSelectedEnquiryId(item.id)}
               />
             ))}
           </div>
@@ -401,6 +422,18 @@ export function WorkEnquiriesPage() {
       )}
 
       </div>
+
+      {selectedEnquiryId && <EnquirySidePanel key={selectedEnquiryId} id={selectedEnquiryId} canViewBookings={canViewBookings} canViewQuotations={canViewQuotations} canManage={canManage} canViewPhone={canViewPhone} onClose={() => setSelectedEnquiryId('')} onChanged={applySavedEnquiry} />}
+      {followUp && canManage && !['booked', 'closed_lost'].includes(followUp.stage) && <EnquiryFollowUpDialog
+        key={followUp.id}
+        enquiry={followUp}
+        onClose={() => setFollowUp(null)}
+        onSaved={(updated, action) => {
+          applySavedEnquiry(updated);
+          setFollowUp(null);
+          setFollowUpSuccess(`${updated.name || 'Customer'}: follow-up ${action === 'completed' ? 'completed' : 'saved'}.`);
+        }}
+      />}
 
       {canManage && params.get('new') === '1' && (
         <EnquiryFormModal

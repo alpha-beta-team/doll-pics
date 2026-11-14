@@ -117,6 +117,7 @@ export const PRIMARY_NAVIGATION: NavigationNode[] = [
     children: [
       leaf('enquiries', 'Enquiries', '/admin/enquiries', Mail, 10, 'enquiries', { mobileQuickOrder: 30 }),
       leaf('bookings', 'Bookings', '/admin/bookings', CalendarDays, 20, 'bookings', { mobileQuickOrder: 40 }),
+      { id: 'delivery', label: 'Delivery Queue', route: '/admin/delivery', icon: FolderOpen, displayOrder: 25, access: { feature: 'owner_overview', level: 'manage' } },
       leaf('occasions', 'Occasions', '/admin/occasions', CalendarHeart, 30, 'occasions'),
       leaf('quotations', 'Quotations', '/admin/quotations', FileSignature, 40, 'quotations'),
       leaf('payments', 'Revenue & Payments', '/admin/payments', CircleDollarSign, 50, 'payments'),

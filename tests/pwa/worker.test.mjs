@@ -113,3 +113,13 @@ test('static assets are cached once; private responses are never cached', async 
   await h.fetchEvent('/private.js', options); await h.fetchEvent('/private.js', options);
   assert.equal(calls, 3);
 });
+
+
+test('customer booking pages and their API never enter the service worker cache', async () => {
+  const h = harness();
+  for (const path of ['/customer-booking', '/customer-booking/private-token', '/api/customer-bookings/private-token']) {
+    assert.equal(await h.fetchEvent(path), undefined);
+    assert.equal(await h.fetchEvent(path, { destination: 'script', mode: 'cors' }), undefined);
+  }
+  assert.equal(h.stores.size, 0);
+});

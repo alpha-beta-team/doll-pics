@@ -4,11 +4,15 @@ import type {
   ConvertEnquiryPayload,
   Enquiry,
   EnquiryStage,
+  RecordEnquiryCallPayload,
 } from '../types';
 import { request } from './http';
 import { mapBooking, mapEnquiry } from './mappers';
 
 export const enquiriesApi = {
+  async recordEnquiryCall(id: string, data: RecordEnquiryCallPayload): Promise<Enquiry> {
+    return mapEnquiry(await request<Record<string, unknown>>(`/admin/enquiries/${id}/calls`, { method: 'POST', auth: true, body: JSON.stringify(data) }));
+  },
   async getEnquiryListRows(filters?: { inbox?: boolean; source?: string; dateFrom?: string; dateTo?: string }): Promise<Enquiry[]> {
     const params = new URLSearchParams();
     if (filters?.inbox) params.set('inbox', 'true');

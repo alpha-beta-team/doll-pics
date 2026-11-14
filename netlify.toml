@@ -114,3 +114,25 @@
     Cache-Control = "private, no-store"
     Referrer-Policy = "no-referrer"
     X-Robots-Tag = "noindex, nofollow"
+
+# Private customer booking pages
+[[redirects]]
+  from = "/customer-booking"
+  to = "/app-shell.html"
+  status = 200
+[[redirects]]
+  from = "/customer-booking/*"
+  to = "/app-shell.html"
+  status = 200
+[[headers]]
+  for = "/customer-booking"
+  [headers.values]
+    Cache-Control = "private, no-store"
+    Referrer-Policy = "no-referrer"
+    X-Robots-Tag = "noindex, nofollow"
+[[headers]]
+  for = "/customer-booking/*"
+  [headers.values]
+    Cache-Control = "private, no-store"
+    Referrer-Policy = "no-referrer"
+    X-Robots-Tag = "noindex, nofollow"

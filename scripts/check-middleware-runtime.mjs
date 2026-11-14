@@ -32,7 +32,7 @@ try {
       ['/Gallery/?utm_source=qa', '/gallery?utm_source=qa'],
       ['/CUSTOM-SESSION/?a=1', '/custom-session?a=1'],
       ['/gallery', null], ['/Unknown', null], ['/Admin/Bookings', null],
-      ['/employee/Dashboard', null], ['/quotation/TokenABC', null],
+      ['/employee/Dashboard', null], ['/Customer-Booking/TokenABC/', null], ['/quotation/TokenABC', null],
       ['/api/Photos', null], ['/custom%2FSession', null], ['//Gallery', null],
     ]) {
       const response = await middleware(new Request('https://example.test' + input, { method }));

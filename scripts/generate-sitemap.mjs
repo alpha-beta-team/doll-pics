@@ -19,6 +19,7 @@ const robots = [
   'Disallow: /kiosk/',
   'Disallow: /api/',
   'Disallow: /preview/',
+  'Disallow: /customer-booking/',
   'Disallow: /quotation/',
   '',
   `Sitemap: ${siteUrl}/sitemap.xml`,

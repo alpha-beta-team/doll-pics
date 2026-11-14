@@ -41,7 +41,7 @@ export function validateLocations(locations, requiredPaths) {
     if (parsed.search || parsed.hash) {
       failures.push(`Parameters or fragment in <loc>: ${location}`);
     }
-    if (/^\/(admin|employee|kiosk|quotation|api|preview)(\/|$)/.test(parsed.pathname)) {
+    if (/^\/(admin|employee|kiosk|quotation|customer-booking|api|preview)(\/|$)/.test(parsed.pathname)) {
       failures.push(`Private route in <loc>: ${location}`);
     }
     if (seen.has(location)) {

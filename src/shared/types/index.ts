@@ -413,6 +413,10 @@ export type PublicStaffProfile = Pick<StaffProfile, 'name' | 'jobTitle' | 'bio' 
 
 // —— Ops ——————————————————————————————————————————————————————
 
+export type EnquiryCallOutcome = 'no_answer' | 'interested' | 'quotation_needed' | 'not_interested';
+export type EnquiryCall = { eventId: string; outcome: EnquiryCallOutcome; note: string; recordedAt: string; actorId: string; actorName: string; nextFollowUpAt?: string };
+export type RecordEnquiryCallPayload = { eventId: string; outcome: EnquiryCallOutcome; note?: string; nextFollowUpAt?: string };
+
 export type Enquiry = {
   attribution?: MarketingAttribution;
   saleContext?: { packageId: string; campaignId: string; campaignName: string; capturedAt: string } | null;
@@ -434,6 +438,8 @@ export type Enquiry = {
   nextFollowUpAt?: string;
   followUpNote: string;
   lastFollowUpCompletedAt?: string;
+  lastCall?: EnquiryCall;
+  callHistory?: EnquiryCall[];
   convertedBookingId?: string;
   whatsappOptIn: boolean;
   whatsappOptInAt?: string;
@@ -446,6 +452,7 @@ export type Enquiry = {
 };
 
 export type AdminEnquiryWritePayload = {
+  separateShootReason?: string;
   name: string;
   phone: string;
   email?: string;
@@ -783,6 +790,7 @@ export type OwnerOverviewReport = {
     outstandingBookings: number;
     overdueBookings: number;
     financeRecords: number;
+    overdueDeliveries?: number;
   };
 };
 

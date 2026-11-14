@@ -1,5 +1,20 @@
 import { ChevronDown } from 'lucide-react';
 import type { EnquiryListScope } from './enquiryList';
+import type { ServiceCategoryOption } from '../sales/serviceCategories';
+
+export function EnquiryServiceSelect({ categories, value, onChange }: {
+  categories: ServiceCategoryOption[];
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return <label className="enquiry-service-select relative block min-w-0 w-full">
+    <span className="sr-only">Photography service</span>
+    <select aria-label="Photography service" aria-controls="enquiry-list-panel" value={value} onChange={event => onChange(event.target.value)} className="h-9 w-full min-w-0 appearance-none rounded-lg border border-admin-control bg-admin-surface pl-3 pr-8 text-xs font-medium text-admin-secondary outline-none focus-visible:ring-2 focus-visible:ring-admin-focus">
+      {categories.map(category => <option key={category.value || 'all'} value={category.value}>{category.value ? category.label : 'All services'} ({category.count})</option>)}
+    </select>
+    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-admin-subtle" aria-hidden="true" />
+  </label>;
+}
 
 type EnquiryViewSelectProps = {
   scope: EnquiryListScope;

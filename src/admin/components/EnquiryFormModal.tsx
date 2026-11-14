@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AlertCircle, ChevronDown, RotateCcw, X } from 'lucide-react';
 import { bookingDurationLabel, bookingTimeWindowError } from '../../shared/bookingTime';
+import { ApiError } from '../api/http';
 import { api } from '../api/client';
 import type { AdminEnquiryWritePayload, Enquiry, EnquirySource, ServiceNavLink } from '../types';
 import type { CustomerLookupResponse } from '../types';
@@ -61,6 +62,8 @@ export function EnquiryFormModal({
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [customerLookup, setCustomerLookup] = useState<CustomerLookupResponse | null>(null);
   const [newShootConfirmed, setNewShootConfirmed] = useState(false);
+  const [separateShootReason, setSeparateShootReason] = useState('');
+  const [lookupRefresh, setLookupRefresh] = useState(0);
   const [customerLookupChecking, setCustomerLookupChecking] = useState(false);
   const [services, setServices] = useState<ServiceNavLink[]>([]);
   const serviceOptions = useMemo(
@@ -117,10 +120,12 @@ export function EnquiryFormModal({
     }
     const followUpError = nextFollowUpAt ? followUpDateError(nextFollowUpAt) : null;
     if (followUpError) nextErrors.followUp = followUpError;
-    if (!enquiry && customerLookup?.active.length && !newShootConfirmed) {
+    const checkDuplicates = !enquiry || phone !== enquiry.phone;
+    const activeMatches = customerLookup?.active.filter(row => row.type !== 'enquiry' || row.id !== enquiry?.id);
+    if (checkDuplicates && activeMatches?.length && (!newShootConfirmed || separateShootReason.trim().length < 10)) {
       nextErrors.phone = 'Open the active record or confirm this is a separate shoot.';
     }
-    if (!enquiry && customerLookupChecking) nextErrors.phone = 'Wait a moment while customer history is checked.';
+    if (checkDuplicates && customerLookupChecking) nextErrors.phone = 'Wait a moment while customer history is checked.';
     setFieldErrors(nextErrors);
     const firstError = (['name', 'phone', 'followUp', 'bookingDate', 'time'] as const)
       .find(field => nextErrors[field]);
@@ -134,11 +139,12 @@ export function EnquiryFormModal({
     setError('');
     try {
       const saved = enquiry
-        ? await api.updateEnquiry(enquiry.id, currentDraft)
-        : await api.createAdminEnquiry(currentDraft);
+        ? await api.updateEnquiry(enquiry.id, { ...currentDraft, ...(newShootConfirmed ? { separateShootReason: separateShootReason.trim() } : {}) })
+        : await api.createAdminEnquiry({ ...currentDraft, ...(newShootConfirmed ? { separateShootReason: separateShootReason.trim() } : {}) });
       if (!enquiry) localStorage.removeItem(draftKey);
       onSaved(saved);
     } catch (err) {
+      if (err instanceof ApiError && err.code === 'DUPLICATE_ENQUIRY') { setNewShootConfirmed(false); setLookupRefresh(value => value + 1); }
       setError(err instanceof Error ? err.message : 'Could not save the enquiry. Your entry is still here.');
     } finally {
       setSaving(false);
@@ -182,12 +188,12 @@ export function EnquiryFormModal({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="text-sm font-medium text-slate-700">Customer name *<input id="enquiry-name" autoFocus className={input} value={name} onChange={event => { setName(event.target.value); clearFieldError('name'); }} placeholder="Example: Priya" aria-invalid={Boolean(fieldErrors.name)} />{fieldErrors.name && <span className="mt-1 block text-xs font-medium text-red-600">{fieldErrors.name}</span>}</label>
-            <label className="text-sm font-medium text-slate-700">Phone number *<input id="enquiry-phone" type="tel" inputMode="tel" autoComplete="tel" maxLength={20} className={input} value={phone} onChange={event => { setPhone(event.target.value); setNewShootConfirmed(false); setCustomerLookup(null); clearFieldError('phone'); }} placeholder="98765 43210" aria-invalid={Boolean(fieldErrors.phone)} />{fieldErrors.phone && <span className="mt-1 block text-xs font-medium text-red-600">{fieldErrors.phone}</span>}</label>
+            <label className="text-sm font-medium text-slate-700">Phone number *<input id="enquiry-phone" type="tel" inputMode="tel" autoComplete="tel" maxLength={20} className={input} value={phone} onChange={event => { setPhone(event.target.value); setNewShootConfirmed(false); setSeparateShootReason(''); setCustomerLookup(null); clearFieldError('phone'); }} placeholder="98765 43210" aria-invalid={Boolean(fieldErrors.phone)} />{fieldErrors.phone && <span className="mt-1 block text-xs font-medium text-red-600">{fieldErrors.phone}</span>}</label>
             <LeadSourceSelect value={source} onChange={value => setSource(value as EnquirySource)} />
             <label className="text-sm font-medium text-slate-700">Photography service<select className={input} value={shootType} onChange={event => setShootType(event.target.value)}><option value="">Not decided</option>{serviceOptions.map(value => <option key={value}>{value}</option>)}</select></label>
           </div>
 
-          {!enquiry && <CustomerLookupPanel phone={phone} allowNewShoot newShootConfirmed={newShootConfirmed} onConfirmNewShoot={() => { setNewShootConfirmed(true); clearFieldError('phone'); }} onUseContact={contact => { setName(contact.customerName); setEmail(contact.email); }} onResult={setCustomerLookup} onChecking={setCustomerLookupChecking} />}
+          {(!enquiry || phone !== enquiry.phone) && <CustomerLookupPanel phone={phone} current={enquiry ? { type: 'enquiry', id: enquiry.id } : undefined} refreshKey={lookupRefresh} separateShootReason={separateShootReason} onReasonChange={value => { setSeparateShootReason(value); setNewShootConfirmed(false); }} allowNewShoot newShootConfirmed={newShootConfirmed} onConfirmNewShoot={() => { setNewShootConfirmed(true); clearFieldError('phone'); }} onUseContact={contact => { setName(contact.customerName); setEmail(contact.email); }} onResult={setCustomerLookup} onChecking={setCustomerLookupChecking} />}
 
           <section className="rounded-xl border border-slate-200 p-4">
             <h3 className="text-sm font-semibold text-slate-800">Next follow-up</h3>

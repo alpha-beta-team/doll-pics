@@ -10,6 +10,7 @@ import { ConfirmDialogProvider } from "./components/ConfirmDialog";
 import { AccessRoute, DefaultAdminRedirect } from "./components/AccessRoute";
 import { AccessDeniedPage } from "./pages/AccessDeniedPage";
 
+const DeliveryQueuePage = lazy(() => import('./pages/DeliveryQueuePage').then(module => ({ default: module.DeliveryQueuePage })));
 const SalesPage = lazy(() => import('./pages/SalesPage').then(module => ({ default: module.SalesPage })));
 const SaleDetailsPage = lazy(() => import('./pages/SaleDetailsPage').then(module => ({ default: module.SaleDetailsPage })));
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then(module => ({ default: module.DashboardPage })));
@@ -101,7 +102,7 @@ export default function AdminApp() {
               <Route index element={<DefaultAdminRedirect />} />
               <Route path="access-denied" element={<AccessDeniedPage />} />
               <Route element={<AccessRoute feature="owner_overview" />}><Route path="help" element={<HelpPage />} /></Route>
-              <Route element={<AccessRoute feature="owner_overview" />}><Route path="owner" element={<OwnerOverviewPage />} /><Route path="sales" element={<SalesPage />} /><Route path="sales/:id" element={<SaleDetailsPage />} /></Route>
+              <Route element={<AccessRoute feature="owner_overview" />}><Route path="owner" element={<OwnerOverviewPage />} /><Route path="delivery" element={<DeliveryQueuePage />} /><Route path="sales" element={<SalesPage />} /><Route path="sales/:id" element={<SaleDetailsPage />} /></Route>
               <Route element={<AccessRoute feature="today" />}><Route path="today" element={<TodayPage />} /></Route>
               <Route element={<AccessRoute feature="enquiries" />}>
                 <Route path="enquiries" element={<WorkEnquiriesPage />} />

@@ -91,8 +91,8 @@ export function CustomerLookupPanel({
       <div className="flex items-start gap-3">
         {active.length ? <UserRoundSearch className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" /> : <History className="mt-0.5 h-5 w-5 shrink-0 text-blue-700" />}
         <div className="min-w-0 flex-1">
-          <h3 className={`font-semibold ${active.length ? 'text-amber-950' : 'text-blue-950'}`}>{active.length ? 'Possible active customer record' : 'Returning customer'}</h3>
-          <p className="mt-1 text-sm text-slate-600">{active.length ? 'Open the current work or confirm this is a separate shoot.' : `${history.length} previous record${history.length === 1 ? '' : 's'} found.`}</p>
+          <h3 className={`font-semibold ${active.length ? 'text-amber-950' : 'text-blue-950'}`}>{active.length ? 'Possible duplicate enquiry or booking' : 'Returning customer'}</h3>
+          <p className="mt-1 text-sm text-slate-600">{active.length ? 'This phone number already has active work. Review the matching record before adding a separate shoot.' : `${history.length} previous record${history.length === 1 ? '' : 's'} found.`}</p>
           <div className="mt-3 space-y-2">
             {(onBookEnquiry ? records : records.slice(0, 4)).map(row => <div key={`${row.type}-${row.id}`} className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-white px-3 py-2 text-sm shadow-sm">
               <span className="min-w-0 flex-1"><strong className="block break-words text-slate-800">{row.customerName}</strong><span className="block text-xs capitalize text-slate-500">{row.type} · {row.status.replace(/_/g, ' ')}{row.service ? ` · ${row.service}` : ''}</span><span className="block text-xs text-slate-500">{row.bookingDate ? `Shoot date: ${row.bookingDate.slice(0, 10)}` : 'Shoot date not recorded'}</span></span>

@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  AlertCircle, AlertTriangle, CalendarDays, ChevronLeft, ChevronRight,
-  MapPin, MessageCircle, Phone, Plus, RefreshCw, UserRound, X,
+  AlertCircle, AlertTriangle, ChevronLeft, ChevronRight, SlidersHorizontal,
+  MapPin, MessageCircle, Phone, RefreshCw, UserRound, X,
 } from 'lucide-react';
 import { api } from '../api/client';
 import type {
@@ -20,23 +20,17 @@ import { bookingTimeWindowError } from '../../shared/bookingTime';
 import {
   addScheduleDays, endTimeFor, formatScheduleDay, formatScheduleTime, kolkataToday,
   minutesToTime, occupiesSchedule, scheduleDates, slotHasConflict, timeToMinutes,
-  visibleHourBounds, windowsOverlap, layoutScheduleBookings,
+  windowsOverlap,
 } from './schedule.utils';
 import { AdminIconButton, AdminPageHeader } from '../components/ui';
+import { ScheduleAgenda, ScheduleCalendar, ScheduleWeekStrip } from './ScheduleViews';
+import './schedule.css';
 import { useFeatureAccess } from '../access/useFeatureAccess';
 import { ReadOnlyNotice } from '../components/ReadOnlyNotice';
 
-type ViewMode = 'day' | 'week';
+type ViewMode = 'day' | 'week' | 'agenda';
 type SlotChoice = { bookingDate: string; startTime: string };
 type ComposerState = { context: ManualWhatsAppContext; template: WhatsAppTemplateId };
-
-const STATUS_CLASS: Record<ScheduleBookingItem['status'], string> = {
-  draft: 'border-slate-400 bg-slate-100 text-slate-800',
-  confirmed: 'border-emerald-500 bg-emerald-50 text-emerald-950',
-  shoot_completed: 'border-blue-500 bg-blue-50 text-blue-950',
-  delivered: 'border-violet-500 bg-violet-50 text-violet-950',
-  cancelled: 'border-red-400 bg-red-50 text-red-800 opacity-70',
-};
 
 function whatsappContext(item: ScheduleBookingItem | Booking, includePayments: boolean): ManualWhatsAppContext {
   return {
@@ -67,6 +61,9 @@ export function SchedulePage() {
   const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 767px)').matches);
   const [anchorDate, setAnchorDate] = useState(kolkataToday);
   const [showCancelled, setShowCancelled] = useState(false);
+  const [compact, setCompact] = useState(true);
+  const [reviewOverlaps, setReviewOverlaps] = useState(false);
+  const [focusTime, setFocusTime] = useState<string>();
   const [bookings, setBookings] = useState<ScheduleBookingItem[]>([]);
   const [packages, setPackages] = useState<Package[]>([]);
   const [bookingServices, setBookingServices] = useState<ServiceNavLink[]>([]);
@@ -80,17 +77,19 @@ export function SchedulePage() {
   const [rescheduling, setRescheduling] = useState<ScheduleBookingItem | null>(null);
   const [composer, setComposer] = useState<ComposerState | null>(null);
 
-  const dates = useMemo(() => scheduleDates(anchorDate, view), [anchorDate, view]);
-  const dateFrom = dates[0];
-  const dateTo = dates[dates.length - 1];
-  const existingOverlaps = useMemo(() => bookings.flatMap((item, index) =>
-    bookings.slice(index + 1).filter(other =>
+  const dates = useMemo(() => scheduleDates(anchorDate, view === 'week' ? 'week' : 'day'), [anchorDate, view]);
+  const requestDates = isMobile ? scheduleDates(anchorDate, 'week') : dates;
+  const dateFrom = requestDates[0];
+  const dateTo = requestDates[requestDates.length - 1];
+  const visibleBookings = useMemo(() => isMobile ? bookings.filter(item => item.bookingDate === anchorDate) : bookings, [isMobile, bookings, anchorDate]);
+  const existingOverlaps = useMemo(() => visibleBookings.flatMap((item, index) =>
+    visibleBookings.slice(index + 1).filter(other =>
       item.bookingDate === other.bookingDate && item.startTime && item.endTime
       && other.startTime && other.endTime && occupiesSchedule(item)
       && occupiesSchedule(other)
       && windowsOverlap(item.startTime, item.endTime, other.startTime, other.endTime),
     ).map(other => ({ item, other })),
-  ), [bookings]);
+  ), [visibleBookings]);
 
   const loadSchedule = useCallback(async (refresh = false, signal?: AbortSignal) => {
     if (refresh) setRefreshing(true); else setLoading(true);
@@ -156,43 +155,65 @@ export function SchedulePage() {
     await loadSchedule(true);
   };
 
-  const title = view === 'day'
-    ? formatScheduleDay(dateFrom, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+  const openDay = (date: string, startTime?: string) => {
+    setAnchorDate(date); setView('day'); setFocusTime(startTime); setReviewOverlaps(false);
+  };
+  const openBooking = (item: ScheduleBookingItem) => {
+    setReviewOverlaps(false);
+    if (canManage) setSelected(item); else navigate(`/admin/bookings/${item.id}`);
+  };
+
+  const title = view !== 'week'
+    ? formatScheduleDay(anchorDate, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
     : `${formatScheduleDay(dateFrom, { day: 'numeric', month: 'short' })} – ${formatScheduleDay(dateTo, { day: 'numeric', month: 'short', year: 'numeric' })}`;
 
   return (
-    <div className="mx-auto max-w-[1700px] space-y-5">
-      <AdminPageHeader eyebrow="Overview" title="Studio schedule" description={<><span className="md:hidden">Choose a day, then tap a time to add a booking.</span><span className="hidden md:inline">Plan shoots and review overlapping bookings. Times use Asia/Kolkata.</span></>} actions={<>
-          <div className="hidden grid-cols-2 rounded-xl bg-slate-100 p-1 md:grid">
-            {(['day', 'week'] as const).map(mode => <button key={mode} type="button" onClick={() => setView(mode)} className={`h-10 rounded-lg px-4 text-sm font-semibold capitalize ${view === mode ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`}>{mode}</button>)}
-          </div>
-          <label className="flex h-11 items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700"><input type="checkbox" checked={showCancelled} onChange={event => setShowCancelled(event.target.checked)} /> Show cancelled</label>
-          <AdminIconButton label="Refresh schedule" onClick={() => void loadSchedule(true)} disabled={refreshing}><RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} /></AdminIconButton>
-          {isReadOnly && <ReadOnlyNotice />}
-        </>} />
-
-      <section className="hidden flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm md:flex">
-        <div className="flex items-center gap-2"><button type="button" onClick={() => move(-1)} className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-300" aria-label="Previous period"><ChevronLeft className="h-5 w-5" /></button><button type="button" onClick={() => move(1)} className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-300" aria-label="Next period"><ChevronRight className="h-5 w-5" /></button><button type="button" onClick={() => setAnchorDate(kolkataToday())} className="h-11 rounded-xl border border-slate-300 px-4 text-sm font-semibold text-slate-700">Today</button></div>
-        <h2 className="order-first w-full text-center font-semibold text-slate-900 sm:order-none sm:w-auto">{title}</h2>
-        <label className="sr-only" htmlFor="schedule-date-picker">Choose date</label><input id="schedule-date-picker" type="date" value={anchorDate} onChange={event => setAnchorDate(event.target.value)} className="h-11 rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-700" />
-      </section>
-
-      <section className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm md:hidden">
-        <div className="grid grid-cols-[44px_1fr_44px] items-center gap-2">
-          <button type="button" onClick={() => move(-1)} className="flex h-11 items-center justify-center rounded-xl border border-slate-300" aria-label="Previous day"><ChevronLeft className="h-5 w-5" /></button>
-          <div className="text-center"><p className="text-xs font-semibold uppercase tracking-wide text-blue-600">Day schedule</p><h2 className="mt-0.5 text-sm font-semibold text-slate-900">{title}</h2></div>
-          <button type="button" onClick={() => move(1)} className="flex h-11 items-center justify-center rounded-xl border border-slate-300" aria-label="Next day"><ChevronRight className="h-5 w-5" /></button>
+    <div className="studio-schedule mx-auto max-w-[1700px] space-y-3">
+      <AdminPageHeader compact title="Studio schedule" description="Plan shoots, review overlaps and find unbooked time." actions={<>
+        {isReadOnly && <ReadOnlyNotice />}
+      </>} />
+      <section className="sc-toolbar" aria-label="Schedule controls">
+        <div className="sc-navigation">
+          <AdminIconButton label={view === 'week' ? 'Previous week' : 'Previous day'} onClick={() => move(-1)}><ChevronLeft className="h-4 w-4" /></AdminIconButton>
+          <AdminIconButton label={view === 'week' ? 'Next week' : 'Next day'} onClick={() => move(1)}><ChevronRight className="h-4 w-4" /></AdminIconButton>
+          <button type="button" className="sc-control" onClick={() => { setAnchorDate(kolkataToday()); setFocusTime(undefined); }}>Today</button>
         </div>
-        <div className="mt-3 grid grid-cols-[auto_1fr] gap-2"><button type="button" onClick={() => setAnchorDate(kolkataToday())} className="h-11 rounded-xl border border-slate-300 px-4 text-sm font-semibold text-slate-700">Today</button><label className="relative"><span className="sr-only">Choose date</span><input type="date" value={anchorDate} onChange={event => setAnchorDate(event.target.value)} className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-700" /></label></div>
+        <h2 className="sc-period" aria-live="polite">{title}</h2>
+        <label className="sc-date"><span className="sr-only">Choose date</span><input type="date" value={anchorDate} onChange={event => { if (event.target.value) { setAnchorDate(event.target.value); setFocusTime(undefined); } }} /></label>
+        <div className="sc-view-switch" aria-label="Schedule view">
+          {(['day', 'week', 'agenda'] as const).map(mode => <button key={mode} type="button" aria-pressed={view === mode} onClick={() => setView(mode)}>{mode}</button>)}
+        </div>
+        {!loading && !error && existingOverlaps.length > 0 && <button type="button" className="sc-overlap-badge" aria-label="Review overlaps" title={`${existingOverlaps.length} overlapping booking pairs. Review staff and location.`} onClick={() => setReviewOverlaps(true)}><AlertTriangle className="h-4 w-4 shrink-0" /><span>{existingOverlaps.length} overlap{existingOverlaps.length === 1 ? '' : 's'}</span></button>}
+        <details className="sc-filters">
+          <summary className="sc-control" aria-label="Display options"><SlidersHorizontal className="h-4 w-4" /><span>Display{showCancelled ? ' •' : ''}</span></summary>
+          <div className="sc-filter-panel">
+            <label><input type="checkbox" checked={showCancelled} onChange={event => setShowCancelled(event.target.checked)} /> Show cancelled</label>
+            <label className="sc-density"><input type="checkbox" checked={compact} onChange={event => setCompact(event.target.checked)} /> Compact calendar</label>
+          </div>
+        </details>
+        <AdminIconButton label="Refresh schedule" onClick={() => void loadSchedule(true)} disabled={refreshing || loading}><RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} /></AdminIconButton>
       </section>
+      {isMobile && <ScheduleWeekStrip anchorDate={anchorDate} bookings={bookings} onDate={date => openDay(date)} />}
 
-      {error && <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700" role="alert"><AlertCircle className="h-5 w-5" />{error}<button type="button" onClick={() => setError('')} className="ml-auto" aria-label="Dismiss"><X className="h-4 w-4" /></button></div>}
-      {existingOverlaps.length > 0 && <div className="flex items-start gap-2 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900" role="status"><AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" /><div><p className="font-semibold">Overlapping bookings</p>{existingOverlaps.slice(0, 3).map(({ item, other }) => <p key={`${item.id}-${other.id}`} className="mt-1">{formatScheduleDay(item.bookingDate)}: {item.customerName} overlaps {other.customerName}.</p>)}</div></div>}
-
-      {loading ? <div className="flex h-72 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" /></div> : <>
-        {isMobile && <MobileDayAgenda date={dateFrom} bookings={bookings} canManage={canManage} onBooking={item => canManage ? setSelected(item) : navigate(`/admin/bookings/${item.id}`)} onEmptySlot={value => setSlot(value)} />}
-        {!isMobile && <ScheduleCalendar dates={dates} bookings={bookings} canManage={canManage} onBooking={item => canManage ? setSelected(item) : navigate(`/admin/bookings/${item.id}`)} onEmptySlot={value => setSlot(value)} />}
+      {error && <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700" role="alert"><AlertCircle className="h-5 w-5" />{error}</div>}
+      {loading ? <div className="flex h-72 items-center justify-center" role="status" aria-label="Loading schedule"><div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" /></div> : error ? <p className="p-4 text-sm text-slate-600">Schedule unavailable. Refresh to try again.</p> : <>
+        {(isMobile || view === 'agenda') ? <ScheduleAgenda date={anchorDate} bookings={bookings} canManage={canManage} onBooking={openBooking} onEmptySlot={setSlot} /> :
+          <ScheduleCalendar key={`${view}-${anchorDate}`} dates={dates} bookings={bookings} canManage={canManage} compact={compact} focusTime={focusTime} onDay={openDay} onBooking={openBooking} onEmptySlot={setSlot} />}
       </>}
+      {reviewOverlaps && <Sheet title="Review time overlaps" subtitle="Check staff and location. Overlapping times may be valid with separate staff and spaces." onClose={() => setReviewOverlaps(false)} wide>
+        <div className="sc-overlap-list">{existingOverlaps.map(({ item, other }) => {
+          const overlapStart = item.startTime > other.startTime ? item.startTime : other.startTime;
+          const overlapEnd = item.endTime < other.endTime ? item.endTime : other.endTime;
+          return <article key={`${item.id}-${other.id}`} className="sc-overlap-pair">
+            <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="text-sm font-semibold">{formatScheduleDay(item.bookingDate)} · {formatScheduleTime(overlapStart)}–{formatScheduleTime(overlapEnd)}</h3>
+              <button type="button" className="sc-text-action" onClick={() => openDay(item.bookingDate, overlapStart)}>View day <ChevronRight className="h-4 w-4" /></button></div>
+            {[item, other].map(booking => <div key={booking.id} className="sc-overlap-booking">
+              <button type="button" className="min-w-0 flex-1 text-left" onClick={() => openBooking(booking)}><strong className="block text-sm">{booking.customerName}</strong><span className="block text-xs">{formatScheduleTime(booking.startTime)}–{formatScheduleTime(booking.endTime)} · {booking.service || 'Service not set'}</span><span className="block text-xs text-slate-500">{booking.assignedStaffAccountName || 'Staff not assigned'} · {booking.location || 'Location not set'}</span></button>
+              {canManage && <button type="button" className="sc-control" onClick={() => { setReviewOverlaps(false); setRescheduling(booking); }}>Reschedule<span className="sr-only"> {booking.customerName}</span></button>}
+            </div>)}
+          </article>;
+        })}</div>
+      </Sheet>}
 
       {canManage && slot && <DurationSheet slot={slot} bookings={bookings} onClose={() => setSlot(null)} onChoose={endTime => { setCreatingAt({ ...slot, endTime }); setSlot(null); }} />}
       {canManage && creatingAt && <BookingFormModal packages={packages} services={bookingServices} staffAccounts={staffAccounts} initialSchedule={creatingAt} onClose={() => setCreatingAt(null)} onSave={saveNew} />}
@@ -201,105 +222,6 @@ export function SchedulePage() {
       {canManage && composer && <WhatsAppComposer context={composer.context} initialTemplate={composer.template} onClose={() => setComposer(null)} />}
     </div>
   );
-}
-
-function MobileDayAgenda({ date, bookings, canManage, onBooking, onEmptySlot }: {
-  date: string;
-  bookings: ScheduleBookingItem[];
-  canManage: boolean;
-  onBooking: (item: ScheduleBookingItem) => void;
-  onEmptySlot: (slot: SlotChoice) => void;
-}) {
-  const dayBookings = bookings.filter(item => item.bookingDate === date);
-  const unknown = dayBookings.filter(item => !item.startTime || !item.endTime);
-  const timed = dayBookings.filter(item => item.startTime && item.endTime);
-  const activeShootCount = timed.filter(item => item.status !== 'cancelled').length;
-  const starts = canManage ? Array.from({ length: 9 }, (_, index) => minutesToTime((11 + index) * 60)) : [];
-  const available = starts.filter(startTime => !slotHasConflict(bookings, date, startTime, endTimeFor(startTime, 1)));
-  const entries: Array<
-    | { kind: 'booking'; minute: number; item: ScheduleBookingItem }
-    | { kind: 'available'; minute: number; startTime: string }
-  > = [
-    ...timed.map(item => ({ kind: 'booking' as const, minute: timeToMinutes(item.startTime), item })),
-    ...starts.map(startTime => ({ kind: 'available' as const, minute: timeToMinutes(startTime), startTime })),
-  ].sort((a, b) => a.minute - b.minute || (a.kind === 'booking' ? -1 : 1));
-
-  return <section className="space-y-3 md:hidden">
-    <div className="flex items-center justify-between rounded-xl bg-blue-50 px-4 py-3">
-      <div className="flex items-center gap-2 text-blue-800"><CalendarDays className="h-5 w-5" /><span className="text-sm font-semibold">{activeShootCount} shoot{activeShootCount === 1 ? '' : 's'} scheduled</span></div>
-      <span className="text-xs font-semibold text-blue-600">{available.length} open slots</span>
-    </div>
-
-    {unknown.length > 0 && <div className="rounded-2xl border border-amber-300 bg-amber-50 p-3"><h3 className="flex items-center gap-2 text-sm font-semibold text-amber-900"><AlertTriangle className="h-4 w-4" />Time not set</h3><div className="mt-2 space-y-2">{unknown.map(item => <button key={item.id} type="button" onClick={() => onBooking(item)} className="flex min-h-16 w-full items-center justify-between rounded-xl border border-amber-200 bg-white p-3 text-left"><span className="min-w-0"><strong className="block truncate text-sm text-slate-900">{item.customerName}</strong><span className="mt-0.5 block truncate text-xs text-slate-500">{item.service || 'Service not set'}{item.location ? ` · ${item.location}` : ''}</span></span><ChevronRight className="h-5 w-5 shrink-0 text-amber-600" /></button>)}</div></div>}
-
-    {!timed.length && <p className="rounded-xl border border-dashed border-slate-300 bg-white p-4 text-center text-sm text-slate-500">No shoots booked yet. Tap a time below to create one.</p>}
-
-    <div className="space-y-2">
-      {entries.map(entry => entry.kind === 'booking' ? (
-        <button key={`booking-${entry.item.id}`} type="button" onClick={() => onBooking(entry.item)} className={`flex min-h-[76px] w-full items-stretch overflow-hidden rounded-xl border text-left shadow-sm ${STATUS_CLASS[entry.item.status]}`}>
-          <span className="flex w-[88px] shrink-0 flex-col justify-center border-r border-current/10 px-3"><strong className="text-sm">{formatScheduleTime(entry.item.startTime)}</strong><span className="mt-0.5 text-[11px] opacity-70">to {formatScheduleTime(entry.item.endTime)}</span></span>
-          <span className="min-w-0 flex-1 self-center px-3 py-2"><strong className="block truncate text-sm">{entry.item.customerName}</strong><span className="mt-0.5 block truncate text-xs opacity-75">{entry.item.service || 'Service not set'}</span><span className="mt-1 block truncate text-[11px] font-semibold capitalize opacity-70">{entry.item.status.replace('_', ' ')}{entry.item.location ? ` · ${entry.item.location}` : ''}</span></span>
-          <ChevronRight className="mr-2 h-5 w-5 shrink-0 self-center opacity-50" />
-        </button>
-      ) : (
-        <button key={`available-${entry.startTime}`} type="button" onClick={() => onEmptySlot({ bookingDate: date, startTime: entry.startTime })} className="flex min-h-14 w-full items-center rounded-xl border border-dashed border-blue-300 bg-white text-left text-blue-700 transition active:bg-blue-50">
-          <span className="w-[88px] shrink-0 px-3 text-sm font-semibold text-slate-600">{formatScheduleTime(entry.startTime)}</span>
-          <span className="flex flex-1 items-center justify-between border-l border-slate-100 px-3 py-2"><span><strong className="block text-sm">{slotHasConflict(bookings, date, entry.startTime, endTimeFor(entry.startTime, 1)) ? 'Existing bookings' : 'Available'}</strong><span className="text-xs text-slate-500">Tap to add a booking</span></span><span className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-white"><Plus className="h-4 w-4" /></span></span>
-        </button>
-      ))}
-    </div>
-  </section>;
-}
-
-function ScheduleCalendar({ dates, bookings, canManage, onBooking, onEmptySlot }: {
-  dates: string[];
-  bookings: ScheduleBookingItem[];
-  canManage: boolean;
-  onBooking: (item: ScheduleBookingItem) => void;
-  onEmptySlot: (slot: SlotChoice) => void;
-}) {
-  const { startHour, endHour } = visibleHourBounds(bookings);
-  const rowHeight = 72;
-  const height = (endHour - startHour) * rowHeight + 46;
-  const unknown = bookings.filter(item => !item.startTime || !item.endTime);
-  const timed = bookings.filter(item => item.startTime && item.endTime);
-  const dayWidths = dates.map(date => Math.max(180, 44 + Math.max(1, ...layoutScheduleBookings(timed.filter(item => item.bookingDate === date), 46 / rowHeight * 60).map(entry => entry.columns)) * 160));
-  const gridColumns = `64px ${dayWidths.map(width => `minmax(${width}px, 1fr)`).join(' ')}`;
-  return <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-    {unknown.length > 0 && <div className="border-b border-amber-200 bg-amber-50 p-4"><h3 className="flex items-center gap-2 text-sm font-semibold text-amber-900"><AlertTriangle className="h-4 w-4" />Time not set</h3><div className="mt-3 flex gap-2 overflow-x-auto pb-1">{unknown.map(item => <button key={item.id} type="button" onClick={() => onBooking(item)} className="min-h-12 min-w-52 rounded-xl border border-amber-300 bg-white p-3 text-left"><span className="block text-xs font-semibold text-amber-800">{formatScheduleDay(item.bookingDate)}</span><span className="mt-1 block truncate text-sm font-semibold text-slate-900">{item.customerName}</span><span className="block truncate text-xs text-slate-500">{item.service || 'Service not set'}</span></button>)}</div></div>}
-    <div className="overflow-x-auto">
-      <div style={{ minWidth: 64 + dayWidths.reduce((sum, width) => sum + width, 0) }}>
-        <div className="grid border-b border-slate-200 bg-slate-50" style={{ gridTemplateColumns: gridColumns }}><div />{dates.map(date => <div key={date} className={`border-l border-slate-200 px-3 py-3 text-center ${date === kolkataToday() ? 'bg-blue-50' : ''}`}><p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{formatScheduleDay(date, { weekday: 'short' })}</p><p className="mt-0.5 text-sm font-semibold text-slate-900">{formatScheduleDay(date, { day: 'numeric', month: 'short' })}</p></div>)}</div>
-        <div className="grid" style={{ gridTemplateColumns: gridColumns }}>
-          <div className="relative bg-slate-50" style={{ height }}>{Array.from({ length: endHour - startHour }, (_, index) => <span key={index} className="absolute right-2 -translate-y-2 text-[11px] font-medium text-slate-400" style={{ top: index * rowHeight }}>{formatScheduleTime(minutesToTime((startHour + index) * 60))}</span>)}</div>
-          {dates.map(date => <DayLane key={date} date={date} bookings={timed.filter(item => item.bookingDate === date)} allBookings={bookings} canManage={canManage} startHour={startHour} endHour={endHour} rowHeight={rowHeight} height={height} onBooking={onBooking} onEmptySlot={onEmptySlot} />)}
-        </div>
-      </div>
-    </div>
-  </section>;
-}
-
-function DayLane({ date, bookings, allBookings, canManage, startHour, endHour, rowHeight, height, onBooking, onEmptySlot }: {
-  date: string; bookings: ScheduleBookingItem[]; allBookings: ScheduleBookingItem[];
-  canManage: boolean;
-  startHour: number; endHour: number; rowHeight: number; height: number;
-  onBooking: (item: ScheduleBookingItem) => void; onEmptySlot: (slot: SlotChoice) => void;
-}) {
-  return <div className={`relative border-l border-slate-200 ${date === kolkataToday() ? 'bg-blue-50/20' : ''}`} style={{ height, backgroundImage: 'linear-gradient(to bottom, #f1f5f9 1px, transparent 1px)', backgroundSize: `100% ${rowHeight}px` }}>
-    {Array.from({ length: endHour - startHour }, (_, index) => {
-      const hour = startHour + index;
-      const startTime = minutesToTime(hour * 60);
-      const endTime = minutesToTime((hour + 1) * 60);
-      const overlap = slotHasConflict(allBookings, date, startTime, endTime);
-      const creatable = canManage && hour >= 11 && hour < 20;
-      return <button key={hour} type="button" disabled={!creatable} onClick={() => onEmptySlot({ bookingDate: date, startTime })} className="group absolute left-0 w-10 border-t border-slate-100 text-left disabled:cursor-default" style={{ top: index * rowHeight, height: rowHeight }} aria-label={creatable ? `Create booking ${formatScheduleDay(date)} at ${formatScheduleTime(startTime)}${overlap ? ', existing bookings' : ''}` : undefined}><span className={`ml-1 inline-flex flex-col items-center rounded-md px-1 py-1 text-[10px] font-semibold transition ${creatable ? 'text-blue-700 hover:bg-blue-50' : 'invisible'}`}><Plus className="h-3 w-3" />Add</span></button>;
-    })}
-    {layoutScheduleBookings(bookings, 46 / rowHeight * 60).map(({ item, column, columns }) => {
-      const top = (timeToMinutes(item.startTime) - startHour * 60) / 60 * rowHeight;
-      const eventHeight = Math.max(42, (timeToMinutes(item.endTime) - timeToMinutes(item.startTime)) / 60 * rowHeight - 4);
-      return <button key={item.id} type="button" onClick={() => onBooking(item)} className={`absolute z-10 overflow-hidden rounded-lg border-l-4 px-2 py-1.5 text-left shadow-sm transition hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-blue-500 ${STATUS_CLASS[item.status]}`} title={`${item.customerName} · ${formatScheduleTime(item.startTime)}–${formatScheduleTime(item.endTime)}`} style={{ top: top + 2, height: eventHeight, left: `calc(40px + (100% - 40px) * ${column / columns} + 2px)`, width: `calc((100% - 40px) / ${columns} - 4px)` }}><span className="block truncate text-xs font-bold">{formatScheduleTime(item.startTime)}–{formatScheduleTime(item.endTime)}</span><span className="mt-0.5 block truncate text-xs font-semibold">{item.customerName}</span><span className="block truncate text-[11px] opacity-75">{item.service || item.location || item.status.replace('_', ' ')}</span></button>;
-    })}
-  </div>;
 }
 
 function DurationSheet({ slot, bookings, onClose, onChoose }: { slot: SlotChoice; bookings: ScheduleBookingItem[]; onClose: () => void; onChoose: (endTime: string) => void }) {
@@ -394,5 +316,25 @@ function RescheduleSheet({ item, visibleBookings, onClose, onSaved }: { item: Sc
 }
 
 function Sheet({ title, subtitle, onClose, children, wide = false }: { title: string; subtitle?: string; onClose: () => void; children: React.ReactNode; wide?: boolean }) {
-  return <div className="fixed inset-0 z-[80] flex items-end bg-slate-950/50 sm:items-center sm:justify-center sm:p-4" role="dialog" aria-modal="true"><div className={`flex max-h-[94dvh] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl ${wide ? 'sm:max-w-2xl' : 'sm:max-w-md'}`}><header className="flex items-center justify-between border-b border-slate-200 p-4"><div className="min-w-0"><h2 className="truncate font-semibold text-slate-900">{title}</h2>{subtitle && <p className="mt-0.5 truncate text-sm text-slate-500">{subtitle}</p>}</div><button type="button" onClick={onClose} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl hover:bg-slate-100" aria-label="Close"><X className="h-5 w-5" /></button></header>{children}</div></div>;
+  const titleId = useId();
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null;
+    sheetRef.current?.focus();
+    return () => { if (previous?.isConnected) previous.focus(); };
+  }, []);
+  return <div ref={sheetRef} tabIndex={-1} className="fixed inset-0 z-[80] flex items-end bg-slate-950/50 sm:items-center sm:justify-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby={titleId} onKeyDown={event => {
+    // Leave nested confirmation dialogs in control of their own keyboard events.
+    if ((event.target as HTMLElement).closest('[role="dialog"]') !== sheetRef.current) return;
+    if (event.key === 'Escape') { event.stopPropagation(); closeRef.current(); }
+    if (event.key === 'Tab') {
+      const controls = Array.from(sheetRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex="0"]') || []).filter(element => element.getClientRects().length > 0);
+      const first = controls[0], last = controls[controls.length - 1];
+      if (!first) { event.preventDefault(); return; }
+      if (event.shiftKey && (document.activeElement === first || document.activeElement === sheetRef.current)) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && (document.activeElement === last || document.activeElement === sheetRef.current)) { event.preventDefault(); first.focus(); }
+    }
+  }}><div className={`flex max-h-[94dvh] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl ${wide ? 'sm:max-w-2xl' : 'sm:max-w-md'}`}><header className="flex items-center justify-between border-b border-slate-200 p-4"><div className="min-w-0"><h2 id={titleId} className="truncate font-semibold text-slate-900">{title}</h2>{subtitle && <p className="mt-0.5 text-sm text-slate-500">{subtitle}</p>}</div><button type="button" onClick={onClose} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl hover:bg-slate-100" aria-label="Close"><X className="h-5 w-5" /></button></header>{children}</div></div>;
 }

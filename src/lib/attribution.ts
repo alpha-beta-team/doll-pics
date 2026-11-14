@@ -6,7 +6,7 @@ let fallback: MarketingAttribution | undefined;
 
 export function isPrivatePath(path: string): boolean {
   try { path = decodeURIComponent(path).toLowerCase(); } catch { return true; }
-  return ['/admin', '/employee', '/kiosk', '/quotation'].some(prefix => path === prefix || path.startsWith(`${prefix}/`));
+  return ['/admin', '/employee', '/kiosk', '/quotation', '/customer-booking'].some(prefix => path === prefix || path.startsWith(`${prefix}/`));
 }
 
 export function publicPath(value: string): string {

@@ -36,3 +36,18 @@ test('payment summary hides discount for zero and legacy bookings', () => {
   assert.equal(savedBooking().bookingDiscountAmount, 0);
   assert.equal(savedBooking(null).bookingDiscountAmount, 0);
 });
+
+test('payment summary preserves missing prices, missing balances, paid and overpaid states', () => {
+  for (const [total, balance, label] of [
+    [null, 1000, 'Price not set'],
+    [9500, null, 'Balance not recorded'],
+    [9500, 0, 'Paid in full'],
+    [9500, -500, '₹500 overpaid'],
+  ] as const) {
+    const booking = savedBooking();
+    booking.agreedTotal = total;
+    booking.paymentSummary.balanceDue = balance;
+    const html = renderToStaticMarkup(createElement(BookingPaymentSummary, { booking }));
+    assert.ok(html.includes(label), label);
+  }
+});

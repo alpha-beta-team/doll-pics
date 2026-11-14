@@ -372,7 +372,7 @@ export async function checkPublicHtmlDeployment({
     return finish([{ path: '/public-catalog.json', failures: [error instanceof Error ? error.message : String(error)] }]);
   }
   const excluded = ['/', '/services', '/admin', '/admin/bookings', '/employee', '/employee/dashboard',
-    '/kiosk', '/kiosk/check-in', '/quotation', '/quotation/html-smoke'];
+    '/kiosk', '/kiosk/check-in', '/quotation', '/quotation/html-smoke', '/customer-booking', '/customer-booking/html-smoke'];
   const missing = '/__public-html-smoke-not-found';
   const paths = [...new Set([...published, ...Object.keys(PUBLIC_HTML_ROUTES), ...excluded, missing])];
   const results = await Promise.all(paths.map(async path => {
@@ -384,7 +384,7 @@ export async function checkPublicHtmlDeployment({
       if (response.status !== expectedStatus) failures.push(`HTTP ${response.status}, expected ${expectedStatus}`);
       if (!response.headers.get('content-type')?.includes('text/html')) failures.push('response is not HTML');
       const html = await response.text();
-      if (/^\/(admin|employee|kiosk|quotation)(\/|$)/.test(path)
+      if (/^\/(admin|employee|kiosk|quotation|customer-booking)(\/|$)/.test(path)
         && !/\bnoindex\b/i.test(response.headers.get('x-robots-tag') ?? '')) failures.push('private response lacks HTTP noindex before JavaScript');
       if (published.has(path)) {
         failures.push(...validateCatalogHtml(html, path, publicOrigin));
