@@ -1,3 +1,4 @@
+import { formatCustomerName } from '../../../shared/formatCustomerName';
 import type { KeyboardEvent, MouseEvent } from 'react';
 import { AlertTriangle, CalendarClock, CheckCircle2, ChevronRight, Globe, Megaphone, Phone, Store, Users } from 'lucide-react';
 import type { Enquiry } from '../../types';
@@ -123,7 +124,7 @@ function StatusBadge({ enquiry }: { enquiry: Enquiry }) {
 
 export function EnquiryCard({ enquiry, canContact, canViewPhone, onOpen, onFollowUp, duplicateCount = 0 }: EnquiryCardProps) {
   const service = enquiry.shootType || enquiry.preferredEvent || 'Service not decided';
-  const customer = enquiry.name || 'Unnamed customer';
+  const customer = formatCustomerName(enquiry.name) || 'Unnamed customer';
   const canEditFollowUp = canContact && Boolean(onFollowUp) && !['booked', 'closed_lost'].includes(enquiry.stage);
   const avatarColor = AVATAR_COLORS[Array.from(customer).reduce((sum, letter) => sum + letter.charCodeAt(0), 0) % AVATAR_COLORS.length];
   const openFromKeyboard = (event: KeyboardEvent<HTMLElement>) => {

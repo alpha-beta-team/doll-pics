@@ -1,3 +1,4 @@
+import { formatCustomerName } from '../../shared/formatCustomerName';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, CalendarDays, Check, Clock3, MessageCircle, Phone, Plus, RefreshCw, RotateCcw, X } from 'lucide-react';
@@ -48,7 +49,7 @@ export function TodayPage() {
     try {
       if (item.entityType === 'enquiry') await api.completeEnquiryFollowUp(item.id);
       else await api.completeBookingFollowUp(item.id);
-      setSuccess(`${item.name}'s follow-up is done.`);
+      setSuccess(`${formatCustomerName(item.name)}'s follow-up is done.`);
       await load();
     } catch (err) { setError(err instanceof Error ? err.message : 'Could not complete the follow-up.'); }
   };
@@ -56,7 +57,7 @@ export function TodayPage() {
     try {
       if (item.entityType === 'enquiry') await api.scheduleEnquiryFollowUp(item.id, kolkataLocalToIso(when), note || undefined);
       else await api.scheduleBookingFollowUp(item.id, kolkataLocalToIso(when), note || undefined);
-      setSuccess(`${item.name}'s follow-up was rescheduled.`);
+      setSuccess(`${formatCustomerName(item.name)}'s follow-up was rescheduled.`);
       setRescheduling(null);
       await load();
     } catch (err) { setError(err instanceof Error ? err.message : 'Could not reschedule the follow-up.'); throw err; }
@@ -97,7 +98,7 @@ function FollowUpTask({ item, canManage, onMessage, onComplete, onReschedule }: 
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <p className="truncate font-semibold text-admin-text">{item.name}</p>
+          <p className="truncate font-semibold text-admin-text">{formatCustomerName(item.name)}</p>
           <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold capitalize ${item.entityType === 'enquiry' ? 'bg-blue-50 text-blue-700' : 'bg-violet-50 text-violet-700'}`}>{item.entityType}</span>
         </div>
         <p className="mt-1 truncate text-sm text-admin-secondary">{item.shootType || 'Service not decided'}{item.note ? ` · ${item.note}` : ''}</p>
@@ -106,17 +107,17 @@ function FollowUpTask({ item, canManage, onMessage, onComplete, onReschedule }: 
 
       <div className={`${canManage ? 'grid grid-cols-5' : 'flex justify-end'} gap-2 sm:flex sm:shrink-0`}>
         {canManage && <>
-          <a href={`tel:${item.phone}`} aria-label={`Call ${item.name}`} title="Call" className={iconButton}><Phone className="h-4 w-4" /></a>
-          <button type="button" aria-label={`Message ${item.name} on WhatsApp`} title="WhatsApp" onClick={onMessage} className={`${iconButton} text-emerald-700`}><MessageCircle className="h-4 w-4" /></button>
-          <button type="button" aria-label={`Reschedule ${item.name}'s follow-up`} title="Reschedule" onClick={onReschedule} className={iconButton}><RotateCcw className="h-4 w-4" /></button>
-          <button type="button" aria-label={`Mark ${item.name}'s follow-up done`} title="Mark done" onClick={onComplete} className="inline-flex h-11 w-11 items-center justify-center gap-2 rounded-xl bg-emerald-600 font-semibold text-white transition-colors hover:bg-emerald-700 sm:w-auto sm:px-4"><Check className="h-4 w-4" /><span className="hidden sm:inline">Done</span></button>
+          <a href={`tel:${item.phone}`} aria-label={`Call ${formatCustomerName(item.name)}`} title="Call" className={iconButton}><Phone className="h-4 w-4" /></a>
+          <button type="button" aria-label={`Message ${formatCustomerName(item.name)} on WhatsApp`} title="WhatsApp" onClick={onMessage} className={`${iconButton} text-emerald-700`}><MessageCircle className="h-4 w-4" /></button>
+          <button type="button" aria-label={`Reschedule ${formatCustomerName(item.name)}'s follow-up`} title="Reschedule" onClick={onReschedule} className={iconButton}><RotateCcw className="h-4 w-4" /></button>
+          <button type="button" aria-label={`Mark ${formatCustomerName(item.name)}'s follow-up done`} title="Mark done" onClick={onComplete} className="inline-flex h-11 w-11 items-center justify-center gap-2 rounded-xl bg-emerald-600 font-semibold text-white transition-colors hover:bg-emerald-700 sm:w-auto sm:px-4"><Check className="h-4 w-4" /><span className="hidden sm:inline">Done</span></button>
         </>}
-        <Link to={target} aria-label={`Open ${item.name}'s ${item.entityType}`} title={`Open ${item.entityType}`} className={iconButton}><ArrowRight className="h-4 w-4" /></Link>
+        <Link to={target} aria-label={`Open ${formatCustomerName(item.name)}'s ${item.entityType}`} title={`Open ${item.entityType}`} className={iconButton}><ArrowRight className="h-4 w-4" /></Link>
       </div>
     </div>
   </article>;
 }
-function SimpleTask({ item, to, calendar, enquiry, onMessage }: { item: TodaySummaryItem; to: string; calendar?: boolean; enquiry?: boolean; onMessage?: () => void }) { return <article className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white p-4"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700">{calendar ? <CalendarDays className="h-5 w-5" /> : item.name.charAt(0).toUpperCase()}</span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><p className="truncate font-semibold text-slate-900">{item.name}</p>{enquiry && item.source && <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold capitalize text-slate-600">{item.source.replace(/_/g, ' ')}</span>}</div><p className="truncate text-sm text-slate-500">{item.shootType || 'Service not decided'}{item.location ? ` · ${item.location}` : ''}</p>{enquiry && <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500"><a href={`tel:${item.phone}`} className="inline-flex items-center gap-1.5 font-medium text-slate-600 hover:text-slate-900"><Phone className="h-3.5 w-3.5" />{item.phone}</a>{item.bookingDate && <span className="inline-flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5" />Preferred {formatDate(item.bookingDate)}</span>}{item.createdAt && <span className="inline-flex items-center gap-1.5"><Clock3 className="h-3.5 w-3.5" />Received {formatDateTime(item.createdAt)}</span>}</div>}</div>{onMessage && <button type="button" onClick={onMessage} className="flex h-11 w-11 items-center justify-center rounded-xl border border-emerald-300 text-emerald-700" aria-label={`Message ${item.name}`}><MessageCircle className="h-4 w-4" /></button>}<Link to={to} className="flex h-11 items-center rounded-xl bg-slate-900 px-4 text-sm font-semibold text-white">Open</Link></article>; }
+function SimpleTask({ item, to, calendar, enquiry, onMessage }: { item: TodaySummaryItem; to: string; calendar?: boolean; enquiry?: boolean; onMessage?: () => void }) { return <article className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white p-4"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700">{calendar ? <CalendarDays className="h-5 w-5" /> : item.name.charAt(0).toUpperCase()}</span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><p className="truncate font-semibold text-slate-900">{formatCustomerName(item.name)}</p>{enquiry && item.source && <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold capitalize text-slate-600">{item.source.replace(/_/g, ' ')}</span>}</div><p className="truncate text-sm text-slate-500">{item.shootType || 'Service not decided'}{item.location ? ` · ${item.location}` : ''}</p>{enquiry && <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500"><a href={`tel:${item.phone}`} className="inline-flex items-center gap-1.5 font-medium text-slate-600 hover:text-slate-900"><Phone className="h-3.5 w-3.5" />{item.phone}</a>{item.bookingDate && <span className="inline-flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5" />Preferred {formatDate(item.bookingDate)}</span>}{item.createdAt && <span className="inline-flex items-center gap-1.5"><Clock3 className="h-3.5 w-3.5" />Received {formatDateTime(item.createdAt)}</span>}</div>}</div>{onMessage && <button type="button" onClick={onMessage} className="flex h-11 w-11 items-center justify-center rounded-xl border border-emerald-300 text-emerald-700" aria-label={`Message ${formatCustomerName(item.name)}`}><MessageCircle className="h-4 w-4" /></button>}<Link to={to} className="flex h-11 items-center rounded-xl bg-slate-900 px-4 text-sm font-semibold text-white">Open</Link></article>; }
 function formatDateTime(value: string) { return new Date(value).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' }); }
 function formatDate(value: string) { return new Date(`${value.slice(0, 10)}T12:00:00`).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }); }
 
@@ -129,5 +130,5 @@ function FollowUpDialog({ item, onClose, onSave }: { item: TodayFollowUp; onClos
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const save = async () => { const nextError = followUpDateError(when); if (nextError) return setError(nextError); setSaving(true); setError(''); try { await onSave(item, when, note.trim()); } catch { setError('Could not reschedule the follow-up.'); setSaving(false); } };
-  return <div className="fixed inset-0 z-[85] flex items-end bg-slate-950/50 sm:items-center sm:justify-center sm:p-4" role="dialog" aria-modal="true"><div className="w-full rounded-t-2xl bg-white p-4 shadow-2xl sm:max-w-lg sm:rounded-2xl"><div className="flex items-center justify-between"><div><h2 className="font-semibold text-slate-900">Reschedule {item.name}</h2><p className="text-sm text-slate-500">Choose the next follow-up.</p></div><button type="button" onClick={onClose} className="flex h-11 w-11 items-center justify-center" aria-label="Close"><X className="h-5 w-5" /></button></div><div className="mt-4"><FollowUpShortcuts value={when} onChange={value => { setWhen(value); setError(''); }} disabled={saving} /></div><input value={note} onChange={event => setNote(event.target.value)} placeholder="What should we discuss?" className="mt-3 h-12 w-full rounded-xl border border-slate-300 px-3" />{error && <p className="mt-2 text-sm text-red-600">{error}</p>}<div className="mt-4 grid grid-cols-2 gap-3 pb-[env(safe-area-inset-bottom)]"><button type="button" onClick={onClose} className="h-12 rounded-xl border border-slate-300 font-semibold">Cancel</button><button type="button" disabled={saving || !when} onClick={() => void save()} className="h-12 rounded-xl bg-blue-600 font-semibold text-white disabled:opacity-50">{saving ? 'Saving…' : 'Save follow-up'}</button></div></div></div>;
+  return <div className="fixed inset-0 z-[85] flex items-end bg-slate-950/50 sm:items-center sm:justify-center sm:p-4" role="dialog" aria-modal="true"><div className="w-full rounded-t-2xl bg-white p-4 shadow-2xl sm:max-w-lg sm:rounded-2xl"><div className="flex items-center justify-between"><div><h2 className="font-semibold text-slate-900">Reschedule {formatCustomerName(item.name)}</h2><p className="text-sm text-slate-500">Choose the next follow-up.</p></div><button type="button" onClick={onClose} className="flex h-11 w-11 items-center justify-center" aria-label="Close"><X className="h-5 w-5" /></button></div><div className="mt-4"><FollowUpShortcuts value={when} onChange={value => { setWhen(value); setError(''); }} disabled={saving} /></div><input value={note} onChange={event => setNote(event.target.value)} placeholder="What should we discuss?" className="mt-3 h-12 w-full rounded-xl border border-slate-300 px-3" />{error && <p className="mt-2 text-sm text-red-600">{error}</p>}<div className="mt-4 grid grid-cols-2 gap-3 pb-[env(safe-area-inset-bottom)]"><button type="button" onClick={onClose} className="h-12 rounded-xl border border-slate-300 font-semibold">Cancel</button><button type="button" disabled={saving || !when} onClick={() => void save()} className="h-12 rounded-xl bg-blue-600 font-semibold text-white disabled:opacity-50">{saving ? 'Saving…' : 'Save follow-up'}</button></div></div></div>;
 }

@@ -1,3 +1,4 @@
+import { formatCustomerName } from '../shared/formatCustomerName';
 import { CalendarDays, Camera, Check, Clock3, ExternalLink, MapPin, MessageCircle, Phone } from 'lucide-react';
 import identity from '../data/business-identity.json';
 import type { CustomerBooking } from '../shared/customerBooking';
@@ -24,7 +25,7 @@ export function CustomerBookingPresentation({ booking }: { booking: CustomerBook
   const links = [['Your gallery', booking.delivery.galleryUrl], ['Edited photographs', booking.delivery.editedUrl]]
     .filter((entry): entry is [string, string] => Boolean(entry[1] && /^https:\/\//i.test(entry[1])));
   return <div className="mx-auto w-full max-w-2xl space-y-5 text-[#332d25]">
-    <header className="pb-2 text-center"><img src="/logo-doll.png" alt="Doll Pictures" className="mx-auto h-16 w-16 rounded-full object-cover" /><p className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-[#82623e]">Doll Pictures · Your booking</p><h1 className="mt-2 break-words font-display text-3xl sm:text-4xl">Hello, {booking.customerName}</h1><p className="mt-2 text-sm text-[#716553]">Your shoot details and delivery updates, in one place.</p></header>
+    <header className="pb-2 text-center"><img src="/logo-doll.png" alt="Doll Pictures" className="mx-auto h-16 w-16 rounded-full object-cover" /><p className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-[#82623e]">Doll Pictures · Your booking</p><h1 className="mt-2 break-words font-display text-3xl sm:text-4xl">Hello, {formatCustomerName(booking.customerName)}</h1><p className="mt-2 text-sm text-[#716553]">Your shoot details and delivery updates, in one place.</p></header>
     <section className="rounded-2xl border border-[#e2d8cb] bg-white p-5 shadow-sm sm:p-6" aria-label="Booking details">
       <h2 className="break-words text-xl font-semibold">{booking.shootType || booking.packageName || 'Your photography session'}</h2>
       {booking.packageName && booking.shootType && <p className="mt-1 break-words text-sm text-[#716553]">{booking.packageName}</p>}

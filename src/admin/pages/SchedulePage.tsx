@@ -1,3 +1,4 @@
+import { formatCustomerName } from '../../shared/formatCustomerName';
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -135,7 +136,7 @@ export function SchedulePage() {
   const cancelBooking = async (item: ScheduleBookingItem) => {
     const accepted = await confirm({
       title: 'Cancel this booking?',
-      description: `${item.customerName} · ${formatScheduleDay(item.bookingDate)}${item.startTime ? ` · ${formatScheduleTime(item.startTime)}` : ''}`,
+      description: `${formatCustomerName(item.customerName)} · ${formatScheduleDay(item.bookingDate)}${item.startTime ? ` · ${formatScheduleTime(item.startTime)}` : ''}`,
       confirmLabel: 'Cancel booking', variant: 'danger',
     });
     if (!accepted) return;
@@ -208,8 +209,8 @@ export function SchedulePage() {
             <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="text-sm font-semibold">{formatScheduleDay(item.bookingDate)} · {formatScheduleTime(overlapStart)}–{formatScheduleTime(overlapEnd)}</h3>
               <button type="button" className="sc-text-action" onClick={() => openDay(item.bookingDate, overlapStart)}>View day <ChevronRight className="h-4 w-4" /></button></div>
             {[item, other].map(booking => <div key={booking.id} className="sc-overlap-booking">
-              <button type="button" className="min-w-0 flex-1 text-left" onClick={() => openBooking(booking)}><strong className="block text-sm">{booking.customerName}</strong><span className="block text-xs">{formatScheduleTime(booking.startTime)}–{formatScheduleTime(booking.endTime)} · {booking.service || 'Service not set'}</span><span className="block text-xs text-slate-500">{booking.assignedStaffAccountName || 'Staff not assigned'} · {booking.location || 'Location not set'}</span></button>
-              {canManage && <button type="button" className="sc-control" onClick={() => { setReviewOverlaps(false); setRescheduling(booking); }}>Reschedule<span className="sr-only"> {booking.customerName}</span></button>}
+              <button type="button" className="min-w-0 flex-1 text-left" onClick={() => openBooking(booking)}><strong className="block text-sm">{formatCustomerName(booking.customerName)}</strong><span className="block text-xs">{formatScheduleTime(booking.startTime)}–{formatScheduleTime(booking.endTime)} · {booking.service || 'Service not set'}</span><span className="block text-xs text-slate-500">{booking.assignedStaffAccountName || 'Staff not assigned'} · {booking.location || 'Location not set'}</span></button>
+              {canManage && <button type="button" className="sc-control" onClick={() => { setReviewOverlaps(false); setRescheduling(booking); }}>Reschedule<span className="sr-only"> {formatCustomerName(booking.customerName)}</span></button>}
             </div>)}
           </article>;
         })}</div>
@@ -239,7 +240,7 @@ function DurationSheet({ slot, bookings, onClose, onChoose }: { slot: SlotChoice
 
 function BookingActionSheet({ item, onClose, onOpen, onWhatsApp, onReschedule, onCancel }: { item: ScheduleBookingItem; onClose: () => void; onOpen: () => void; onWhatsApp: () => void; onReschedule: () => void; onCancel: () => void }) {
   const canChange = item.status === 'draft' || item.status === 'confirmed';
-  return <Sheet title={item.customerName} subtitle={`${formatScheduleDay(item.bookingDate)} · ${item.startTime ? `${formatScheduleTime(item.startTime)}–${formatScheduleTime(item.endTime)}` : 'Time not set'}`} onClose={onClose}>
+  return <Sheet title={formatCustomerName(item.customerName)} subtitle={`${formatScheduleDay(item.bookingDate)} · ${item.startTime ? `${formatScheduleTime(item.startTime)}–${formatScheduleTime(item.endTime)}` : 'Time not set'}`} onClose={onClose}>
     <div className="space-y-3 p-4"><div className="rounded-xl bg-slate-50 p-3 text-sm text-slate-600"><p className="font-semibold text-slate-900">{item.service || 'Service not set'}</p>{item.location && <p className="mt-1 flex items-center gap-2"><MapPin className="h-4 w-4" />{item.location}</p>}{item.assignedStaffAccountName && <p className="mt-1 flex items-center gap-2"><UserRound className="h-4 w-4" />{item.assignedStaffAccountName}</p>}</div>
       <div className="grid grid-cols-2 gap-2"><a href={`tel:${item.customerPhone}`} className="flex h-12 items-center justify-center gap-2 rounded-xl border border-slate-300 font-semibold text-slate-700"><Phone className="h-4 w-4" />Call</a><button type="button" onClick={onWhatsApp} className="flex h-12 items-center justify-center gap-2 rounded-xl border border-emerald-300 text-sm font-semibold text-emerald-700"><MessageCircle className="h-4 w-4" />WhatsApp</button><button type="button" onClick={onOpen} className="col-span-2 h-12 rounded-xl bg-blue-600 font-semibold text-white">Open booking</button></div>
       {canChange && <div className="grid grid-cols-2 gap-2 border-t border-slate-200 pt-3"><button type="button" onClick={onReschedule} className="h-12 rounded-xl border border-blue-300 font-semibold text-blue-700">Reschedule</button><button type="button" onClick={onCancel} className="h-12 rounded-xl border border-red-300 font-semibold text-red-700">Cancel booking</button></div>}
@@ -301,7 +302,7 @@ function RescheduleSheet({ item, visibleBookings, onClose, onSaved }: { item: Sc
     const candidateEnd = endTimeFor(startTime, value);
     return timeToMinutes(candidateEnd) > 20 * 60;
   };
-  return <Sheet title="Reschedule booking" subtitle={item.customerName} onClose={onClose} wide>
+  return <Sheet title="Reschedule booking" subtitle={formatCustomerName(item.customerName)} onClose={onClose} wide>
     <div className="space-y-5 overflow-y-auto p-4">
       {error && <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
       <div className="grid grid-cols-2 gap-2"><button type="button" onClick={() => setBookingDate(today)} className="h-11 rounded-xl border border-slate-300 font-semibold text-slate-700">Today</button><button type="button" onClick={() => setBookingDate(addScheduleDays(today, 1))} className="h-11 rounded-xl border border-slate-300 font-semibold text-slate-700">Tomorrow</button></div>

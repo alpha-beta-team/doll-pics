@@ -1,3 +1,4 @@
+import { formatCustomerName } from '../../shared/formatCustomerName';
 import {
   Document,
   Font,
@@ -208,7 +209,7 @@ export function QuotationPdfDocument({
           <Text style={s.eyebrow}>
             {quotation.weddingTitle || "Wedding photography quotation"}
           </Text>
-          <Text style={s.coverTitle}>{quotation.coupleNames}</Text>
+          <Text style={s.coverTitle}>{formatCustomerName(quotation.coupleNames)}</Text>
           <Text style={s.coverCopy}>{quotation.introduction}</Text>
         </View>
         {quotation.expired && (
@@ -371,7 +372,7 @@ function PdfPlannedSection({
           “{quotation.testimonial.text}”
         </Text>
         <Text style={{ color: palette.accent, marginTop: 7 }}>
-          {quotation.testimonial.name}
+          {formatCustomerName(quotation.testimonial.name)}
         </Text>
       </Section>
     );

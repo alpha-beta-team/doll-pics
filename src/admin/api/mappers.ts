@@ -323,7 +323,7 @@ export function mapBooking(doc: Record<string, unknown>): Booking {
     calendarSyncErrorCode: String(doc.calendarSyncErrorCode ?? ''),
     calendarSyncedAt: doc.calendarSyncedAt ? String(doc.calendarSyncedAt) : undefined,
     calendarEventGeneration: Number(doc.calendarEventGeneration) || 1,
-    createdAt: (doc.createdAt as string) ?? new Date().toISOString(),
+    createdAt: (doc.createdAt as string) ?? '',
     updatedAt: (doc.updatedAt as string) ?? new Date().toISOString(),
   };
 }

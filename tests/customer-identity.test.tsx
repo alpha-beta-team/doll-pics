@@ -9,10 +9,20 @@ import { CustomerIdentityChoice } from '../src/admin/components/CustomerIdentity
 import { mapBooking } from '../src/admin/api/mappers';
 import { bookingMatchesSearch } from '../src/admin/components/bookings/bookingList';
 import { BookingCard } from '../src/admin/components/bookings/BookingCard';
+import { formatCustomerName } from '../src/shared/formatCustomerName';
+
+test('customer display names use start case across words and handle missing names', () => {
+  assert.equal(formatCustomerName('aksitha'), 'Aksitha');
+  assert.equal(formatCustomerName('  AKSITHA ram  '), 'Aksitha Ram');
+  assert.equal(formatCustomerName('anu-priya & arun'), 'Anu-Priya & Arun');
+  assert.equal(formatCustomerName('élodie kumar'), 'Élodie Kumar');
+  assert.equal(formatCustomerName(undefined), '');
+});
 
 const code = 'DP-C202611-0001';
 test('booking mapper preserves identity and list search finds codes case-insensitively', () => {
-  const booking = mapBooking({ _id: 'booking', customerId: 'customer', customerCode: code, customerName: 'Ramya', customerPhone: '9876543210' });
+  const booking = mapBooking({ _id: 'booking', customerId: 'customer', customerCode: code, customerName: 'rAMYA', customerPhone: '9876543210' });
+  assert.equal(booking.customerName, 'rAMYA');
   assert.equal(booking.customerId, 'customer');
   assert.equal(booking.customerCode, code);
   assert.equal(bookingMatchesSearch(booking, 'dp-c202611-0001'), true);
@@ -21,6 +31,8 @@ test('booking mapper preserves identity and list search finds codes case-insensi
   assert.equal(mapBooking({ _id: 'legacy' }).customerCode, undefined);
   const html = renderToStaticMarkup(<BookingCard booking={booking} canViewPayments={false} showPricing={false} canViewPhone={false} onOpen={() => {}} />);
   assert.match(html, /DP-C202611-0001/);
+  assert.match(html, /Ramya/);
+  assert.doesNotMatch(html, /rAMYA/);
   assert.match(html, /Phone hidden/);
   assert.doesNotMatch(html, /9876543210/);
 });

@@ -1,3 +1,4 @@
+import { formatCustomerName } from '../../shared/formatCustomerName';
 import { Quote, Star, ThumbsUp } from 'lucide-react';
 import type { PublicTestimonial } from '../../shared/types';
 
@@ -122,10 +123,10 @@ function ReviewCard({
         <footer className="mt-auto pt-8">
           <div className="flex flex-wrap items-center gap-4 border-t border-hairline/10 pt-6">
             <div className="flex min-w-0 items-center gap-3">
-              <ReviewerAvatar name={review.name} avatar={review.avatar} />
+              <ReviewerAvatar name={formatCustomerName(review.name)} avatar={review.avatar} />
               <div className="min-w-0">
                 <cite className="block truncate font-sans text-sm font-medium not-italic text-ink-50">
-                  {review.name}
+                  {formatCustomerName(review.name)}
                 </cite>
                 {review.role ? (
                   <p className="mt-1 truncate text-[0.62rem] font-medium uppercase tracking-[0.18em] text-ink-300">

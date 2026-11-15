@@ -57,6 +57,14 @@ export function formatBookingDay(value?: string) {
       }).format(date);
 }
 
+export function formatBookingCreatedDay(value?: string) {
+  if (!value) return 'Not recorded';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? 'Not recorded' : new Intl.DateTimeFormat('en-IN', {
+    day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata',
+  }).format(date);
+}
+
 export function formatBookingMoney(value: number | null | undefined) {
   if (value == null) return 'Price not set';
   return new Intl.NumberFormat('en-IN', {

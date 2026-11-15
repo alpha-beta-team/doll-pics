@@ -1,3 +1,4 @@
+import { formatCustomerName } from '../../shared/formatCustomerName';
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ArrowDown,
@@ -213,7 +214,7 @@ export function QuotationEditorPage() {
           </Link>
           <div className="min-w-0 flex-1">
             <h1 className="truncate text-xl font-bold text-admin-text">
-              {draft.coupleNames || "Wedding quotation"}
+              {formatCustomerName(draft.coupleNames) || "Wedding quotation"}
             </h1>
             <p className="text-sm text-admin-subtle">
               {quote.quotationNumber || "Unpublished draft"} ·{" "}

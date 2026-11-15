@@ -1,3 +1,4 @@
+import { formatCustomerName } from '../../shared/formatCustomerName';
 export type WhatsAppTemplateId = 'enquiry_follow_up' | 'booking_confirmation' | 'shoot_reminder' | 'payment_reminder' | 'booking_rescheduled' | 'booking_cancelled' | 'birthday' | 'anniversary' | 'review_request' | 'wedding_quotation' | 'custom';
 
 export type ManualWhatsAppContext = {
@@ -55,7 +56,7 @@ function details(context: ManualWhatsAppContext) {
 }
 
 export function manualWhatsAppMessage(id: WhatsAppTemplateId, context: ManualWhatsAppContext): string {
-  const name = context.customerName.trim() || 'there';
+  const name = formatCustomerName(context.customerName) || 'there';
   const bookingDetails = details(context);
   if (id === 'custom') return '';
   if (id === 'enquiry_follow_up') return `Hi ${name}, this is Doll Pictures. I’m following up about your${context.service ? ` ${context.service}` : ''} enquiry. How can I help?`;

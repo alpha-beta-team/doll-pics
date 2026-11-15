@@ -1,3 +1,4 @@
+import { formatCustomerName } from '../../shared/formatCustomerName';
 import './enquiries.css';
 import './bookings.css';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -463,7 +464,7 @@ export function BookingsPage() {
             className="-my-2 flex min-h-9 items-center gap-1.5 rounded text-left uppercase outline-none hover:text-admin-text focus-visible:ring-2 focus-visible:ring-admin-focus">
             Shoot{sort === 'shoot_date' ? <ArrowUp className="h-3.5 w-3.5" aria-hidden="true" /> : sort === 'shoot_date_desc' ? <ArrowDown className="h-3.5 w-3.5" aria-hidden="true" /> : <ArrowUpDown className="h-3.5 w-3.5" aria-hidden="true" />}
           </button>
-          {showBookingPricing && <span>Amount</span>}<span>Follow-up / Assigned</span><span className="text-right">Actions</span>
+          <span>Created</span>{showBookingPricing && <span>Amount</span>}<span>Follow-up / Assigned</span><span className="text-right">Actions</span>
         </div>
 
         {loading ? (
@@ -517,7 +518,7 @@ export function BookingsPage() {
         onClose={() => setAssigningBooking(null)}
         onSaved={updated => {
           setBookings(current => current.map(booking => booking.id === updated.id ? updated : booking));
-          setAssignmentSuccess(`Staff assignment saved for ${updated.customerName}`);
+          setAssignmentSuccess(`Staff assignment saved for ${formatCustomerName(updated.customerName)}`);
           setAssigningBooking(null);
         }}
       />}

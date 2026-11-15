@@ -1,3 +1,4 @@
+import { formatCustomerName } from '../../shared/formatCustomerName';
 import type { ElementType, KeyboardEvent, ReactNode } from "react";
 import type { PublicWeddingQuotation, QuotationDraft } from "../types";
 import { buildQuotationPagePlan } from "../../components/quotation/quotationPagePlan";
@@ -585,7 +586,7 @@ function EditableSection({
       >
         <p className="font-display text-2xl">“{quotation.testimonial.text}”</p>
         <p className="mt-3 text-sm font-bold" style={{ color: colors.accent }}>
-          {quotation.testimonial.name}
+          {formatCustomerName(quotation.testimonial.name)}
         </p>
       </blockquote>
     );

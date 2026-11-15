@@ -1,3 +1,4 @@
+import { formatCustomerName } from '../shared/formatCustomerName';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Download, MessageCircle, RefreshCw } from 'lucide-react';
 import { useParams } from 'react-router-dom';
@@ -46,7 +47,7 @@ export function QuotationPage() {
     const referrer = ensureMeta('referrer');
     robots.setAttribute('content', 'noindex, nofollow');
     referrer.setAttribute('content', 'no-referrer');
-    document.title = quotation?.coupleNames ? `${quotation.coupleNames} · Doll Pictures` : 'Private wedding quotation · Doll Pictures';
+    document.title = quotation?.coupleNames ? `${formatCustomerName(quotation.coupleNames)} · Doll Pictures` : 'Private wedding quotation · Doll Pictures';
     return () => {
       document.title = previousTitle;
       robots.remove();

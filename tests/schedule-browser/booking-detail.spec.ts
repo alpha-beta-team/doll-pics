@@ -190,7 +190,7 @@ test('owner customer-page draft survives tab changes; history and booking naviga
   await expect(page.getByRole('tab', { name: 'Customer', exact: true })).toHaveAttribute('aria-selected', 'true');
   await expect(page.getByLabel('Customer-facing update', { exact: false })).toHaveValue('Editing your portraits');
   await page.getByRole('button', { name: 'Next booking', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Second customer', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Second Customer', exact: true })).toBeVisible();
   await expect(page.getByRole('tab', { name: 'Activity', exact: true })).toHaveAttribute('aria-selected', 'true');
 });
 

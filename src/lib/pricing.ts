@@ -1,3 +1,4 @@
+import { formatCustomerName } from '../shared/formatCustomerName';
 import type { PackagePricing } from '../shared/types/sales';
 import { livePackageOffer } from './sales';
 
@@ -93,7 +94,7 @@ export function deliveryWhatsAppMessage(ctx: DeliveryWhatsAppContext): string {
   const gallery = ctx.galleryUrl?.trim() ?? '';
   const edited = ctx.editedUrl?.trim() ?? '';
   const raws = ctx.rawsUrl?.trim() ?? '';
-  const name = ctx.customerName?.trim() || 'there';
+  const name = formatCustomerName(ctx.customerName) || 'there';
   return [
     `Hi ${name},`,
     '',

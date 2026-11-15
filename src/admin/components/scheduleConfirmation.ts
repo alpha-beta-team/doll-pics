@@ -1,3 +1,4 @@
+import { formatCustomerName } from '../../shared/formatCustomerName';
 import type { ScheduleConflictResponse } from '../types';
 import type { ConfirmDialogOptions } from '../hooks/useConfirmDialog';
 import { ApiError } from '../api/http';
@@ -16,8 +17,8 @@ export function conflictRequirements(conflicts: ScheduleConflictResponse | null)
 }
 
 export function scheduleConfirmationOptions(conflicts: ScheduleConflictResponse, restoring = false): ConfirmDialogOptions {
-  const timed = conflicts.timedConflicts.map(item => `${item.customerName}: ${formatScheduleTime(item.startTime)}–${formatScheduleTime(item.endTime)}`);
-  const untimed = conflicts.untimedConflicts.map(item => `${item.customerName}: time not set`);
+  const timed = conflicts.timedConflicts.map(item => `${formatCustomerName(item.customerName)}: ${formatScheduleTime(item.startTime)}–${formatScheduleTime(item.endTime)}`);
+  const untimed = conflicts.untimedConflicts.map(item => `${formatCustomerName(item.customerName)}: time not set`);
   return {
     title: timed.length ? 'This time has existing bookings' : 'Another booking has no time',
     description: [...timed, ...untimed, 'Would you like to proceed with this booking?'].join('\n'),

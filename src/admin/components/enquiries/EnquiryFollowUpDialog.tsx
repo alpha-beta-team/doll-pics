@@ -1,3 +1,4 @@
+import { formatCustomerName } from '../../../shared/formatCustomerName';
 import { useRef, useState } from 'react';
 import type { Enquiry } from '../../types';
 import { api } from '../../api/client';
@@ -21,7 +22,7 @@ export function EnquiryFollowUpDialog({ enquiry, onClose, onSaved }: {
   const inFlight = useRef(false);
   const confirm = useConfirmDialog();
   const dirty = when !== initialDate || note !== (enquiry.followUpNote || '');
-  const customer = enquiry.name || 'Unnamed customer';
+  const customer = formatCustomerName(enquiry.name) || 'Unnamed customer';
   const closed = enquiry.stage === 'booked' || enquiry.stage === 'closed_lost';
   const close = async () => {
     if (inFlight.current) return;

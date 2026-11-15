@@ -106,7 +106,7 @@ test('duplicate warning requires reviewing and acknowledging a separate shoot wi
   try {
     await act(async () => { await new Promise(resolve => setTimeout(resolve, 450)); });
     assert.match(view.document.body.textContent!, /Possible duplicate enquiry or booking/);
-    assert.match(view.document.body.textContent!, /Existing enquiry/);
+    assert.match(view.document.body.textContent!, /Existing Enquiry/);
     await view.click('Add enquiry'); assert.equal(payloads.length, 0);
     assert.match(view.document.body.textContent!, /confirm this is a separate shoot/);
     const different = [...view.document.querySelectorAll('button')].find(button => button.textContent === 'Different shoot')!;

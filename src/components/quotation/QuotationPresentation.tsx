@@ -1,3 +1,4 @@
+import { formatCustomerName } from '../../shared/formatCustomerName';
 import type {
   PublicWeddingQuotation,
   QuotationOption,
@@ -190,7 +191,7 @@ export function QuotationPresentation({
             “{quotation.testimonial.text}”
           </p>
           <footer className={`mt-4 text-sm font-semibold ${theme.accent}`}>
-            {quotation.testimonial.name}
+            {formatCustomerName(quotation.testimonial.name)}
             {quotation.testimonial.role
               ? ` · ${quotation.testimonial.role}`
               : ""}
@@ -235,7 +236,7 @@ export function QuotationPresentation({
               {quotation.weddingTitle || "Wedding photography quotation"}
             </p>
             <h1 className="mt-4 font-display text-5xl font-light leading-tight md:text-7xl">
-              {quotation.coupleNames}
+              {formatCustomerName(quotation.coupleNames)}
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-white/85">
               {quotation.introduction}

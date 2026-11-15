@@ -1,3 +1,4 @@
+import { formatCustomerName } from '../../shared/formatCustomerName';
 import { SalesSummary } from '../components/SalesSummary';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -627,7 +628,7 @@ export function DashboardPage() {
                     <span className="mt-1 text-sm font-bold leading-none">{new Date(`${booking.bookingDate}T12:00:00`).getDate()}</span>
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-slate-700 group-hover:text-blue-700">{booking.customerName || 'Unnamed client'}</p>
+                    <p className="truncate text-sm font-medium text-slate-700 group-hover:text-blue-700">{formatCustomerName(booking.customerName) || 'Unnamed client'}</p>
                     <p className="mt-0.5 truncate text-xs text-slate-400">{booking.shootType || 'Shoot type not set'}{booking.startTime && booking.endTime ? ` · ${formatTimeWindow(booking.startTime, booking.endTime)}` : ''}{booking.location ? ` · ${booking.location}` : ''}</p>
                   </div>
                   <div className="shrink-0 text-right">

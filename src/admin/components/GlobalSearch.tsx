@@ -1,3 +1,4 @@
+import { formatCustomerName } from '../../shared/formatCustomerName';
 import {
   useCallback,
   useEffect,
@@ -401,7 +402,7 @@ function SearchResultRow({
       </span>
       <span className="min-w-0 flex-1">
         <span className="block truncate font-semibold text-slate-900">
-          {item.customerName || "Unnamed customer"}
+          {formatCustomerName(item.customerName) || "Unnamed customer"}
         </span>
         <span className="mt-0.5 block truncate text-sm text-slate-500">
           {[item.customerCode, details || item.email || "No additional details"]

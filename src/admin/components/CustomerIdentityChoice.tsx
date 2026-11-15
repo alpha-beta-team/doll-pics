@@ -1,3 +1,4 @@
+import { formatCustomerName } from '../../shared/formatCustomerName';
 import { useState } from "react";
 import { request } from "../api/http";
 export type CustomerIdentityOption = {
@@ -86,7 +87,7 @@ export function CustomerIdentityChoice({
               aria-pressed={selected?.customerId === option.customerId}
               className="block min-h-11 w-full rounded-lg border border-admin-border p-2 text-left text-sm"
             >
-              {option.customerName} · {option.customerCode}
+              {formatCustomerName(option.customerName)} · {option.customerCode}
               {selected?.customerId === option.customerId ? " · Selected" : ""}
             </button>
           ))}
@@ -94,7 +95,7 @@ export function CustomerIdentityChoice({
       )}
       {selected && (
         <p className="mt-2 text-sm text-emerald-800">
-          Using {selected.customerCode} · {selected.customerName}{" "}
+          Using {selected.customerCode} · {formatCustomerName(selected.customerName)}{" "}
           <button
             type="button"
             className="ml-2 min-h-8 underline"

@@ -1,3 +1,4 @@
+import { formatCustomerName } from '../../../shared/formatCustomerName';
 import { useEffect, useState } from 'react';
 import { api } from '../../api/client';
 import type { Booking, StaffAccountOption } from '../../types';
@@ -44,7 +45,7 @@ export function BookingAssignmentDialog({ booking, onClose, onSaved }: {
 
   return (
     <BookingDialog title="Assign staff" onClose={() => { if (!saving) onClose(); }}>
-      <p className="mb-4 text-sm text-admin-secondary">{booking.customerName || 'Unnamed customer'} · {booking.packageName || booking.shootType || 'Booking'}</p>
+      <p className="mb-4 text-sm text-admin-secondary">{formatCustomerName(booking.customerName) || 'Unnamed customer'} · {booking.packageName || booking.shootType || 'Booking'}</p>
       {loadError ? <div role="alert" className="space-y-3 text-sm text-red-700"><p>{loadError}</p><AdminButton variant="secondary" onClick={() => setAttempt(value => value + 1)}>Retry staff loading</AdminButton></div> : (
         <form onSubmit={event => { event.preventDefault(); void save(); }}>
           <label className="block text-sm font-medium">

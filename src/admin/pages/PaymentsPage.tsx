@@ -1,3 +1,4 @@
+import { formatCustomerName } from '../../shared/formatCustomerName';
 import { SalesSummary } from '../components/SalesSummary';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -466,7 +467,7 @@ function RecentPayments({ report }: { report: FinanceReport }) {
                 <CreditCard className="h-4.5 w-4.5" />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-admin-text group-hover:text-admin-primary">{payment.customerName}</p>
+                <p className="truncate text-sm font-medium text-admin-text group-hover:text-admin-primary">{formatCustomerName(payment.customerName)}</p>
                 <p className="mt-0.5 truncate text-xs text-admin-subtle">{formatMethod(payment.method)} · {formatDateTime(payment.paidAt)}</p>
               </div>
               <p className="shrink-0 text-sm font-semibold text-emerald-700">{money(payment.amount)}</p>
@@ -501,7 +502,7 @@ function OverduePayments({ report }: { report: FinanceReport }) {
               >
                 <div className="flex min-w-0 items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="truncate font-semibold text-admin-text">{item.customerName}</p>
+                    <p className="truncate font-semibold text-admin-text">{formatCustomerName(item.customerName)}</p>
                     <p className="mt-0.5 truncate text-xs text-admin-subtle">{item.shootType} · due {formatDate(item.paymentDueDate)}</p>
                   </div>
                   <p className="shrink-0 font-semibold tabular-nums text-rose-700">{money(item.balanceDue)}</p>
@@ -530,7 +531,7 @@ function OverduePayments({ report }: { report: FinanceReport }) {
                 {report.overduePayments.map((item) => (
                   <tr key={item.bookingId} className="hover:bg-admin-muted/50">
                     <td className="px-4 py-3">
-                      <p className="font-medium text-admin-text">{item.customerName}</p>
+                      <p className="font-medium text-admin-text">{formatCustomerName(item.customerName)}</p>
                       <p className="mt-0.5 text-xs text-admin-subtle">{item.shootType}</p>
                     </td>
                     <td className="px-4 py-3">

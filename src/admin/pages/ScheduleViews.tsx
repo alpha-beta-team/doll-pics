@@ -1,3 +1,4 @@
+import { formatCustomerName } from '../../shared/formatCustomerName';
 import { useEffect, useRef, useState } from 'react';
 import { AlertTriangle, CalendarDays, ChevronRight, Plus } from 'lucide-react';
 import type { ScheduleBookingItem } from '../types';
@@ -49,7 +50,7 @@ function UntimedBookings({ bookings, onBooking }: Pick<ScheduleActions, 'booking
   if (!unknown.length) return null;
   return <div className="sc-untimed"><h3><AlertTriangle className="h-4 w-4" />{unknown.length} booking{unknown.length === 1 ? '' : 's'} with time not set</h3>
     <p>Set these times before relying on unbooked periods.</p>
-    <div>{unknown.map(item => <button type="button" key={item.id} onClick={() => onBooking(item)}>{item.customerName} · {formatScheduleDay(item.bookingDate)} <ChevronRight className="h-3 w-3" /></button>)}</div>
+    <div>{unknown.map(item => <button type="button" key={item.id} onClick={() => onBooking(item)}>{formatCustomerName(item.customerName)} · {formatScheduleDay(item.bookingDate)} <ChevronRight className="h-3 w-3" /></button>)}</div>
   </div>;
 }
 
@@ -69,7 +70,7 @@ export function ScheduleAgenda({ date, bookings, canManage, onBooking, onEmptySl
     <div className="sc-agenda-entries">{entries.map(entry => entry.kind === 'booking' ?
       <button key={entry.item.id} type="button" className={`sc-agenda-booking ${STATUS_CLASS[entry.item.status]}`} onClick={() => onBooking(entry.item)}>
         <span className="sc-agenda-time"><strong>{shortTime(entry.item.startTime)}</strong><span>to {shortTime(entry.item.endTime)}</span></span>
-        <span className="sc-agenda-detail"><strong>{entry.item.customerName}</strong><span>{entry.item.service || 'Service not set'}</span><small className="capitalize">{statusLabel(entry.item)}{entry.item.assignedStaffAccountName ? ` · ${entry.item.assignedStaffAccountName}` : ''}</small>{entry.item.location && <small>{entry.item.location}</small>}{hasOverlap(entry.item, dayBookings) && <span className="sc-overlap-label"><AlertTriangle className="h-3 w-3" />Time overlap</span>}</span>
+        <span className="sc-agenda-detail"><strong>{formatCustomerName(entry.item.customerName)}</strong><span>{entry.item.service || 'Service not set'}</span><small className="capitalize">{statusLabel(entry.item)}{entry.item.assignedStaffAccountName ? ` · ${entry.item.assignedStaffAccountName}` : ''}</small>{entry.item.location && <small>{entry.item.location}</small>}{hasOverlap(entry.item, dayBookings) && <span className="sc-overlap-label"><AlertTriangle className="h-3 w-3" />Time overlap</span>}</span>
         <ChevronRight className="h-4 w-4 shrink-0" />
       </button> :
       <div className="sc-agenda-gap" key={`gap-${entry.gap.startTime}`}>
@@ -123,7 +124,7 @@ export function ScheduleCalendar({ dates, bookings, canManage, compact, focusTim
 }
 
 function EventContent({ item, overlap, small }: { item: ScheduleBookingItem; overlap: boolean; small: boolean }) {
-  return <span className="sc-event-content"><strong>{item.customerName}</strong><span>{shortTime(item.startTime)}–{shortTime(item.endTime)}</span>
+  return <span className="sc-event-content"><strong>{formatCustomerName(item.customerName)}</strong><span>{shortTime(item.startTime)}–{shortTime(item.endTime)}</span>
     {!small && <><span className="sc-event-service">{item.service || 'Service not set'}</span><small className="capitalize">{statusLabel(item)}</small>{item.assignedStaffAccountName && <small>{item.assignedStaffAccountName}</small>}{overlap && <span className="sc-overlap-label"><AlertTriangle className="h-3 w-3" />Overlap</span>}</>}
   </span>;
 }
@@ -148,15 +149,15 @@ function DayLane({ date, bookings, allBookings, canManage, startHour, endHour, r
       const multiple = group.items.length > 1;
       const overlap = group.items.some(entry => hasOverlap(entry, allBookings));
       return <button key={item.id} type="button" className={`sc-event sc-week-event ${multiple ? 'sc-event-group' : STATUS_CLASS[item.status]} ${overlap ? 'sc-event-overlap' : ''}`} style={{ top: topFor(group.start) + 2, height: eventHeight }}
-        aria-label={multiple ? `${group.items.length} shoots on ${formatScheduleDay(date)}. View day` : `${item.customerName}, ${shortTime(item.startTime)}–${shortTime(item.endTime)}, ${statusLabel(item)}${overlap ? ', time overlap' : ''}`}
-        title={group.items.map(entry => `${entry.customerName} · ${shortTime(entry.startTime)}–${shortTime(entry.endTime)} · ${entry.service}`).join('\n')}
+        aria-label={multiple ? `${group.items.length} shoots on ${formatScheduleDay(date)}. View day` : `${formatCustomerName(item.customerName)}, ${shortTime(item.startTime)}–${shortTime(item.endTime)}, ${statusLabel(item)}${overlap ? ', time overlap' : ''}`}
+        title={group.items.map(entry => `${formatCustomerName(entry.customerName)} · ${shortTime(entry.startTime)}–${shortTime(entry.endTime)} · ${entry.service}`).join('\n')}
         onClick={() => multiple ? onDay(date, item.startTime) : onBooking(item)}>
-        {multiple ? <span className="sc-event-content"><strong>{group.items.length} shoots</strong>{eventHeight >= 90 && <span className="sc-group-names">{group.items.slice(0, 2).map(entry => <span key={entry.id}>{entry.customerName}</span>)}</span>}{group.items.length > 2 && eventHeight >= 110 && <small>+{group.items.length - 2} more</small>}<span className="sc-text-action">View day <ChevronRight className="h-3 w-3" /></span>{overlap && eventHeight > 130 && <span className="sc-overlap-label"><AlertTriangle className="h-3 w-3" />Time overlap</span>}</span> : <EventContent item={item} overlap={overlap} small={eventHeight < 84} />}
+        {multiple ? <span className="sc-event-content"><strong>{group.items.length} shoots</strong>{eventHeight >= 90 && <span className="sc-group-names">{group.items.slice(0, 2).map(entry => <span key={entry.id}>{formatCustomerName(entry.customerName)}</span>)}</span>}{group.items.length > 2 && eventHeight >= 110 && <small>+{group.items.length - 2} more</small>}<span className="sc-text-action">View day <ChevronRight className="h-3 w-3" /></span>{overlap && eventHeight > 130 && <span className="sc-overlap-label"><AlertTriangle className="h-3 w-3" />Time overlap</span>}</span> : <EventContent item={item} overlap={overlap} small={eventHeight < 84} />}
       </button>;
     }) : layoutScheduleBookings(bookings, 46 / rowHeight * 60).map(({ item, column, columns }) => {
       const eventHeight = Math.max(42, (timeToMinutes(item.endTime) - timeToMinutes(item.startTime)) / 60 * rowHeight - 4);
       const overlap = hasOverlap(item, allBookings);
-      return <button key={item.id} type="button" className={`sc-event ${STATUS_CLASS[item.status]} ${overlap ? 'sc-event-overlap' : ''}`} title={`${item.customerName} · ${shortTime(item.startTime)}–${shortTime(item.endTime)} · ${item.service} · ${statusLabel(item)}`} aria-label={`${item.customerName}, ${shortTime(item.startTime)}–${shortTime(item.endTime)}${overlap ? ', time overlap' : ''}`} onClick={() => onBooking(item)} style={{ top: topFor(timeToMinutes(item.startTime)) + 2, height: eventHeight, left: `calc(40px + (100% - 40px) * ${column / columns} + 2px)`, width: `calc((100% - 40px) / ${columns} - 4px)` }}><EventContent item={item} overlap={overlap} small={eventHeight < 84} /></button>;
+      return <button key={item.id} type="button" className={`sc-event ${STATUS_CLASS[item.status]} ${overlap ? 'sc-event-overlap' : ''}`} title={`${formatCustomerName(item.customerName)} · ${shortTime(item.startTime)}–${shortTime(item.endTime)} · ${item.service} · ${statusLabel(item)}`} aria-label={`${formatCustomerName(item.customerName)}, ${shortTime(item.startTime)}–${shortTime(item.endTime)}${overlap ? ', time overlap' : ''}`} onClick={() => onBooking(item)} style={{ top: topFor(timeToMinutes(item.startTime)) + 2, height: eventHeight, left: `calc(40px + (100% - 40px) * ${column / columns} + 2px)`, width: `calc((100% - 40px) / ${columns} - 4px)` }}><EventContent item={item} overlap={overlap} small={eventHeight < 84} /></button>;
     })}
     {currentMinute >= startHour * 60 && currentMinute < endHour * 60 && <div className="sc-current-time" style={{ top: topFor(currentMinute) }} aria-label={`Current time ${shortTime(currentTime!)}`}><span /></div>}
   </div>;

@@ -1,5 +1,7 @@
+import { formatCustomerName } from '../../shared/formatCustomerName';
 import './booking-detail.css';
 import { CustomerBookingPanel } from '../components/CustomerBookingPanel';
+import { CustomerCode } from '../components/CustomerCode';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
@@ -255,7 +257,7 @@ function BookingDetailWorkspace() {
       },
       cancelled: {
         title: 'Cancel this booking?',
-        description: `The booking for ${booking.customerName} will be cancelled. You can restore it later if needed.`,
+        description: `The booking for ${formatCustomerName(booking.customerName)} will be cancelled. You can restore it later if needed.`,
         confirmLabel: 'Cancel booking',
       },
     };
@@ -475,9 +477,10 @@ function BookingDetailWorkspace() {
         <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-start lg:justify-between">
           <div className="min-w-0 lg:flex-1 lg:basis-96">
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <h1 className="bd-title min-w-0 break-words text-xl font-semibold tracking-tight text-slate-900 sm:text-3xl">{booking.customerName}</h1>
+              <h1 className="bd-title min-w-0 break-words text-xl font-semibold tracking-tight text-slate-900 sm:text-3xl">{formatCustomerName(booking.customerName)}</h1>
               <span className={`bd-status rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${statusStyles[booking.status]}`}>{booking.status.replace('_', ' ')}</span>
             </div>
+            <div className="flex flex-wrap items-center gap-x-2 text-xs text-admin-subtle"><span>Customer ID:</span>{booking.customerCode ? <CustomerCode code={booking.customerCode} /> : <span>Not assigned</span>}</div>
             <p className="mt-1 text-sm font-medium text-slate-700">{booking.shootType.trim().toLowerCase() === 'other' && booking.preferredEvent ? booking.preferredEvent : booking.packageName || booking.shootType || 'Photography session'}</p>
             <div className="bd-meta mt-3 space-y-1.5 text-xs text-slate-500 sm:text-sm lg:flex lg:flex-wrap lg:gap-x-4 lg:gap-y-1 lg:space-y-0">
               <div className="flex items-start gap-2">

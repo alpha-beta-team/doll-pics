@@ -1,3 +1,4 @@
+import { formatCustomerName } from '../../shared/formatCustomerName';
 import {
   useCallback,
   useEffect,
@@ -359,7 +360,7 @@ function LoadedCanvasEditor({
           </Link>
           <div className="min-w-[150px] flex-1">
             <h1 className="truncate font-semibold">
-              {state.draft.coupleNames || "Wedding quotation"}
+              {formatCustomerName(state.draft.coupleNames) || "Wedding quotation"}
             </h1>
             <p className="truncate text-xs text-admin-subtle">
               {quote.quotationNumber || "Draft"} ·{" "}

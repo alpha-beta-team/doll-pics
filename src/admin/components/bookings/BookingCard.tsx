@@ -1,9 +1,10 @@
+import { formatCustomerName } from '../../../shared/formatCustomerName';
 import { CustomerCode } from '../CustomerCode';
 import type { KeyboardEvent } from 'react';
 import { AlertTriangle, CalendarDays, ChevronRight, Clock3, Globe, Phone, UserRound, UserRoundPlus } from 'lucide-react';
 import type { Booking } from '../../types';
 import { formatTimeWindow } from '../../../shared/bookingTime';
-import { bookingPriceLabel, bookingStatusClass, bookingStatusLabel, formatBookingDay } from './bookingList';
+import { bookingPriceLabel, bookingStatusClass, bookingStatusLabel, formatBookingDay, formatBookingCreatedDay } from './bookingList';
 import { leadSourceLabel } from '../leadSource';
 import { WhatsAppIcon } from '../enquiries/WhatsAppIcon';
 import { whatsappUrl } from '../../contact';
@@ -33,7 +34,7 @@ function shortShootDate(value: string) {
 }
 
 export function BookingCard({ booking, canViewPayments, showPricing, canViewPhone, onOpen, onAssign }: BookingCardProps) {
-  const customer = booking.customerName || 'Unnamed customer';
+  const customer = formatCustomerName(booking.customerName) || 'Unnamed customer';
   const initials = customer.trim().split(/\s+/).length > 1 ? customer.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase() : customer.slice(0, 2).toUpperCase();
   const avatarColor = AVATAR_COLORS[Array.from(customer).reduce((sum, letter) => sum + letter.charCodeAt(0), 0) % AVATAR_COLORS.length];
   const followUpOverdue = Boolean(booking.nextFollowUpAt && new Date(booking.nextFollowUpAt).getTime() < Date.now());
@@ -67,6 +68,7 @@ export function BookingCard({ booking, canViewPayments, showPricing, canViewPhon
         <span className="booking-mobile-only">{shortShootDate(booking.bookingDate)}</span>
         <div className="booking-desktop-only"><p>{formatBookingDay(booking.bookingDate)}</p>{hasTime && <p className="mt-1 text-[11px] text-admin-subtle">{formatTimeWindow(booking.startTime, booking.endTime, '12h')}</p>}</div>
       </div>
+      <div className="booking-created min-w-0 text-xs text-admin-subtle"><span className="booking-created-label">Created: </span>{formatBookingCreatedDay(booking.createdAt)}</div>
       {showPricing && <div className="booking-amount text-xs font-semibold tabular-nums text-admin-text">{bookingPriceLabel(booking, canViewPayments)}</div>}
       <div className={`booking-attention min-w-0 text-xs ${hasAttention ? '' : 'booking-attention-empty'}`}>
         {booking.nextFollowUpAt ? <span title={booking.followUpNote || undefined} className={`inline-flex max-w-full items-center gap-1.5 rounded-full border px-2.5 py-1.5 leading-4 ${followUpOverdue ? 'border-rose-200 bg-rose-50 text-rose-600' : 'border-amber-200 bg-amber-50 text-amber-800'}`}><Clock3 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span>{followUpOverdue ? 'Overdue' : 'Follow-up'} · {formatFollowUp(booking.nextFollowUpAt)}{booking.followUpNote ? ` · ${booking.followUpNote}` : ''}</span></span>
@@ -91,6 +93,7 @@ export function BookingCardSkeleton({ showPricing }: { showPricing: boolean }) {
   return <div className={`booking-row animate-pulse ${showPricing ? 'booking-has-pricing' : ''}`} aria-hidden="true">
     <div className="booking-customer flex items-center gap-3"><div className="h-10 w-10 shrink-0 rounded-full bg-admin-muted" /><div className="w-full space-y-2"><div className="h-4 w-3/4 rounded bg-admin-muted" /><div className="h-3 w-1/2 rounded bg-admin-muted" /></div></div>
     <div className="booking-service h-4 w-3/4 rounded bg-admin-muted" /><div className="booking-date h-4 w-3/4 rounded bg-admin-muted" />
+    <div className="booking-created h-4 w-20 rounded bg-admin-muted" />
     {showPricing && <div className="booking-amount h-4 w-20 rounded bg-admin-muted" />}
     <div className="booking-attention h-7 w-3/4 rounded-full bg-admin-muted" /><div className="booking-actions h-9 w-28 rounded bg-admin-muted" />
   </div>;

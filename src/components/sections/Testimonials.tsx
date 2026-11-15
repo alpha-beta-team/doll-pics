@@ -1,3 +1,4 @@
+import { formatCustomerName } from '../../shared/formatCustomerName';
 import { useSiteData } from '../../contexts/SiteDataContext';
 import { useInView } from '../../hooks/useScroll';
 import { Star, ThumbsUp, Quote } from 'lucide-react';
@@ -47,11 +48,11 @@ export function Testimonials() {
                 <div className="flex items-center gap-3">
                   <img
                     src={t.avatar}
-                    alt={t.name}
+                    alt={formatCustomerName(t.name)}
                     className="w-12 h-12 rounded-full object-cover border-2 border-gold-400/30"
                   />
                   <div>
-                    <div className="font-medium text-ink-50">{t.name}</div>
+                    <div className="font-medium text-ink-50">{formatCustomerName(t.name)}</div>
                     <div className="text-xs tracking-widest uppercase text-ink-300">{t.role}</div>
                   </div>
                 </div>
