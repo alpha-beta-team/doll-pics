@@ -4,7 +4,7 @@ import { AlertTriangle, CalendarDays, ChevronRight, Plus } from 'lucide-react';
 import type { ScheduleBookingItem } from '../types';
 import {
   DEFAULT_END_HOUR, DEFAULT_START_HOUR, endTimeFor, formatScheduleDay, formatScheduleTime,
-  kolkataToday, layoutScheduleBookings, minutesToTime, occupiesSchedule, scheduleBookingGroups,
+  kolkataToday, layoutScheduleBookings, minutesToTime, occupiesSchedule,
   scheduleDates, slotHasConflict, timeToMinutes, unbookedWindows, visibleHourBounds, windowsOverlap,
 } from './schedule.utils';
 
@@ -89,7 +89,7 @@ export function ScheduleCalendar({ dates, bookings, canManage, compact, focusTim
   const height = (endHour - startHour) * rowHeight + 46;
   const timed = bookings.filter(item => item.startTime && item.endTime);
   const week = dates.length === 7;
-  const dayColumns = Math.max(1, ...layoutScheduleBookings(timed, 46 / rowHeight * 60).map(entry => entry.columns));
+  const columnsForDate = (date: string) => Math.max(1, ...layoutScheduleBookings(timed.filter(item => item.bookingDate === date), 46 / rowHeight * 60).map(entry => entry.columns));
   const scrollRef = useRef<HTMLDivElement>(null);
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
@@ -101,11 +101,11 @@ export function ScheduleCalendar({ dates, bookings, canManage, compact, focusTim
     if (!focusTime || !scrollRef.current) return;
     scrollRef.current.scrollTop = Math.max(0, (timeToMinutes(focusTime) / 60 - startHour) * rowHeight - 36);
   }, [focusTime, startHour, rowHeight]);
-  const gridColumns = week ? '60px repeat(7, minmax(0, 1fr))' : '60px minmax(0, 1fr)';
+  const gridColumns = `60px ${dates.map(date => `minmax(${44 + columnsForDate(date) * 160}px, 1fr)`).join(' ')}`;
   return <section className={`sc-calendar ${week ? 'sc-week' : 'sc-day'}`} aria-label={week ? 'Week calendar' : 'Day calendar'}>
     <UntimedBookings bookings={bookings} onBooking={onBooking} />
     <div className="sc-calendar-scroll" ref={scrollRef} tabIndex={0} aria-label="Scrollable schedule">
-      <div className="sc-calendar-grid" style={{ gridTemplateColumns: gridColumns, minWidth: week ? undefined : 60 + 44 + dayColumns * 160 }}>
+      <div className="sc-calendar-grid" style={{ gridTemplateColumns: gridColumns }}>
         <div className="sc-calendar-corner" aria-hidden="true" />
         {dates.map(date => {
           const items = bookings.filter(item => item.bookingDate === date);
@@ -116,10 +116,10 @@ export function ScheduleCalendar({ dates, bookings, canManage, compact, focusTim
           </button>;
         })}
         <div className="sc-time-column" style={{ height }}>{Array.from({ length: endHour - startHour + 1 }, (_, index) => <span key={index} style={{ top: index * rowHeight }}>{shortTime(minutesToTime((startHour + index) * 60))}</span>)}</div>
-        {dates.map(date => <DayLane key={date} date={date} bookings={timed.filter(item => item.bookingDate === date)} allBookings={bookings} canManage={canManage} startHour={startHour} endHour={endHour} rowHeight={rowHeight} height={height} week={week} currentTime={date === kolkataToday(now) ? currentTime : undefined} onDay={onDay} onBooking={onBooking} onEmptySlot={onEmptySlot} />)}
+        {dates.map(date => <DayLane key={date} date={date} bookings={timed.filter(item => item.bookingDate === date)} allBookings={bookings} canManage={canManage} startHour={startHour} endHour={endHour} rowHeight={rowHeight} height={height} currentTime={date === kolkataToday(now) ? currentTime : undefined} onBooking={onBooking} onEmptySlot={onEmptySlot} />)}
       </div>
     </div>
-    <div className="sc-calendar-footer"><span className="sc-week-hint">Select a day for full booking details.</span><span><i className="sc-today-dot" />Today</span><span><i className="sc-now-dot" />Current time</span><span><AlertTriangle className="h-3 w-3" />Time overlap</span><span>Unbooked time: 11 AM–8 PM · Check staff and setup time</span></div>
+    <div className="sc-calendar-footer"><span className="sc-week-hint">Scroll horizontally to see all days. Select a shoot for details.</span><span><i className="sc-today-dot" />Today</span><span><i className="sc-now-dot" />Current time</span><span><AlertTriangle className="h-3 w-3" />Time overlap</span><span>Unbooked time: 11 AM–8 PM · Check staff and setup time</span></div>
   </section>;
 }
 
@@ -129,9 +129,9 @@ function EventContent({ item, overlap, small }: { item: ScheduleBookingItem; ove
   </span>;
 }
 
-function DayLane({ date, bookings, allBookings, canManage, startHour, endHour, rowHeight, height, week, currentTime, onDay, onBooking, onEmptySlot }: ScheduleActions & {
+function DayLane({ date, bookings, allBookings, canManage, startHour, endHour, rowHeight, height, currentTime, onBooking, onEmptySlot }: ScheduleActions & {
   date: string; allBookings: ScheduleBookingItem[]; startHour: number; endHour: number; rowHeight: number; height: number;
-  week: boolean; currentTime?: string; onDay: (date: string, startTime?: string) => void;
+  currentTime?: string;
 }) {
   const currentMinute = currentTime ? timeToMinutes(currentTime) : -1;
   const topFor = (minute: number) => (minute - startHour * 60) / 60 * rowHeight;
@@ -143,18 +143,7 @@ function DayLane({ date, bookings, allBookings, canManage, startHour, endHour, r
       const creatable = canManage && hour >= DEFAULT_START_HOUR && hour < DEFAULT_END_HOUR;
       return <button key={hour} type="button" disabled={!creatable} onClick={() => onEmptySlot({ bookingDate: date, startTime })} className="group absolute left-0 w-10 border-t border-slate-100 text-left disabled:cursor-default" style={{ top: index * rowHeight, height: rowHeight }} aria-label={creatable ? `Create booking ${formatScheduleDay(date)} at ${formatScheduleTime(startTime)}${overlap ? ', existing bookings' : ''}` : undefined}><span className={`ml-1 inline-flex flex-col items-center rounded-md px-1 py-1 text-[10px] font-semibold transition ${creatable ? 'text-blue-700 hover:bg-blue-50' : 'invisible'}`}><Plus className="h-3 w-3" />Add</span></button>;
     })}
-    {week ? scheduleBookingGroups(bookings, 46 / rowHeight * 60).map(group => {
-      const item = group.items[0];
-      const eventHeight = Math.max(42, (group.end - group.start) / 60 * rowHeight - 4);
-      const multiple = group.items.length > 1;
-      const overlap = group.items.some(entry => hasOverlap(entry, allBookings));
-      return <button key={item.id} type="button" className={`sc-event sc-week-event ${multiple ? 'sc-event-group' : STATUS_CLASS[item.status]} ${overlap ? 'sc-event-overlap' : ''}`} style={{ top: topFor(group.start) + 2, height: eventHeight }}
-        aria-label={multiple ? `${group.items.length} shoots on ${formatScheduleDay(date)}. View day` : `${formatCustomerName(item.customerName)}, ${shortTime(item.startTime)}–${shortTime(item.endTime)}, ${statusLabel(item)}${overlap ? ', time overlap' : ''}`}
-        title={group.items.map(entry => `${formatCustomerName(entry.customerName)} · ${shortTime(entry.startTime)}–${shortTime(entry.endTime)} · ${entry.service}`).join('\n')}
-        onClick={() => multiple ? onDay(date, item.startTime) : onBooking(item)}>
-        {multiple ? <span className="sc-event-content"><strong>{group.items.length} shoots</strong>{eventHeight >= 90 && <span className="sc-group-names">{group.items.slice(0, 2).map(entry => <span key={entry.id}>{formatCustomerName(entry.customerName)}</span>)}</span>}{group.items.length > 2 && eventHeight >= 110 && <small>+{group.items.length - 2} more</small>}<span className="sc-text-action">View day <ChevronRight className="h-3 w-3" /></span>{overlap && eventHeight > 130 && <span className="sc-overlap-label"><AlertTriangle className="h-3 w-3" />Time overlap</span>}</span> : <EventContent item={item} overlap={overlap} small={eventHeight < 84} />}
-      </button>;
-    }) : layoutScheduleBookings(bookings, 46 / rowHeight * 60).map(({ item, column, columns }) => {
+    {layoutScheduleBookings(bookings, 46 / rowHeight * 60).map(({ item, column, columns }) => {
       const eventHeight = Math.max(42, (timeToMinutes(item.endTime) - timeToMinutes(item.startTime)) / 60 * rowHeight - 4);
       const overlap = hasOverlap(item, allBookings);
       return <button key={item.id} type="button" className={`sc-event ${STATUS_CLASS[item.status]} ${overlap ? 'sc-event-overlap' : ''}`} title={`${formatCustomerName(item.customerName)} · ${shortTime(item.startTime)}–${shortTime(item.endTime)} · ${item.service} · ${statusLabel(item)}`} aria-label={`${formatCustomerName(item.customerName)}, ${shortTime(item.startTime)}–${shortTime(item.endTime)}${overlap ? ', time overlap' : ''}`} onClick={() => onBooking(item)} style={{ top: topFor(timeToMinutes(item.startTime)) + 2, height: eventHeight, left: `calc(40px + (100% - 40px) * ${column / columns} + 2px)`, width: `calc((100% - 40px) / ${columns} - 4px)` }}><EventContent item={item} overlap={overlap} small={eventHeight < 84} /></button>;

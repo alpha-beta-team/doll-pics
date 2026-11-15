@@ -35,15 +35,11 @@
 /* Explicit flex alignment prevents native button text from centering tall bookings. */
 .studio-schedule .sc-event { position: absolute; z-index: 10; display: flex; align-items: flex-start; justify-content: flex-start; overflow: hidden; border-left-width: 3px; border-radius: 7px; padding: 5px 7px; text-align: left; box-shadow: 0 1px 2px #00000008; }
 .studio-schedule .sc-event:hover { filter: brightness(.97); }
-.studio-schedule .sc-week-event { left: 42px; right: 3px; }
 .studio-schedule .sc-event-content { display: flex; flex-direction: column; align-items: stretch; gap: 1px; min-width: 0; width: 100%; }
 .studio-schedule .sc-event-content strong { font-size: 12px; font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.studio-schedule .sc-event-content > span { font-size: 11px; line-height: 1.3; }
+.studio-schedule .sc-event-content > span { font-size: 11px; line-height: 1.3; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .studio-schedule .sc-event-content small { font-size: 10px; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .studio-schedule .sc-event-service { opacity: .8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.studio-schedule .sc-event-group { background: #f9f4e9; border-color: #b49660; color: #5b4727; }
-.studio-schedule .sc-group-names { display: flex; flex-direction: column; }
-.studio-schedule .sc-group-names span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
 .studio-schedule .sc-event-overlap { box-shadow: inset 0 2px #ba882d; }
 .studio-schedule .sc-overlap-label { display: inline-flex; align-items: center; gap: 3px; color: #805719; font-size: 10px; font-weight: 600; }
 .studio-schedule .sc-current-time { position: absolute; z-index: 20; left: 0; right: 0; height: 2px; background: #b94d40; pointer-events: none; }
@@ -79,7 +75,6 @@
 .studio-schedule .sc-agenda-gap span { font-size: 11px; color: rgb(var(--admin-text-secondary, 100 110 100)); }
 @media (max-width: 1100px) and (min-width: 768px) {
   .studio-schedule .sc-period { flex-basis: calc(100% - 180px); }
-  .studio-schedule .sc-week-event { padding: 4px; }
   .studio-schedule .sc-event-content strong { font-size: 11px; }
 }
 @media (max-width: 767px) {
@@ -95,24 +90,10 @@
   .studio-schedule .sc-navigation > button:last-child { width: auto; padding: 6px 8px; }
   .studio-schedule .sc-overlap-booking { flex-wrap: wrap; }
 }
-.studio-schedule .sc-event-content > span:not(.sc-group-names):not(.sc-text-action):not(.sc-overlap-label) { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.studio-schedule .sc-event-content .sc-text-action { min-height: 20px; }
 
 .studio-schedule .sc-calendar { container-type: inline-size; }
 .studio-schedule .sc-week-hint { display: none; }
-@container (max-width: 900px) {
-  .studio-schedule .sc-week .sc-day-lane > button.group { width: 28px; }
-  .studio-schedule .sc-week-event { left: 30px; padding: 4px 3px; }
-  .studio-schedule .sc-week-event .sc-event-content strong { font-size: 10px; }
-  .studio-schedule .sc-week-event.sc-event-group strong { white-space: normal; overflow-wrap: normal; }
-  .studio-schedule .sc-week-event .sc-group-names,
-  .studio-schedule .sc-week-event .sc-event-content small,
-  .studio-schedule .sc-week-event .sc-event-service,
-  .studio-schedule .sc-week-event .sc-overlap-label { display: none; }
-  .studio-schedule .sc-week-event .sc-text-action { font-size: 10px; display: block; line-height: 1.4; padding-top: 4px; }
-  .studio-schedule .sc-week-event .sc-text-action svg { display: none; }
-  .studio-schedule .sc-week .sc-week-hint { display: inline-flex; flex-basis: 100%; }
-}
+.studio-schedule .sc-week .sc-week-hint { display: inline-flex; flex-basis: 100%; }
 @media (max-width: 380px) {
   .studio-schedule .sc-date { order: 2; flex-basis: 100%; }
   .studio-schedule .sc-filters { margin-left: auto; }
