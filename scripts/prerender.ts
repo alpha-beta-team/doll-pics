@@ -43,7 +43,7 @@ loadEnvFiles();
 
 const distDir = process.env.PRERENDER_DIST_DIR || join(root, 'dist');
 const siteUrl = getSiteUrl();
-const ogImage = `${siteUrl}/og-share.jpg`;
+const ogImage = `${siteUrl}/doll-pictures-share-v2.jpg`;
 
 const { seoPages, servicePages, packagePages } =
   loadStaticSeoData();

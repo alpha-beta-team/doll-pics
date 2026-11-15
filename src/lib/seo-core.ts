@@ -514,7 +514,7 @@ export function buildLocalBusinessJsonLd(
     alternateName: seoPages.siteName,
     description: seoPages.defaultDescription,
     url: siteUrl,
-    image: `${siteUrl}/og-share.jpg`,
+    image: `${siteUrl}/doll-pictures-share-v2.jpg`,
     logo: `${siteUrl}/logo-doll.png`,
     telephone,
     email: contact?.email || seoPages.email || undefined,

@@ -62,7 +62,7 @@ export const SITE_URL = (
 export const SITE_NAME = DISPLAY_BRAND_NAME;
 export { BUSINESS_NAME };
 export const SITE_TAGLINE = seoPages.tagline;
-export const DEFAULT_OG_IMAGE = `${SITE_URL}/og-share.jpg`;
+export const DEFAULT_OG_IMAGE = `${SITE_URL}/doll-pictures-share-v2.jpg`;
 export const SITE_LOGO = `${SITE_URL}/logo-doll.png`;
 export const STUDIO_ID = `${SITE_URL}/#studio`;
 
