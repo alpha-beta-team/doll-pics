@@ -172,6 +172,7 @@ export const PRIMARY_NAVIGATION: NavigationNode[] = [
 ];
 
 export const UTILITY_NAVIGATION: NavigationNode[] = [
+  { id: 'deliverables', label: 'Deliverables', route: '/admin/deliverables', icon: Package, displayOrder: 15, access: { feature: 'owner_overview', level: 'manage' } },
   leaf('integrations', 'Integrations', '/admin/integrations', Plug, 10, 'integrations', { featureFlag: 'integrations' }),
   { ...leaf('help', 'Quick Guide / Help', '/admin/help', HelpCircle, 20), access: { feature: 'owner_overview', level: 'view' } },
 ];

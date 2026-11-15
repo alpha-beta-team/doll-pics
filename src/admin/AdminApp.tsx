@@ -1,3 +1,4 @@
+import './components/deliverables-editor.css';
 import { lazy, useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -46,6 +47,7 @@ const AttendanceRequestsPage = lazy(() => import('./pages/AttendanceRequestsPage
 const TeamLeaveCalendarPage = lazy(() => import('./pages/TeamLeaveCalendarPage').then(module => ({ default: module.TeamLeaveCalendarPage })));
 const FieldAssignmentsPage = lazy(() => import('./pages/FieldAssignmentsPage').then(module => ({ default: module.FieldAssignmentsPage })));
 const AttendanceReportsPage = lazy(() => import('./pages/AttendanceReportsPage').then(module => ({ default: module.AttendanceReportsPage })));
+const DeliverablesPage = lazy(() => import('./pages/DeliverablesPage').then(module => ({ default: module.DeliverablesPage })));
 const AttendanceSettingsPage = lazy(() => import('./pages/AttendanceSettingsPage').then(module => ({ default: module.AttendanceSettingsPage })));
 const OwnerOverviewPage = lazy(() => import('./pages/OwnerOverviewPage').then(module => ({ default: module.OwnerOverviewPage })));
 
@@ -101,7 +103,7 @@ export default function AdminApp() {
             <Route path="/" element={<RequireAuth />}>
               <Route index element={<DefaultAdminRedirect />} />
               <Route path="access-denied" element={<AccessDeniedPage />} />
-              <Route element={<AccessRoute feature="owner_overview" />}><Route path="help" element={<HelpPage />} /></Route>
+              <Route element={<AccessRoute feature="owner_overview" />}><Route path="help" element={<HelpPage />} /><Route path="deliverables" element={<DeliverablesPage />} /></Route>
               <Route element={<AccessRoute feature="owner_overview" />}><Route path="owner" element={<OwnerOverviewPage />} /><Route path="delivery" element={<DeliveryQueuePage />} /><Route path="sales" element={<SalesPage />} /><Route path="sales/:id" element={<SaleDetailsPage />} /></Route>
               <Route element={<AccessRoute feature="today" />}><Route path="today" element={<TodayPage />} /></Route>
               <Route element={<AccessRoute feature="enquiries" />}>

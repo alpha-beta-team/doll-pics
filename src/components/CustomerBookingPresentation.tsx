@@ -36,6 +36,7 @@ export function CustomerBookingPresentation({ booking }: { booking: CustomerBook
         [Camera, 'Expected delivery', cancelled ? 'Not applicable' : dateLabel(booking.expectedDeliveryDate)],
       ].map(([Icon, label, value]) => { const DetailIcon = Icon as typeof Camera; return <div key={String(label)} className="flex min-w-0 gap-3"><DetailIcon className="mt-1 h-4 w-4 shrink-0 text-[#947247]" /><div className="min-w-0"><dt className="text-xs text-[#716553]">{String(label)}</dt><dd className="mt-1 break-words text-sm font-medium">{String(value)}</dd></div></div>; })}</dl>
     </section>
+    {Boolean(booking.deliverables?.length) && <section aria-label="Your deliverables" className="rounded-2xl border border-[#e2d8cb] bg-white p-5 sm:p-6"><h2 className="text-lg font-semibold">Your deliverables</h2><ul className="mt-3 divide-y divide-[#e2d8cb]">{booking.deliverables!.map(item => <li key={item.name} className="flex justify-between gap-4 py-3"><span className="break-words">{item.name}</span><span className="shrink-0 font-semibold">{item.quantity}</span></li>)}</ul></section>}
     <section className={`rounded-2xl border p-5 sm:p-6 ${cancelled ? 'border-rose-200 bg-rose-50' : 'border-[#e2d8cb] bg-white'}`} aria-label="Booking progress">
       <h2 className="text-lg font-semibold">{cancelled ? 'This booking has been cancelled' : 'Your progress'}</h2>
       {cancelled ? <p className="mt-2 text-sm leading-6">Please contact the studio if you have a question or would like to discuss another date.</p> : <>

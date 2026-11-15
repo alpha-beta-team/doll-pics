@@ -1,3 +1,5 @@
+import type { BookingCrewInput, BookingCrewMember } from '../crew';
+import type { BookingDeliverable } from '../deliverables';
 /**
  * Shared CMS domain types — single source for public site + admin.
  * Admin entities add id/order/isPublished where the API requires them.
@@ -473,6 +475,11 @@ export type AdminEnquiryWritePayload = {
 };
 
 export type ConvertEnquiryPayload = {
+  crewList?: BookingCrewInput[];
+  deliverables?: Array<Pick<BookingDeliverable, 'id' | 'catalogId' | 'quantity' | 'category' | 'amount' | 'reason'>>;
+  baseAgreedTotal?: number | null;
+  deliverablesChangeReason?: string;
+  expectedUpdatedAt?: string;
   customerId?: string;
   newCustomerReason?: string;
   creationRequestId?: string;
@@ -561,6 +568,10 @@ export type WhatsAppMessageSummary = {
 };
 
 export type Booking = {
+  crewList?: BookingCrewMember[];
+  deliverables?: BookingDeliverable[];
+  baseAgreedTotal?: number | null;
+  extrasTotal?: number;
   customerId?: string;
   customerCode?: string;
   attribution?: MarketingAttribution;
@@ -799,6 +810,11 @@ export type OwnerOverviewReport = {
 };
 
 export type BookingWritePayload = {
+  crewList?: BookingCrewInput[];
+  deliverables?: Array<Pick<BookingDeliverable, 'id' | 'catalogId' | 'quantity' | 'category' | 'amount' | 'reason'>>;
+  baseAgreedTotal?: number | null;
+  deliverablesChangeReason?: string;
+  expectedUpdatedAt?: string;
   customerId?: string;
   newCustomerReason?: string;
   creationRequestId?: string;

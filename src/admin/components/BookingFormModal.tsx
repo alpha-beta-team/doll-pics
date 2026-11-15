@@ -1,3 +1,10 @@
+import { DeliverablePresetPicker } from './DeliverablePresetPicker';
+import { DeliverablesEditor } from './DeliverablesEditor';
+import { CrewListEditor } from './CrewListEditor';
+import { CREW_SERVICE_LABELS } from '../../shared/crew';
+import type { BookingCrewMember } from '../../shared/crew';
+import { configurationDeliverables, deliverableExtraTotal, deliverableInputs } from '../../shared/deliverables';
+import type { BookingDeliverable, DeliverableType, DeliverableConfiguration } from '../../shared/deliverables';
 import {
   CustomerIdentityChoice,
   type CustomerIdentityOption,
@@ -72,6 +79,9 @@ type Props = {
 };
 
 type BookingDraft = {
+  crewList?: BookingCrewMember[];
+  deliverables?: BookingDeliverable[];
+  deliverablesChangeReason?: string;
   requestKey?: string;
   customerName: string;
   customerPhone: string;
@@ -176,6 +186,29 @@ function BookingWizard({
   const [requestKey] = useState(
     () => stored?.requestKey ?? crypto.randomUUID(),
   );
+  const [crewList, setCrewList] = useState<BookingCrewMember[]>(() => stored?.crewList ?? booking?.crewList ?? []);
+  const [deliverables, setDeliverables] = useState<BookingDeliverable[]>(() => stored?.deliverables ?? booking?.deliverables ?? []);
+  const [deliverablesChangeReason, setDeliverablesChangeReason] = useState(stored?.deliverablesChangeReason || '');
+  const [deliverableConfiguration, setDeliverableConfiguration] = useState<DeliverableConfiguration | null>(null);
+  const [deliverableCatalog, setDeliverableCatalog] = useState<DeliverableType[]>([]);
+  const [deliverablesLoading, setDeliverablesLoading] = useState(true);
+  const [deliverablesError, setDeliverablesError] = useState('');
+  const [deliverablesRetry, setDeliverablesRetry] = useState(0);
+  const extras = deliverableExtraTotal(deliverables);
+  useEffect(() => {
+    let cancelled = false;
+    setDeliverablesLoading(true); setDeliverablesError('');
+    void Promise.all([api.getDeliverables(), api.getDeliverableConfiguration()]).then(([items, configuration]) => {
+      if (cancelled) return;
+      setDeliverableCatalog(items);
+      setDeliverableConfiguration(configuration);
+      if (!booking && !stored?.deliverables) setDeliverables(configurationDeliverables(configuration));
+    }).catch(e => { if (!cancelled) setDeliverablesError(e instanceof Error ? e.message : 'Could not load deliverables'); })
+      .finally(() => { if (!cancelled) setDeliverablesLoading(false); });
+    return () => { cancelled = true; };
+  // The initial draft/booking snapshot is fixed for this wizard instance.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deliverablesRetry]);
   const restoredStep =
     stored?.step && stored.step >= 0 && stored.step <= 3 ? stored.step : 0;
   const [customerName, setCustomerName] = useState(
@@ -236,7 +269,7 @@ function BookingWizard({
   const [agreedTotal, setAgreedTotal] = useState(
     canEditBookingPricing
       ? (stored?.agreedTotal ??
-          (booking?.agreedTotal == null ? "" : String(booking.agreedTotal)))
+          (booking?.agreedTotal == null ? "" : String(booking.baseAgreedTotal === undefined ? booking.agreedTotal - deliverableExtraTotal(booking.deliverables) : booking.baseAgreedTotal ?? "")))
       : "",
   );
   const [discount, setDiscount] = useState(() =>
@@ -474,6 +507,9 @@ function BookingWizard({
   useEffect(() => {
     const draft: BookingDraft = {
       requestKey,
+      crewList,
+      deliverables,
+      deliverablesChangeReason,
       customerName,
       customerPhone,
       customerEmail,
@@ -500,6 +536,9 @@ function BookingWizard({
     };
     localStorage.setItem(draftKey, JSON.stringify(draft));
   }, [
+    crewList,
+    deliverables,
+    deliverablesChangeReason,
     advanceAmount,
     advanceMethod,
     agreedTotal,
@@ -597,6 +636,12 @@ function BookingWizard({
   };
 
   const submit = async () => {
+    if (crewList.some(row => !CREW_SERVICE_LABELS[row.serviceType] || !row.staffAccountId)) { setError('Select a service and member for every crew row'); return; }
+    if (new Set(crewList.map(row => `${row.serviceType}:${row.staffAccountId}`)).size !== crewList.length) { setError('The same member is listed twice for a crew service'); return; }
+    if (deliverablesLoading || deliverablesError) { setError(deliverablesError || 'Wait for deliverables to load'); return; }
+    if (extras > 0 && agreedTotal === '') { setError('Set the base agreed amount before adding paid extras'); return; }
+    if (deliverables.some(row => !Number.isInteger(row.quantity) || row.quantity < 1 || !Number.isFinite(row.amount) || row.amount < 0 || (row.category === 'complimentary' && !row.reason?.trim()))) { setError('Check deliverable quantities, extra amounts, and complimentary reasons'); return; }
+    if (booking && JSON.stringify(deliverableInputs(deliverables)) !== JSON.stringify(deliverableInputs(booking.deliverables || [])) && !deliverablesChangeReason.trim()) { setError('Enter a reason for changing saved deliverables'); return; }
     if (submitting.current || selectingEnquiry) return;
     const customerErrors = validateBookingWizardStep(0, validationValues());
     if (enquiry && customerPhone === enquiry.phone)
@@ -670,10 +715,15 @@ function BookingWizard({
       expectedPricingToken: salePricing.preview?.pricing?.token,
       pricingOverrideReason: salePricing.reason.trim() || undefined,
       bookingDiscountAmount: canEditBookingPricing ? discount : undefined,
+      crewList: crewList.map(({ serviceType, staffAccountId }) => ({ serviceType, staffAccountId })),
+      deliverables: deliverableInputs(deliverables),
+      deliverablesChangeReason: deliverablesChangeReason.trim() || undefined,
+      expectedUpdatedAt: booking?.updatedAt,
+      baseAgreedTotal: canEditBookingPricing ? agreedTotal === '' ? null : Number(agreedTotal) : undefined,
       agreedTotal: canEditBookingPricing
         ? agreedTotal === ""
           ? null
-          : Number(agreedTotal)
+          : Math.round((Number(agreedTotal) + extras) * 100) / 100
         : undefined,
       assignedStaffAccountId: assignedStaffAccountId || null,
       advanceAmount:
@@ -1290,7 +1340,7 @@ function BookingWizard({
                 )}
                 {canEditBookingPricing && (
                   <label className="text-sm text-slate-700">
-                    {BOOKING_WIZARD_FIELD_LABELS.agreedTotal}
+                    Base agreed amount after discount (₹)
                     <input
                       id="booking-agreed-total"
                       type="number"
@@ -1374,6 +1424,16 @@ function BookingWizard({
             </section>
           )}
 
+          {step === 2 && <CrewListEditor value={crewList} staffAccounts={staffAccounts} onChange={setCrewList} />}
+          {step === 2 && <div className="mt-4 space-y-3" aria-label="Booking deliverables fields">
+            {deliverablesLoading ? <p role="status">Loading deliverables…</p> : deliverablesError ? <p role="alert" className="text-red-700">{deliverablesError}<button type="button" className="ml-3 underline" onClick={() => setDeliverablesRetry(value => value + 1)}>Retry</button></p> : <>{deliverableConfiguration && <DeliverablePresetPicker configuration={deliverableConfiguration} rows={deliverables} onApply={setDeliverables} />}<DeliverablesEditor catalog={deliverableCatalog} rows={deliverables} onChange={setDeliverables} canPrice={canEditBookingPricing} showExtrasTotal={false} /></>}
+            {booking && <label className="block text-sm">Reason for changing deliverables<input className="mt-1 min-h-11 w-full rounded-lg border px-3" value={deliverablesChangeReason} maxLength={1000} onChange={e => setDeliverablesChangeReason(e.target.value)} /></label>}
+            {canEditBookingPricing && <dl aria-label="Booking pricing summary" className="grid grid-cols-3 divide-x divide-admin-border rounded-lg border border-admin-border bg-admin-canvas py-2.5 text-xs">
+              <div className="min-w-0 px-3"><dt className="text-[10px] text-admin-subtle">Base after discount</dt><dd className="mt-1 font-medium text-admin-text">{agreedTotal === '' ? '—' : `₹${Number(agreedTotal).toLocaleString('en-IN')}`}</dd></div>
+              <div className="min-w-0 px-3"><dt className="text-[10px] text-admin-subtle">Extras</dt><dd className="mt-1 font-medium text-admin-text">₹{extras.toLocaleString('en-IN')}</dd></div>
+              <div className="min-w-0 px-3"><dt className="text-[10px] text-admin-subtle">Booking total</dt><dd className="mt-1 font-semibold text-admin-primary">{agreedTotal === '' ? '—' : `₹${(Math.round((Number(agreedTotal) + extras) * 100) / 100).toLocaleString('en-IN')}`}</dd></div>
+            </dl>}
+          </div>}
           {step === 3 && (
             <section className="space-y-3">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">

@@ -1,3 +1,4 @@
+import { deliverablesApi } from './deliverables';
 /**
  * Admin CMS API — thin facade over domain modules.
  * Pages keep importing `{ api } from '../api/client'`.
@@ -26,6 +27,7 @@ import { salaryApi } from './salary';
 import { salesApi } from './sales';
 
 export const api = {
+  ...deliverablesApi,
   ...salesApi,
   ...authApi,
   ...photosApi,

@@ -1,3 +1,7 @@
+import { BookingCrewDialog } from '../components/bookings/BookingCrewDialog';
+import { CREW_SERVICE_LABELS } from '../../shared/crew';
+import { deliverableExtraTotal } from '../../shared/deliverables';
+import { BookingDeliverablesPanel } from '../components/BookingDeliverablesPanel';
 import { formatCustomerName } from '../../shared/formatCustomerName';
 import './booking-detail.css';
 import { CustomerBookingPanel } from '../components/CustomerBookingPanel';
@@ -38,7 +42,7 @@ import { useConfirmDialog } from '../hooks/useConfirmDialog';
 import { useFeatureAccess } from '../access/useFeatureAccess';
 import { useAuth } from '../contexts/AuthContext';
 import { ReadOnlyNotice } from '../components/ReadOnlyNotice';
-import { hasStaffPermission } from '../access/roles';
+import { hasStaffPermission, canViewBookingPricing } from '../access/roles';
 import {
   deliveryWhatsAppMessage,
   deliveryWhatsAppUrl,
@@ -149,6 +153,7 @@ function BookingDetailWorkspace() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [editing, setEditing] = useState(false);
+  const [editingCrew, setEditingCrew] = useState(false);
   const [paymentModal, setPaymentModal] = useState<BookingPayment | 'new' | null>(null);
   const [followUpAt, setFollowUpAt] = useState('');
   const [followUpNote, setFollowUpNote] = useState('');
@@ -272,7 +277,8 @@ function BookingDetailWorkspace() {
       let pricing: { expectedPricingToken?: string; agreedTotal?: number } | undefined;
       if (status === 'confirmed' && booking.status === 'draft' && !booking.pricingSnapshot && booking.packageId) {
         const preview = await api.getPricingPreview(booking.packageId);
-        const amount = preview.pricingMode === 'price' ? preview.pricing?.effectivePrice : booking.agreedTotal;
+        const effective = preview.pricing?.effectivePrice;
+        const amount = preview.pricingMode === 'price' ? effective == null ? null : effective - (booking.bookingDiscountAmount || 0) + deliverableExtraTotal(booking.deliverables) : booking.agreedTotal;
         if (amount == null) throw new Error('Enter the final agreed total before confirming.');
         if (!await confirmDialog({ title: 'Confirm booking price', description: `Final agreed total: ${money(amount)}${preview.pricing?.activeOffer ? ` · ${preview.pricing.activeOffer.name}` : ''}. This price will be saved to the booking.`, confirmLabel: 'Confirm price & booking' })) return;
         pricing = { expectedPricingToken: preview.pricing?.token, agreedTotal: amount };
@@ -571,6 +577,11 @@ function BookingDetailWorkspace() {
         </dl>
       </header>
 
+      <section className="rounded-xl border border-admin-border bg-admin-surface p-4" aria-label="Crew List">
+        <div className="flex items-center justify-between gap-3"><h2 className="text-lg font-semibold">Crew List</h2>{canManageBooking && <button type="button" onClick={() => setEditingCrew(true)} className="min-h-11 px-3 text-sm font-semibold text-admin-primary">Edit crew</button>}</div>
+        {booking.crewList?.length ? <ul className="mt-3 divide-y divide-admin-border">{booking.crewList.map((row, index) => <li key={index} className="flex flex-wrap justify-between gap-2 py-3 text-sm"><span>{CREW_SERVICE_LABELS[row.serviceType] || row.serviceType}</span><span className="font-medium">{row.memberName}</span></li>)}</ul> : <p className="mt-2 text-sm text-admin-subtle">No crew members added.</p>}
+      </section>
+      <BookingDeliverablesPanel booking={booking} canManage={canManageBooking} canPrice={canViewBookingPricing(user?.role)} onSaved={updated => { sync(updated); setSuccess('Deliverables saved'); }} />
       {resourcesLoading && <p role="status" className="text-sm text-admin-subtle">Loading editing and assignment options…</p>}
       {resourcesError && <p role="alert" className="text-sm text-amber-800">{resourcesError} <button className="underline" onClick={() => void loadResources()}>Retry</button></p>}
       <div className="bd-tabs sticky top-16 z-10 rounded-xl border border-admin-border bg-admin-surface shadow-sm">
@@ -720,6 +731,7 @@ function BookingDetailWorkspace() {
 </div><button disabled={saving} onClick={() => void saveEditor()} className="mt-4 min-h-11 rounded-lg bg-admin-primary px-4 text-sm font-semibold text-white">{saving ? 'Saving…' : 'Save links'}</button></>}
         <button disabled={saving} onClick={() => void closeEditor()} className="mt-3 min-h-11 px-3 text-sm">Cancel</button>
       </BookingDialog>}
+      {canManageBooking && editingCrew && <BookingCrewDialog key={booking.id} booking={booking} onClose={() => setEditingCrew(false)} onSaved={updated => { sync(updated); setEditingCrew(false); setSuccess('Crew saved'); }} />}
       {canManageBooking && editing && <BookingFormModal booking={booking} packages={packages} services={bookingServices} staffAccounts={staffAccounts} onClose={() => setEditing(false)} onSave={saveEdit} />}
       {canManageBooking && messageOpen && <WhatsAppComposer initialTemplate={messageOpen} context={{ customerName: booking.customerName, phone: booking.customerPhone, service: booking.shootType || booking.packageName, bookingDate: booking.bookingDate, startTime: booking.startTime, endTime: booking.endTime, location: booking.location, balanceDue: canViewPayments ? booking.paymentSummary.balanceDue : undefined, paymentDueDate: canViewPayments ? booking.paymentDueDate : undefined, reviewUrl, consentRecorded: booking.whatsappOptIn, optedOut: Boolean(booking.whatsappOptOutAt) }} onOpened={messageOpen === 'review_request' ? () => updateReview('requested') : undefined} onClose={() => setMessageOpen(null)} />}
       {canViewPayments && paymentModal && <PaymentModal payment={paymentModal === 'new' ? null : paymentModal} onClose={() => setPaymentModal(null)} onSave={async data => { const updated = paymentModal === 'new' ? await api.addBookingPayment(booking.id, data) : await api.updateBookingPayment(booking.id, paymentModal.id, data); sync(updated); setSuccess('Payment saved'); setPaymentModal(null); }} />}

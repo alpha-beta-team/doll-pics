@@ -1,3 +1,4 @@
+import '../../../src/admin/components/deliverables-editor.css';
 import { createRoot } from "react-dom/client";
 import { MemoryRouter, Route, Routes, useNavigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "../../../src/admin/contexts/AuthContext";
@@ -28,6 +29,8 @@ declare global {
     };
   }
 }
+api.getDeliverables = async () => [];
+api.getDeliverableConfiguration = async () => ({ revision: 0, base: [], seasonal: [] });
 const params = new URLSearchParams(location.search);
 window.bookingTest = { calls: [], fail: "", hold: false };
 const role = (params.get("role") || "owner") as StaffAccount["role"];

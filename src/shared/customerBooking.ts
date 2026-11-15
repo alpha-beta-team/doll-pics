@@ -1,4 +1,5 @@
 export interface CustomerBooking {
+  deliverables?: Array<{ name: string; quantity: number }>;
   customerName: string;
   shootType: string;
   packageName: string;
