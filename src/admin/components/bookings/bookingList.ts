@@ -116,6 +116,7 @@ export function bookingMatchesSearch(booking: Booking, query: string) {
   const normalized = query.trim().toLocaleLowerCase('en-IN');
   if (!normalized) return true;
   const matchesText = [
+    booking.customerCode || '',
     booking.customerName,
     booking.customerPhone,
     booking.shootType,

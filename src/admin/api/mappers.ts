@@ -218,6 +218,8 @@ export function mapBooking(doc: Record<string, unknown>): Booking {
     ? doc.reviewHistory as Record<string, unknown>[] : [];
   return {
     id: base.id,
+    customerId: doc.customerId ? String(doc.customerId) : undefined,
+    customerCode: doc.customerCode ? String(doc.customerCode) : undefined,
     customerName: (doc.customerName as string) ?? '',
     customerPhone: (doc.customerPhone as string) ?? '',
     customerEmail: (doc.customerEmail as string) ?? '',

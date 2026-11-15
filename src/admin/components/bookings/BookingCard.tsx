@@ -1,3 +1,4 @@
+import { CustomerCode } from '../CustomerCode';
 import type { KeyboardEvent } from 'react';
 import { AlertTriangle, CalendarDays, ChevronRight, Clock3, Globe, Phone, UserRound, UserRoundPlus } from 'lucide-react';
 import type { Booking } from '../../types';
@@ -54,6 +55,7 @@ export function BookingCard({ booking, canViewPayments, showPricing, canViewPhon
         <span aria-hidden="true" className={`booking-avatar flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold ring-1 ring-inset ${avatarColor}`}><span className="booking-desktop-only">{customer[0].toUpperCase()}</span><span className="booking-mobile-only">{initials}</span></span>
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1"><h3 className="break-words text-sm font-semibold leading-5 text-admin-text">{customer}</h3><span className={`booking-status-badge inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[11px] font-semibold leading-4 ring-1 ring-inset ${bookingStatusClass[booking.status]}`}>{bookingStatusLabel(booking.status)}</span></div>
+          <CustomerCode code={booking.customerCode} />
           {booking.customerPhone && <p className="mt-1 break-all text-xs text-admin-subtle">{canViewPhone ? booking.customerPhone : 'Phone hidden'}</p>}
         </div>
       </div>

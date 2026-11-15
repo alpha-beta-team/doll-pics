@@ -473,6 +473,8 @@ export type AdminEnquiryWritePayload = {
 };
 
 export type ConvertEnquiryPayload = {
+  customerId?: string;
+  newCustomerReason?: string;
   creationRequestId?: string;
   requestKey?: string;
   expectedPricingToken?: string;
@@ -559,6 +561,8 @@ export type WhatsAppMessageSummary = {
 };
 
 export type Booking = {
+  customerId?: string;
+  customerCode?: string;
   attribution?: MarketingAttribution;
   separateShootDecision?: { reason: string; reviewedRecordIds: string[]; actorId: string; decidedAt: string };
   pricingSnapshot?: PricingSnapshot | null;
@@ -795,6 +799,8 @@ export type OwnerOverviewReport = {
 };
 
 export type BookingWritePayload = {
+  customerId?: string;
+  newCustomerReason?: string;
   creationRequestId?: string;
   separateShootReason?: string;
   reviewedRecordIds?: string[];
@@ -1059,6 +1065,8 @@ export type QuotationSettings = {
 };
 
 export type AdminSearchItem = {
+  customerId?: string;
+  customerCode?: string;
   id: string;
   type: 'enquiry' | 'booking';
   customerName: string;
@@ -1078,6 +1086,8 @@ export type AdminSearchResponse = {
 };
 
 export type CustomerLookupRecord = {
+  customerId?: string;
+  customerCode?: string;
   bookingDate?: string;
   id: string;
   type: 'enquiry' | 'booking';

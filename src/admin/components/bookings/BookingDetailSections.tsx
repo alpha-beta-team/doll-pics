@@ -1,3 +1,4 @@
+import { CustomerCode } from '../CustomerCode';
 import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Pencil, Trash2 } from 'lucide-react';
@@ -47,7 +48,7 @@ export function BookingDialog({ title, onClose, children, variant = 'modal', cla
 }
 
 export function BookingCustomerDetails({ booking, canViewPhone }: { booking: Booking; canViewPhone: boolean }) {
-  return <BookingSection title="Customer"><dl className="grid gap-3 sm:grid-cols-2"><div><dt className="text-xs text-admin-subtle">Phone</dt><dd>{canViewPhone ? <a className="text-admin-primary" href={`tel:${booking.customerPhone}`}>{booking.customerPhone}</a> : booking.customerPhone}</dd></div><div><dt className="text-xs text-admin-subtle">Email</dt><dd>{booking.customerEmail ? <a className="break-all text-admin-primary" href={`mailto:${booking.customerEmail}`}>{booking.customerEmail}</a> : 'Not recorded'}</dd></div><div><dt className="text-xs text-admin-subtle">Source</dt><dd>{leadSourceLabel(booking.source)}</dd></div></dl></BookingSection>;
+  return <BookingSection title="Customer"><dl className="grid gap-3 sm:grid-cols-2"><div><dt className="text-xs text-admin-subtle">Customer ID</dt><dd><CustomerCode code={booking.customerCode} />{!booking.customerCode && 'Not assigned'}</dd></div><div><dt className="text-xs text-admin-subtle">Phone</dt><dd>{canViewPhone ? <a className="text-admin-primary" href={`tel:${booking.customerPhone}`}>{booking.customerPhone}</a> : booking.customerPhone}</dd></div><div><dt className="text-xs text-admin-subtle">Email</dt><dd>{booking.customerEmail ? <a className="break-all text-admin-primary" href={`mailto:${booking.customerEmail}`}>{booking.customerEmail}</a> : 'Not recorded'}</dd></div><div><dt className="text-xs text-admin-subtle">Source</dt><dd>{leadSourceLabel(booking.source)}</dd></div></dl></BookingSection>;
 }
 
 export function BookingPaymentDetails({ booking, onAdd, onEdit, onDelete, onEditDueDate }: { booking: Booking; onEditDueDate?: () => void; onAdd: () => void; onEdit: (payment: BookingPayment) => void; onDelete: (payment: BookingPayment) => void }) {
