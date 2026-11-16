@@ -256,3 +256,11 @@ createRoot(document.getElementById("root")!).render(
     </AuthProvider>
   </MemoryRouter>,
 );
+
+bookingWorkspaceApi.deleteNote = async (_id, id, revision) => workspaceResult('deleteNote', [id, revision], () => {
+  workspace.notes = workspace.notes.filter(note => note.id !== id);
+  workspace.followUps.forEach(task => { if (task.sourceNoteId === id) { delete task.sourceNoteId; task.revision += 1; } });
+});
+bookingWorkspaceApi.deleteFollowUp = async (_id, id, revision) => workspaceResult('deleteFollowUp', [id, revision], () => {
+  workspace.followUps = workspace.followUps.filter(task => task.id !== id);
+});

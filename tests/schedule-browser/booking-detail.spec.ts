@@ -131,7 +131,8 @@ test('payments retain failed input, save reference, edit and delete through exis
 test('follow-ups use Kolkata time, retain completed history and update Overview', async ({ page }) => {
   await open(page);
   await page.getByRole('tab', { name: 'Notes & Follow-ups' }).click();
-  await page.getByRole('button', { name: 'Follow-up', exact: true }).click();
+  await page.getByRole('button', { name: 'Open create actions' }).click();
+  await page.getByRole('button', { name: 'Create a Follow-up', exact: true }).click();
   const dialog = page.getByRole('dialog');
   await dialog.getByLabel('Title', { exact: true }).fill('Confirm balance');
   await dialog.getByLabel('Due date & time (IST)').fill('2099-11-10T10:00');
@@ -139,7 +140,7 @@ test('follow-ups use Kolkata time, retain completed history and update Overview'
   await expect(dialog).toHaveCount(0);
   expect((await calls(page)).at(-1)?.args[0]).toMatchObject({ title: 'Confirm balance', dueAt: '2099-11-10T04:30:00.000Z' });
   await expect(page.getByRole('tab', { name: 'Notes & Follow-ups · 1' })).toBeVisible();
-  await page.getByRole('button', { name: 'Mark done', exact: true }).click();
+  await page.getByRole('button', { name: 'Mark as done', exact: true }).click();
   await dialog.getByLabel('Outcome (optional)').fill('Customer confirmed');
   await dialog.getByRole('button', { name: 'Mark done', exact: true }).click();
   await page.getByText('Completed & cancelled · 1', { exact: true }).click();
@@ -150,7 +151,8 @@ test('follow-ups use Kolkata time, retain completed history and update Overview'
 
 test('notes preserve failed drafts, support editing and pinning, and prefill follow-ups', async ({ page }) => {
   await open(page, 'tab=notes');
-  await page.getByRole('button', { name: 'Note', exact: true }).click();
+  await page.getByRole('button', { name: 'Open create actions' }).click();
+  await page.getByRole('button', { name: 'Create a Note', exact: true }).click();
   const dialog = page.getByRole('dialog');
   await dialog.getByLabel('Internal note').fill('Customer prefers pastel colours');
   await page.evaluate(() => { window.bookingTest.fail = 'workspace'; });
@@ -181,6 +183,7 @@ test('read-only booking viewers cannot create notes or follow-ups', async ({ pag
   await expect(page.getByText('No notes yet.', { exact: false })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Note', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Follow-up', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Open create actions' })).toHaveCount(0);
 });
 
 test('delivery draft is not shareable until saved; errors preserve links', async ({ page }) => {
@@ -301,5 +304,55 @@ for (const width of [1440, 1024, 768, 390, 720]) {
     await expect(page.getByRole('tab', { name: 'Overview', exact: true })).toHaveAttribute('aria-selected', 'true');
     await page.keyboard.press('ArrowRight');
     await expect(page.getByRole('tab', { name: 'Payments', exact: true })).toBeFocused();
+  });
+}
+
+for (const width of [1280, 390]) {
+  test(`notes workspace layout and creation menu at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 1000 });
+    await open(page, 'tab=notes');
+    const workspace = page.getByRole('region', { name: 'Notes and follow-ups' });
+    const create = workspace.getByRole('button', { name: 'Open create actions' });
+    await create.click();
+    await expect(workspace.getByRole('button', { name: 'Create a Note', exact: true })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(create).toBeFocused();
+    await expect(create).toHaveAttribute('aria-expanded', 'false');
+    await create.click();
+    await workspace.getByRole('button', { name: 'Create a Note', exact: true }).click();
+    const dialog = page.getByRole('dialog');
+    await dialog.getByLabel('Internal note').fill('Spoke to customer; they need to reschedule the shoot. Confirm availability with the team.');
+    await dialog.getByRole('button', { name: 'Save', exact: true }).click();
+    await workspace.getByRole('button', { name: 'Pin note', exact: true }).click();
+    await workspace.getByRole('button', { name: 'Add follow-up', exact: true }).click();
+    await dialog.getByLabel('Title', { exact: true }).fill('Call customer to confirm shoot date');
+    await dialog.getByLabel('Due date & time (IST)').fill('2099-11-17T20:52');
+    await dialog.getByRole('button', { name: 'Save', exact: true }).click();
+    await expect(workspace.getByText('Upcoming', { exact: true })).toBeVisible();
+    await expect(workspace.getByRole('link', { name: 'View linked note' })).toBeVisible();
+    const followUps = await workspace.getByRole('complementary', { name: 'Follow-ups' }).boundingBox();
+    const note = await workspace.locator('[id^="booking-note-"]').boundingBox();
+    expect(followUps).not.toBeNull();
+    expect(note).not.toBeNull();
+    if (width < 1024) expect(followUps!.y).toBeLessThan(note!.y);
+    else expect(followUps!.x).toBeGreaterThan(note!.x);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await workspace.screenshot({ path: `/tmp/notes-workspace-${width}.png` });
+    await workspace.getByRole('button', { name: 'Delete note', exact: true }).click();
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Cancel', exact: true }).click();
+    await expect(workspace.getByRole('button', { name: 'Delete note', exact: true })).toBeVisible();
+    await workspace.getByRole('button', { name: 'Delete note', exact: true }).click();
+    await page.evaluate(() => { window.bookingTest.fail = 'workspace'; });
+    await accept(page, 'Delete note');
+    await expect(workspace.getByRole('alert')).toContainText('Temporary workspace save failure');
+    await expect(workspace.getByRole('button', { name: 'Delete note', exact: true })).toBeVisible();
+    await page.evaluate(() => { window.bookingTest.fail = ''; });
+    await workspace.getByRole('button', { name: 'Delete note', exact: true }).click();
+    await accept(page, 'Delete note');
+    await expect(workspace.getByText('No notes yet.', { exact: true })).toBeVisible();
+    await expect(workspace.getByRole('link', { name: 'View linked note' })).toHaveCount(0);
+    await workspace.getByRole('button', { name: 'Delete follow-up: Call customer to confirm shoot date', exact: true }).click();
+    await accept(page, 'Delete follow-up');
+    await expect(workspace.getByText('No pending follow-ups', { exact: true })).toBeVisible();
   });
 }
