@@ -1,3 +1,5 @@
+import { bookingWorkspaceApi } from '../../../src/admin/api/bookingWorkspace';
+import type { BookingWorkspace } from '../../../src/shared/bookingWorkspace';
 import '../../../src/admin/components/deliverables-editor.css';
 import { createRoot } from "react-dom/client";
 import { MemoryRouter, Route, Routes, useNavigate } from "react-router-dom";
@@ -192,6 +194,33 @@ api.lookupCustomer = async () => ({
   active: [],
   history: [],
 });
+let workspace: BookingWorkspace = { notes: [], followUps: [], pendingFollowUpCount: 0, nextFollowUpId: '', nextFollowUpAt: null, followUpNote: '' };
+const workspaceActor = { id: 'staff', name: 'Staff' };
+function workspaceResult(method: string, args: unknown[], update: () => void) {
+  window.bookingTest.calls.push({ method, args });
+  if (window.bookingTest.fail === 'workspace') throw new Error('Temporary workspace save failure');
+  update();
+  const pending = workspace.followUps.filter(row => row.status === 'pending').sort((a, b) => a.dueAt.localeCompare(b.dueAt));
+  workspace = { ...workspace, pendingFollowUpCount: pending.length, nextFollowUpId: pending[0]?.id || '', nextFollowUpAt: pending[0]?.dueAt || null, followUpNote: pending[0]?.title || '' };
+  booking = { ...booking, pendingFollowUpCount: pending.length, nextFollowUpAt: workspace.nextFollowUpAt || undefined, followUpNote: workspace.followUpNote };
+  return structuredClone(workspace);
+}
+bookingWorkspaceApi.get = async () => structuredClone(workspace);
+bookingWorkspaceApi.createNote = async (_id, body, requestId) => workspaceResult('createNote', [body, requestId], () => {
+  const now = new Date().toISOString();
+  if (!workspace.notes.some(row => row.id === requestId)) workspace.notes.push({ id: requestId, body, pinned: false, revision: 1, createdAt: now, updatedAt: now, createdBy: workspaceActor, updatedBy: workspaceActor, history: [] });
+});
+bookingWorkspaceApi.updateNote = async (_id, id, data) => workspaceResult('updateNote', [id, data], () => {
+  const note = workspace.notes.find(row => row.id === id)!;
+  note.history.push({ at: new Date().toISOString(), action: data.body ? 'edited' : data.pinned ? 'pinned' : 'unpinned', actor: workspaceActor });
+  Object.assign(note, data, { revision: note.revision + 1 });
+});
+bookingWorkspaceApi.createFollowUp = async (_id, data) => workspaceResult('createFollowUp', [data], () => {
+  const now = new Date().toISOString();
+  if (!workspace.followUps.some(row => row.id === data.requestId)) workspace.followUps.push({ ...data, id: data.requestId, assigneeName: data.assigneeId ? 'Vignesh' : '', status: 'pending', outcome: '', revision: 1, createdAt: now, updatedAt: now, createdBy: workspaceActor, updatedBy: workspaceActor, history: [] });
+});
+bookingWorkspaceApi.updateFollowUp = async (_id, id, data) => workspaceResult('updateFollowUp', [id, data], () => { Object.assign(workspace.followUps.find(row => row.id === id)!, data, { revision: data.revision + 1 }); });
+bookingWorkspaceApi.finishFollowUp = async (_id, id, data) => workspaceResult('finishFollowUp', [id, data], () => { Object.assign(workspace.followUps.find(row => row.id === id)!, data, { revision: data.revision + 1, updatedAt: new Date().toISOString(), updatedBy: workspaceActor }); });
 export function Harness() {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();

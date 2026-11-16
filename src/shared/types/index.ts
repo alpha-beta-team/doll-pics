@@ -591,6 +591,8 @@ export type Booking = {
   durationHours: number;
   location: string;
   paymentDueDate: string;
+  pendingFollowUpCount?: number;
+  nextFollowUpId?: string;
   nextFollowUpAt?: string;
   followUpNote: string;
   lastFollowUpCompletedAt?: string;

@@ -236,6 +236,8 @@ export function mapBooking(doc: Record<string, unknown>): Booking {
     paymentDueDate: (doc.paymentDueDate as string) || String(doc.reminderDate ?? '').slice(0, 10),
     nextFollowUpAt: doc.nextFollowUpAt ? String(doc.nextFollowUpAt) : undefined,
     followUpNote: (doc.followUpNote as string) ?? '',
+    pendingFollowUpCount: Number(doc.pendingFollowUpCount ?? (doc.nextFollowUpAt ? 1 : 0)),
+    nextFollowUpId: String(doc.nextFollowUpId || ''),
     lastFollowUpCompletedAt: doc.lastFollowUpCompletedAt ? String(doc.lastFollowUpCompletedAt) : undefined,
     notes: (doc.notes as string) ?? '',
     packageId: doc.packageId ? String(doc.packageId) : undefined,

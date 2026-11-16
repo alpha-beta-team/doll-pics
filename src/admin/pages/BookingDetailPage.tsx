@@ -1,3 +1,4 @@
+import { BookingNotesFollowUps } from '../components/bookings/BookingNotesFollowUps';
 import { BookingCrewDialog } from '../components/bookings/BookingCrewDialog';
 import { CREW_SERVICE_LABELS } from '../../shared/crew';
 import { deliverableExtraTotal } from '../../shared/deliverables';
@@ -49,8 +50,6 @@ import {
   whatsappDigits,
 } from '../../lib/pricing';
 import { bookingDurationLabel, formatTimeWindow } from '../../shared/bookingTime';
-import { dateTimeLocalInKolkata, followUpDateError, kolkataLocalToIso } from '../components/followUp.utils';
-import { FollowUpPanel } from '../components/FollowUpPanel';
 import { CustomerLookupPanel } from '../components/CustomerLookupPanel';
 import { WhatsAppComposer } from '../components/WhatsAppComposer';
 import { VoiceNotesPanel } from '../components/VoiceNotesPanel';
@@ -129,12 +128,13 @@ function BookingDetailWorkspace() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
-  const tabs = [{ id: 'overview', label: 'Overview' }, ...(canViewPayments ? [{ id: 'payments', label: 'Payments' }] : []), ...(canManageBooking ? [{ id: 'delivery', label: 'Delivery' }] : []), { id: 'customer', label: 'Customer' }, { id: 'activity', label: 'Activity' }];
+  const [booking, setBooking] = useState<Booking | null>(null);
+  const tabs = [{ id: 'overview', label: 'Overview' }, ...(canViewPayments ? [{ id: 'payments', label: 'Payments' }] : []), ...(canManageBooking ? [{ id: 'delivery', label: 'Delivery' }] : []), { id: 'customer', label: 'Customer' }, { id: 'notes', label: `Notes & Follow-ups${booking?.pendingFollowUpCount ? ` · ${booking.pendingFollowUpCount}` : ''}` }, { id: 'activity', label: 'Activity' }];
   const tab = tabs.some(item => item.id === params.get('tab')) ? params.get('tab')! : 'overview';
   const selectTab = (value: string) => setParams(previous => { const next = new URLSearchParams(previous); next.set('tab', value); return next; });
   const [visited, setVisited] = useState<Set<string>>(() => new Set([tab]));
   useEffect(() => { setVisited(previous => new Set([...previous, tab])); }, [tab]);
-  const [editor, setEditor] = useState<'followup' | 'delivery' | 'assignment' | null>(null);
+  const [editor, setEditor] = useState<'delivery' | 'assignment' | null>(null);
   const [assignee, setAssignee] = useState('');
   const [success, setSuccess] = useState('');
   useEffect(() => { if (!success) return; const timer = window.setTimeout(() => setSuccess(''), 5000); return () => window.clearTimeout(timer); }, [success]);
@@ -144,20 +144,33 @@ function BookingDetailWorkspace() {
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [messagesError, setMessagesError] = useState('');
   const [resourcesError, setResourcesError] = useState('');
+  const [staffOptionsError, setStaffOptionsError] = useState('');
   const [resourcesLoading, setResourcesLoading] = useState(false);
-  const [booking, setBooking] = useState<Booking | null>(null);
   const [packages, setPackages] = useState<Package[]>([]);
   const [bookingServices, setBookingServices] = useState<ServiceNavLink[]>([]);
   const [staffAccounts, setStaffAccounts] = useState<StaffAccountOption[]>([]);
   const [messages, setMessages] = useState<WhatsAppMessageSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const tabBar = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const list = tabBar.current?.querySelector<HTMLElement>('[role="tablist"]');
+    if (!list) return;
+    const reveal = () => {
+      const selected = list.querySelector<HTMLElement>('[aria-selected="true"]');
+      if (!selected) return;
+      const bounds = list.getBoundingClientRect(), button = selected.getBoundingClientRect();
+      if (button.left < bounds.left || button.right > bounds.right) list.scrollLeft += button.left - bounds.left - (bounds.width - button.width) / 2;
+    };
+    reveal();
+    const observer = new ResizeObserver(reveal);
+    observer.observe(list);
+    return () => observer.disconnect();
+  }, [tab, loading]);
   const [error, setError] = useState('');
   const [editing, setEditing] = useState(false);
   const [editingCrew, setEditingCrew] = useState(false);
   const [showAllCrew, setShowAllCrew] = useState(false);
   const [paymentModal, setPaymentModal] = useState<BookingPayment | 'new' | null>(null);
-  const [followUpAt, setFollowUpAt] = useState('');
-  const [followUpNote, setFollowUpNote] = useState('');
   const [driveGalleryUrl, setDriveGalleryUrl] = useState('');
   const [driveEditedUrl, setDriveEditedUrl] = useState('');
   const [driveRawsUrl, setDriveRawsUrl] = useState('');
@@ -181,11 +194,12 @@ function BookingDetailWorkspace() {
 
   const loadResources = useCallback(async () => {
     if (!canManageBooking) return;
-    setResourcesLoading(true); setResourcesError('');
+    setResourcesLoading(true); setResourcesError(''); setStaffOptionsError('');
     const results = await Promise.allSettled([api.getPackages(), api.getPhotographyServices(), api.getAssignableStaffAccounts(), api.getReviewConfig()]);
     if (results[0].status === 'fulfilled') setPackages(results[0].value);
     if (results[1].status === 'fulfilled') setBookingServices(results[1].value);
     if (results[2].status === 'fulfilled') setStaffAccounts(results[2].value);
+    else setStaffOptionsError('Staff options could not be loaded.');
     if (results[3].status === 'fulfilled') setReviewUrl(results[3].value.googleReviewUrl);
     if (results.some(result => result.status === 'rejected')) setResourcesError('Some editing options could not be loaded. Retry before editing.');
     setResourcesLoading(false);
@@ -325,38 +339,28 @@ function BookingDetailWorkspace() {
     if (scheduleChanged) setMessageOpen('booking_rescheduled');
   };
 
-  const openEditor = (kind: 'followup' | 'delivery' | 'assignment') => {
+  const openEditor = (kind: 'delivery' | 'assignment') => {
     if (!booking) return;
     setEditorError('');
     setAssignee(booking.assignedStaffAccountId || '');
-    setFollowUpAt(booking.nextFollowUpAt ? dateTimeLocalInKolkata(new Date(booking.nextFollowUpAt)) : '');
-    setFollowUpNote(booking.followUpNote);
     setDriveGalleryUrl(booking.driveGalleryUrl); setDriveEditedUrl(booking.driveEditedUrl);
     setDriveRawsUrl(booking.driveRawsUrl); setDriveNotes(booking.driveNotes);
     setEditor(kind);
   };
   const closeEditor = async () => {
     if (saving || !booking) return;
-    const dirty = editor === 'assignment' ? assignee !== (booking.assignedStaffAccountId || '') : editor === 'delivery'
-      ? driveGalleryUrl !== booking.driveGalleryUrl || driveEditedUrl !== booking.driveEditedUrl || driveRawsUrl !== booking.driveRawsUrl || driveNotes !== booking.driveNotes
-      : followUpAt !== (booking.nextFollowUpAt ? dateTimeLocalInKolkata(new Date(booking.nextFollowUpAt)) : '') || followUpNote !== booking.followUpNote;
+    const dirty = editor === 'assignment' ? assignee !== (booking.assignedStaffAccountId || '') : driveGalleryUrl !== booking.driveGalleryUrl || driveEditedUrl !== booking.driveEditedUrl || driveRawsUrl !== booking.driveRawsUrl || driveNotes !== booking.driveNotes;
     if (dirty && !await confirmDialog({ title: 'Discard unsaved changes?', description: 'Your changes have not been saved.', confirmLabel: 'Discard changes', variant: 'danger' })) return;
     setEditor(null);
   };
   const saveEditor = async () => {
     if (!booking) return;
-    if (editor === 'followup') {
-      const validationError = !followUpAt ? 'Choose a follow-up date and time.' : followUpDateError(followUpAt);
-      if (validationError) { setEditorError(validationError); return; }
-    }
     setSaving(true); setEditorError('');
     try {
       const updated = editor === 'assignment'
         ? await api.updateBooking(booking.id, { assignedStaffAccountId: assignee || null })
-        : editor === 'followup'
-        ? await api.scheduleBookingFollowUp(booking.id, kolkataLocalToIso(followUpAt), followUpNote)
         : await api.updateBooking(booking.id, { driveGalleryUrl, driveEditedUrl, driveRawsUrl, driveNotes });
-      sync(updated); setSuccess(editor === 'assignment' ? 'Staff assignment saved' : editor === 'followup' ? 'Follow-up scheduled' : 'Delivery links saved'); setEditor(null);
+      sync(updated); setSuccess(editor === 'assignment' ? 'Staff assignment saved' : 'Delivery links saved'); setEditor(null);
     } catch (err) { setEditorError(err instanceof Error ? err.message : 'Could not save changes.'); }
     finally { setSaving(false); }
   };
@@ -580,11 +584,11 @@ function BookingDetailWorkspace() {
 
       {resourcesLoading && <p role="status" className="text-sm text-admin-subtle">Loading editing and assignment options…</p>}
       {resourcesError && <p role="alert" className="text-sm text-amber-800">{resourcesError} <button className="underline" onClick={() => void loadResources()}>Retry</button></p>}
-      <div className="bd-tabs sticky top-16 z-10 rounded-xl border border-admin-border bg-admin-surface shadow-sm">
+      <div ref={tabBar} className="bd-tabs sticky top-16 z-10 rounded-xl border border-admin-border bg-admin-surface shadow-sm">
         <AdminTabs tabs={tabs} value={tab} onChange={selectTab} label="Booking details" />
       </div>
       {((canManageBooking && followUpOverdue) || calendarStatus === 'failed' || (booking.status === 'confirmed' && booking.bookingDate && booking.bookingDate < kolkataToday())) && <div role="status" className="bd-attention flex flex-wrap gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
-        {canManageBooking && followUpOverdue && <button className="underline" onClick={() => openEditor('followup')}>Follow-up overdue</button>}
+        {canManageBooking && followUpOverdue && <button className="underline" onClick={() => selectTab('notes')}>Follow-up overdue</button>}
         {calendarStatus === 'failed' && <button className="underline" onClick={() => selectTab('activity')}>Calendar needs attention</button>}
         {booking.status === 'confirmed' && booking.bookingDate && booking.bookingDate < kolkataToday() && <span><strong>Shoot status needs updating.</strong> Scheduled for {formatDay(booking.bookingDate)}.{canManageBooking && ' Mark complete above if the session took place.'}</span>}
       </div>}
@@ -610,9 +614,12 @@ function BookingDetailWorkspace() {
           </div>
           <aside className="bd-overview-side" aria-label="Payment and follow-up">
             {canViewPayments && <Card title="Payment summary" action={<button className="bd-button bd-button-primary" onClick={() => setPaymentModal('new')}>Record payment</button>}>{booking.pricingSnapshot?.campaignId && <div className="mb-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm"><p className="font-semibold">{booking.pricingSnapshot.campaignName}</p><p>Original: <del>{money(booking.pricingSnapshot.basePrice)}</del> · Sale: {money(booking.pricingSnapshot.salePrice)} · {booking.pricingSnapshot.isStartingFrom ? 'Estimated saving' : 'Campaign saving'}: {money(booking.pricingSnapshot.discountAmount)}</p>{booking.pricingSnapshot.adjustmentAmount !== 0 && <p>Final price adjustment: {money(booking.pricingSnapshot.adjustmentAmount)} · {booking.pricingSnapshot.overrideReason}</p>}<p className="mt-1 text-xs">Booked prices are preserved after the sale ends.</p></div>}<BookingPaymentSummary booking={booking} onEditDueDate={canEdit ? () => setEditing(true) : undefined} /><button className="bd-link ml-4" onClick={() => selectTab('payments')}>View payments</button></Card>}
-            {canManageBooking && <Card title="Next follow-up" action={<button className="bd-link" onClick={() => openEditor('followup')}>{booking.nextFollowUpAt ? 'Edit follow-up' : 'Schedule follow-up'}</button>}><p className="text-sm">{booking.nextFollowUpAt ? formatDateTime(booking.nextFollowUpAt) : 'No follow-up scheduled'}</p>{booking.followUpNote && <p className="mt-2 whitespace-pre-wrap text-sm text-admin-subtle">{booking.followUpNote}</p>}{booking.nextFollowUpAt && <button disabled={saving} className="bd-link" onClick={() => void run(() => api.completeBookingFollowUp(booking.id), 'Follow-up completed')}>Mark complete</button>}</Card>}
+            <Card title="Next follow-up" action={<button className="bd-link" onClick={() => selectTab('notes')}>View all</button>}><p className="text-sm">{booking.nextFollowUpAt ? formatDateTime(booking.nextFollowUpAt) : 'No follow-up scheduled'}</p>{booking.followUpNote && <p className="mt-2 whitespace-pre-wrap text-sm text-admin-subtle">{booking.followUpNote}</p>}</Card>
           </aside>
         </div>
+      </BookingTabPanel>
+      <BookingTabPanel id="notes" active={tab === 'notes'}>
+        {visited.has('notes') && <BookingNotesFollowUps booking={booking} canManage={canManageBooking} staff={staffAccounts} staffLoading={resourcesLoading} staffError={staffOptionsError} retryStaff={() => void loadResources()} onSummary={(state, changed) => { setBooking(current => current ? { ...current, pendingFollowUpCount: state.pendingFollowUpCount, nextFollowUpId: state.nextFollowUpId, nextFollowUpAt: state.nextFollowUpAt || undefined, followUpNote: state.followUpNote, lastFollowUpCompletedAt: state.lastFollowUpCompletedAt } : current); if (changed) void api.getBooking(booking.id).then(updated => { if (updated) sync(updated); }).catch(() => setSuccess('Changes saved. Reload the booking to refresh its other details.')); }} />}
       </BookingTabPanel>
       {canViewPayments && <BookingTabPanel id="payments" active={tab === 'payments'}><BookingPaymentDetails booking={booking} onAdd={() => setPaymentModal('new')} onEdit={setPaymentModal} onDelete={payment => void deletePayment(payment)} onEditDueDate={canEdit ? () => setEditing(true) : undefined} /></BookingTabPanel>}
       {canManageBooking && <BookingTabPanel id="delivery" active={tab === 'delivery'}>
@@ -715,27 +722,9 @@ function BookingDetailWorkspace() {
         </Card>}
 
 </BookingTabPanel>
-      {editor && <BookingDialog className="booking-detail booking-detail-dialog" title={editor === 'assignment' ? 'Assign staff' : editor === 'followup' ? 'Schedule follow-up' : 'Edit delivery links'} onClose={() => void closeEditor()}>
+      {editor && <BookingDialog className="booking-detail booking-detail-dialog" title={editor === 'assignment' ? 'Assign staff' : 'Edit delivery links'} onClose={() => void closeEditor()}>
         {editorError && <p role="alert" className="mb-3 text-sm text-red-700">{editorError}</p>}
-        {editor === 'assignment' ? <><label className="block text-sm">Assigned staff<select value={assignee} onChange={event => setAssignee(event.target.value)} className="mt-2 min-h-11 w-full rounded-lg border border-admin-border bg-admin-surface px-3"><option value="">No staff assigned</option>{booking.assignedStaffAccountId && !staffAccounts.some(staff => staff.id === booking.assignedStaffAccountId) && <option value={booking.assignedStaffAccountId}>{booking.assignedStaffAccountName || 'Current assignee'}</option>}{staffAccounts.map(staff => <option key={staff.id} value={staff.id}>{staff.name}</option>)}</select></label>{!staffAccounts.length && <p className="mt-2 text-sm text-admin-subtle">No assignable staff available.</p>}<button disabled={saving} onClick={() => void saveEditor()} className="mt-4 min-h-11 rounded-lg bg-admin-primary px-4 text-sm font-semibold text-white">{saving ? 'Saving…' : 'Save assignment'}</button></> : editor === 'followup' ? <>        {canManageBooking && <FollowUpPanel
-          className="lg:col-span-2"
-          value={followUpAt}
-          note={followUpNote}
-          onChange={setFollowUpAt}
-          onNoteChange={setFollowUpNote}
-          onSubmit={() => void saveEditor()}
-          disabled={saving}
-          submitLabel={booking.nextFollowUpAt ? 'Reschedule follow-up' : 'Save follow-up'}
-          notePlaceholder="What should we discuss?"
-          current={booking.nextFollowUpAt ? {
-            dateLabel: formatDateTime(booking.nextFollowUpAt),
-            note: booking.followUpNote,
-            overdue: Boolean(followUpOverdue),
-          } : undefined}
-
-        />}
-
-</> : <><div>        <div className="grid gap-3 sm:grid-cols-3">{[['Gallery folder', driveGalleryUrl, setDriveGalleryUrl], ['Edited photos', driveEditedUrl, setDriveEditedUrl], ['RAW files', driveRawsUrl, setDriveRawsUrl]].map(([label, value, setter]) => <label key={label as string} className="text-sm text-slate-700">{label as string}<div className="mt-1 flex gap-2"><input value={value as string} onChange={e => (setter as (value: string) => void)(e.target.value)} className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm" />{value && <a aria-label={`Open ${label as string}`} href={/^https?:\/\//i.test(value as string) ? value as string : undefined} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-300 p-2"><ExternalLink className="h-4 w-4" /></a>}</div></label>)}</div>
+        {editor === 'assignment' ? <><label className="block text-sm">Assigned staff<select value={assignee} onChange={event => setAssignee(event.target.value)} className="mt-2 min-h-11 w-full rounded-lg border border-admin-border bg-admin-surface px-3"><option value="">No staff assigned</option>{booking.assignedStaffAccountId && !staffAccounts.some(staff => staff.id === booking.assignedStaffAccountId) && <option value={booking.assignedStaffAccountId}>{booking.assignedStaffAccountName || 'Current assignee'}</option>}{staffAccounts.map(staff => <option key={staff.id} value={staff.id}>{staff.name}</option>)}</select></label>{!staffAccounts.length && <p className="mt-2 text-sm text-admin-subtle">No assignable staff available.</p>}<button disabled={saving} onClick={() => void saveEditor()} className="mt-4 min-h-11 rounded-lg bg-admin-primary px-4 text-sm font-semibold text-white">{saving ? 'Saving…' : 'Save assignment'}</button></> : <><div>        <div className="grid gap-3 sm:grid-cols-3">{[['Gallery folder', driveGalleryUrl, setDriveGalleryUrl], ['Edited photos', driveEditedUrl, setDriveEditedUrl], ['RAW files', driveRawsUrl, setDriveRawsUrl]].map(([label, value, setter]) => <label key={label as string} className="text-sm text-slate-700">{label as string}<div className="mt-1 flex gap-2"><input value={value as string} onChange={e => (setter as (value: string) => void)(e.target.value)} className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm" />{value && <a aria-label={`Open ${label as string}`} href={/^https?:\/\//i.test(value as string) ? value as string : undefined} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-300 p-2"><ExternalLink className="h-4 w-4" /></a>}</div></label>)}</div>
         <label className="mt-3 block text-sm">Delivery note<textarea value={driveNotes} onChange={e => setDriveNotes(e.target.value)} placeholder="Delivery note" className="mt-3 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" rows={2} /></label>
 </div><button disabled={saving} onClick={() => void saveEditor()} className="mt-4 min-h-11 rounded-lg bg-admin-primary px-4 text-sm font-semibold text-white">{saving ? 'Saving…' : 'Save links'}</button></>}
         <button disabled={saving} onClick={() => void closeEditor()} className="mt-3 min-h-11 px-3 text-sm">Cancel</button>

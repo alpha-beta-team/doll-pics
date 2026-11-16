@@ -735,10 +735,10 @@ function BookingWizard({
           ? advanceMethod
           : undefined,
       paymentDueDate: canViewPayments ? paymentDueDate : undefined,
-      nextFollowUpAt: nextFollowUpAt
+      nextFollowUpAt: !booking && nextFollowUpAt
         ? new Date(nextFollowUpAt).toISOString()
         : undefined,
-      followUpNote: followUpNote.trim() || undefined,
+      followUpNote: !booking ? followUpNote.trim() || undefined : undefined,
       notes: notes.trim(),
       enquiryId: !booking && enquiry ? enquiry.id : booking?.enquiryId,
       whatsappOptIn,
@@ -1439,6 +1439,7 @@ function BookingWizard({
               <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                 Next action
               </h3>
+              {!booking ? (
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="text-sm text-slate-700">
                   {BOOKING_WIZARD_FIELD_LABELS.followUpAt}
@@ -1459,6 +1460,7 @@ function BookingWizard({
                   />
                 </label>
               </div>
+              ) : <p className="text-sm text-slate-500">Manage follow-ups in the booking’s Notes &amp; Follow-ups tab.</p>}
               <label className="block text-sm text-slate-700">
                 {BOOKING_WIZARD_FIELD_LABELS.notes}
                 <textarea
