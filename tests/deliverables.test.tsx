@@ -22,7 +22,7 @@ async function mount(element: React.ReactNode) {
   const root = createRoot(dom.window.document.getElementById('root')!);
   await act(async () => root.render(element));
   return { document: dom.window.document,
-    async click(text: string) { const button = [...dom.window.document.querySelectorAll('button')].find(b => b.textContent === text); assert.ok(button, text); await act(async () => button.click()); },
+    async click(text: string) { const button = [...dom.window.document.querySelectorAll('button')].find(b => (b.getAttribute('aria-label') || b.textContent) === text); assert.ok(button, text); await act(async () => button.click()); },
     async change(selector: string, value: string) { const input = dom.window.document.querySelector<HTMLInputElement>(selector); assert.ok(input, selector); await act(async () => { input.value = value; Simulate.change(input); }); },
     async close() { await act(async () => root.unmount()); dom.window.close(); for (const [key, descriptor] of previous) { if (descriptor) Object.defineProperty(globalThis, key, descriptor); else Reflect.deleteProperty(globalThis, key); } },
   };

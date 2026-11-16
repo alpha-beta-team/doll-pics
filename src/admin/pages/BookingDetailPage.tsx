@@ -154,6 +154,7 @@ function BookingDetailWorkspace() {
   const [error, setError] = useState('');
   const [editing, setEditing] = useState(false);
   const [editingCrew, setEditingCrew] = useState(false);
+  const [showAllCrew, setShowAllCrew] = useState(false);
   const [paymentModal, setPaymentModal] = useState<BookingPayment | 'new' | null>(null);
   const [followUpAt, setFollowUpAt] = useState('');
   const [followUpNote, setFollowUpNote] = useState('');
@@ -577,11 +578,6 @@ function BookingDetailWorkspace() {
         </dl>
       </header>
 
-      <section className="rounded-xl border border-admin-border bg-admin-surface p-4" aria-label="Crew List">
-        <div className="flex items-center justify-between gap-3"><h2 className="text-lg font-semibold">Crew List</h2>{canManageBooking && <button type="button" onClick={() => setEditingCrew(true)} className="min-h-11 px-3 text-sm font-semibold text-admin-primary">Edit crew</button>}</div>
-        {booking.crewList?.length ? <ul className="mt-3 divide-y divide-admin-border">{booking.crewList.map((row, index) => <li key={index} className="flex flex-wrap justify-between gap-2 py-3 text-sm"><span>{CREW_SERVICE_LABELS[row.serviceType] || row.serviceType}</span><span className="font-medium">{row.memberName}</span></li>)}</ul> : <p className="mt-2 text-sm text-admin-subtle">No crew members added.</p>}
-      </section>
-      <BookingDeliverablesPanel booking={booking} canManage={canManageBooking} canPrice={canViewBookingPricing(user?.role)} onSaved={updated => { sync(updated); setSuccess('Deliverables saved'); }} />
       {resourcesLoading && <p role="status" className="text-sm text-admin-subtle">Loading editing and assignment options…</p>}
       {resourcesError && <p role="alert" className="text-sm text-amber-800">{resourcesError} <button className="underline" onClick={() => void loadResources()}>Retry</button></p>}
       <div className="bd-tabs sticky top-16 z-10 rounded-xl border border-admin-border bg-admin-surface shadow-sm">
@@ -593,6 +589,19 @@ function BookingDetailWorkspace() {
         {booking.status === 'confirmed' && booking.bookingDate && booking.bookingDate < kolkataToday() && <span><strong>Shoot status needs updating.</strong> Scheduled for {formatDay(booking.bookingDate)}.{canManageBooking && ' Mark complete above if the session took place.'}</span>}
       </div>}
       <BookingTabPanel id="overview" active={tab === 'overview'}>
+        <div className="mb-4 grid items-start gap-4 lg:grid-cols-2">
+          <BookingDeliverablesPanel booking={booking} canManage={canManageBooking} canPrice={canViewBookingPricing(user?.role)} onSaved={updated => { sync(updated); setSuccess('Deliverables saved'); }} />
+          <section className="min-w-0 rounded-xl border border-admin-border bg-admin-surface p-4" aria-label="Crew List">
+            <div className="flex min-h-11 items-center justify-between gap-3">
+              <h2 className="font-semibold">Crew <span className="ml-1 text-sm font-normal text-admin-subtle">· {booking.crewList?.length || 0}</span></h2>
+              {canManageBooking && !!booking.crewList?.length && <button type="button" aria-label="Edit crew" title="Edit crew" onClick={() => setEditingCrew(true)} className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-purple-700 hover:bg-purple-50 hover:text-purple-800 focus-visible:outline-purple-600"><Pencil className="h-4 w-4" aria-hidden="true" /></button>}
+            </div>
+            {booking.crewList?.length ? <>
+              <ul className="divide-y divide-admin-border">{(showAllCrew ? booking.crewList : booking.crewList.slice(0, 3)).map((row, index) => <li key={index} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-2 text-sm"><span className="min-w-0 break-words font-medium">{row.memberName}</span><span className="text-admin-subtle">{CREW_SERVICE_LABELS[row.serviceType] || row.serviceType}</span></li>)}</ul>
+              {booking.crewList.length > 3 && <button type="button" aria-expanded={showAllCrew} onClick={() => setShowAllCrew(value => !value)} className="min-h-11 text-sm font-semibold text-admin-primary">{showAllCrew ? 'Show less' : `View all ${booking.crewList.length} crew members`}</button>}
+            </> : <div className="flex flex-wrap items-center justify-between gap-2 py-2"><p className="text-sm text-admin-subtle">No crew assigned</p>{canManageBooking && <button type="button" onClick={() => setEditingCrew(true)} className="min-h-11 rounded-lg border border-purple-200 bg-purple-50 px-3 text-sm font-semibold text-purple-700 hover:border-purple-300 hover:bg-purple-100 hover:text-purple-800 focus-visible:outline-purple-600">+ Assign crew</button>}</div>}
+          </section>
+        </div>
         <div className="bd-overview">
           <div className="bd-overview-main">
             <Card title="Shoot details"><dl className="bd-details-grid"><Field label="Service">{booking.shootType || 'Not set'}</Field>{booking.preferredEvent && booking.preferredEvent.trim().toLowerCase() !== booking.shootType.trim().toLowerCase() && <Field label="Event">{booking.preferredEvent}</Field>}<Field label="Package">{booking.packageName || 'No package selected'}</Field><Field label="Duration">{bookingDurationLabel(booking.startTime, booking.endTime) || 'Not set'}</Field></dl>{booking.notes && <div className="bd-notes"><p className="bd-eyebrow">Shoot notes</p><p className="whitespace-pre-wrap break-words text-sm">{booking.notes}</p></div>}</Card>
