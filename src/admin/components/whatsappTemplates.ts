@@ -3,6 +3,7 @@ export type WhatsAppTemplateId = 'enquiry_follow_up' | 'booking_confirmation' | 
 
 export type ManualWhatsAppContext = {
   customerName: string;
+  customerCode?: string;
   phone: string;
   service?: string;
   bookingDate?: string;
@@ -55,7 +56,7 @@ function details(context: ManualWhatsAppContext) {
   ].filter(Boolean).join(' · ');
 }
 
-export function manualWhatsAppMessage(id: WhatsAppTemplateId, context: ManualWhatsAppContext): string {
+function templateBody(id: WhatsAppTemplateId, context: ManualWhatsAppContext): string {
   const name = formatCustomerName(context.customerName) || 'there';
   const bookingDetails = details(context);
   if (id === 'custom') return '';
@@ -72,4 +73,13 @@ export function manualWhatsAppMessage(id: WhatsAppTemplateId, context: ManualWha
   const due = day(context.paymentDueDate);
   const paymentDetails = [balance && `balance ${balance}`, due && `due ${due}`].filter(Boolean).join(', ');
   return `Hi ${name}, this is a friendly payment reminder from Doll Pictures${paymentDetails ? ` for the ${paymentDetails}` : ''}. Please let us know once it is completed.`;
+}
+
+export function manualWhatsAppMessage(id: WhatsAppTemplateId, context: ManualWhatsAppContext): string {
+  const body = templateBody(id, context);
+  const code = context.customerCode?.trim();
+  if (!code) return body;
+  const greeting = `Hi ${formatCustomerName(context.customerName) || 'there'},`;
+  const content = body.startsWith(greeting) ? body.slice(greeting.length).trimStart() : body;
+  return `${greeting}\n\nCustomer code: ${code}\n\n${content}`;
 }

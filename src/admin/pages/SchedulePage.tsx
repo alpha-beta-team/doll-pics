@@ -36,6 +36,7 @@ type ComposerState = { context: ManualWhatsAppContext; template: WhatsAppTemplat
 function whatsappContext(item: ScheduleBookingItem | Booking, includePayments: boolean): ManualWhatsAppContext {
   return {
     customerName: item.customerName,
+    customerCode: 'customerCode' in item ? item.customerCode : undefined,
     phone: 'customerPhone' in item ? item.customerPhone : '',
     service: 'service' in item ? item.service : item.shootType,
     bookingDate: item.bookingDate,

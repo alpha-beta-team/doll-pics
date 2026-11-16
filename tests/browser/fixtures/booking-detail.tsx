@@ -73,6 +73,7 @@ let booking = mapBooking({
   whatsappOptIn: true,
   whatsappNotificationsEnabled: true,
   whatsappOptOutAt: params.has("optout") ? "2026-09-01T00:00:00Z" : undefined,
+  deliverables: params.has("photoCount") ? [{ id: 'photos', catalogId: 'photos', name: 'Edited images', kind: 'digital', unit: 'images', specifications: '', quantity: 25, category: 'included', amount: 0 }] : [],
   driveRawsUrl: params.has("raws") ? "https://drive.google.com/raws" : "",
   calendarSyncStatus: params.has("calendarFailed") ? "failed" : "synced",
   calendarSyncedAt: "2026-09-04T06:00:00Z",

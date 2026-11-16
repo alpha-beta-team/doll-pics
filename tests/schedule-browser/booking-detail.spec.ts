@@ -76,9 +76,12 @@ test('assignment errors retain draft and discard requires confirmation', async (
 });
 
 test('RAW-only delivery shares separately from completion', async ({ page }) => {
-  await open(page, 'status=shoot_completed&raws&tab=delivery');
+  await open(page, 'status=shoot_completed&raws&photoCount&tab=delivery');
+  await page.getByLabel('Include RAW files').check();
+  await expect(page.getByLabel('WhatsApp message', { exact: true })).toHaveValue(/Please select 25 photos from the RAW files for editing/);
+  await expect(page.getByLabel('WhatsApp number', { exact: false })).toHaveValue('+91 9876543210');
   const popup = page.waitForEvent('popup');
-  await page.getByRole('button', { name: 'Review and open WhatsApp' }).click();
+  await page.getByRole('button', { name: 'Share on WhatsApp' }).click();
   const whatsapp = await popup;
   await whatsapp.close();
   expect(await calls(page)).toEqual([]);
@@ -189,7 +192,7 @@ test('read-only booking viewers cannot create notes or follow-ups', async ({ pag
 test('delivery draft is not shareable until saved; errors preserve links', async ({ page }) => {
   await open(page, 'status=shoot_completed&tab=delivery');
   await expect(page.getByRole('button', { name: 'Mark delivered', exact: true })).toBeDisabled();
-  await page.getByRole('tabpanel').getByRole('button', { name: 'Add delivery links', exact: true }).click();
+  await page.getByRole('tabpanel').getByRole('button', { name: 'Edit delivery links', exact: true }).click();
   const dialog = page.getByRole('dialog');
   await dialog.getByLabel('Gallery folder', { exact: true }).fill('https://drive.google.com/gallery');
   await page.evaluate(() => { window.bookingTest.fail = 'update'; });
@@ -199,7 +202,7 @@ test('delivery draft is not shareable until saved; errors preserve links', async
   await page.evaluate(() => { window.bookingTest.fail = ''; });
   await dialog.getByRole('button', { name: 'Save links' }).click();
   await expect(dialog).toHaveCount(0);
-  await expect(page.locator('.bd-message-preview')).toContainText('https://drive.google.com/gallery');
+  await expect(page.getByLabel('WhatsApp message', { exact: true })).toHaveValue(/https:\/\/drive.google.com\/gallery/);
   expect((await calls(page)).at(-1)).toEqual({ method: 'update', args: ['one', { driveGalleryUrl: 'https://drive.google.com/gallery', driveEditedUrl: '', driveRawsUrl: '', driveNotes: '' }] });
   await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async () => { throw new Error('Denied'); } } }));
   await page.getByRole('button', { name: 'Copy Gallery folder', exact: true }).click();
@@ -243,7 +246,7 @@ test('opt-out and missing phone retain disabled actions; review requires eligibi
   await expect(page.getByRole('switch')).toBeDisabled();
   await expect(page.locator('header').getByRole('button', { name: 'Request review', exact: true })).toHaveCount(0);
   await page.getByRole('tab', { name: 'Delivery', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Review and open WhatsApp' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Share on WhatsApp' })).toBeDisabled();
 });
 
 test('review controls still record received status after delivery', async ({ page }) => {
@@ -275,13 +278,36 @@ test('reverse status changes stay in overflow and do not happen without confirma
   expect((await calls(page)).at(-1)?.args.slice(0, 2)).toEqual(['one', 'confirmed']);
 });
 
-test('due-date shortcut opens the original editor and unpriced bookings stay unpriced', async ({ page }) => {
+test('due-date shortcut saves only the date and unpriced bookings stay unpriced', async ({ page }) => {
   await open(page, 'unpriced');
   await expect(page.locator('header')).toContainText('Price not set');
   await page.getByRole('button', { name: 'Set due date', exact: true }).click();
   await expect(page.getByRole('dialog')).toBeVisible();
-  await expect(page.getByRole('heading', { name: /Edit booking/ })).toBeVisible();
-  expect(await calls(page)).toEqual([]);
+  await expect(page.getByRole('heading', { name: 'Set due date', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Edit booking/ })).toHaveCount(0);
+  await page.getByLabel('Payment due date', { exact: true }).fill('2026-12-01');
+  await page.getByRole('button', { name: 'Save due date' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  expect(await calls(page)).toEqual([{ method: 'update', args: ['one', { paymentDueDate: '2026-12-01' }] }]);
+  await expect(page.locator('header')).toContainText('Price not set');
+  await page.getByRole('tab', { name: 'Payments', exact: true }).click();
+  await page.getByRole('tabpanel', { name: 'Payments', exact: true }).getByRole('button', { name: 'Edit due date', exact: true }).click();
+  await expect(page.getByLabel('Payment due date', { exact: true })).toHaveValue('2026-12-01');
+  await page.getByLabel('Payment due date', { exact: true }).fill('');
+  await page.evaluate(() => { window.bookingTest.fail = 'update'; });
+  await page.getByRole('button', { name: 'Save due date' }).click();
+  await expect(page.getByRole('dialog').getByRole('alert')).toHaveText('Temporary save failure');
+  await page.evaluate(() => { window.bookingTest.fail = ''; });
+  await page.getByRole('button', { name: 'Save due date' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  expect((await calls(page)).at(-1)).toEqual({ method: 'update', args: ['one', { paymentDueDate: '' }] });
+  await expect(page.getByRole('tabpanel', { name: 'Payments', exact: true }).getByText('Payment due date not set', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Set due date', exact: true }).click();
+  await page.getByLabel('Payment due date', { exact: true }).fill('2026-12-02');
+  const beforeCancel = await calls(page);
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  expect(await calls(page)).toEqual(beforeCancel);
 });
 
 for (const width of [1440, 1024, 768, 390, 720]) {
@@ -356,3 +382,48 @@ for (const width of [1280, 390]) {
     await expect(workspace.getByText('No pending follow-ups', { exact: true })).toBeVisible();
   });
 }
+
+test('delivery validates links, filters selection and shares edited text with corrected recipient', async ({ page }) => {
+  await open(page, 'status=shoot_completed&raws&photoCount&tab=delivery');
+  await page.getByRole('button', { name: 'Edit delivery links', exact: true }).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByLabel('Gallery folder', { exact: true }).fill('aaa');
+  await dialog.getByRole('button', { name: 'Save links' }).click();
+  await expect(dialog.getByRole('alert')).toContainText('valid http:// or https://');
+  expect(await calls(page)).toEqual([]);
+  await dialog.getByLabel('Gallery folder', { exact: true }).fill('localhost:5173/gallery');
+  await dialog.getByLabel('Edited photos', { exact: true }).fill('https://example.com/edited');
+  await dialog.getByRole('button', { name: 'Save links' }).click();
+  const message = page.getByLabel('WhatsApp message', { exact: true });
+  await expect(message).not.toHaveValue(/drive.google.com\/raws/);
+  await page.getByLabel('Include RAW files').check();
+  await expect(message).toHaveValue(/Here are your files from Doll Pictures/);
+  await expect(message).not.toHaveValue(/Please select/);
+  await page.getByLabel('Include RAW files').uncheck();
+  await page.getByLabel('Include Edited photos').uncheck();
+  await expect(message).not.toHaveValue(/example.com\/edited/);
+  await page.getByLabel('WhatsApp number', { exact: false }).fill('123');
+  await expect(page.getByRole('button', { name: 'Share on WhatsApp' })).toBeDisabled();
+  await page.getByLabel('WhatsApp number', { exact: false }).fill('+44 7700 900123');
+  await message.fill(`${await message.inputValue()}\nEnjoy your photographs!`);
+  await page.evaluate(() => { window.open = (url) => { (window as unknown as { sharedUrl: string }).sharedUrl = String(url); return null; }; });
+  await page.getByRole('button', { name: 'Share on WhatsApp' }).click();
+  const url = new URL(await page.evaluate(() => (window as unknown as { sharedUrl: string }).sharedUrl));
+  expect(url.pathname).toBe('/447700900123');
+  expect(url.searchParams.get('text')).toContain('Enjoy your photographs!');
+  expect(url.searchParams.get('text')).toContain('http://localhost:5173/gallery');
+  expect(url.searchParams.get('text')).not.toContain('/raws');
+  expect((await calls(page)).map(call => call.method)).toEqual(['update']);
+  await message.fill(`${await message.inputValue()}\nhttps://unselected.example.com`);
+  await expect(page.getByRole('button', { name: 'Share on WhatsApp' })).toBeDisabled();
+  await page.getByRole('button', { name: 'Reset message' }).click();
+  await expect(page.getByRole('button', { name: 'Share on WhatsApp' })).toBeEnabled();
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await expect(page.locator('.bd-delivery-feedback')).toBeEmpty({ timeout: 6000 });
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.screenshot({ path: '/tmp/delivery-mobile.png', fullPage: true });
+  await page.setViewportSize({ width: 1440, height: 1100 });
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.screenshot({ path: '/tmp/delivery-desktop.png', fullPage: true });
+});

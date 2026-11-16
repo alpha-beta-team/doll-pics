@@ -1,4 +1,5 @@
 import { BookingNotesFollowUps } from '../components/bookings/BookingNotesFollowUps';
+import { BookingDueDateDialog } from '../components/bookings/BookingDueDateDialog';
 import { BookingCrewDialog } from '../components/bookings/BookingCrewDialog';
 import { CREW_SERVICE_LABELS } from '../../shared/crew';
 import { deliverableExtraTotal } from '../../shared/deliverables';
@@ -14,7 +15,6 @@ import {
   ArrowLeft,
   CalendarCheck,
   CheckCircle,
-  Copy,
   ArrowUpRight,
   ExternalLink,
   MessageCircle,
@@ -44,11 +44,8 @@ import { useFeatureAccess } from '../access/useFeatureAccess';
 import { useAuth } from '../contexts/AuthContext';
 import { ReadOnlyNotice } from '../components/ReadOnlyNotice';
 import { hasStaffPermission, canViewBookingPricing } from '../access/roles';
-import {
-  deliveryWhatsAppMessage,
-  deliveryWhatsAppUrl,
-  whatsappDigits,
-} from '../../lib/pricing';
+import { BookingDeliveryPanel } from '../components/bookings/BookingDeliveryPanel';
+import { normalizeDeliveryUrl, validDeliveryUrl } from '../components/bookings/deliverySharing';
 import { bookingDurationLabel, formatTimeWindow } from '../../shared/bookingTime';
 import { CustomerLookupPanel } from '../components/CustomerLookupPanel';
 import { WhatsAppComposer } from '../components/WhatsAppComposer';
@@ -140,7 +137,6 @@ function BookingDetailWorkspace() {
   useEffect(() => { if (!success) return; const timer = window.setTimeout(() => setSuccess(''), 5000); return () => window.clearTimeout(timer); }, [success]);
   const [editorError, setEditorError] = useState('');
   const [visibleMessages, setVisibleMessages] = useState(8);
-  const [copyNotice, setCopyNotice] = useState('');
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [messagesError, setMessagesError] = useState('');
   const [resourcesError, setResourcesError] = useState('');
@@ -169,6 +165,7 @@ function BookingDetailWorkspace() {
   const [error, setError] = useState('');
   const [editing, setEditing] = useState(false);
   const [editingCrew, setEditingCrew] = useState(false);
+  const [editingDueDate, setEditingDueDate] = useState(false);
   const [showAllCrew, setShowAllCrew] = useState(false);
   const [paymentModal, setPaymentModal] = useState<BookingPayment | 'new' | null>(null);
   const [driveGalleryUrl, setDriveGalleryUrl] = useState('');
@@ -355,21 +352,18 @@ function BookingDetailWorkspace() {
   };
   const saveEditor = async () => {
     if (!booking) return;
+    if (editor === 'delivery' && [driveGalleryUrl, driveEditedUrl, driveRawsUrl].some(url => url.trim() && !validDeliveryUrl(normalizeDeliveryUrl(url)))) {
+      setEditorError('Enter a valid http:// or https:// link for each resource, or leave it empty.'); return;
+    }
     setSaving(true); setEditorError('');
     try {
       const updated = editor === 'assignment'
         ? await api.updateBooking(booking.id, { assignedStaffAccountId: assignee || null })
-        : await api.updateBooking(booking.id, { driveGalleryUrl, driveEditedUrl, driveRawsUrl, driveNotes });
+        : await api.updateBooking(booking.id, { driveGalleryUrl: normalizeDeliveryUrl(driveGalleryUrl), driveEditedUrl: normalizeDeliveryUrl(driveEditedUrl), driveRawsUrl: normalizeDeliveryUrl(driveRawsUrl), driveNotes });
       sync(updated); setSuccess(editor === 'assignment' ? 'Staff assignment saved' : 'Delivery links saved'); setEditor(null);
     } catch (err) { setEditorError(err instanceof Error ? err.message : 'Could not save changes.'); }
     finally { setSaving(false); }
   };
-  const openDelivery = () => {
-    if (!booking) return;
-    const url = deliveryWhatsAppUrl(booking.customerPhone, deliveryContext);
-    if (url) window.open(url, '_blank', 'noopener,noreferrer');
-  };
-
   const markDelivered = async () => {
     if (!booking) return;
     const confirmed = await confirmDialog({
@@ -450,15 +444,7 @@ function BookingDetailWorkspace() {
   if (loading) return <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" /></div>;
   if (!booking) return <div className="space-y-4"><Link to="/admin/bookings" className="inline-flex items-center gap-2 text-sm text-slate-600"><ArrowLeft className="h-4 w-4" />Back to bookings</Link><div className="rounded-xl border border-red-200 bg-red-50 p-5 text-red-700">{error || 'Booking not found'}</div></div>;
 
-  const hasDeliveryLink = Boolean(booking.driveGalleryUrl || booking.driveEditedUrl || booking.driveRawsUrl);
-  const deliveryContext = {
-    customerName: booking.customerName,
-    shootType: booking.shootType,
-    galleryUrl: booking.driveGalleryUrl,
-    editedUrl: booking.driveEditedUrl,
-    rawsUrl: booking.driveRawsUrl,
-    driveNotes: booking.driveNotes,
-  };
+  const hasDeliveryLink = [booking.driveGalleryUrl, booking.driveEditedUrl, booking.driveRawsUrl].some(url => validDeliveryUrl(url.trim()));
   const followUpOverdue = booking.nextFollowUpAt && new Date(booking.nextFollowUpAt).getTime() < Date.now();
   const calendarStatus = booking.calendarSyncStatus || 'not_applicable';
   const primaryAction = actions.find(action => 'primary' in action && action.primary);
@@ -472,12 +458,6 @@ function BookingDetailWorkspace() {
     : booking.paymentSummary.balanceDue == null ? 'Balance not recorded'
     : booking.paymentSummary.balanceDue < 0 ? `${money(Math.abs(booking.paymentSummary.balanceDue))} overpaid`
     : booking.paymentSummary.balanceDue === 0 ? 'Paid in full' : `${money(booking.paymentSummary.balanceDue)} outstanding`;
-  const copyLink = async (url: string) => {
-    try { await navigator.clipboard.writeText(url); setCopyNotice('Link copied.'); }
-    catch { setCopyNotice('Could not copy. Select the link to copy it, or try again.'); }
-  };
-
-
   return (
     <div className="booking-detail mx-auto max-w-6xl space-y-4">
       <button onClick={() => navigate('/admin/bookings')} className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900"><ArrowLeft className="h-4 w-4" />Back to bookings</button>
@@ -613,7 +593,7 @@ function BookingDetailWorkspace() {
             <Card title="Recent schedule changes"><ScheduleHistory booking={booking} limit={3} />{!!booking.scheduleHistory.length && <button className="bd-link" onClick={() => selectTab('activity')}>View activity<ArrowUpRight className="h-4 w-4" /></button>}</Card>
           </div>
           <aside className="bd-overview-side" aria-label="Payment and follow-up">
-            {canViewPayments && <Card title="Payment summary" action={<button className="bd-button bd-button-primary" onClick={() => setPaymentModal('new')}>Record payment</button>}>{booking.pricingSnapshot?.campaignId && <div className="mb-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm"><p className="font-semibold">{booking.pricingSnapshot.campaignName}</p><p>Original: <del>{money(booking.pricingSnapshot.basePrice)}</del> · Sale: {money(booking.pricingSnapshot.salePrice)} · {booking.pricingSnapshot.isStartingFrom ? 'Estimated saving' : 'Campaign saving'}: {money(booking.pricingSnapshot.discountAmount)}</p>{booking.pricingSnapshot.adjustmentAmount !== 0 && <p>Final price adjustment: {money(booking.pricingSnapshot.adjustmentAmount)} · {booking.pricingSnapshot.overrideReason}</p>}<p className="mt-1 text-xs">Booked prices are preserved after the sale ends.</p></div>}<BookingPaymentSummary booking={booking} onEditDueDate={canEdit ? () => setEditing(true) : undefined} /><button className="bd-link ml-4" onClick={() => selectTab('payments')}>View payments</button></Card>}
+            {canViewPayments && <Card title="Payment summary" action={<button className="bd-button bd-button-primary" onClick={() => setPaymentModal('new')}>Record payment</button>}>{booking.pricingSnapshot?.campaignId && <div className="mb-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm"><p className="font-semibold">{booking.pricingSnapshot.campaignName}</p><p>Original: <del>{money(booking.pricingSnapshot.basePrice)}</del> · Sale: {money(booking.pricingSnapshot.salePrice)} · {booking.pricingSnapshot.isStartingFrom ? 'Estimated saving' : 'Campaign saving'}: {money(booking.pricingSnapshot.discountAmount)}</p>{booking.pricingSnapshot.adjustmentAmount !== 0 && <p>Final price adjustment: {money(booking.pricingSnapshot.adjustmentAmount)} · {booking.pricingSnapshot.overrideReason}</p>}<p className="mt-1 text-xs">Booked prices are preserved after the sale ends.</p></div>}<BookingPaymentSummary booking={booking} onEditDueDate={canEdit ? () => setEditingDueDate(true) : undefined} /><button className="bd-link ml-4" onClick={() => selectTab('payments')}>View payments</button></Card>}
             <Card title="Next follow-up" action={<button className="bd-link" onClick={() => selectTab('notes')}>View all</button>}><p className="text-sm">{booking.nextFollowUpAt ? formatDateTime(booking.nextFollowUpAt) : 'No follow-up scheduled'}</p>{booking.followUpNote && <p className="mt-2 whitespace-pre-wrap text-sm text-admin-subtle">{booking.followUpNote}</p>}</Card>
           </aside>
         </div>
@@ -621,27 +601,16 @@ function BookingDetailWorkspace() {
       <BookingTabPanel id="notes" active={tab === 'notes'}>
         {visited.has('notes') && <BookingNotesFollowUps booking={booking} canManage={canManageBooking} staff={staffAccounts} staffLoading={resourcesLoading} staffError={staffOptionsError} retryStaff={() => void loadResources()} onSummary={(state, changed) => { setBooking(current => current ? { ...current, pendingFollowUpCount: state.pendingFollowUpCount, nextFollowUpId: state.nextFollowUpId, nextFollowUpAt: state.nextFollowUpAt || undefined, followUpNote: state.followUpNote, lastFollowUpCompletedAt: state.lastFollowUpCompletedAt } : current); if (changed) void api.getBooking(booking.id).then(updated => { if (updated) sync(updated); }).catch(() => setSuccess('Changes saved. Reload the booking to refresh its other details.')); }} />}
       </BookingTabPanel>
-      {canViewPayments && <BookingTabPanel id="payments" active={tab === 'payments'}><BookingPaymentDetails booking={booking} onAdd={() => setPaymentModal('new')} onEdit={setPaymentModal} onDelete={payment => void deletePayment(payment)} onEditDueDate={canEdit ? () => setEditing(true) : undefined} /></BookingTabPanel>}
+      {canViewPayments && <BookingTabPanel id="payments" active={tab === 'payments'}><BookingPaymentDetails booking={booking} onAdd={() => setPaymentModal('new')} onEdit={setPaymentModal} onDelete={payment => void deletePayment(payment)} onEditDueDate={canEdit ? () => setEditingDueDate(true) : undefined} /></BookingTabPanel>}
       {canManageBooking && <BookingTabPanel id="delivery" active={tab === 'delivery'}>
-        <Card title="1. Prepare delivery links" action={<button onClick={() => openEditor('delivery')} disabled={saving} className="bd-button bd-button-primary">{hasDeliveryLink ? 'Edit links' : 'Add delivery links'}</button>}>
-          <p className="bd-helper">Save the files you want to share with this customer.</p>
-          <div className="bd-delivery-links">{[['Gallery folder', booking.driveGalleryUrl], ['Edited photos', booking.driveEditedUrl], ['RAW files', booking.driveRawsUrl]].map(([label, url]) => <div className="bd-delivery-row" key={label}><div className="min-w-0"><p className="font-semibold text-sm">{label}</p>{url ? <a className="bd-saved-url" href={/^https?:\/\//i.test(url) ? url : undefined} target="_blank" rel="noopener noreferrer">{url}</a> : <p className="bd-helper">No link added</p>}</div>{url && <div className="bd-row-actions"><a className="bd-button" aria-label={`Open ${label}`} href={/^https?:\/\//i.test(url) ? url : undefined} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" />Open</a><button className="bd-button" aria-label={`Copy ${label}`} onClick={() => void copyLink(url)}><Copy className="h-4 w-4" />Copy</button><button className="bd-link" aria-label={`Edit ${label}`} disabled={saving} onClick={() => openEditor('delivery')}>Edit</button></div>}</div>)}</div>
-          {copyNotice && <p role="status" className="bd-helper">{copyNotice}</p>}
-          {booking.driveNotes && <div className="bd-notes"><p className="bd-eyebrow">Delivery note</p><p className="whitespace-pre-wrap break-words text-sm">{booking.driveNotes}</p></div>}
-        </Card>
-        <Card title="2. Preview customer message">
-          {hasDeliveryLink ? <div className="bd-message-preview"><p className="whitespace-pre-wrap text-sm leading-6">{deliveryWhatsAppMessage(deliveryContext)}</p></div> : <p className="bd-helper">Add and save a delivery link to preview the customer message.</p>}
-          <button onClick={openDelivery} disabled={!hasDeliveryLink || !whatsappDigits(booking.customerPhone)} className="bd-button bd-button-whatsapp mt-4"><MessageCircle className="h-4 w-4" />Review and open WhatsApp</button>
-          <p className="bd-helper">Opening WhatsApp does not mark this booking as delivered.</p>
-          {!whatsappDigits(booking.customerPhone) && <p className="bd-helper">Add a valid customer phone number before sharing on WhatsApp.</p>}
-        </Card>
-        <Card title="3. Confirm delivery">
+        <BookingDeliveryPanel key={booking.id} booking={booking} saving={saving} onEdit={() => openEditor('delivery')} confirmation={<>
+          <h3 className="font-semibold text-sm">Delivery confirmation</h3>
           {booking.deliverySentAt && <p className="inline-flex items-center gap-2 text-sm"><CheckCircle className="h-4 w-4" />Delivered {formatDateTime(booking.deliverySentAt)}</p>}
           <p className="bd-helper">Confirm delivery after you have shared the files with the customer.</p>
           {booking.status === 'shoot_completed' && <button onClick={() => void markDelivered()} disabled={!hasDeliveryLink || saving} className="bd-button bd-button-primary mt-3">Mark delivered</button>}
           {!['shoot_completed', 'delivered'].includes(booking.status) && <p className="bd-helper">The shoot must be marked complete before confirming delivery.</p>}
           {!hasDeliveryLink && <p className="bd-helper">Save at least one delivery link before marking delivered.</p>}
-        </Card>
+        </>} />
       </BookingTabPanel>}
       <BookingTabPanel id="customer" active={tab === 'customer'}>{user?.role === 'owner' && (visited.has('customer') || tab === 'customer') && <CustomerBookingPanel booking={booking} />}        <BookingCustomerDetails booking={booking} canViewPhone={canViewPhone} />
 
@@ -724,14 +693,15 @@ function BookingDetailWorkspace() {
 </BookingTabPanel>
       {editor && <BookingDialog className="booking-detail booking-detail-dialog" title={editor === 'assignment' ? 'Assign staff' : 'Edit delivery links'} onClose={() => void closeEditor()}>
         {editorError && <p role="alert" className="mb-3 text-sm text-red-700">{editorError}</p>}
-        {editor === 'assignment' ? <><label className="block text-sm">Assigned staff<select value={assignee} onChange={event => setAssignee(event.target.value)} className="mt-2 min-h-11 w-full rounded-lg border border-admin-border bg-admin-surface px-3"><option value="">No staff assigned</option>{booking.assignedStaffAccountId && !staffAccounts.some(staff => staff.id === booking.assignedStaffAccountId) && <option value={booking.assignedStaffAccountId}>{booking.assignedStaffAccountName || 'Current assignee'}</option>}{staffAccounts.map(staff => <option key={staff.id} value={staff.id}>{staff.name}</option>)}</select></label>{!staffAccounts.length && <p className="mt-2 text-sm text-admin-subtle">No assignable staff available.</p>}<button disabled={saving} onClick={() => void saveEditor()} className="mt-4 min-h-11 rounded-lg bg-admin-primary px-4 text-sm font-semibold text-white">{saving ? 'Saving…' : 'Save assignment'}</button></> : <><div>        <div className="grid gap-3 sm:grid-cols-3">{[['Gallery folder', driveGalleryUrl, setDriveGalleryUrl], ['Edited photos', driveEditedUrl, setDriveEditedUrl], ['RAW files', driveRawsUrl, setDriveRawsUrl]].map(([label, value, setter]) => <label key={label as string} className="text-sm text-slate-700">{label as string}<div className="mt-1 flex gap-2"><input value={value as string} onChange={e => (setter as (value: string) => void)(e.target.value)} className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm" />{value && <a aria-label={`Open ${label as string}`} href={/^https?:\/\//i.test(value as string) ? value as string : undefined} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-300 p-2"><ExternalLink className="h-4 w-4" /></a>}</div></label>)}</div>
+        {editor === 'assignment' ? <><label className="block text-sm">Assigned staff<select value={assignee} onChange={event => setAssignee(event.target.value)} className="mt-2 min-h-11 w-full rounded-lg border border-admin-border bg-admin-surface px-3"><option value="">No staff assigned</option>{booking.assignedStaffAccountId && !staffAccounts.some(staff => staff.id === booking.assignedStaffAccountId) && <option value={booking.assignedStaffAccountId}>{booking.assignedStaffAccountName || 'Current assignee'}</option>}{staffAccounts.map(staff => <option key={staff.id} value={staff.id}>{staff.name}</option>)}</select></label>{!staffAccounts.length && <p className="mt-2 text-sm text-admin-subtle">No assignable staff available.</p>}<button disabled={saving} onClick={() => void saveEditor()} className="mt-4 min-h-11 rounded-lg bg-admin-primary px-4 text-sm font-semibold text-white">{saving ? 'Saving…' : 'Save assignment'}</button></> : <><div>        <div className="grid gap-4">{[['Gallery folder', driveGalleryUrl, setDriveGalleryUrl], ['Edited photos', driveEditedUrl, setDriveEditedUrl], ['RAW files', driveRawsUrl, setDriveRawsUrl]].map(([label, value, setter]) => <label key={label as string} className="text-sm text-slate-700">{label as string}<div className="mt-1 flex gap-2"><input type="url" inputMode="url" placeholder="https://drive.google.com/…" value={value as string} onChange={e => (setter as (value: string) => void)(e.target.value)} className="min-h-11 min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm" />{validDeliveryUrl(normalizeDeliveryUrl(value as string)) && <a aria-label={`Open ${label as string}`} href={normalizeDeliveryUrl(value as string)} target="_blank" rel="noreferrer" className="flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-slate-300 p-2"><ExternalLink className="h-4 w-4" /></a>}</div></label>)}</div>
         <label className="mt-3 block text-sm">Delivery note<textarea value={driveNotes} onChange={e => setDriveNotes(e.target.value)} placeholder="Delivery note" className="mt-3 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" rows={2} /></label>
 </div><button disabled={saving} onClick={() => void saveEditor()} className="mt-4 min-h-11 rounded-lg bg-admin-primary px-4 text-sm font-semibold text-white">{saving ? 'Saving…' : 'Save links'}</button></>}
         <button disabled={saving} onClick={() => void closeEditor()} className="mt-3 min-h-11 px-3 text-sm">Cancel</button>
       </BookingDialog>}
+      {canEdit && canViewPayments && editingDueDate && <BookingDueDateDialog key={booking.id} booking={booking} onClose={() => setEditingDueDate(false)} onSaved={updated => { sync(updated); setEditingDueDate(false); setSuccess('Payment due date saved'); }} />}
       {canManageBooking && editingCrew && <BookingCrewDialog key={booking.id} booking={booking} onClose={() => setEditingCrew(false)} onSaved={updated => { sync(updated); setEditingCrew(false); setSuccess('Crew saved'); }} />}
       {canManageBooking && editing && <BookingFormModal booking={booking} packages={packages} services={bookingServices} staffAccounts={staffAccounts} onClose={() => setEditing(false)} onSave={saveEdit} />}
-      {canManageBooking && messageOpen && <WhatsAppComposer initialTemplate={messageOpen} context={{ customerName: booking.customerName, phone: booking.customerPhone, service: booking.shootType || booking.packageName, bookingDate: booking.bookingDate, startTime: booking.startTime, endTime: booking.endTime, location: booking.location, balanceDue: canViewPayments ? booking.paymentSummary.balanceDue : undefined, paymentDueDate: canViewPayments ? booking.paymentDueDate : undefined, reviewUrl, consentRecorded: booking.whatsappOptIn, optedOut: Boolean(booking.whatsappOptOutAt) }} onOpened={messageOpen === 'review_request' ? () => updateReview('requested') : undefined} onClose={() => setMessageOpen(null)} />}
+      {canManageBooking && messageOpen && <WhatsAppComposer initialTemplate={messageOpen} context={{ customerName: booking.customerName, customerCode: booking.customerCode, phone: booking.customerPhone, service: booking.shootType || booking.packageName, bookingDate: booking.bookingDate, startTime: booking.startTime, endTime: booking.endTime, location: booking.location, balanceDue: canViewPayments ? booking.paymentSummary.balanceDue : undefined, paymentDueDate: canViewPayments ? booking.paymentDueDate : undefined, reviewUrl, consentRecorded: booking.whatsappOptIn, optedOut: Boolean(booking.whatsappOptOutAt) }} onOpened={messageOpen === 'review_request' ? () => updateReview('requested') : undefined} onClose={() => setMessageOpen(null)} />}
       {canViewPayments && paymentModal && <PaymentModal payment={paymentModal === 'new' ? null : paymentModal} onClose={() => setPaymentModal(null)} onSave={async data => { const updated = paymentModal === 'new' ? await api.addBookingPayment(booking.id, data) : await api.updateBookingPayment(booking.id, paymentModal.id, data); sync(updated); setSuccess('Payment saved'); setPaymentModal(null); }} />}
     </div>
   );
