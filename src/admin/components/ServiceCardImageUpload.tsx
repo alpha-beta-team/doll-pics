@@ -1,3 +1,4 @@
+import { AdminAlert } from './ui/AdminUi';
 import { useRef, useState, type DragEvent } from 'react';
 import { Image as ImageIcon, Upload } from 'lucide-react';
 import { api } from '../api/client';
@@ -99,16 +100,16 @@ export function ServiceCardImageUpload({
         }}
       />
       {fieldError ? (
-        <p className="mt-1.5 text-xs font-medium text-red-700">{fieldError}</p>
+        <AdminAlert as="span" className="mt-1.5">{fieldError}</AdminAlert>
       ) : (
         <p className="mt-1.5 text-xs leading-5 text-admin-subtle">
           JPEG, PNG, WebP or AVIF · up to {MAX_UPLOAD_SIZE_MB} MB
         </p>
       )}
       {error ? (
-        <p role="alert" className="mt-1.5 text-sm text-red-700">
+        <AdminAlert as="span" className="mt-1.5">
           {error}
-        </p>
+        </AdminAlert>
       ) : null}
 
       {cropSource ? (

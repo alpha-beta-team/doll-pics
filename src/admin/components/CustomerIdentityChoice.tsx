@@ -1,3 +1,4 @@
+import { AdminAlert } from './ui/AdminUi';
 import { formatCustomerName } from '../../shared/formatCustomerName';
 import { useState } from "react";
 import { request } from "../api/http";
@@ -72,9 +73,9 @@ export function CustomerIdentityChoice({
         </button>
       </div>
       {error && (
-        <p role="alert" className="mt-2 text-sm text-red-700">
+        <AdminAlert as="span" className="mt-2">
           {error}
-        </p>
+        </AdminAlert>
       )}
       {options.length > 0 && (
         <div className="mt-2 space-y-2">

@@ -1,4 +1,6 @@
+import type { CustomerOrderProgress } from './orderWorkflow';
 export interface CustomerBooking {
+  orderProgress?: CustomerOrderProgress;
   deliverables?: Array<{ name: string; quantity: number }>;
   customerName: string;
   shootType: string;

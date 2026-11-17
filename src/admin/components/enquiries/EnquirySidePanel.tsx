@@ -1,3 +1,4 @@
+import { AdminAlert } from '../ui/AdminUi';
 import { formatCustomerName } from '../../../shared/formatCustomerName';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -56,7 +57,7 @@ export function EnquirySidePanel({ id, canManage, canViewPhone, canViewQuotation
   if (mode === 'followUp' && item && canManage) return <EnquiryFollowUpDialog enquiry={item} onClose={() => setMode('overview')} onSaved={value => { updated(value); setMode('overview'); setSuccess('Follow-up updated.'); }} />;
   const closed = item && ['booked', 'closed_lost'].includes(item.stage);
   return <BookingDialog variant="drawer" title="Enquiry quick view" onClose={() => void close()}>
-    {loading ? <p role="status" className="py-8 text-admin-subtle">Loading enquiry…</p> : !item ? <div role="alert"><p>{error || 'Enquiry not found.'}</p><button onClick={() => setRetry(value => value + 1)} className="mt-3 min-h-11 font-semibold underline">Try again</button></div> : <div className="space-y-5">
+    {loading ? <p role="status" className="py-8 text-admin-subtle">Loading enquiry…</p> : !item ? <AdminAlert><p>{error || 'Enquiry not found.'}</p><button onClick={() => setRetry(value => value + 1)} className="mt-3 min-h-11 font-semibold underline">Try again</button></AdminAlert> : <div className="space-y-5">
       <header><div className="flex flex-wrap items-center gap-2"><h2 className="break-words text-xl font-semibold">{formatCustomerName(item.name)}</h2><EnquiryStageBadge stage={item.stage} /></div><p className="mt-1 text-sm text-admin-secondary">{item.shootType || item.preferredEvent || 'Service not decided'}</p><p className="mt-2 text-sm">{canViewPhone ? item.phone : 'Phone hidden'}</p>
         <div className="mt-3 flex flex-wrap gap-2">{canManage && canViewPhone && item.phone && <a href={`tel:${item.phone}`} className="inline-flex min-h-11 items-center rounded-xl border border-admin-border px-3 text-sm font-semibold">Call customer</a>}{canManage && <button className="min-h-11 rounded-xl border border-admin-border px-3 text-sm font-semibold" onClick={() => void changeMode('edit')}>Edit enquiry</button>}
           <Link className="inline-flex min-h-11 items-center px-2 text-sm font-semibold text-admin-primary underline" to={`/admin/enquiries/${id}`} onClick={event => { event.preventDefault(); void openPage(`/admin/enquiries/${id}`); }}>Open full enquiry</Link>
@@ -64,8 +65,8 @@ export function EnquirySidePanel({ id, canManage, canViewPhone, canViewQuotation
         </div>
       </header>
       {item.stage === 'closed_lost' && canManage && <button disabled={busy} onClick={() => void reopen()} className="min-h-11 rounded-xl border border-admin-border px-3 text-sm font-semibold">Reopen enquiry</button>}
-      {success && <p role="status" className="rounded-xl bg-emerald-50 p-3 text-sm text-emerald-800">{success}</p>}
-      {error && <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-800">{error}</p>}
+      {success && <AdminAlert tone="success" as="span">{success}</AdminAlert>}
+      {error && <AdminAlert as="span">{error}</AdminAlert>}
       <div className="flex flex-wrap gap-2 border-b border-admin-border pb-3" aria-label="Quick view sections">{(['overview', ...(canManage && !closed ? ['call'] : [])] as const).map(value => <button key={value} type="button" aria-pressed={mode === value} onClick={() => void changeMode(value as 'overview' | 'call')} className={`min-h-11 rounded-xl px-4 text-sm font-semibold ${mode === value ? 'bg-admin-primary text-white' : 'bg-admin-muted'}`}>{value === 'call' ? 'Log call outcome' : 'Overview'}</button>)}</div>
       {mode === 'call' && canManage && !closed && <EnquiryCallOutcomeForm enquiry={item} onDirtyChange={setCallDirty} onBusyChange={value => { saving.current = value; setBusy(value); }} onSaved={value => { updated(value); setCallDirty(false); setMode('overview'); setSuccess('Call outcome saved.'); }} />}
       {mode === 'overview' && <>

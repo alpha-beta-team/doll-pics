@@ -1,3 +1,4 @@
+import { AdminAlert } from '../ui/AdminUi';
 import { formatCustomerName } from '../../../shared/formatCustomerName';
 import { useRef, useState } from 'react';
 import type { Enquiry } from '../../types';
@@ -57,7 +58,7 @@ export function EnquiryFollowUpDialog({ enquiry, onClose, onSaved }: {
         <p className="mt-1">{new Date(enquiry.nextFollowUpAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' })} · India time</p>
         {enquiry.followUpNote && <p className="mt-1 whitespace-pre-wrap break-words">{enquiry.followUpNote}</p>}
       </div>}
-      {error && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</p>}
+      {error && <AdminAlert as="span">{error}</AdminAlert>}
       <p className="text-xs text-admin-subtle">Choose the next conversation time. All dates and times use India time.</p>
       <FollowUpShortcuts value={when} onChange={value => { setWhen(value); setError(''); }} disabled={Boolean(busy) || closed} />
       {when && <p className="text-xs font-semibold text-admin-secondary">Selected: {new Date(`${when}:00+05:30`).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' })} · India time</p>}

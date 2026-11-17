@@ -1,3 +1,4 @@
+import { AdminAlert } from '../ui/AdminUi';
 import { useRef, useState } from 'react';
 import type { Enquiry, EnquiryCallOutcome, RecordEnquiryCallPayload } from '../../types';
 import { api } from '../../api/client';
@@ -41,10 +42,10 @@ export function EnquiryCallOutcomeForm({ enquiry, onSaved, onDirtyChange, onBusy
       <div className="grid grid-cols-2 gap-2">{Object.entries(CALL_OUTCOME_LABELS).map(([value, label]) => <label key={value} className={`flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border p-3 text-sm ${outcome === value ? 'border-admin-primary bg-admin-muted font-semibold' : 'border-admin-border'}`}><input type="radio" name={`call-outcome-${enquiry.id}`} value={value} checked={outcome === value} onChange={() => { setOutcome(value as EnquiryCallOutcome); if (value === 'not_interested') setWhen(''); changed(true); }} />{label}</label>)}</div>
       <label className="block text-sm font-semibold">{outcome === 'not_interested' ? 'Reason for closing *' : 'Conversation note (optional)'}<textarea rows={3} maxLength={1000} value={note} onChange={event => { setNote(event.target.value); changed(Boolean(event.target.value || outcome || when)); }} className="mt-2 w-full rounded-xl border border-admin-control bg-admin-surface p-3 text-base font-normal" placeholder="What happened, and what should the team know?" /></label>
       {outcome && outcome !== 'not_interested' && <div><p className="mb-2 text-sm font-semibold">{outcome === 'no_answer' ? 'When should we try again? *' : 'Next follow-up (optional)'}</p><FollowUpShortcuts value={when} onChange={value => { setWhen(value); changed(true); }} allowNone={outcome !== 'no_answer'} disabled={locked} /><p className="mt-2 text-xs text-admin-subtle">India time. {when ? 'This replaces the current reminder.' : 'Saving without a next date completes the current reminder.'}</p></div>}
-      {outcome === 'not_interested' && <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">Saving closes the enquiry and removes its follow-up.</p>}
+      {outcome === 'not_interested' && <AdminAlert tone="warning" as="span">Saving closes the enquiry and removes its follow-up.</AdminAlert>}
       {outcome === 'quotation_needed' && <p className="text-sm text-admin-secondary">The team can see this request in call history. Use Quotations in the full enquiry if your account has access.</p>}
     </fieldset>
-    {error && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</p>}
+    {error && <AdminAlert as="span">{error}</AdminAlert>}
     <button disabled={locked} type="submit" className="min-h-11 rounded-xl bg-admin-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{busy ? 'Saving call…' : 'Save call outcome'}</button>
   </form>;
 }

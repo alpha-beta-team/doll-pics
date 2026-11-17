@@ -1,3 +1,4 @@
+import { AdminAlert } from '../components/ui/AdminUi';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useEffect, useMemo, useState } from 'react';
@@ -10,7 +11,6 @@ import {
   Trash2,
   Eye,
   EyeOff,
-  AlertCircle,
   X,
   DollarSign,
   FolderOpen,
@@ -314,8 +314,8 @@ export function PackagesPage() {
 
   if (error) {
     return (
-      <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-        <AlertCircle className="w-5 h-5 flex-shrink-0" />
+      <AdminAlert contentClassName="flex items-center gap-2">
+
         <span>{error}</span>
         {canManage ? <button
           type="button"
@@ -325,7 +325,7 @@ export function PackagesPage() {
         >
           <X className="w-4 h-4" aria-hidden="true" />
         </button> : isReadOnly ? <ReadOnlyNotice /> : null}
-      </div>
+      </AdminAlert>
     );
   }
 

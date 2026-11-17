@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertCircle, ArrowLeft, Inbox, Loader2, X, type LucideIcon } from 'lucide-react';
+import { AlertCircle, AlertTriangle, CheckCircle2, Info, ArrowLeft, Inbox, Loader2, X, type LucideIcon } from 'lucide-react';
 
 export type AdminBreadcrumbItem = {
   label: string;
@@ -182,22 +182,45 @@ export function AdminBadge({ className = '', ...props }: HTMLAttributes<HTMLSpan
 
 export function AdminAlert({
   tone = 'danger',
+  as: Container = 'div',
+  className = '',
+  contentClassName = '',
+  title,
+  onDismiss,
   children,
-}: {
+  ...props
+}: Omit<HTMLAttributes<HTMLElement>, 'title'> & {
   tone?: 'danger' | 'success' | 'warning' | 'info';
-  children: ReactNode;
+  as?: 'div' | 'span';
+  title?: ReactNode;
+  contentClassName?: string;
+  onDismiss?: () => void;
 }) {
-  const styles = {
-    danger: 'border-red-200 bg-red-50 text-red-700',
-    success: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-    warning: 'border-amber-200 bg-amber-50 text-amber-900',
-    info: 'border-blue-200 bg-blue-50 text-blue-700',
+  const { surface, icon, Icon } = {
+    danger: { surface: 'bg-red-50 text-red-800', icon: 'text-red-400', Icon: AlertCircle },
+    success: { surface: 'bg-green-50 text-green-800', icon: 'text-green-400', Icon: CheckCircle2 },
+    warning: { surface: 'bg-yellow-50 text-yellow-800', icon: 'text-yellow-400', Icon: AlertTriangle },
+    info: { surface: 'bg-blue-50 text-blue-800', icon: 'text-blue-400', Icon: Info },
   }[tone];
+  const Content = Container === 'span' ? 'span' : 'div';
   return (
-    <div role={tone === 'danger' ? 'alert' : 'status'} className={`flex items-start gap-2 rounded-xl border p-4 text-sm ${styles}`}>
-      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-      <div>{children}</div>
-    </div>
+    <Container
+      role={tone === 'danger' || tone === 'warning' ? 'alert' : 'status'}
+      {...props}
+      className={`flex items-start gap-3 rounded-md p-4 text-sm leading-6 ${surface} ${className}`}
+    >
+      <Icon className={`mt-0.5 h-5 w-5 shrink-0 ${icon}`} aria-hidden="true" />
+      <Content className="block min-w-0 flex-1 [overflow-wrap:anywhere]">
+        {title && <span className="mb-1 block font-semibold">{title}</span>}
+        <Content className={`block ${contentClassName}`}>{children}</Content>
+      </Content>
+      {onDismiss && (
+        <button type="button" onClick={onDismiss} aria-label="Dismiss notification"
+          className="-my-2 -mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-current hover:bg-black/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current">
+          <X className="h-5 w-5" aria-hidden="true" />
+        </button>
+      )}
+    </Container>
   );
 }
 

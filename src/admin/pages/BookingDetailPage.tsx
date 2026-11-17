@@ -1,3 +1,5 @@
+import { AdminAlert } from '../components/ui/AdminUi';
+import { OrderWorkflowPanel, type OrderWorkflowHandle } from '../components/bookings/OrderWorkflowPanel';
 import { BookingNotesFollowUps } from '../components/bookings/BookingNotesFollowUps';
 import { BookingDueDateDialog } from '../components/bookings/BookingDueDateDialog';
 import { BookingCrewDialog } from '../components/bookings/BookingCrewDialog';
@@ -11,7 +13,6 @@ import { CustomerCode } from '../components/CustomerCode';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
-  AlertCircle,
   ArrowLeft,
   CalendarCheck,
   CheckCircle,
@@ -126,9 +127,30 @@ function BookingDetailWorkspace() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const [booking, setBooking] = useState<Booking | null>(null);
+  const [hasOrderWorkflow, setHasOrderWorkflow] = useState(false);
+  const [orderCompleted, setOrderCompleted] = useState(false);
+  const [orderReady, setOrderReady] = useState(false);
+  const [orderActionLabel, setOrderActionLabel] = useState('Loading order…');
+  const orderActions = useRef<OrderWorkflowHandle>(null);
   const tabs = [{ id: 'overview', label: 'Overview' }, ...(canViewPayments ? [{ id: 'payments', label: 'Payments' }] : []), ...(canManageBooking ? [{ id: 'delivery', label: 'Delivery' }] : []), { id: 'customer', label: 'Customer' }, { id: 'notes', label: `Notes & Follow-ups${booking?.pendingFollowUpCount ? ` · ${booking.pendingFollowUpCount}` : ''}` }, { id: 'activity', label: 'Activity' }];
   const tab = tabs.some(item => item.id === params.get('tab')) ? params.get('tab')! : 'overview';
   const selectTab = (value: string) => setParams(previous => { const next = new URLSearchParams(previous); next.set('tab', value); return next; });
+  const deliveryReview = useRef<HTMLDivElement>(null);
+  const orderTracking = useRef<HTMLDivElement>(null);
+  const [requestedSection, setRequestedSection] = useState<'delivery' | 'order' | null>(null);
+  const openSection = (section: 'delivery' | 'order') => {
+    const targetTab = section === 'delivery' ? 'delivery' : 'overview';
+    setRequestedSection(section);
+    if (section === 'delivery' && tab !== targetTab) selectTab(targetTab);
+  };
+  useEffect(() => {
+    if (!requestedSection || (requestedSection === 'delivery' && tab !== 'delivery')) return;
+    const target = requestedSection === 'delivery' ? deliveryReview.current : orderTracking.current;
+    if (!target) return;
+    target.focus({ preventScroll: true });
+    target.scrollIntoView({ block: 'start', behavior: 'auto' });
+    setRequestedSection(null);
+  }, [requestedSection, tab]);
   const [visited, setVisited] = useState<Set<string>>(() => new Set([tab]));
   useEffect(() => { setVisited(previous => new Set([...previous, tab])); }, [tab]);
   const [editor, setEditor] = useState<'delivery' | 'assignment' | null>(null);
@@ -318,14 +340,16 @@ function BookingDetailWorkspace() {
       { label: 'Revert to draft', status: 'draft' as const },
       { label: 'Cancel booking', status: 'cancelled' as const },
     ];
+    if (hasOrderWorkflow && ['shoot_completed', 'delivered'].includes(booking.status)) return [{ label: 'Cancel booking', status: 'cancelled' as const }];
     if (booking.status === 'shoot_completed') return [
       { label: 'Revert to confirmed', status: 'confirmed' as const },
     ];
     if (booking.status === 'delivered') return [
       { label: 'Revert to shoot completed', status: 'shoot_completed' as const },
     ];
+    if (hasOrderWorkflow && booking.status === 'cancelled') return [];
     return [{ label: `Restore to ${(booking.statusBeforeCancellation || 'draft').replace('_', ' ')}`, status: booking.statusBeforeCancellation || 'draft', primary: true }];
-  }, [booking]);
+  }, [booking, hasOrderWorkflow]);
 
   const saveEdit = async (payload: BookingWritePayload) => {
     if (!booking) return;
@@ -442,7 +466,7 @@ function BookingDetailWorkspace() {
   };
 
   if (loading) return <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" /></div>;
-  if (!booking) return <div className="space-y-4"><Link to="/admin/bookings" className="inline-flex items-center gap-2 text-sm text-slate-600"><ArrowLeft className="h-4 w-4" />Back to bookings</Link><div className="rounded-xl border border-red-200 bg-red-50 p-5 text-red-700">{error || 'Booking not found'}</div></div>;
+  if (!booking) return <div className="space-y-4"><Link to="/admin/bookings" className="inline-flex items-center gap-2 text-sm text-slate-600"><ArrowLeft className="h-4 w-4" />Back to bookings</Link><AdminAlert>{error || 'Booking not found'}</AdminAlert></div>;
 
   const hasDeliveryLink = [booking.driveGalleryUrl, booking.driveEditedUrl, booking.driveRawsUrl].some(url => validDeliveryUrl(url.trim()));
   const followUpOverdue = booking.nextFollowUpAt && new Date(booking.nextFollowUpAt).getTime() < Date.now();
@@ -461,9 +485,9 @@ function BookingDetailWorkspace() {
   return (
     <div className="booking-detail mx-auto max-w-6xl space-y-4">
       <button onClick={() => navigate('/admin/bookings')} className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900"><ArrowLeft className="h-4 w-4" />Back to bookings</button>
-      {error && <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"><AlertCircle className="h-5 w-5" />{error}<button className="ml-auto" onClick={() => setError('')}><X className="h-4 w-4" /></button></div>}
+      {error && <AdminAlert onDismiss={() => setError('')}>{error}</AdminAlert>}
 
-      {success && <div role="status" aria-live="polite" className="fixed right-3 top-20 z-[80] flex max-w-[calc(100vw-1.5rem)] items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900 shadow-lg"><CheckCircle className="h-4 w-4 shrink-0" />{success}<button onClick={() => setSuccess('')} aria-label="Dismiss confirmation" className="flex h-8 w-8 items-center justify-center"><X className="h-4 w-4" /></button></div>}
+      {success && <AdminAlert tone="success" className="fixed right-3 top-20 z-[80] max-w-[calc(100vw-1.5rem)] shadow-lg" contentClassName="flex items-center gap-3" aria-live="polite">{success}<button onClick={() => setSuccess('')} aria-label="Dismiss confirmation" className="flex h-8 w-8 items-center justify-center"><X className="h-4 w-4" /></button></AdminAlert>}
       <header className="bd-header rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-start lg:justify-between">
           <div className="min-w-0 lg:flex-1 lg:basis-96">
@@ -489,7 +513,7 @@ function BookingDetailWorkspace() {
           {canManageBooking ? (
             <div className="bd-header-actions grid w-full grid-cols-[minmax(0,1fr)_minmax(0,1fr)_2.75rem] gap-2 border-t border-slate-100 pt-3 lg:flex lg:w-auto lg:max-w-full lg:shrink-0 lg:flex-wrap lg:border-0 lg:pt-0">
               {canRequestReview && <button type="button" disabled={saving} onClick={() => setMessageOpen('review_request')} className="bd-button bd-button-primary">Request review</button>}
-              {booking.status === 'shoot_completed' && <button type="button" onClick={() => selectTab('delivery')} className="bd-button bd-button-primary col-span-3 min-h-11 rounded-lg bg-admin-primary px-4 text-sm font-semibold text-white lg:flex-none">{hasDeliveryLink ? 'Review delivery' : 'Prepare delivery'}</button>}
+              {!orderCompleted && ['shoot_completed', 'delivered'].includes(booking.status) && <button type="button" disabled={!orderReady || saving} onClick={() => orderActions.current?.openStatus()} className="bd-button bd-button-primary col-span-3 min-h-11 rounded-lg bg-admin-primary px-4 text-sm font-semibold text-white lg:flex-none">{orderActionLabel}</button>}
               {primaryAction && (
                 <button
                   type="button"
@@ -519,7 +543,7 @@ function BookingDetailWorkspace() {
               >
                 <Pencil className="h-4 w-4 shrink-0" /><span>Edit</span>
               </button>
-              {overflowActions.length > 0 && (
+              {(overflowActions.length > 0 || orderCompleted) && (
                 <div ref={actionMenuRef} className="relative shrink-0">
                   <button
                     type="button"
@@ -533,6 +557,7 @@ function BookingDetailWorkspace() {
                   </button>
                   {actionMenuOpen && (
                     <div role="menu" className="absolute right-0 z-20 mt-2 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg">
+                      {orderCompleted && <button type="button" role="menuitem" disabled={!orderReady || saving} onClick={() => { setActionMenuOpen(false); orderActions.current?.openStatus(); }} className="flex min-h-10 w-full items-center rounded-lg px-3 py-2 text-left text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50">Reopen order</button>}
                       {overflowActions.map(action => (
                         <button
                           key={action.label}
@@ -562,17 +587,20 @@ function BookingDetailWorkspace() {
         </dl>
       </header>
 
+        {['shoot_completed', 'delivered', 'cancelled'].includes(booking.status) && <div ref={orderTracking} tabIndex={-1} aria-label="Order tracking actions" className="scroll-mt-24 rounded-xl focus-visible:outline-admin-focus"><OrderWorkflowPanel ref={orderActions} onReadyChange={setOrderReady} onCompletedChange={setOrderCompleted} onActionLabelChange={setOrderActionLabel} onBookingSaved={sync} booking={booking} canManage={canManageBooking} staff={staffAccounts} onLoaded={setHasOrderWorkflow} onSaved={() => { void api.getBooking(booking.id).then(updated => { if (updated) sync(updated); }).catch(() => setError('Order saved. Reload the booking to refresh its details.')); }} /></div>}
+
       {resourcesLoading && <p role="status" className="text-sm text-admin-subtle">Loading editing and assignment options…</p>}
-      {resourcesError && <p role="alert" className="text-sm text-amber-800">{resourcesError} <button className="underline" onClick={() => void loadResources()}>Retry</button></p>}
+      {resourcesError && <AdminAlert tone="warning" as="span">{resourcesError} <button className="underline" onClick={() => void loadResources()}>Retry</button></AdminAlert>}
       <div ref={tabBar} className="bd-tabs sticky top-16 z-10 rounded-xl border border-admin-border bg-admin-surface shadow-sm">
         <AdminTabs tabs={tabs} value={tab} onChange={selectTab} label="Booking details" />
       </div>
-      {((canManageBooking && followUpOverdue) || calendarStatus === 'failed' || (booking.status === 'confirmed' && booking.bookingDate && booking.bookingDate < kolkataToday())) && <div role="status" className="bd-attention flex flex-wrap gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+      {((canManageBooking && followUpOverdue) || calendarStatus === 'failed' || (booking.status === 'confirmed' && booking.bookingDate && booking.bookingDate < kolkataToday())) && <AdminAlert tone="warning" contentClassName="flex flex-wrap gap-2">
         {canManageBooking && followUpOverdue && <button className="underline" onClick={() => selectTab('notes')}>Follow-up overdue</button>}
         {calendarStatus === 'failed' && <button className="underline" onClick={() => selectTab('activity')}>Calendar needs attention</button>}
         {booking.status === 'confirmed' && booking.bookingDate && booking.bookingDate < kolkataToday() && <span><strong>Shoot status needs updating.</strong> Scheduled for {formatDay(booking.bookingDate)}.{canManageBooking && ' Mark complete above if the session took place.'}</span>}
-      </div>}
+      </AdminAlert>}
       <BookingTabPanel id="overview" active={tab === 'overview'}>
+
         <div className="mb-4 grid items-start gap-4 lg:grid-cols-2">
           <BookingDeliverablesPanel booking={booking} canManage={canManageBooking} canPrice={canViewBookingPricing(user?.role)} onSaved={updated => { sync(updated); setSuccess('Deliverables saved'); }} />
           <section className="min-w-0 rounded-xl border border-admin-border bg-admin-surface p-4" aria-label="Crew List">
@@ -589,7 +617,7 @@ function BookingDetailWorkspace() {
         <div className="bd-overview">
           <div className="bd-overview-main">
             <Card title="Shoot details"><dl className="bd-details-grid"><Field label="Service">{booking.shootType || 'Not set'}</Field>{booking.preferredEvent && booking.preferredEvent.trim().toLowerCase() !== booking.shootType.trim().toLowerCase() && <Field label="Event">{booking.preferredEvent}</Field>}<Field label="Package">{booking.packageName || 'No package selected'}</Field><Field label="Duration">{bookingDurationLabel(booking.startTime, booking.endTime) || 'Not set'}</Field></dl>{booking.notes && <div className="bd-notes"><p className="bd-eyebrow">Shoot notes</p><p className="whitespace-pre-wrap break-words text-sm">{booking.notes}</p></div>}</Card>
-            {canManageBooking && <Card title="Delivery readiness" action={<button className="bd-link" onClick={() => selectTab('delivery')}>{hasDeliveryLink ? 'Review delivery' : 'Add delivery links'}<ArrowUpRight className="h-4 w-4" /></button>}><p className="text-sm">{deliveryLabel}</p><p className="bd-helper">Save your delivery links, preview the message, then confirm delivery separately.</p></Card>}
+            {canManageBooking && <Card title="Delivery readiness" action={<button className="bd-link" onClick={() => openSection('delivery')}>{hasDeliveryLink ? 'View delivery links' : 'Add delivery links'}<ArrowUpRight className="h-4 w-4" /></button>}><p className="text-sm">{deliveryLabel}</p><p className="bd-helper">Save your delivery links, preview the message, then confirm delivery separately.</p></Card>}
             <Card title="Recent schedule changes"><ScheduleHistory booking={booking} limit={3} />{!!booking.scheduleHistory.length && <button className="bd-link" onClick={() => selectTab('activity')}>View activity<ArrowUpRight className="h-4 w-4" /></button>}</Card>
           </div>
           <aside className="bd-overview-side" aria-label="Payment and follow-up">
@@ -603,14 +631,15 @@ function BookingDetailWorkspace() {
       </BookingTabPanel>
       {canViewPayments && <BookingTabPanel id="payments" active={tab === 'payments'}><BookingPaymentDetails booking={booking} onAdd={() => setPaymentModal('new')} onEdit={setPaymentModal} onDelete={payment => void deletePayment(payment)} onEditDueDate={canEdit ? () => setEditingDueDate(true) : undefined} /></BookingTabPanel>}
       {canManageBooking && <BookingTabPanel id="delivery" active={tab === 'delivery'}>
-        <BookingDeliveryPanel key={booking.id} booking={booking} saving={saving} onEdit={() => openEditor('delivery')} confirmation={<>
+        <div ref={deliveryReview} tabIndex={-1} aria-label="Delivery review" className="scroll-mt-24 rounded-xl focus-visible:outline-admin-focus"><BookingDeliveryPanel key={booking.id} booking={booking} saving={saving} onEdit={() => openEditor('delivery')} confirmation={<>
           <h3 className="font-semibold text-sm">Delivery confirmation</h3>
+          {hasOrderWorkflow && <p className="bd-helper">After sharing, confirm edited-photo delivery in Order tracking.<button type="button" onClick={() => openSection('order')} className="bd-button mt-3">Open order tracking</button></p>}
           {booking.deliverySentAt && <p className="inline-flex items-center gap-2 text-sm"><CheckCircle className="h-4 w-4" />Delivered {formatDateTime(booking.deliverySentAt)}</p>}
           <p className="bd-helper">Confirm delivery after you have shared the files with the customer.</p>
-          {booking.status === 'shoot_completed' && <button onClick={() => void markDelivered()} disabled={!hasDeliveryLink || saving} className="bd-button bd-button-primary mt-3">Mark delivered</button>}
+          {booking.status === 'shoot_completed' && !hasOrderWorkflow && <button onClick={() => void markDelivered()} disabled={!hasDeliveryLink || saving} className="bd-button bd-button-primary mt-3">Mark delivered</button>}
           {!['shoot_completed', 'delivered'].includes(booking.status) && <p className="bd-helper">The shoot must be marked complete before confirming delivery.</p>}
           {!hasDeliveryLink && <p className="bd-helper">Save at least one delivery link before marking delivered.</p>}
-        </>} />
+        </>} /></div>
       </BookingTabPanel>}
       <BookingTabPanel id="customer" active={tab === 'customer'}>{user?.role === 'owner' && (visited.has('customer') || tab === 'customer') && <CustomerBookingPanel booking={booking} />}        <BookingCustomerDetails booking={booking} canViewPhone={canViewPhone} />
 
@@ -621,7 +650,7 @@ function BookingDetailWorkspace() {
         <Card title="Schedule history"><ScheduleHistory booking={booking} /></Card>
         {canManageBooking && <Card title="Message history" action={<button onClick={() => void loadMessages()} className="bd-button" aria-label="Refresh messages"><RefreshCw className="h-4 w-4" />Refresh</button>}>
           {messagesLoading && <p role="status" className="bd-helper">Loading messages…</p>}
-          {messagesError && <p role="alert" className="text-sm text-red-700">{messagesError} <button className="bd-link" onClick={() => void loadMessages()}>Retry</button></p>}
+          {messagesError && <AdminAlert as="span">{messagesError} <button className="bd-link" onClick={() => void loadMessages()}>Retry</button></AdminAlert>}
           <div className="divide-y divide-admin-border">{messages.slice(0, visibleMessages).map(message => <div key={message.id} className="bd-message-row"><MessageCircle className="h-4 w-4 shrink-0" /><div className="min-w-0 flex-1"><p className="text-sm font-medium break-words">{message.eventType.replace(/_/g, ' ')}</p><p className="bd-helper">{formatDateTime(message.scheduledAt)} · {message.status}</p>{message.failureReason && <p className="text-xs text-red-700">{message.failureReason}</p>}</div>{message.status === 'failed' && <button disabled={saving} onClick={() => void retryMessage(message.id)} className="bd-link">Retry</button>}</div>)}</div>
           {!messagesLoading && !messagesError && !messages.length && <p className="bd-helper">No automated messages recorded.</p>}
           {messages.length > visibleMessages && <button className="bd-link" onClick={() => setVisibleMessages(count => count + 8)}>Show more messages ({messages.length - visibleMessages} remaining)</button>}
@@ -673,10 +702,10 @@ function BookingDetailWorkspace() {
             )}
           </div>
           {calendarStatus === 'failed' && (
-            <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">
+            <AdminAlert as="span" className="mt-4">
               Calendar could not be updated. {canManageIntegrations ? 'Use Retry after checking the integration.' : 'Please tell the owner.'}
               {booking.calendarSyncErrorCode ? ` Code: ${booking.calendarSyncErrorCode}` : ''}
-            </p>
+            </AdminAlert>
           )}
           {calendarStatus === 'not_applicable' && (
             <p className="mt-4 text-sm text-slate-500">Calendar events are created for confirmed bookings. Completed and delivered shoots remain as history.</p>
@@ -692,7 +721,7 @@ function BookingDetailWorkspace() {
 
 </BookingTabPanel>
       {editor && <BookingDialog className="booking-detail booking-detail-dialog" title={editor === 'assignment' ? 'Assign staff' : 'Edit delivery links'} onClose={() => void closeEditor()}>
-        {editorError && <p role="alert" className="mb-3 text-sm text-red-700">{editorError}</p>}
+        {editorError && <AdminAlert as="span" className="mb-3">{editorError}</AdminAlert>}
         {editor === 'assignment' ? <><label className="block text-sm">Assigned staff<select value={assignee} onChange={event => setAssignee(event.target.value)} className="mt-2 min-h-11 w-full rounded-lg border border-admin-border bg-admin-surface px-3"><option value="">No staff assigned</option>{booking.assignedStaffAccountId && !staffAccounts.some(staff => staff.id === booking.assignedStaffAccountId) && <option value={booking.assignedStaffAccountId}>{booking.assignedStaffAccountName || 'Current assignee'}</option>}{staffAccounts.map(staff => <option key={staff.id} value={staff.id}>{staff.name}</option>)}</select></label>{!staffAccounts.length && <p className="mt-2 text-sm text-admin-subtle">No assignable staff available.</p>}<button disabled={saving} onClick={() => void saveEditor()} className="mt-4 min-h-11 rounded-lg bg-admin-primary px-4 text-sm font-semibold text-white">{saving ? 'Saving…' : 'Save assignment'}</button></> : <><div>        <div className="grid gap-4">{[['Gallery folder', driveGalleryUrl, setDriveGalleryUrl], ['Edited photos', driveEditedUrl, setDriveEditedUrl], ['RAW files', driveRawsUrl, setDriveRawsUrl]].map(([label, value, setter]) => <label key={label as string} className="text-sm text-slate-700">{label as string}<div className="mt-1 flex gap-2"><input type="url" inputMode="url" placeholder="https://drive.google.com/…" value={value as string} onChange={e => (setter as (value: string) => void)(e.target.value)} className="min-h-11 min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm" />{validDeliveryUrl(normalizeDeliveryUrl(value as string)) && <a aria-label={`Open ${label as string}`} href={normalizeDeliveryUrl(value as string)} target="_blank" rel="noreferrer" className="flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-slate-300 p-2"><ExternalLink className="h-4 w-4" /></a>}</div></label>)}</div>
         <label className="mt-3 block text-sm">Delivery note<textarea value={driveNotes} onChange={e => setDriveNotes(e.target.value)} placeholder="Delivery note" className="mt-3 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" rows={2} /></label>
 </div><button disabled={saving} onClick={() => void saveEditor()} className="mt-4 min-h-11 rounded-lg bg-admin-primary px-4 text-sm font-semibold text-white">{saving ? 'Saving…' : 'Save links'}</button></>}
@@ -721,7 +750,7 @@ function PaymentModal({ payment, onClose, onSave }: { payment: BookingPayment | 
     try { await onSave({ amount: Number(amount), paidAt: new Date(`${paidAt}T12:00:00`).toISOString(), method, reference, note }); }
     catch (err) { setError(err instanceof Error ? err.message : 'Failed to save payment'); setSaving(false); }
   };
-  return <BookingDialog className="booking-detail booking-detail-dialog" title={payment ? 'Edit payment' : 'Record payment'} onClose={() => { if (!saving) onClose(); }}>{error && <p className="mt-3 text-sm text-red-600">{error}</p>}<div className="mt-4 grid gap-3 sm:grid-cols-2"><label className="text-sm">Amount (₹)<input type="number" min="1" value={amount} onChange={e => setAmount(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label><label className="text-sm">Payment date<input type="date" value={paidAt} onChange={e => setPaidAt(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label><label className="text-sm">Method<select value={method} onChange={e => setMethod(e.target.value as PaymentMethod)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2">{['cash', 'upi', 'bank_transfer', 'card', 'other'].map(item => <option key={item} value={item}>{item.replace('_', ' ')}</option>)}</select></label><label className="text-sm">Reference<input value={reference} onChange={e => setReference(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label><label className="text-sm sm:col-span-2">Note<input value={note} onChange={e => setNote(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label></div><div className="mt-5 flex justify-end gap-2"><button onClick={onClose} className="rounded-lg border border-slate-300 px-4 py-2 text-sm">Cancel</button><button onClick={() => void submit()} disabled={saving} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">Save payment</button></div></BookingDialog>;
+  return <BookingDialog className="booking-detail booking-detail-dialog" title={payment ? 'Edit payment' : 'Record payment'} onClose={() => { if (!saving) onClose(); }}>{error && <AdminAlert as="span" className="mt-3">{error}</AdminAlert>}<div className="mt-4 grid gap-3 sm:grid-cols-2"><label className="text-sm">Amount (₹)<input type="number" min="1" value={amount} onChange={e => setAmount(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label><label className="text-sm">Payment date<input type="date" value={paidAt} onChange={e => setPaidAt(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label><label className="text-sm">Method<select value={method} onChange={e => setMethod(e.target.value as PaymentMethod)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2">{['cash', 'upi', 'bank_transfer', 'card', 'other'].map(item => <option key={item} value={item}>{item.replace('_', ' ')}</option>)}</select></label><label className="text-sm">Reference<input value={reference} onChange={e => setReference(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label><label className="text-sm sm:col-span-2">Note<input value={note} onChange={e => setNote(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label></div><div className="mt-5 flex justify-end gap-2"><button onClick={onClose} className="rounded-lg border border-slate-300 px-4 py-2 text-sm">Cancel</button><button onClick={() => void submit()} disabled={saving} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">Save payment</button></div></BookingDialog>;
 }
 
 function ScheduleHistory({ booking, limit }: { booking: Booking; limit?: number }) {

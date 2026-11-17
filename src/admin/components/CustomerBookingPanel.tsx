@@ -1,3 +1,4 @@
+import { AdminAlert } from './ui/AdminUi';
 import { useCallback, useEffect, useState } from "react";
 import { CustomerBookingPresentation } from "../../components/CustomerBookingPresentation";
 import type { CustomerPageSettings } from "../../shared/customerBooking";
@@ -182,10 +183,7 @@ export function CustomerBookingPanel({
         </p>
       </div>
       {error && (
-        <div
-          role="alert"
-          className="rounded-xl bg-red-50 p-3 text-sm text-red-800"
-        >
+        <AdminAlert>
           {error}
           <button
             type="button"
@@ -195,15 +193,12 @@ export function CustomerBookingPanel({
           >
             Reload settings
           </button>
-        </div>
+        </AdminAlert>
       )}
       {notice && (
-        <p
-          role="status"
-          className="rounded-xl bg-emerald-50 p-3 text-sm text-emerald-800"
-        >
+        <AdminAlert tone="success" as="span">
           {notice}
-        </p>
+        </AdminAlert>
       )}
       {loading ? (
         <p role="status" className="py-4 text-sm">
@@ -323,12 +318,9 @@ export function CustomerBookingPanel({
                   assignee.
                 </span>
                 {editorsError && (
-                  <span
-                    role="alert"
-                    className="mt-1 block text-xs text-red-700"
-                  >
+                  <AdminAlert as="span" className="mt-1">
                     Could not load editors. Reopen this panel to retry.
-                  </span>
+                  </AdminAlert>
                 )}
               </label>
               <label className="block text-sm font-semibold">

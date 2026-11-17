@@ -1,3 +1,4 @@
+import { AdminAlert } from './ui/AdminUi';
 import { useEffect, useState, type SyntheticEvent } from 'react';
 import EasyCrop, { type Area } from 'react-easy-crop';
 import ReactCrop, { type Crop, type PixelCrop } from 'react-image-crop';
@@ -265,7 +266,7 @@ export function ImageCropUpload({
             </label>
           </div>
         )}
-        {error && <p className="shrink-0 px-4 text-sm text-red-600">{error}</p>}
+        {error && <AdminAlert as="span" className="shrink-0">{error}</AdminAlert>}
         <div className="flex shrink-0 justify-end gap-3 border-t border-gray-200 p-4">
           <button type="button" onClick={onCancel} disabled={isSaving} className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg">Cancel</button>
           <button type="button" onClick={handleApply} disabled={isLoading || isSaving || !pixelCrop} className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg disabled:opacity-50">{isSaving ? 'Processing...' : 'Apply crop'}</button>

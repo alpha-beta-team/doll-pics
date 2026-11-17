@@ -1,3 +1,4 @@
+import { AdminAlert } from '../components/ui/AdminUi';
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import type { PackageCategory } from '../types';
@@ -8,7 +9,6 @@ import {
   Trash2,
   Eye,
   EyeOff,
-  AlertCircle,
   X,
   FolderOpen,
 } from 'lucide-react';
@@ -120,8 +120,8 @@ export function PackageCategoriesPage() {
 
   if (error) {
     return (
-      <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-        <AlertCircle className="w-5 h-5 flex-shrink-0" />
+      <AdminAlert contentClassName="flex items-center gap-2">
+
         <span>{error}</span>
         {canManage ? <button
           type="button"
@@ -131,7 +131,7 @@ export function PackageCategoriesPage() {
         >
           <X className="w-4 h-4" aria-hidden="true" />
         </button> : isReadOnly ? <ReadOnlyNotice /> : null}
-      </div>
+      </AdminAlert>
     );
   }
 

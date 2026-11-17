@@ -1,3 +1,4 @@
+import { AdminAlert } from '../ui/AdminUi';
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import {
   AlertCircle,
@@ -487,21 +488,15 @@ export function BookingNotesFollowUps({
         </div>
       </div>
       {notice && (
-        <p
-          role="status"
-          className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"
-        >
-          <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden="true" />
+        <AdminAlert tone="success" as="span" contentClassName="flex items-center gap-2">
+
           {notice}
-        </p>
+        </AdminAlert>
       )}
       {error && (
-        <div
-          role="alert"
-          className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-800"
-        >
+        <AdminAlert contentClassName="flex flex-wrap items-center gap-2">
           <p className="flex items-center gap-2">
-            <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
+
             {error}
           </p>
           <button
@@ -511,7 +506,7 @@ export function BookingNotesFollowUps({
           >
             Reload
           </button>
-        </div>
+        </AdminAlert>
       )}
       {loading && (
         <div
@@ -922,7 +917,7 @@ export function BookingNotesFollowUps({
                     </p>
                   )}
                   {staffError && (
-                    <p role="alert" className="text-sm text-red-700">
+                    <AdminAlert as="span">
                       {staffError}{" "}
                       <button
                         type="button"
@@ -931,7 +926,7 @@ export function BookingNotesFollowUps({
                       >
                         Retry staff loading
                       </button>
-                    </p>
+                    </AdminAlert>
                   )}
                   <label className="block text-sm">
                     Details (optional)
@@ -949,7 +944,7 @@ export function BookingNotesFollowUps({
               )}
             </fieldset>
             {saveError && (
-              <div role="alert" className="text-sm text-red-700">
+              <AdminAlert>
                 <p>{saveError}</p>
                 <button
                   type="button"
@@ -971,7 +966,7 @@ export function BookingNotesFollowUps({
                 >
                   Discard draft and reload latest
                 </button>
-              </div>
+              </AdminAlert>
             )}
             <div className="flex gap-3 border-t border-admin-border pt-4">
               <button

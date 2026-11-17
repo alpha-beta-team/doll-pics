@@ -1,6 +1,7 @@
+import { AdminAlert } from './ui/AdminUi';
 import { formatCustomerName } from '../../shared/formatCustomerName';
 import { useEffect, useMemo, useState } from 'react';
-import { AlertCircle, Check, History, Loader2, UserRoundSearch } from 'lucide-react';
+import { Check, History, Loader2, UserRoundSearch } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/client';
 import type { CustomerLookupResponse } from '../types';
@@ -84,7 +85,7 @@ export function CustomerLookupPanel({
 
   if (!enabled || !canonical) return null;
   if (loading) return <div className="flex items-center gap-2 rounded-xl bg-slate-50 p-3 text-sm text-slate-600"><Loader2 className="h-4 w-4 animate-spin" />Checking customer history…</div>;
-  if (error) return <div className="flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800"><AlertCircle className="h-4 w-4" />{error}<button type="button" className="min-h-11 underline" onClick={() => setRetry(value => value + 1)}>Retry</button></div>;
+  if (error) return <AdminAlert tone="warning" contentClassName="flex items-center gap-2">{error}<button type="button" className="min-h-11 underline" onClick={() => setRetry(value => value + 1)}>Retry</button></AdminAlert>;
   if (!records.length) return null;
 
   return (

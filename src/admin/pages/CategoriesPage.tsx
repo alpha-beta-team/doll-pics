@@ -1,3 +1,4 @@
+import { AdminAlert } from '../components/ui/AdminUi';
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import type { Category, Photo } from '../types';
@@ -7,7 +8,6 @@ import {
   Eye,
   EyeOff,
   Image as ImageIcon,
-  AlertCircle,
   X,
   Check,
 } from 'lucide-react';
@@ -119,13 +119,13 @@ export function CategoriesPage() {
 
   if (error) {
     return (
-      <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-        <AlertCircle className="w-5 h-5 flex-shrink-0" />
+      <AdminAlert contentClassName="flex items-center gap-2">
+
         <span>{error}</span>
         <button type="button" onClick={() => setError(null)} aria-label="Dismiss error" className="ml-auto hover:text-red-900">
           <X className="w-4 h-4" aria-hidden="true" />
         </button>
-      </div>
+      </AdminAlert>
     );
   }
 

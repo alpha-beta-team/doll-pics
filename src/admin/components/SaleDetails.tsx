@@ -1,3 +1,4 @@
+import { AdminAlert } from './ui/AdminUi';
 import type { SaleDetail } from '../../shared/types/sales';
 import { formatINR, formatPackagePrice } from '../../lib/pricing';
 import { saleDate } from '../../lib/sales';
@@ -11,7 +12,7 @@ export function SaleDetails({ sale }: { sale: SaleDetail }) {
   return <div className="space-y-5">
     <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-5">
       <div className="flex flex-wrap items-center justify-between gap-3"><h1 className="text-2xl font-semibold">{sale.name}</h1><span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-semibold capitalize text-blue-800">{sale.phase}</span></div>
-      {sale.state === 'draft' && <p role="status" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">This sale is a draft. Publish it to schedule or activate the offer on public package pages. Prices below are a preview.</p>}
+      {sale.state === 'draft' && <AdminAlert tone="warning" as="span">This sale is a draft. Publish it to schedule or activate the offer on public package pages. Prices below are a preview.</AdminAlert>}
       {!sale.enabled && <p className="text-sm text-amber-800">Sales are currently disabled by the owner configuration.</p>}
       {sale.description && <p className="whitespace-pre-wrap text-sm text-slate-700">{sale.description}</p>}
       <dl className="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-3">

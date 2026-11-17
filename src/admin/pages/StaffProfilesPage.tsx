@@ -1,3 +1,4 @@
+import { AdminAlert } from '../components/ui/AdminUi';
 import { useRef, useState } from 'react';
 import { api } from '../api/client';
 import type { StaffProfile } from '../types';
@@ -130,7 +131,7 @@ function StaffProfilePhotoField({
           }}
         />
       </div>
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      {error && <AdminAlert as="span" className="mt-2">{error}</AdminAlert>}
       {cropSource && (
         <ImageCropUpload
           source={cropSource}

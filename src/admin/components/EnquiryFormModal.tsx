@@ -1,5 +1,6 @@
+import { AdminAlert } from './ui/AdminUi';
 import { useEffect, useMemo, useState } from 'react';
-import { AlertCircle, ChevronDown, RotateCcw, X } from 'lucide-react';
+import { ChevronDown, RotateCcw, X } from 'lucide-react';
 import { bookingDurationLabel, bookingTimeWindowError } from '../../shared/bookingTime';
 import { ApiError } from '../api/http';
 import { api } from '../api/client';
@@ -183,8 +184,8 @@ export function EnquiryFormModal({
           <button type="button" onClick={onClose} className="flex h-11 w-11 items-center justify-center rounded-xl hover:bg-slate-100" aria-label="Close"><X className="h-5 w-5" /></button>
         </div>
         <div className="space-y-4 overflow-y-auto p-5">
-          {draftRestored && <div className="flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800"><RotateCcw className="h-4 w-4 shrink-0" /><span className="flex-1 font-medium">Your unfinished enquiry was restored.</span><button type="button" onClick={discardDraft} className="font-semibold text-blue-700 underline">Discard</button></div>}
-          {error && <div className="flex gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700" role="alert"><AlertCircle className="h-5 w-5 shrink-0" />{error}</div>}
+          {draftRestored && <AdminAlert tone="info" contentClassName="flex items-center gap-3"><RotateCcw className="h-4 w-4 shrink-0" /><span className="flex-1 font-medium">Your unfinished enquiry was restored.</span><button type="button" onClick={discardDraft} className="font-semibold text-blue-700 underline">Discard</button></AdminAlert>}
+          {error && <AdminAlert contentClassName="flex gap-2">{error}</AdminAlert>}
 
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="text-sm font-medium text-slate-700">Customer name *<input id="enquiry-name" autoFocus className={input} value={name} onChange={event => { setName(event.target.value); clearFieldError('name'); }} placeholder="Example: Priya" aria-invalid={Boolean(fieldErrors.name)} />{fieldErrors.name && <span className="mt-1 block text-xs font-medium text-red-600">{fieldErrors.name}</span>}</label>

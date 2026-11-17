@@ -1,5 +1,6 @@
+import { AdminAlert } from '../components/ui/AdminUi';
 import { useCallback, useEffect, useState } from 'react';
-import { AlertCircle, CalendarCheck, CheckCircle2, RefreshCw, ShieldCheck } from 'lucide-react';
+import { CalendarCheck, CheckCircle2, RefreshCw, ShieldCheck } from 'lucide-react';
 import { api } from '../api/client';
 import type { GoogleCalendarIntegrationStatus } from '../types';
 import { AdminPageHeader } from '../components/ui';
@@ -27,7 +28,7 @@ export function IntegrationsPage() {
   if (loading) return <div className="p-10 text-center text-slate-500">Loading integrations…</div>;
   return <div className="mx-auto max-w-4xl space-y-5">
     <AdminPageHeader eyebrow="Studio Settings" title="Integrations" description="Check the shared studio Calendar without exposing credentials." />
-    {error && <div className="flex gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"><AlertCircle className="h-5 w-5 shrink-0" />{error}</div>}
+    {error && <AdminAlert contentClassName="flex gap-2">{error}</AdminAlert>}
     {message && <div className="flex gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-700"><CheckCircle2 className="h-5 w-5" />{message}</div>}
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-4"><div className="flex gap-3"><span className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600"><CalendarCheck className="h-6 w-6" /></span><div><h2 className="font-bold text-slate-900">Google Calendar</h2><p className="mt-1 text-sm text-slate-500">One-way all-day shoot synchronization</p></div></div><span className={`rounded-full px-3 py-1 text-xs font-bold ${status?.enabled ? status.dryRun ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>{status?.enabled ? status.dryRun ? 'Dry run' : 'Live' : 'Disabled'}</span></div>

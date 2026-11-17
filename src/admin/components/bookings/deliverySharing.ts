@@ -46,3 +46,19 @@ export function rawSelectionMessage(name: string, links: { label: string; url: s
   const selection = count === null ? 'your preferred photos' : `${count} ${count === 1 ? 'photo' : 'photos'}`;
   return `Hi ${name.trim() || 'there'},\n\n${customerCode?.trim() ? `Customer code: ${customerCode.trim()}\n\n` : ''}Your RAW photos from Doll Pictures are ready for selection.\n\n${links.filter(link => validDeliveryUrl(link.url)).map(link => `${link.emoji} ${link.label}: ${link.url}`).join('\n')}\n\nPlease select ${selection} from the RAW files for editing and share the selected file names with us.\n\nPlease let us know if you need any help selecting them. Thank you!`;
 }
+
+/** Syntactically valid links can still point to staff-only or local resources. */
+export function deliveryUrlWarning(value: string): string {
+  if (!value.trim()) return '';
+  if (!validDeliveryUrl(normalizeDeliveryUrl(value))) return 'Enter a valid public http or https URL.';
+  const url = new URL(normalizeDeliveryUrl(value));
+  const host = url.hostname.toLowerCase();
+  let path: string;
+  try { path = decodeURIComponent(url.pathname); } catch { return 'Enter a valid public URL.'; }
+  if (!host.includes('.') || /(^|\.)(localhost|local|internal|test|invalid)$/.test(host)
+    || /^(127\.|10\.|192\.168\.|169\.254\.|0\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host)
+    || host.includes(':') || /(^|[./-])(admin|staff|dashboard)([./-]|$)/i.test(`${host}${path}`)) {
+    return 'This looks like a local or internal staff link. Use a customer-accessible link before sharing.';
+  }
+  return '';
+}

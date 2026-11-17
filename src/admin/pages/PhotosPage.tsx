@@ -14,7 +14,6 @@ import {
   Trash2,
   MoreVertical,
   Image as ImageIcon,
-  AlertCircle,
   ChevronLeft,
   ChevronRight,
   Maximize2,
@@ -444,13 +443,13 @@ export function PhotosPage() {
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-          <AlertCircle className="w-5 h-5" />
+        <AdminAlert contentClassName="flex items-center gap-2">
+
           <span>{error}</span>
           <button type="button" onClick={() => setError(null)} aria-label="Dismiss error" className="ml-auto">
             <X className="w-4 h-4" aria-hidden="true" />
           </button>
-        </div>
+        </AdminAlert>
       )}
 
       <div className="flex items-center gap-3">
@@ -818,7 +817,7 @@ export function PhotosPage() {
                   </div>
                 ))}
               </div>
-              {cropError && <p className="mt-3 text-sm text-red-600">{cropError}</p>}
+              {cropError && <AdminAlert as="span" className="mt-3">{cropError}</AdminAlert>}
             </div>
             {!isUploading && (
               <div className="p-4 border-t border-gray-200 flex justify-end gap-3">

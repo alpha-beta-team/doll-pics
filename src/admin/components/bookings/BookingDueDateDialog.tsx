@@ -1,3 +1,4 @@
+import { AdminAlert } from '../ui/AdminUi';
 import { useState } from 'react';
 import { api } from '../../api/client';
 import type { Booking } from '../../types';
@@ -31,7 +32,7 @@ export function BookingDueDateDialog({ booking, onClose, onSaved }: {
         <input type="date" value={date} disabled={saving} onChange={event => setDate(event.target.value)} className="mt-2 min-h-11 w-full rounded-lg border border-admin-border bg-admin-surface px-3 outline-none focus-visible:ring-2 focus-visible:ring-admin-focus" />
       </label>
       <p className="mt-2 text-sm text-admin-subtle">Leave blank to remove the due date.</p>
-      {error && <p role="alert" className="mt-3 text-sm text-red-700">{error}</p>}
+      {error && <AdminAlert as="span" className="mt-3">{error}</AdminAlert>}
       <div className="mt-5 flex justify-end gap-2">
         <AdminButton type="button" variant="secondary" disabled={saving} onClick={onClose}>Cancel</AdminButton>
         <AdminButton type="submit" disabled={saving || date === (booking.paymentDueDate || '')}>{saving ? 'Saving…' : 'Save due date'}</AdminButton>

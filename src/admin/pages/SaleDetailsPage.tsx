@@ -1,3 +1,4 @@
+import { AdminAlert } from '../components/ui/AdminUi';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api/client';
@@ -44,7 +45,7 @@ export function SaleDetailsPage() {
       {sale && sale.state !== 'archived' && <button className={button} disabled={busy} onClick={() => void action('archive')}>Archive</button>}
       {sale && <Link className={button} to={`/admin/sales?results=${sale._id}`}>View results</Link>}
     </div></div>
-    {error && <div role="alert" className="rounded-lg bg-red-50 p-4 text-red-800"><p>{error}</p><button className="mt-2 font-semibold underline" type="button" onClick={() => { setLoading(true); setError(''); void load().catch(err => setError(err.message)).finally(() => setLoading(false)); }}>Try again</button></div>}
+    {error && <AdminAlert><p>{error}</p><button className="mt-2 font-semibold underline" type="button" onClick={() => { setLoading(true); setError(''); void load().catch(err => setError(err.message)).finally(() => setLoading(false)); }}>Try again</button></AdminAlert>}
     {loading ? <p role="status">Loading sale details…</p> : sale ? <SaleDetails sale={sale} /> : null}
   </div>;
 }

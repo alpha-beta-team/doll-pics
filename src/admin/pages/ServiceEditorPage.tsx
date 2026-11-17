@@ -4,8 +4,6 @@ import {
   ArrowLeft,
   ArrowDown,
   ArrowUp,
-  AlertCircle,
-  CheckCircle2,
   EyeOff,
   ExternalLink,
   FileText,
@@ -18,7 +16,6 @@ import {
   Settings2,
   Trash2,
   Upload,
-  X,
 } from 'lucide-react';
 import { useFeatureAccess } from '../access/useFeatureAccess';
 import { api } from '../api/client';
@@ -831,30 +828,14 @@ function SaveToast({
   onClose: () => void;
 }) {
   if (!toast) return null;
-  const success = toast.tone === 'success';
-  const Icon = success ? CheckCircle2 : AlertCircle;
-
   return (
-    <div
-      role={success ? 'status' : 'alert'}
-      aria-live={success ? 'polite' : 'assertive'}
-      className={`fixed left-4 right-4 top-4 z-[120] flex items-start gap-3 rounded-2xl border px-4 py-3 shadow-2xl backdrop-blur sm:left-auto sm:max-w-md ${
-        success
-          ? 'border-emerald-200 bg-emerald-50/95 text-emerald-900'
-          : 'border-red-200 bg-red-50/95 text-red-900'
-      }`}
+    <AdminAlert
+      tone={toast.tone === 'success' ? 'success' : 'danger'}
+      onDismiss={onClose}
+      className="fixed left-4 right-4 top-4 z-[120] shadow-lg sm:left-auto sm:max-w-md"
     >
-      <Icon className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
-      <p className="min-w-0 flex-1 text-sm font-semibold leading-6">{toast.message}</p>
-      <button
-        type="button"
-        onClick={onClose}
-        aria-label="Dismiss notification"
-        className="-mr-1 rounded-lg p-1 opacity-65 transition hover:bg-black/5 hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current"
-      >
-        <X className="h-4 w-4" aria-hidden="true" />
-      </button>
-    </div>
+      {toast.message}
+    </AdminAlert>
   );
 }
 
@@ -970,7 +951,7 @@ function SectionImageField({
         <summary className="cursor-pointer text-xs font-medium text-admin-subtle">Use an image URL instead</summary>
         <input type="url" value={value} onChange={(event) => onChange(event.target.value)} className={`${adminFieldClass} mt-2`} placeholder="https://…" />
       </details>
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <AdminAlert as="span">{error}</AdminAlert>}
       <PhotoLibraryPicker
         open={libraryOpen}
         serviceLabel={serviceLabel}

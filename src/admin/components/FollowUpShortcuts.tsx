@@ -1,3 +1,4 @@
+import { AdminAlert } from './ui/AdminUi';
 import { useState } from 'react';
 import { CalendarClock, Check, Clock3 } from 'lucide-react';
 import {
@@ -46,6 +47,6 @@ export function FollowUpShortcuts({ value, onChange, allowNone, disabled, onVali
       {options.filter(option => option.id !== 'later' || canUseLaterToday()).map(option => <button key={option.id} type="button" disabled={disabled} onClick={() => choose(option.id)} className={buttonClass(selected === option.id)}>{option.id === 'later' ? <Clock3 className="h-4 w-4" /> : <CalendarClock className="h-4 w-4" />}{option.label}</button>)}
       <button type="button" disabled={disabled} onClick={() => choose('custom')} className={buttonClass(selected === 'custom')}>Choose date/time</button>
     </div>
-    {selected === 'custom' && <label className="mt-4 block text-sm font-semibold text-slate-700">Date and time<input type="datetime-local" value={value} disabled={disabled} onChange={event => customChange(event.target.value)} className="mt-1.5 h-12 w-full rounded-xl border border-slate-300 bg-white px-3 text-base font-normal outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:opacity-60" aria-invalid={Boolean(error)} />{error && <span className="mt-1 block text-xs font-medium text-red-600">{error}</span>}</label>}
+    {selected === 'custom' && <label className="mt-4 block text-sm font-semibold text-slate-700">Date and time<input type="datetime-local" value={value} disabled={disabled} onChange={event => customChange(event.target.value)} className="mt-1.5 h-12 w-full rounded-xl border border-slate-300 bg-white px-3 text-base font-normal outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:opacity-60" aria-invalid={Boolean(error)} />{error && <AdminAlert as="span" className="mt-1">{error}</AdminAlert>}</label>}
   </div>;
 }

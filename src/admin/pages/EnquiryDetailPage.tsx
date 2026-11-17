@@ -1,3 +1,4 @@
+import { AdminAlert } from '../components/ui/AdminUi';
 import { formatCustomerName } from '../../shared/formatCustomerName';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
@@ -109,7 +110,7 @@ function EnquiryDetailWorkspace() {
   };
 
   if (loading) return <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" /></div>;
-  if (!item) return <div className="mx-auto max-w-xl rounded-2xl border border-red-200 bg-red-50 p-6 text-red-700">{error || 'Enquiry not found.'}</div>;
+  if (!item) return <AdminAlert className="mx-auto max-w-xl">{error || 'Enquiry not found.'}</AdminAlert>;
   const closed = ['booked', 'closed_lost'].includes(item.stage);
 
   const overdue = !closed && item.nextFollowUpAt && new Date(item.nextFollowUpAt).getTime() < Date.now();
@@ -117,8 +118,8 @@ function EnquiryDetailWorkspace() {
 
   return <div className="mx-auto max-w-6xl space-y-4">
     <div className="flex items-center justify-between gap-3"><Link to="/admin/enquiries" className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-admin-secondary"><ArrowLeft className="h-4 w-4" />All enquiries</Link>{isReadOnly && <ReadOnlyNotice />}</div>
-    {error && <div role="alert" className="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}<button onClick={() => setError('')} className="ml-auto min-h-11">Dismiss</button></div>}
-    {success && <div role="status" className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-700">{success}<button onClick={() => setSuccess('')} className="ml-auto min-h-11">Dismiss</button></div>}
+    {error && <AdminAlert contentClassName="flex items-center gap-3">{error}<button onClick={() => setError('')} className="ml-auto min-h-11">Dismiss</button></AdminAlert>}
+    {success && <AdminAlert tone="success" contentClassName="flex items-center gap-3">{success}<button onClick={() => setSuccess('')} className="ml-auto min-h-11">Dismiss</button></AdminAlert>}
     <header className="rounded-2xl border border-admin-border bg-admin-surface p-4 shadow-sm">
       <div className="flex flex-wrap items-center gap-2"><h1 className="min-w-0 break-words text-xl font-semibold text-admin-text sm:text-2xl">{formatCustomerName(item.name)}</h1><EnquiryStageBadge stage={item.stage} /></div>
       <p className="mt-1 text-sm text-admin-secondary">{item.shootType || 'Service not decided'}</p>
@@ -149,7 +150,7 @@ function EnquiryDetailWorkspace() {
     <DetailTabPanel namespace="enquiry-details" id="notes" active={tab === 'notes'}><DetailSection title="Internal notes" action={canManage ? <button className="min-h-11 text-sm font-semibold text-admin-primary" onClick={() => setEditing(true)}>Edit notes</button> : undefined}><p className="whitespace-pre-wrap break-words text-sm text-admin-secondary">{item.notes || 'No internal notes recorded.'}</p></DetailSection></DetailTabPanel>
     {canManage && (visited.has('notes') || tab === 'notes') && <VoiceNotesPanel compact recordType="enquiry" recordId={item.id} hidden={tab !== 'notes'} />}
     {canManage && canViewQuotations && <DetailTabPanel namespace="enquiry-details" id="quotations" active={tab === 'quotations'}>{(visited.has('quotations') || tab === 'quotations') && <QuotationEnquiryPanel enquiryId={item.id} compact />}</DetailTabPanel>}
-    {followUpOpen && canManage && !closed && <DetailDialog title={item.nextFollowUpAt ? 'Edit follow-up' : 'Schedule follow-up'} onClose={() => void closeFollowUp()}>{followUpError && <p role="alert" className="mb-3 text-sm text-red-700">{followUpError}</p>}    {canManage && !closed && <FollowUpPanel
+    {followUpOpen && canManage && !closed && <DetailDialog title={item.nextFollowUpAt ? 'Edit follow-up' : 'Schedule follow-up'} onClose={() => void closeFollowUp()}>{followUpError && <AdminAlert as="span" className="mb-3">{followUpError}</AdminAlert>}    {canManage && !closed && <FollowUpPanel
       value={followUpAt}
       note={followUpNote}
       onChange={setFollowUpAt}

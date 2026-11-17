@@ -1,3 +1,4 @@
+import { AdminAlert } from '../components/ui/AdminUi';
 import { formatCustomerName } from '../../shared/formatCustomerName';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
@@ -92,8 +93,8 @@ export function SalesPage() {
   if (user?.role !== 'owner') return <p>Only the owner can manage sales and view campaign revenue.</p>;
   return <div className="mx-auto max-w-7xl space-y-6 text-slate-900">
     <header className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs uppercase tracking-widest text-slate-500">Packages</p><h1 className="text-2xl font-semibold">Sales & seasonal offers</h1><p className="mt-1 text-sm text-slate-600">Schedule offers and measure the bookings that used them.</p></div><button className={button} onClick={() => open()} disabled={busy}>Create sale</button></header>
-    {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-red-700">{error}</p>}
-    {sales.some(sale => !sale.enabled) && <p role="status" className="rounded-lg bg-amber-50 p-3">Sales are disabled. Existing booking prices remain available.</p>}
+    {error && <AdminAlert as="span">{error}</AdminAlert>}
+    {sales.some(sale => !sale.enabled) && <AdminAlert tone="warning" as="span">Sales are disabled. Existing booking prices remain available.</AdminAlert>}
     {loading && <p>Loading sales…</p>}
     {editing && <form onSubmit={save} className="space-y-4 rounded-xl border border-slate-200 bg-white p-5">
       <h2 className="font-semibold">{editing === 'new' ? 'Create a draft sale' : 'Edit sale'}</h2>

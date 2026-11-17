@@ -21,7 +21,7 @@ export function BookingPaymentSummary({ booking, onEditDueDate }: { booking: Boo
 
 }
 
-export function BookingDialog({ title, onClose, children, variant = 'modal', className = '' }: { title: string; onClose: () => void; children: ReactNode; variant?: 'modal' | 'drawer'; className?: string }) {
+export function BookingDialog({ title, onClose, children, variant = 'modal', className = '', subtitle, compact = false }: { subtitle?: string; compact?: boolean; title: string; onClose: () => void; children: ReactNode; variant?: 'modal' | 'drawer'; className?: string }) {
   const panel = useRef<HTMLDivElement>(null);
   const closeRef = useRef(onClose);
   closeRef.current = onClose;
@@ -35,7 +35,7 @@ export function BookingDialog({ title, onClose, children, variant = 'modal', cla
       if (document.querySelector('[role="alertdialog"]')) return;
       if (event.key === 'Escape') { event.preventDefault(); closeRef.current(); }
       if (event.key !== 'Tab') return;
-      const items = Array.from(panel.current?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), textarea:not(:disabled), select:not(:disabled), a[href]') ?? []);
+      const items = Array.from(panel.current?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), textarea:not(:disabled), select:not(:disabled), a[href], summary') ?? []).filter(item => item.getClientRects().length > 0);
       const first = items[0], last = items[items.length - 1];
       if (!first) { event.preventDefault(); return; }
       if (event.shiftKey && (document.activeElement === first || document.activeElement === panel.current)) { event.preventDefault(); last.focus(); }
@@ -44,7 +44,7 @@ export function BookingDialog({ title, onClose, children, variant = 'modal', cla
     document.addEventListener('keydown', onKey);
     return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = overflow; previous?.focus(); };
   }, []);
-  return createPortal(<div className={`${className} ${variant === 'drawer' ? "fixed inset-0 z-[65] flex justify-end bg-black/50" : "fixed inset-0 z-[90] flex items-center justify-center bg-black/50 p-3"}`}><div ref={panel} role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1} className={variant === 'drawer' ? "h-[100dvh] w-full max-w-2xl overflow-y-auto overscroll-contain bg-admin-surface p-4 text-admin-text shadow-xl sm:p-6" : "max-h-[90dvh] w-full max-w-xl overflow-y-auto rounded-xl bg-admin-surface p-4 text-admin-text shadow-xl"}><div className="mb-3 flex items-center justify-between gap-3"><h2 id={titleId} className="font-semibold">{title}</h2><button type="button" onClick={onClose} aria-label="Close dialog" className="flex h-11 w-11 items-center justify-center"><X className="h-5 w-5" /></button></div>{children}</div></div>, document.body);
+  return createPortal(<div style={{ backgroundColor: 'rgb(0 0 0 / 30%)', borderRadius: 0 }} className={`${className} ${variant === 'drawer' ? "fixed inset-0 z-[65] flex justify-end bg-black/50" : "fixed inset-0 z-[90] flex items-center justify-center bg-black/50 p-3"}`}><div ref={panel} role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1} className={compact ? "delivery-dialog max-h-[94dvh] w-full max-w-[760px] overflow-hidden rounded-2xl bg-admin-surface text-admin-text shadow-xl" : variant === 'drawer' ? "h-[100dvh] w-full max-w-2xl overflow-y-auto overscroll-contain bg-admin-surface p-4 text-admin-text shadow-xl sm:p-6" : "max-h-[90dvh] w-full max-w-xl overflow-y-auto rounded-xl bg-admin-surface p-4 text-admin-text shadow-xl"}><div className={compact ? "delivery-dialog-header flex items-center justify-between gap-3 border-b border-admin-border px-5 py-3" : "mb-3 flex items-center justify-between gap-3"}><div><h2 id={titleId} className="font-semibold">{title}</h2>{subtitle && <p className="mt-1 text-xs text-admin-subtle">{subtitle}</p>}</div><button type="button" onClick={onClose} aria-label="Close dialog" className="flex h-11 w-11 items-center justify-center"><X className="h-5 w-5" /></button></div>{children}</div></div>, document.body);
 }
 
 export function BookingCustomerDetails({ booking, canViewPhone }: { booking: Booking; canViewPhone: boolean }) {

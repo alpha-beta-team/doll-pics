@@ -1,3 +1,4 @@
+import { AdminAlert } from '../components/ui/AdminUi';
 import { formatCustomerName } from '../../shared/formatCustomerName';
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -193,9 +194,9 @@ export function QuotationEditorPage() {
     );
   if (!quote || !draft || !assets)
     return (
-      <div className="rounded-xl bg-red-50 p-5 text-red-700">
+      <AdminAlert>
         {error || "Quotation not found."}
-      </div>
+      </AdminAlert>
     );
   const set = <K extends keyof QuotationDraft>(
     key: K,
@@ -274,14 +275,14 @@ export function QuotationEditorPage() {
         </div>
       </header>
       {error && (
-        <p className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <AdminAlert as="span">
           {error}
-        </p>
+        </AdminAlert>
       )}
       {success && (
-        <p className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-700">
+        <AdminAlert tone="success" as="span">
           {success}
-        </p>
+        </AdminAlert>
       )}
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="space-y-5">

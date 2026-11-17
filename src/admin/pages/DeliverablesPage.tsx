@@ -1,3 +1,4 @@
+import { AdminAlert } from '../components/ui/AdminUi';
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { AdminPageHeader } from '../components/ui';
@@ -49,8 +50,8 @@ export function DeliverablesPage() {
   useEffect(() => { void load(); }, [load]);
   return <div className="mx-auto max-w-4xl space-y-5">
     <AdminPageHeader eyebrow="Studio Settings" title="Deliverables" description="Set the Base Package once. Seasonal lists inherit the base and add their own items. Saved bookings keep their agreed list." />
-    {error && <div role="alert" className="rounded-xl bg-red-50 p-3 text-red-800">{error}<button type="button" className="ml-3 min-h-11 underline" disabled={saving} onClick={() => { if (window.confirm('Reload saved configuration and discard unsaved changes?')) void load(); }}>Reload saved configuration</button></div>}
-    {message && <p role="status" className="text-sm text-emerald-800">{message}</p>}
+    {error && <AdminAlert>{error}<button type="button" className="ml-3 min-h-11 underline" disabled={saving} onClick={() => { if (window.confirm('Reload saved configuration and discard unsaved changes?')) void load(); }}>Reload saved configuration</button></AdminAlert>}
+    {message && <AdminAlert tone="success" as="span">{message}</AdminAlert>}
     {loading ? <p role="status">Loading deliverable lists…</p> : <form className="space-y-5" onSubmit={async event => {
       event.preventDefault(); setSaving(true); setError(''); setMessage('');
       try { setConfiguration(await api.saveDeliverableConfiguration(configuration)); setMessage('Base Package and seasonal lists saved. Existing bookings are unchanged.'); }

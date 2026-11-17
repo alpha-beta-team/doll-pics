@@ -1,3 +1,4 @@
+import { AdminAlert } from '../ui/AdminUi';
 import { formatCustomerName } from '../../../shared/formatCustomerName';
 import { useEffect, useState } from 'react';
 import { api } from '../../api/client';
@@ -46,7 +47,7 @@ export function BookingAssignmentDialog({ booking, onClose, onSaved }: {
   return (
     <BookingDialog title="Assign staff" onClose={() => { if (!saving) onClose(); }}>
       <p className="mb-4 text-sm text-admin-secondary">{formatCustomerName(booking.customerName) || 'Unnamed customer'} · {booking.packageName || booking.shootType || 'Booking'}</p>
-      {loadError ? <div role="alert" className="space-y-3 text-sm text-red-700"><p>{loadError}</p><AdminButton variant="secondary" onClick={() => setAttempt(value => value + 1)}>Retry staff loading</AdminButton></div> : (
+      {loadError ? <AdminAlert contentClassName="space-y-3"><p>{loadError}</p><AdminButton variant="secondary" onClick={() => setAttempt(value => value + 1)}>Retry staff loading</AdminButton></AdminAlert> : (
         <form onSubmit={event => { event.preventDefault(); void save(); }}>
           <label className="block text-sm font-medium">
             Assigned staff
@@ -58,7 +59,7 @@ export function BookingAssignmentDialog({ booking, onClose, onSaved }: {
           </label>
           {loading && <p role="status" className="mt-2 text-sm text-admin-subtle">Loading staff…</p>}
           {!loading && !staff.length && <p className="mt-2 text-sm text-admin-subtle">No assignable staff available.</p>}
-          {saveError && <p role="alert" className="mt-3 text-sm text-red-700">{saveError}</p>}
+          {saveError && <AdminAlert as="span" className="mt-3">{saveError}</AdminAlert>}
           <div className="mt-5 flex justify-end gap-2">
             <AdminButton type="button" variant="secondary" disabled={saving} onClick={onClose}>Cancel</AdminButton>
             <AdminButton type="submit" disabled={loading || saving || assignee === (booking.assignedStaffAccountId || '')}>{saving ? 'Saving…' : 'Save assignment'}</AdminButton>

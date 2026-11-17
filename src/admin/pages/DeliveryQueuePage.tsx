@@ -188,12 +188,9 @@ export function DeliveryQueuePage() {
         </AdminAlert>
       )}
       {notice && (
-        <p
-          role="status"
-          className="rounded-xl bg-emerald-50 p-3 text-sm text-emerald-800"
-        >
+        <AdminAlert tone="success" as="span">
           {notice}
-        </p>
+        </AdminAlert>
       )}
       {busy && (
         <p role="status" className="py-4 text-sm text-admin-subtle">

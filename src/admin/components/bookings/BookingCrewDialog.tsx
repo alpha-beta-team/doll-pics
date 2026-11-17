@@ -1,3 +1,4 @@
+import { AdminAlert } from '../ui/AdminUi';
 import './booking-crew-dialog.css';
 import { useEffect, useState } from 'react';
 import { CREW_SERVICE_LABELS, CrewServiceType } from '../../../shared/crew';
@@ -66,14 +67,14 @@ export function BookingCrewDialog({ booking, onClose, onSaved }: {
   return <BookingDialog className="admin-theme booking-crew-dialog" title="Edit crew" onClose={() => { void close(); }}>
     <p className="text-sm text-admin-subtle">{booking.customerName} · {booking.packageName || booking.shootType || 'Booking'}</p>
     {loading && <p role="status" className="mt-3 text-sm text-admin-subtle">Loading staff…</p>}
-    {loadError && <div role="alert" className="mt-3 text-sm text-red-700"><p>{loadError}</p><AdminButton variant="secondary" onClick={() => setAttempt(value => value + 1)}>Retry staff loading</AdminButton></div>}
+    {loadError && <AdminAlert className="mt-3"><p>{loadError}</p><AdminButton variant="secondary" onClick={() => setAttempt(value => value + 1)}>Retry staff loading</AdminButton></AdminAlert>}
     <form className="flex min-h-0 flex-1 flex-col" onSubmit={event => { event.preventDefault(); void save(); }}>
       <div role="region" aria-label="Crew list scroll area" className="min-h-0 min-w-0 overflow-y-auto overscroll-contain pb-4">
       <fieldset disabled={loading || saving || Boolean(loadError)} className="min-w-0 disabled:opacity-60">
         <CrewListEditor value={rows} staffAccounts={staff} onChange={setRows} showAddButton={false} />
       </fieldset>
       </div>
-      {error && <p role="alert" className="shrink-0 pt-3 text-sm text-red-700">{error}</p>}
+      {error && <AdminAlert as="span" className="shrink-0">{error}</AdminAlert>}
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-admin-border bg-admin-surface pt-4" aria-label="Crew actions">
         <AdminButton type="button" variant="secondary" disabled={loading || saving || Boolean(loadError) || rows.length >= 100} onClick={() => setRows(current => [...current, { serviceType: CrewServiceType.CandidPhoto, staffAccountId: '', memberName: '' }])}>Add crew member</AdminButton>
         <div className="ml-auto flex gap-2">

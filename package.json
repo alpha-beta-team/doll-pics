@@ -28,7 +28,9 @@
     "test:customer-booking": "tsx --tsconfig tsconfig.app.json --test tests/customer-booking.test.tsx && node --test tests/pwa/worker.test.mjs",
     "test:sales": "tsx --tsconfig tsconfig.app.json --test --test-concurrency=1 src/hooks/usePublicPackages.spec.ts src/admin/components/saleSelection.spec.ts src/admin/components/SaleDetails.spec.tsx src/contexts/SiteDataContext.spec.mjs src/admin/pages/SaleDetailsPage.spec.mjs",
     "test:customer-identity": "tsx --tsconfig tsconfig.app.json --test tests/customer-identity.test.tsx",
-    "test:deliverables": "tsx --tsconfig tsconfig.app.json --test tests/deliverables.test.tsx"
+    "test:deliverables": "tsx --tsconfig tsconfig.app.json --test tests/deliverables.test.tsx",
+    "test:order-workflow": "tsx --tsconfig tsconfig.app.json --test tests/order-workflow.test.tsx",
+    "test:order-workflow:browser": "playwright test --config playwright.order-workflow.config.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

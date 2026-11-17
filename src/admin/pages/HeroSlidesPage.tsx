@@ -1,3 +1,4 @@
+import { AdminAlert } from '../components/ui/AdminUi';
 import { useRef, useState } from 'react';
 import { Image as ImageIcon, Upload } from 'lucide-react';
 import { api } from '../api/client';
@@ -152,7 +153,7 @@ function HeroSlideImageField({
       <p className="mt-2 text-xs text-gray-500">
         Use a landscape image. The crop is locked to 16:9 for the homepage hero.
       </p>
-      {error ? <p className="mt-2 text-sm text-red-600">{error}</p> : null}
+      {error ? <AdminAlert as="span" className="mt-2">{error}</AdminAlert> : null}
 
       <details className="mt-4">
         <summary className="cursor-pointer text-xs font-medium text-gray-500">Use an image URL instead</summary>

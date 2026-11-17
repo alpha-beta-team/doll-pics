@@ -60,7 +60,7 @@ export function StaffAccountDetailPage() {
   }
 
   if (!account) {
-    return <div className="mx-auto max-w-xl rounded-2xl border border-red-200 bg-red-50 p-6 text-red-700">{error || 'Staff account not found.'}</div>;
+    return <AdminAlert className="mx-auto max-w-xl">{error || 'Staff account not found.'}</AdminAlert>;
   }
 
   return (

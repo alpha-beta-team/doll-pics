@@ -1,3 +1,4 @@
+import { AdminAlert } from './ui/AdminUi';
 import { formatCustomerName } from '../../shared/formatCustomerName';
 import {
   useCallback,
@@ -9,7 +10,6 @@ import {
 } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  AlertCircle,
   CalendarDays,
   CornerDownLeft,
   Mail,
@@ -285,14 +285,8 @@ export function GlobalSearch() {
                 </div>
               )}
               {state === "error" && (
-                <div
-                  className="flex flex-col items-center p-10 text-center"
-                  role="alert"
-                >
-                  <AlertCircle
-                    className="h-8 w-8 text-red-500"
-                    aria-hidden="true"
-                  />
+                <AdminAlert contentClassName="flex items-center">
+
                   <p className="mt-3 font-semibold text-slate-900">
                     Search could not be completed
                   </p>
@@ -306,7 +300,7 @@ export function GlobalSearch() {
                   >
                     Try again
                   </button>
-                </div>
+                </AdminAlert>
               )}
               {state === "success" && response?.total === 0 && (
                 <SearchMessage

@@ -1,3 +1,4 @@
+import { AdminAlert } from './ui/AdminUi';
 import { DeliverablePresetPicker } from './DeliverablePresetPicker';
 import { DeliverablesEditor } from './DeliverablesEditor';
 import { CrewListEditor } from './CrewListEditor';
@@ -11,8 +12,6 @@ import {
 } from "./CustomerIdentityChoice";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  AlertCircle,
-  AlertTriangle,
   Check,
   ChevronRight,
   X,
@@ -143,17 +142,14 @@ export function BookingFormModal(props: Props) {
   return (
     <>
       {existingBookingId && (
-        <div
-          role="alert"
-          className="fixed left-4 top-4 z-[100] rounded-lg bg-amber-50 p-4"
-        >
+        <AdminAlert tone="warning" className="fixed left-4 top-4 z-[100]">
           <a
             className="font-semibold underline"
             href={`/admin/bookings/${existingBookingId}`}
           >
             This enquiry is already converted. Open booking
           </a>
-        </div>
+        </AdminAlert>
       )}
       <BookingWizard {...props} onSave={save} />
     </>
@@ -976,13 +972,10 @@ function BookingWizard({
             </p>
           </div>
           {error && (
-            <div
-              role="alert"
-              className="flex gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700"
-            >
-              <AlertCircle className="h-4 w-4 shrink-0" />
+            <AdminAlert contentClassName="flex gap-2">
+
               {error}
-            </div>
+            </AdminAlert>
           )}
 
           {step === 0 && (
@@ -1426,7 +1419,7 @@ function BookingWizard({
 
           {step === 2 && <CrewListEditor value={crewList} staffAccounts={staffAccounts} onChange={setCrewList} />}
           {step === 2 && <div className="mt-4 space-y-3" aria-label="Booking deliverables fields">
-            {deliverablesLoading ? <p role="status">Loading deliverables…</p> : deliverablesError ? <p role="alert" className="text-red-700">{deliverablesError}<button type="button" className="ml-3 underline" onClick={() => setDeliverablesRetry(value => value + 1)}>Retry</button></p> : <>{deliverableConfiguration && <DeliverablePresetPicker configuration={deliverableConfiguration} rows={deliverables} onApply={setDeliverables} />}<DeliverablesEditor catalog={deliverableCatalog} rows={deliverables} onChange={setDeliverables} canPrice={canEditBookingPricing} showExtrasTotal={false} /></>}
+            {deliverablesLoading ? <p role="status">Loading deliverables…</p> : deliverablesError ? <AdminAlert as="span">{deliverablesError}<button type="button" className="ml-3 underline" onClick={() => setDeliverablesRetry(value => value + 1)}>Retry</button></AdminAlert> : <>{deliverableConfiguration && <DeliverablePresetPicker configuration={deliverableConfiguration} rows={deliverables} onApply={setDeliverables} />}<DeliverablesEditor catalog={deliverableCatalog} rows={deliverables} onChange={setDeliverables} canPrice={canEditBookingPricing} showExtrasTotal={false} /></>}
             {booking && <label className="block text-sm">Reason for changing deliverables<input className="mt-1 min-h-11 w-full rounded-lg border px-3" value={deliverablesChangeReason} maxLength={1000} onChange={e => setDeliverablesChangeReason(e.target.value)} /></label>}
             {canEditBookingPricing && <dl aria-label="Booking pricing summary" className="grid grid-cols-3 divide-x divide-admin-border rounded-lg border border-admin-border bg-admin-canvas py-2.5 text-xs">
               <div className="min-w-0 px-3"><dt className="text-[10px] text-admin-subtle">Base after discount</dt><dd className="mt-1 font-medium text-admin-text">{agreedTotal === '' ? '—' : `₹${Number(agreedTotal).toLocaleString('en-IN')}`}</dd></div>
@@ -1684,11 +1677,8 @@ function ShootDurationSelector({
           : "Choose a booking date before setting the shoot time."}
       </p>
       {earlyMorningStart && (
-        <div
-          className="mt-3 flex items-start gap-2 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900"
-          role="alert"
-        >
-          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
+        <AdminAlert tone="warning" className="mt-3" contentClassName="flex items-start gap-2">
+
           <div>
             <strong className="block">
               You selected {formatScheduleTime(startTime)} — after midnight.
@@ -1705,7 +1695,7 @@ function ShootDurationSelector({
               Change to {formatScheduleTime(afternoonEquivalent)}
             </button>
           </div>
-        </div>
+        </AdminAlert>
       )}
 
       <div className="mt-3 grid gap-2">
@@ -1793,9 +1783,9 @@ function ShootDurationSelector({
             />
           </label>
           {customError && (
-            <p className="mt-1 text-xs font-medium text-red-600">
+            <AdminAlert as="span" className="mt-1">
               {customError}
-            </p>
+            </AdminAlert>
           )}
           <button
             type="button"
@@ -1808,12 +1798,9 @@ function ShootDurationSelector({
       )}
 
       {error && (
-        <p
-          id="booking-time-error"
-          className="mt-2 text-xs font-medium text-red-600"
-        >
+        <AdminAlert as="span" className="mt-2" id="booking-time-error">
           {error}
-        </p>
+        </AdminAlert>
       )}
       {!error && startTime && endTime && (
         <p className="mt-2 text-xs font-medium text-emerald-700">

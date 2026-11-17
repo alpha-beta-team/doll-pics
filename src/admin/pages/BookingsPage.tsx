@@ -1,3 +1,4 @@
+import { AdminAlert } from '../components/ui/AdminUi';
 import { formatCustomerName } from '../../shared/formatCustomerName';
 import './enquiries.css';
 import './bookings.css';
@@ -403,12 +404,12 @@ export function BookingsPage() {
       </div>
       <div className="enquiry-list-content space-y-5">
       {error && bookings.length > 0 && (
-        <div role="alert" className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-          <AlertCircle className="h-5 w-5 shrink-0" aria-hidden="true" />
+        <AdminAlert contentClassName="flex items-center gap-2">
+
           <span className="min-w-0 flex-1">{error}</span>
           <button type="button" onClick={() => void load(true)} className="min-h-10 rounded-lg px-2 font-semibold hover:bg-red-100">Retry</button>
           <button type="button" onClick={() => setError('')} aria-label="Dismiss error" className="flex h-10 w-10 items-center justify-center rounded-lg hover:bg-red-100"><X className="h-4 w-4" aria-hidden="true" /></button>
-        </div>
+        </AdminAlert>
       )}
 
       {showFilters && (

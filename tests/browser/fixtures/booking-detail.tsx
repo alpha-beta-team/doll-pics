@@ -1,3 +1,5 @@
+import { nextOrderStages, type OrderWorkflow, type OrderStage } from '../../../src/shared/orderWorkflow';
+import { orderWorkflowApi } from '../../../src/admin/api/orderWorkflow';
 import { bookingWorkspaceApi } from '../../../src/admin/api/bookingWorkspace';
 import type { BookingWorkspace } from '../../../src/shared/bookingWorkspace';
 import '../../../src/admin/components/deliverables-editor.css';
@@ -34,6 +36,16 @@ declare global {
 api.getDeliverables = async () => [];
 api.getDeliverableConfiguration = async () => ({ revision: 0, base: [], seasonal: [] });
 const params = new URLSearchParams(location.search);
+let order: OrderWorkflow | null = params.has('workflow') ? { stage: (params.get('stage') || 'editing') as OrderStage, state: params.has('completed') ? 'completed' : 'active', mode: 'physical', enteredAt: '2026-11-17T04:30:00Z', dates: {}, assigneeId: 'staff', assigneeName: 'Staff', details: {}, revision: 1, history: [] } : null;
+orderWorkflowApi.get = async () => ({ orderWorkflow: structuredClone(order) });
+orderWorkflowApi.update = async (_id, input) => {
+  if (!order || input.revision !== order.revision || input.action !== 'advance' || !nextOrderStages(order).includes(input.stage!)) throw new Error('Invalid order update');
+  window.bookingTest.calls.push({ method: 'order', args: [input] });
+  order = { ...order, stage: input.stage!, revision: order.revision + 1, enteredAt: new Date().toISOString() };
+  order.dates[order.stage] = order.enteredAt;
+  if (order.stage === 'editing') order.editingDueAt = new Date(Date.now() + 5 * 86400000).toISOString();
+  return { orderWorkflow: structuredClone(order) };
+};
 window.bookingTest = { calls: [], fail: "", hold: false };
 const role = (params.get("role") || "owner") as StaffAccount["role"];
 localStorage.setItem("auth_token", "test-only");

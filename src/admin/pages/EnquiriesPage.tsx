@@ -1,10 +1,10 @@
+import { AdminAlert } from '../components/ui/AdminUi';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
 import type { Enquiry } from '../types';
 import type { ConvertEnquiryState } from './BookingsPage';
 import {
-  AlertCircle,
   ArrowRight,
   CalendarPlus,
   CheckCircle2,
@@ -289,8 +289,8 @@ export function EnquiriesPage() {
       </header>
 
       {error && (
-        <div className="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700" role="alert">
-          <AlertCircle className="h-5 w-5 shrink-0" />
+        <AdminAlert contentClassName="flex items-center gap-3">
+
           <span>{error}</span>
           <button
             type="button"
@@ -300,7 +300,7 @@ export function EnquiriesPage() {
           >
             <X className="h-4 w-4" />
           </button>
-        </div>
+        </AdminAlert>
       )}
 
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Enquiry overview">

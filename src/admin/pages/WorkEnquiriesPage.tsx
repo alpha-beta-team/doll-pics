@@ -1,3 +1,4 @@
+import { AdminAlert } from '../components/ui/AdminUi';
 import './enquiries.css';
 import { LEAD_SOURCE_OPTIONS, leadSourceLabel } from '../components/leadSource';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -299,7 +300,7 @@ export function WorkEnquiriesPage() {
 
       </div>
       <div className="enquiry-list-content space-y-5">
-      {followUpSuccess && <div role="status" className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-800"><span className="min-w-0 flex-1">{followUpSuccess}</span><button type="button" aria-label="Dismiss follow-up confirmation" onClick={() => setFollowUpSuccess('')} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-admin-focus"><X className="h-4 w-4" /></button></div>}
+      {followUpSuccess && <AdminAlert tone="success" contentClassName="flex items-center gap-3"><span className="min-w-0 flex-1">{followUpSuccess}</span><button type="button" aria-label="Dismiss follow-up confirmation" onClick={() => setFollowUpSuccess('')} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-admin-focus"><X className="h-4 w-4" /></button></AdminAlert>}
       {(reportMode || filtersOpen) && <section aria-label="Source reporting filters" className="rounded-xl border border-admin-border bg-admin-surface p-3">
         <div className="flex flex-wrap items-end gap-3"><label className="min-w-0 flex-1 text-xs font-semibold text-admin-subtle">Source<select aria-label="Enquiry source" value={source} onChange={event => { const next = new URLSearchParams(params); if (event.target.value) next.set('source', event.target.value); else next.delete('source'); setParams(next); }} className="mt-1 min-h-11 w-full rounded-lg border border-admin-border bg-admin-surface px-2 text-sm text-admin-text"><option value="">All sources</option>{LEAD_SOURCE_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}<option value="not_recorded">Not recorded</option></select></label>{(['dateFrom', 'dateTo'] as const).map(key => <label key={key} className="text-xs font-semibold text-admin-subtle">{key === 'dateFrom' ? 'Created from' : 'Created through'}<input aria-label={key === 'dateFrom' ? 'Created from' : 'Created through'} type="date" value={key === 'dateFrom' ? dateFrom : dateTo} onChange={event => { const next = new URLSearchParams(params); if (event.target.value) next.set(key, event.target.value); else next.delete(key); setParams(next); }} className="mt-1 block min-h-11 max-w-full rounded-lg border border-admin-border bg-admin-surface px-2 text-sm text-admin-text" /></label>)}{reportMode && <button className="min-h-11 text-sm font-semibold text-admin-primary underline" onClick={clearFilters}>Clear filters</button>}</div>
         {reportMode && <p className="mt-2 text-xs text-admin-subtle">{source === 'not_recorded' ? 'Not recorded' : source ? leadSourceLabel(source as Enquiry['source']) : 'All sources'} · Creation dates in India time. All stages included unless narrowed below.</p>}
@@ -340,14 +341,14 @@ export function WorkEnquiriesPage() {
       )}
 
       {error && items.length > 0 && (
-        <div role="alert" className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-          <AlertCircle className="h-5 w-5 shrink-0" aria-hidden="true" />
+        <AdminAlert contentClassName="flex items-center gap-2">
+
           <span className="min-w-0 flex-1">{error}</span>
           <button type="button" onClick={() => void load(true)} className="min-h-10 rounded-lg px-2 font-semibold outline-none hover:bg-red-100 focus-visible:ring-2 focus-visible:ring-red-500">Retry</button>
           <button type="button" onClick={() => setError('')} aria-label="Dismiss error" className="flex h-10 w-10 items-center justify-center rounded-lg outline-none hover:bg-red-100 focus-visible:ring-2 focus-visible:ring-red-500">
             <X className="h-4 w-4" aria-hidden="true" />
           </button>
-        </div>
+        </AdminAlert>
       )}
 
       <section id="enquiry-list-panel" aria-labelledby="enquiry-list-panel-title" className="enquiry-list overflow-hidden rounded-xl border border-admin-border bg-admin-surface shadow-[0_4px_20px_rgba(15,23,42,0.04)]" aria-busy={loading || refreshing}>
