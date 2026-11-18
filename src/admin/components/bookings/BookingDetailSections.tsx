@@ -33,6 +33,8 @@ export function BookingDialog({ title, onClose, children, variant = 'modal', cla
     panel.current?.focus();
     const onKey = (event: KeyboardEvent) => {
       if (document.querySelector('[role="alertdialog"]')) return;
+      const dialogs = document.querySelectorAll('[role="dialog"]');
+      if (dialogs[dialogs.length - 1] !== panel.current) return;
       if (event.key === 'Escape') { event.preventDefault(); closeRef.current(); }
       if (event.key !== 'Tab') return;
       const items = Array.from(panel.current?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), textarea:not(:disabled), select:not(:disabled), a[href], summary') ?? []).filter(item => item.getClientRects().length > 0);

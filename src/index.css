@@ -1253,3 +1253,41 @@ body:has(.public-skip-link) :where(a, button, input, select, textarea):focus-vis
   outline: 2px solid currentColor;
   outline-offset: 4px;
 }
+
+/* Scoped to Post-Shoot Tracking: soft neutral surfaces and violet interactions. */
+.post-shoot-tracking {
+  --admin-canvas: 252 253 255;
+  --admin-surface: 255 255 255;
+  --admin-elevated: 255 255 255;
+  --admin-muted-surface: 245 246 250;
+  --admin-border: 229 231 239;
+  --admin-control-border: 229 231 239;
+  --admin-text: 31 35 48;
+  --admin-text-secondary: 100 108 126;
+  --admin-text-muted: 109 117 136;
+  --admin-primary: 124 58 237;
+  --admin-primary-hover: 109 40 217;
+  --admin-action-hover: 109 40 217;
+  --admin-focus: 124 58 237;
+  --admin-success-surface: 220 252 231;
+  --admin-success-border: 187 247 208;
+  --admin-success-text: 21 128 61;
+  --admin-warning-surface: 255 251 235;
+  --admin-warning-text: 146 64 14;
+  --admin-violet-surface: 237 233 254;
+  --admin-violet-border: 221 214 254;
+  --admin-violet-text: 109 40 217;
+  --admin-violet-muted: 221 214 254;
+}
+.admin-theme .post-shoot-tracking {
+  background-color: rgb(var(--admin-canvas));
+}
+.admin-theme .post-shoot-tracking .tracking-search {
+  border-color: transparent;
+  background-color: rgb(var(--admin-muted-surface));
+}
+.admin-theme .post-shoot-tracking .tracking-search:focus {
+  border-color: rgb(var(--admin-focus));
+}
+.admin-theme .post-shoot-tracking .bg-indigo-50 { background-color: theme('colors.indigo.50'); }
+.admin-theme .post-shoot-tracking .text-indigo-700 { color: theme('colors.indigo.700'); }

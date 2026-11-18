@@ -29,6 +29,7 @@
     "test:sales": "tsx --tsconfig tsconfig.app.json --test --test-concurrency=1 src/hooks/usePublicPackages.spec.ts src/admin/components/saleSelection.spec.ts src/admin/components/SaleDetails.spec.tsx src/contexts/SiteDataContext.spec.mjs src/admin/pages/SaleDetailsPage.spec.mjs",
     "test:customer-identity": "tsx --tsconfig tsconfig.app.json --test tests/customer-identity.test.tsx",
     "test:deliverables": "tsx --tsconfig tsconfig.app.json --test tests/deliverables.test.tsx",
+    "test:post-shoot": "tsx --tsconfig tsconfig.app.json --test tests/post-shoot-tracking.test.ts",
     "test:order-workflow": "tsx --tsconfig tsconfig.app.json --test tests/order-workflow.test.tsx",
     "test:order-workflow:browser": "playwright test --config playwright.order-workflow.config.ts"
   },
@@ -38,6 +39,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@fontsource/cormorant-garamond": "^5.2.11",
     "@fontsource/inter": "^5.2.8",
+    "@headlessui/react": "^2.2.10",
     "@react-pdf/renderer": "^4.5.1",
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",

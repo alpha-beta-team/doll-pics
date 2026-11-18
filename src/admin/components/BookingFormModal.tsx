@@ -63,6 +63,7 @@ import {
 } from "../pages/schedule.utils";
 import { useAuth } from "../contexts/AuthContext";
 import { canViewBookingPricing } from "../access/roles";
+import { Select } from "../../components/ui/Select";
 import { LeadSourceSelect } from "./LeadSourceSelect";
 import { BOOKING_DISCOUNTS, changeBookingDiscount } from "./bookingDiscount";
 
@@ -1174,18 +1175,15 @@ function BookingWizard({
                     *
                   </span>
                   <span className="sr-only"> required</span>
-                  <select
+                  <Select
                     id="booking-shoot-type"
                     data-wizard-autofocus
                     required
-                    className={`${input} mt-1`}
+                    className="mt-1"
                     value={shootType}
-                    onChange={(e) => handleShootType(e.target.value)}
-                  >
-                    {serviceOptions.map((type) => (
-                      <option key={type}>{type}</option>
-                    ))}
-                  </select>
+                    onChange={handleShootType}
+                    options={serviceOptions.map(type => ({ value: type, label: type }))}
+                  />
                 </label>
                 <label className="text-sm text-slate-700">
                   {BOOKING_WIZARD_FIELD_LABELS.preferredEvent}
@@ -1277,27 +1275,18 @@ function BookingWizard({
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="text-sm text-slate-700">
                   {BOOKING_WIZARD_FIELD_LABELS.package}
-                  <select
+                  <Select
                     id="booking-package"
                     data-wizard-autofocus
-                    className={`${input} mt-1`}
+                    className="mt-1"
                     value={packageId}
-                    onChange={(e) => handlePackage(e.target.value)}
-                  >
-                    <option value="">No package</option>
-                    {selectedPackageOutsideFilter && (
-                      <option value={selectedPackageOutsideFilter.id}>
-                        {selectedPackageOutsideFilter.name} (current · other
-                        service)
-                      </option>
-                    )}
-                    {matchingPackages.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.name}
-                        {item.isPublished ? "" : " (unpublished)"}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={handlePackage}
+                    options={[
+                      { value: '', label: 'No package' },
+                      ...(selectedPackageOutsideFilter ? [{ value: selectedPackageOutsideFilter.id, label: `${selectedPackageOutsideFilter.name} (current · other service)` }] : []),
+                      ...matchingPackages.map(item => ({ value: item.id, label: `${item.name}${item.isPublished ? '' : ' (unpublished)'}` })),
+                    ]}
+                  />
                   <span className="mt-1 block text-xs text-slate-500">
                     Showing {shootType} packages only.
                   </span>
@@ -1305,22 +1294,15 @@ function BookingWizard({
                 {canEditBookingPricing && (
                   <label className="text-sm text-slate-700">
                     Discount (₹)
-                    <select
+                    <Select
                       id="booking-discount"
-                      className={`${input} mt-1`}
-                      value={discount}
-                      onChange={(e) => handleDiscount(Number(e.target.value))}
+                      className="mt-1"
+                      value={String(discount)}
+                      onChange={value => handleDiscount(Number(value))}
                       aria-invalid={Boolean(discountError)}
                       aria-describedby="booking-discount-help"
-                    >
-                      {BOOKING_DISCOUNTS.map((value) => (
-                        <option key={value} value={value}>
-                          {value === 0
-                            ? "No discount"
-                            : `₹${value.toLocaleString("en-IN")}`}
-                        </option>
-                      ))}
-                    </select>
+                      options={BOOKING_DISCOUNTS.map(value => ({ value: String(value), label: value === 0 ? 'No discount' : `₹${value.toLocaleString('en-IN')}` }))}
+                    />
                     <span
                       id="booking-discount-help"
                       className={`mt-1 block text-xs ${discountError ? "text-red-600" : "text-slate-500"}`}
@@ -1347,30 +1329,17 @@ function BookingWizard({
                 )}
                 <label className="text-sm text-slate-700">
                   {BOOKING_WIZARD_FIELD_LABELS.assignedStaffAccount}
-                  <select
-                    className={`${input} mt-1`}
+                  <Select
+                    className="mt-1"
                     value={assignedStaffAccountId}
-                    onChange={(e) => setAssignedStaffAccountId(e.target.value)}
-                  >
-                    <option value="">Unassigned</option>
-                    {booking?.assignedStaffAccountId &&
-                      !staffAccounts.some(
-                        (account) =>
-                          account.id === booking.assignedStaffAccountId,
-                      ) && (
-                        <option value={booking.assignedStaffAccountId}>
-                          {booking.assignedStaffAccountName ||
-                            "Previous assignee"}{" "}
-                          (current)
-                        </option>
-                      )}
-                    {staffAccounts.map((account) => (
-                      <option key={account.id} value={account.id}>
-                        {account.name}
-                        {account.jobTitle ? ` · ${account.jobTitle}` : ""}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={setAssignedStaffAccountId}
+                    options={[
+                      { value: '', label: 'Unassigned' },
+                      ...(booking?.assignedStaffAccountId && !staffAccounts.some(account => account.id === booking.assignedStaffAccountId)
+                        ? [{ value: booking.assignedStaffAccountId, label: `${booking.assignedStaffAccountName || 'Previous assignee'} (current)` }] : []),
+                      ...staffAccounts.map(account => ({ value: account.id, label: `${account.name}${account.jobTitle ? ` · ${account.jobTitle}` : ''}` })),
+                    ]}
+                  />
                 </label>
                 {canViewPayments && (
                   <label className="text-sm text-slate-700">
@@ -1398,19 +1367,18 @@ function BookingWizard({
                 {canViewPayments && enquiry && Number(advanceAmount) > 0 && (
                   <label className="text-sm text-slate-700">
                     {BOOKING_WIZARD_FIELD_LABELS.advanceMethod}
-                    <select
-                      className={`${input} mt-1`}
+                    <Select
+                      className="mt-1"
                       value={advanceMethod}
-                      onChange={(e) =>
-                        setAdvanceMethod(e.target.value as PaymentMethod)
-                      }
-                    >
-                      <option value="upi">UPI</option>
-                      <option value="cash">Cash</option>
-                      <option value="bank_transfer">Bank transfer</option>
-                      <option value="card">Card</option>
-                      <option value="other">Other</option>
-                    </select>
+                      onChange={value => setAdvanceMethod(value as PaymentMethod)}
+                      options={[
+                        { value: 'upi', label: 'UPI' },
+                        { value: 'cash', label: 'Cash' },
+                        { value: 'bank_transfer', label: 'Bank transfer' },
+                        { value: 'card', label: 'Card' },
+                        { value: 'other', label: 'Other' },
+                      ]}
+                    />
                   </label>
                 )}
               </div>

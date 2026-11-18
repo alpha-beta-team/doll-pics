@@ -31,7 +31,8 @@ for (const width of [390, 1280]) {
   test(`dedicated crew dialog saves only crew and retains failed edits at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto('/tests/browser/fixtures/booking-detail.html');
-    await page.getByRole('button', { name: 'Edit crew', exact: true }).click();
+    await page.getByRole('button', { name: 'Crew actions', exact: true }).click();
+    await page.getByRole('menuitem', { name: 'Assign crew', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'Edit crew', exact: true });
     await expect(dialog).toBeVisible();
     expect(await dialog.evaluate(element => getComputedStyle(element).backgroundColor)).not.toBe('rgba(0, 0, 0, 0)');
@@ -55,7 +56,8 @@ for (const width of [390, 1280]) {
     await expect(dialog).toBeHidden();
     const calls = await page.evaluate(() => window.bookingTest.calls);
     expect(calls.at(-1)).toEqual({ method: 'update', args: ['one', { crewList: [{ serviceType: 'drone', staffAccountId: 'new' }] }] });
-    await page.getByRole('button', { name: 'Edit crew', exact: true }).click();
+    await page.getByRole('button', { name: 'Crew actions', exact: true }).click();
+    await page.getByRole('menuitem', { name: 'Edit crew', exact: true }).click();
     await expect(dialog.getByLabel('Crew service 1', { exact: true })).toHaveValue('drone');
     await dialog.getByRole('button', { name: 'Remove crew row 1', exact: true }).click();
     await dialog.getByRole('button', { name: 'Save crew', exact: true }).click();
@@ -68,7 +70,8 @@ for (const width of [390, 1280]) {
   test(`crew actions stay visible while long lists scroll at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 720 });
     await page.goto('/tests/browser/fixtures/booking-detail.html');
-    await page.getByRole('button', { name: 'Edit crew', exact: true }).click();
+    await page.getByRole('button', { name: 'Crew actions', exact: true }).click();
+    await page.getByRole('menuitem', { name: 'Assign crew', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'Edit crew', exact: true });
     const add = dialog.getByRole('button', { name: 'Add crew member', exact: true });
     for (let index = 0; index < 8; index++) await add.click();

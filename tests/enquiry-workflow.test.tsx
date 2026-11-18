@@ -17,9 +17,9 @@ async function mount(element: React.ReactNode, confirm = async () => true) {
   const dom = new JSDOM('<div id="root"></div>', { url: 'http://localhost/admin/enquiries' });
   // React is imported before a DOM exists in this Node harness; cover its legacy focus hooks.
   Object.defineProperties(dom.window.HTMLElement.prototype, { attachEvent: { value: () => {} }, detachEvent: { value: () => {} } });
-  const keys = ['window', 'document', 'localStorage', 'IS_REACT_ACT_ENVIRONMENT'] as const;
+  const keys = ['window', 'document', 'localStorage', 'Element', 'HTMLElement', 'Node', 'IS_REACT_ACT_ENVIRONMENT'] as const;
   const previous = keys.map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)] as const);
-  for (const [key, value] of [['window', dom.window], ['document', dom.window.document], ['localStorage', dom.window.localStorage], ['IS_REACT_ACT_ENVIRONMENT', true]] as const) Object.defineProperty(globalThis, key, { configurable: true, value });
+  for (const [key, value] of [['window', dom.window], ['document', dom.window.document], ['localStorage', dom.window.localStorage], ['Element', dom.window.Element], ['HTMLElement', dom.window.HTMLElement], ['Node', dom.window.Node], ['IS_REACT_ACT_ENVIRONMENT', true]] as const) Object.defineProperty(globalThis, key, { configurable: true, value });
   const root = createRoot(dom.window.document.getElementById('root')!);
   const render = async (next: React.ReactNode) => act(async () => root.render(createElement(MemoryRouter, {}, createElement(ConfirmDialogContext.Provider, { value: confirm }, next))));
   await render(element);

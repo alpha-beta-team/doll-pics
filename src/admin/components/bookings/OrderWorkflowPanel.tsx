@@ -5,7 +5,7 @@ import { OrderDeliveryPreparation, type DeliveryPreparationHandle } from './Orde
 import type { Booking, StaffAccountOption } from '../../types';
 import { BookingDialog, BookingSection } from './BookingDetailSections';
 import { orderWorkflowApi } from '../../api/orderWorkflow';
-import { ORDER_STAGES, ORDER_STAGE_LABELS, milestoneLabel, nextOrderStages, orderHeaderAction, orderEventDateLabel, orderActionLabel, orderDate, orderLocalInput, type OrderInput, type OrderWorkflow, type OrderDetails, type OrderMilestone } from '../../../shared/orderWorkflow';
+import { ORDER_STAGES, ORDER_STAGE_LABELS, milestoneLabel, nextOrderStages, orderHeaderAction, orderEventDateLabel, orderActionLabel, orderDate, orderLocalInput, type OrderInput, type OrderWorkflow, type OrderDetails, type OrderMilestone, type OrderStage } from '../../../shared/orderWorkflow';
 
 const detailLabels: Record<keyof OrderDetails, string> = {
   nextAction: 'Next action', blocker: 'Internal blocker', printingHouse: 'Printing house', printingReference: 'Printing reference',
@@ -13,7 +13,7 @@ const detailLabels: Record<keyof OrderDetails, string> = {
   printerCourier: 'Printer → studio courier', printerTracking: 'Printer → studio tracking number', printerTrackingUrl: 'Printer → studio tracking link', expectedStudioAt: 'Expected studio arrival',
   expectedDispatchAt: 'Expected customer dispatch', customerCourier: 'Studio → customer courier', customerTracking: 'Studio → customer tracking number', customerTrackingUrl: 'Studio → customer tracking link', expectedDeliveryAt: 'Expected customer delivery',
 };
-export interface OrderWorkflowHandle { openStatus: () => void }
+export interface OrderWorkflowHandle { openStatus: (stage?: OrderStage) => void }
 export const OrderWorkflowPanel = forwardRef<OrderWorkflowHandle, {
   booking: Booking; canManage: boolean; staff: StaffAccountOption[]; onSaved: () => void; onLoaded?: (hasWorkflow: boolean) => void;
   onBookingSaved?: (booking: Booking) => void; onReadyChange?: (ready: boolean) => void; onCompletedChange?: (completed: boolean) => void; onActionLabelChange?: (label: string) => void;
@@ -42,11 +42,16 @@ export const OrderWorkflowPanel = forwardRef<OrderWorkflowHandle, {
   const availableStages = draft?.stage && !ORDER_STAGES.includes(draft.stage) ? [...ORDER_STAGES, draft.stage] : ORDER_STAGES;
   const choices = availableStages.filter(stage => (draft?.mode || order?.mode) !== 'digital' || ORDER_STAGES.indexOf(stage) <= ORDER_STAGES.indexOf('photos_delivered'))
     .filter(stage => draft?.action !== 'reopen' || !['delivered', 'collected', ...((order?.mode === 'digital') ? ['photos_delivered'] : [])].includes(stage));
-  useImperativeHandle(ref, () => ({ openStatus: () => {
+  useImperativeHandle(ref, () => ({ openStatus: (targetStage) => {
     if (loading || busy || !editable) return;
+    if (targetStage && (!order || !nextOrderStages(order).includes(targetStage))) { setError('The order stage changed. Review its current tracking before choosing an action.'); return; }
     if (!order) open({ action: 'initialize', stage: 'shoot_completed', mode: !booking.deliverables?.length || booking.deliverables.some(row => row.kind === 'physical') ? 'physical' : 'digital', assigneeId: booking.assignedStaffAccountId || '' });
     else if (order.state === 'completed') open({ action: 'reopen', stage: 'editing' });
-    else { const stage = nextOrderStages(order)[0]; if (stage) open({ action: 'advance', stage }); }
+    else {
+      const allowed = nextOrderStages(order);
+      const stage = targetStage || allowed[0];
+      if (stage) open({ action: 'advance', stage });
+    }
   } }));
   const save = async () => {
     if (!draft || submitting.current || sharingBusy) return;

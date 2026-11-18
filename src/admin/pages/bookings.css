@@ -1,4 +1,9 @@
 /* Booking-specific columns use the same workspace, toolbar and mobile controls as enquiries. */
+.bookings-workspace .enquiry-workspace-header .sales-header-services > div:first-child { flex-basis: 24rem; max-width: none; }
+.bookings-workspace .sales-service-options { overflow: visible; }
+.bookings-workspace .sales-service-options-list { min-width: 0; flex-wrap: wrap; }
+.bookings-workspace .sales-service-chip { white-space: nowrap; }
+
 .booking-table-heading { display: none; }
 .booking-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'customer customer' 'service actions' 'date amount' 'attention attention' 'created created'; gap: .75rem; padding: 1rem; border-bottom: 1px solid #f1f5f9; background: white; }
 .booking-row:not(.booking-has-pricing) { grid-template-areas: 'customer customer' 'service actions' 'date date' 'attention attention' 'created created'; }

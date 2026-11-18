@@ -39,7 +39,8 @@ for (const mode of ['create', 'convert']) {
   test(`booking wizard saves included defaults and extras separately: ${mode}`, async ({ page }) => {
     await page.goto(`/tests/browser/fixtures/booking-discount.html?role=sales&mode=${mode}&deliverables=1`);
     await expect(page.getByRole('region', { name: 'Deliverables editor' })).toContainText('Frame');
-    await page.locator('#booking-discount').selectOption('500');
+    await page.locator('#booking-discount').click();
+      await page.getByRole('option', { name: '₹500', exact: true }).click();
     await page.getByLabel('Deliverable to add').selectOption('frame');
     await page.getByRole('button', { name: 'Add item', exact: true }).click();
     const extra = page.getByRole('region', { name: 'Deliverables editor' }).locator('article').nth(1);

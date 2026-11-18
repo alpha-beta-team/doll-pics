@@ -15,6 +15,7 @@ import {
 } from './quickEntry.utils';
 import { dateTimeLocalInKolkata, followUpDateError } from './followUp.utils';
 import { photographyServiceOptions } from './bookingForm.utils';
+import { Select } from '../../components/ui/Select';
 import { LeadSourceSelect } from './LeadSourceSelect';
 
 const DRAFT_KEY = 'doll_admin_enquiry_draft';
@@ -191,7 +192,7 @@ export function EnquiryFormModal({
             <label className="text-sm font-medium text-slate-700">Customer name *<input id="enquiry-name" autoFocus className={input} value={name} onChange={event => { setName(event.target.value); clearFieldError('name'); }} placeholder="Example: Priya" aria-invalid={Boolean(fieldErrors.name)} />{fieldErrors.name && <span className="mt-1 block text-xs font-medium text-red-600">{fieldErrors.name}</span>}</label>
             <label className="text-sm font-medium text-slate-700">Phone number *<input id="enquiry-phone" type="tel" inputMode="tel" autoComplete="tel" maxLength={20} className={input} value={phone} onChange={event => { setPhone(event.target.value); setNewShootConfirmed(false); setSeparateShootReason(''); setCustomerLookup(null); clearFieldError('phone'); }} placeholder="98765 43210" aria-invalid={Boolean(fieldErrors.phone)} />{fieldErrors.phone && <span className="mt-1 block text-xs font-medium text-red-600">{fieldErrors.phone}</span>}</label>
             <LeadSourceSelect value={source} onChange={value => setSource(value as EnquirySource)} />
-            <label className="text-sm font-medium text-slate-700">Photography service<select className={input} value={shootType} onChange={event => setShootType(event.target.value)}><option value="">Not decided</option>{serviceOptions.map(value => <option key={value}>{value}</option>)}</select></label>
+            <label className="text-sm font-medium text-slate-700">Photography service<Select value={shootType} onChange={setShootType} options={[{ value: '', label: 'Not decided' }, ...serviceOptions.map(value => ({ value, label: value }))]} /></label>
           </div>
 
           {(!enquiry || phone !== enquiry.phone) && <CustomerLookupPanel phone={phone} current={enquiry ? { type: 'enquiry', id: enquiry.id } : undefined} refreshKey={lookupRefresh} separateShootReason={separateShootReason} onReasonChange={value => { setSeparateShootReason(value); setNewShootConfirmed(false); }} allowNewShoot newShootConfirmed={newShootConfirmed} onConfirmNewShoot={() => { setNewShootConfirmed(true); clearFieldError('phone'); }} onUseContact={contact => { setName(contact.customerName); setEmail(contact.email); }} onResult={setCustomerLookup} onChecking={setCustomerLookupChecking} />}

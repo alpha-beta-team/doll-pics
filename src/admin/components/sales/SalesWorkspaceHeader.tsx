@@ -75,8 +75,8 @@ export function SalesWorkspaceHeader({
         <div className="sales-header-services flex min-w-0 flex-1 items-center gap-2 px-2 py-2 sm:px-3">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             {!studioBadge && <span className="hidden shrink-0 px-1 text-[11px] font-bold uppercase tracking-[0.13em] text-admin-subtle md:inline">Service</span>}
-            {serviceControl ?? <div className="min-w-0 flex-1 overflow-x-auto px-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <div role={studioBadge ? 'group' : 'tablist'} aria-label="Filter by photography service" className="flex min-w-max items-center gap-1.5">
+            {serviceControl ?? <div className="sales-service-options min-w-0 flex-1 overflow-x-auto px-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div role={studioBadge ? 'group' : 'tablist'} aria-label="Filter by photography service" className="sales-service-options-list flex min-w-max items-center gap-1.5">
                 {displayedCategories.map((category, index) => {
                   const selected = serviceCategory === category.value;
                   return (

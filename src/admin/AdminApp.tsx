@@ -12,6 +12,7 @@ import { AccessRoute, DefaultAdminRedirect } from "./components/AccessRoute";
 import { AccessDeniedPage } from "./pages/AccessDeniedPage";
 
 const DeliveryQueuePage = lazy(() => import('./pages/DeliveryQueuePage').then(module => ({ default: module.DeliveryQueuePage })));
+const PostShootTrackingPage = lazy(() => import('./pages/PostShootTrackingPage').then(module => ({ default: module.PostShootTrackingPage })));
 const SalesPage = lazy(() => import('./pages/SalesPage').then(module => ({ default: module.SalesPage })));
 const SaleDetailsPage = lazy(() => import('./pages/SaleDetailsPage').then(module => ({ default: module.SaleDetailsPage })));
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then(module => ({ default: module.DashboardPage })));
@@ -111,7 +112,7 @@ export default function AdminApp() {
                 <Route path="enquiries/:id" element={<EnquiryDetailPage />} />
               </Route>
               <Route element={<AccessRoute feature="bookings" />}>
-                <Route path="bookings" element={<BookingsPage />} />
+                <Route path="post-shoot" element={<PostShootTrackingPage />} /><Route path="bookings" element={<BookingsPage />} />
                 <Route path="bookings/:id" element={<BookingDetailPage />} />
               </Route>
               <Route element={<AccessRoute feature="schedule" />}><Route path="schedule" element={<SchedulePage />} /></Route>

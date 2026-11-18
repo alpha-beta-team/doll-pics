@@ -11,6 +11,7 @@ import './booking-detail.css';
 import { CustomerBookingPanel } from '../components/CustomerBookingPanel';
 import { CustomerCode } from '../components/CustomerCode';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -606,12 +607,23 @@ function BookingDetailWorkspace() {
           <section className="min-w-0 rounded-xl border border-admin-border bg-admin-surface p-4" aria-label="Crew List">
             <div className="flex min-h-11 items-center justify-between gap-3">
               <h2 className="font-semibold">Crew <span className="ml-1 text-sm font-normal text-admin-subtle">· {booking.crewList?.length || 0}</span></h2>
-              {canManageBooking && !!booking.crewList?.length && <button type="button" aria-label="Edit crew" title="Edit crew" onClick={() => setEditingCrew(true)} className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-purple-700 hover:bg-purple-50 hover:text-purple-800 focus-visible:outline-purple-600"><Pencil className="h-4 w-4" aria-hidden="true" /></button>}
+              {canManageBooking && <Menu>
+                <MenuButton aria-label="Crew actions" title="Crew actions" className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-admin-secondary hover:bg-admin-muted hover:text-admin-text focus-visible:outline-admin-focus">
+                  <MoreHorizontal className="h-5 w-5" aria-hidden="true" />
+                </MenuButton>
+                <MenuItems anchor={{ to: 'bottom end', gap: 4, padding: 8 }} modal={false} className="z-30 w-48 rounded-lg border border-slate-200 bg-white p-1 shadow-lg focus:outline-none">
+                  <MenuItem>
+                    <button type="button" onClick={() => setEditingCrew(true)} className="flex min-h-11 w-full items-center rounded-md px-3 py-2 text-left text-sm font-medium text-purple-700 data-[focus]:bg-purple-50 data-[focus]:text-purple-800">
+                      {booking.crewList?.length ? 'Edit crew' : 'Assign crew'}
+                    </button>
+                  </MenuItem>
+                </MenuItems>
+              </Menu>}
             </div>
             {booking.crewList?.length ? <>
               <ul className="divide-y divide-admin-border">{(showAllCrew ? booking.crewList : booking.crewList.slice(0, 3)).map((row, index) => <li key={index} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-2 text-sm"><span className="min-w-0 break-words font-medium">{row.memberName}</span><span className="text-admin-subtle">{CREW_SERVICE_LABELS[row.serviceType] || row.serviceType}</span></li>)}</ul>
               {booking.crewList.length > 3 && <button type="button" aria-expanded={showAllCrew} onClick={() => setShowAllCrew(value => !value)} className="min-h-11 text-sm font-semibold text-admin-primary">{showAllCrew ? 'Show less' : `View all ${booking.crewList.length} crew members`}</button>}
-            </> : <div className="flex flex-wrap items-center justify-between gap-2 py-2"><p className="text-sm text-admin-subtle">No crew assigned</p>{canManageBooking && <button type="button" onClick={() => setEditingCrew(true)} className="min-h-11 rounded-lg border border-purple-200 bg-purple-50 px-3 text-sm font-semibold text-purple-700 hover:border-purple-300 hover:bg-purple-100 hover:text-purple-800 focus-visible:outline-purple-600">+ Assign crew</button>}</div>}
+            </> : <p className="py-2 text-sm text-admin-subtle">No crew assigned</p>}
           </section>
         </div>
         <div className="bd-overview">

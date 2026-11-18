@@ -254,6 +254,7 @@ export function BookingsPage() {
     () => buildServiceCategoryOptions(bookings, matching),
     [bookings, matching],
   );
+  const visibleServiceCategories = serviceCategories.filter(category => category.count > 0);
   const visible = useMemo(
     () => sortBookings(matching.filter(booking => serviceCategoryMatches(booking, serviceCategory)), sort),
     [matching, serviceCategory, sort],
@@ -359,7 +360,7 @@ export function BookingsPage() {
         }}
         query={query} onQueryChange={setQuery} filtersOpen={showFilters} activeFilterCount={activeFilterCount}
         onToggleFilters={() => setShowFilters(open => !open)} refreshing={refreshing} onRefresh={() => void load(true)}
-        canManage={canManage} onAdd={() => void openCreateBooking()} services={serviceCategories}
+        canManage={canManage} onAdd={() => void openCreateBooking()} services={visibleServiceCategories}
         service={serviceCategory} onServiceChange={selectServiceCategory} sort={sort} onSortChange={setSort}
         sortOptions={BOOKING_SORT_OPTIONS.map(option => ({ ...option, shortLabel: ({ shoot_date: 'Shoot ↑', shoot_date_desc: 'Shoot ↓', recent: 'Newest', customer: 'Name A–Z', follow_up: 'Follow-up' })[option.value] }))}
       />
@@ -380,7 +381,7 @@ export function BookingsPage() {
             }}
           />
         )}
-        serviceCategories={serviceCategories}
+        serviceCategories={visibleServiceCategories}
         serviceCategory={serviceCategory}
         onServiceCategoryChange={selectServiceCategory}
         panelId="booking-list-panel"
