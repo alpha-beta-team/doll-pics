@@ -129,7 +129,6 @@ VITE_SITE_URL=https://dollpictures.in
 |----------|----------|---------|
 | `VITE_API_URL` | Yes (prod) | CMS/API base URL (includes `/api`). Runtime and prerender builds load published CMS content from it. |
 | `VITE_SITE_URL` | Recommended (prod) | Site origin for robots.txt, prerender, and SEO absolute URLs. No trailing slash. Defaults to `https://dollpictures.in` if unset. |
-| `VITE_ADMIN_DASHBOARD_MOCK_DATA` | No | Set to `true` to force bundled sample records on the admin dashboard. Local development also uses them automatically when both dashboard APIs are empty. |
 | `SEO_REQUIRE_CMS` | Yes (prod) | Set to `true` for a CMS-backed candidate: both publication endpoints must load successfully with no invalid published records or route conflicts. Valid empty collections pass. `false` preserves offline/outage fallback; that output is not CMS release evidence. |
 | `SEO_CMS_RETRY_DELAYS_MS` | No | Comma-separated build retry delays for transient CMS errors. Defaults to `2000,4000,8000,15000`. |
 

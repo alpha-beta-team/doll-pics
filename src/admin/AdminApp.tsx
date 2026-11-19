@@ -14,7 +14,6 @@ const DeliveryQueuePage = lazy(() => import('./pages/DeliveryQueuePage').then(mo
 const PostShootTrackingPage = lazy(() => import('./pages/PostShootTrackingPage').then(module => ({ default: module.PostShootTrackingPage })));
 const SalesPage = lazy(() => import('./pages/SalesPage').then(module => ({ default: module.SalesPage })));
 const SaleDetailsPage = lazy(() => import('./pages/SaleDetailsPage').then(module => ({ default: module.SaleDetailsPage })));
-const DashboardPage = lazy(() => import('./pages/DashboardPage').then(module => ({ default: module.DashboardPage })));
 const PhotosPage = lazy(() => import('./pages/PhotosWorkspacePage').then(module => ({ default: module.PhotosWorkspacePage })));
 const CategoriesPage = lazy(() => import('./pages/CategoriesPage').then(module => ({ default: module.CategoriesPage })));
 const PackagesPage = lazy(() => import('./pages/PackagesPage').then(module => ({ default: module.PackagesPage })));
@@ -108,9 +107,6 @@ export default function AdminApp() {
                 <Route path="bookings/:id" element={<BookingDetailPage />} />
               </Route>
               <Route element={<AccessRoute feature="schedule" />}><Route path="schedule" element={<SchedulePage />} /></Route>
-              <Route element={<AccessRoute feature="dashboard" />}>
-                <Route path="dashboard" element={<DashboardPage />} />
-              </Route>
               <Route element={<AccessRoute feature="staff_accounts" />}>
                 <Route path="staff-accounts" element={<StaffAccountsPage />} />
                 <Route path="staff-accounts/:id" element={<StaffAccountDetailPage />} />
@@ -163,8 +159,8 @@ export default function AdminApp() {
               <Route element={<AccessRoute feature="staff_profiles" />}>
                 <Route path="staff-profiles" element={<StaffProfilesPage />} />
               </Route>
+              <Route path="*" element={<DefaultAdminRedirect />} />
             </Route>
-            <Route path="*" element={<DefaultAdminRedirect />} />
           </Routes>
         </ConfirmDialogProvider>
       </AuthProvider>

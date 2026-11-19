@@ -3,7 +3,6 @@
 interface ImportMetaEnv {
   readonly VITE_API_URL?: string;
   readonly VITE_MAX_UPLOAD_SIZE_MB?: string;
-  readonly VITE_ADMIN_DASHBOARD_MOCK_DATA?: string;
   readonly VITE_SITE_URL?: string;
   readonly VITE_GA_MEASUREMENT_ID?: string;
   readonly VITE_META_PIXEL_ID?: string;

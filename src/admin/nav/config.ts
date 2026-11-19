@@ -100,7 +100,6 @@ export const PRIMARY_NAVIGATION: NavigationNode[] = [
     children: [
       leaf('owner-overview', 'Owner Home', '/admin/owner', Gauge, 5, 'owner_overview', { mobileQuickOrder: 5 }),
       leaf('schedule', 'Schedule', '/admin/schedule', CalendarRange, 20, 'schedule', { mobileQuickOrder: 20 }),
-      leaf('reports-summary', 'Dashboard', '/admin/dashboard', BarChart3, 30, 'dashboard', { featureFlag: 'reports' }),
     ],
   },
   {
@@ -167,7 +166,6 @@ export const UTILITY_NAVIGATION: NavigationNode[] = [
 ];
 
 export const ADMIN_FEATURE_FLAGS: AdminFeatureFlags = {
-  reports: true,
   portfolio: true,
   packages: true,
   website: true,

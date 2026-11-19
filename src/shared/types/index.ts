@@ -642,25 +642,6 @@ export type Booking = {
   updatedAt: string;
 };
 
-export type WeeklyOwnerReport = {
-  weekStart: string;
-  weekEnd: string;
-  timezone: string;
-  newEnquiries: number;
-  sourceBreakdown: Array<{ source: EnquirySource; count: number }>;
-  confirmedBookings: number;
-  cancelledBookings: number;
-  shootsCompleted: number;
-  paymentsReceived: number;
-  outstandingBalance: number;
-  overdueFollowUps: number;
-  untouchedNewEnquiries: number;
-  upcomingStart: string;
-  upcomingEnd: string;
-  upcomingShoots: number;
-  topSource?: { source: string; count: number };
-};
-
 export type FinanceReport = {
   period: {
     dateFrom: string;
@@ -850,7 +831,6 @@ export type StaffAccountRole = 'owner' | 'sales' | 'content_manager' | 'employee
 
 export type StaffAccessArea =
   | 'owner_overview'
-  | 'dashboard'
   | 'enquiries'
   | 'bookings'
   | 'schedule'

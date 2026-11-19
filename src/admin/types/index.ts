@@ -43,7 +43,6 @@ export type {
   StaffPermissionOverrides,
   StaffPermission,
   StaffAccountRole,
-  WeeklyOwnerReport,
   FinanceReport,
   OwnerOverviewReport,
   AdminSearchItem,

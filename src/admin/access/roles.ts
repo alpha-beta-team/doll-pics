@@ -9,11 +9,11 @@ import type {
 export type RoleAccessLevel = StaffAccessLevel;
 export type RoleAccessArea = StaffAccessArea;
 export type FeatureGroupId = 'overview' | 'sales' | 'content' | 'settings';
-export type FeatureFlagId = 'reports' | 'portfolio' | 'packages' | 'website';
+export type FeatureFlagId = 'portfolio' | 'packages' | 'website';
 export type NavigationSectionId = 'overview' | 'bookings_sales' | 'staff_management' | 'website' | 'settings';
 
 export const FEATURE_GROUPS: Array<{ id: FeatureGroupId; label: string; description: string }> = [
-  { id: 'overview', label: 'Overview', description: 'Daily workspace and dashboard' },
+  { id: 'overview', label: 'Overview', description: 'Daily workspace' },
   { id: 'sales', label: 'Sales', description: 'Leads, bookings, and schedules' },
   { id: 'content', label: 'Content', description: 'Portfolio, packages, and website content' },
   { id: 'settings', label: 'Owner settings', description: 'Financial, integration, and staff settings' },
@@ -41,7 +41,6 @@ const ownerOnlyLevels = ['none', 'manage'] as const;
 export const FEATURE_CATALOG = {
   payments: { label: 'Booking payments', group: 'settings', routes: [], ownerLocked: true, supportedLevels: ownerOnlyLevels, navigation: undefined },
   owner_overview: { label: 'Owner Home', group: 'overview', routes: ['/admin/owner'], ownerLocked: true, supportedLevels: ownerOnlyLevels, navigation: { id: 'owner-overview', label: 'Owner Home', section: 'overview', displayOrder: 5, mobileQuickOrder: 5 } },
-  dashboard: { label: 'Dashboard', group: 'overview', routes: ['/admin/dashboard'], supportedLevels: editableLevels, navigation: { id: 'reports-summary', label: 'Dashboard', section: 'overview', displayOrder: 30, featureFlag: 'reports' } },
   enquiries: { label: 'Enquiries', group: 'sales', routes: ['/admin/enquiries', '/admin/enquiries/:id'], supportedLevels: editableLevels, navigation: { id: 'enquiries', label: 'Enquiries', section: 'bookings_sales', displayOrder: 10, mobileQuickOrder: 30 } },
   bookings: { label: 'Bookings', group: 'sales', routes: ['/admin/bookings', '/admin/bookings/:id', '/admin/post-shoot'], supportedLevels: editableLevels, navigation: { id: 'bookings', label: 'Bookings', section: 'bookings_sales', displayOrder: 20, mobileQuickOrder: 40 } },
   schedule: { label: 'Schedule', group: 'sales', routes: ['/admin/schedule'], supportedLevels: editableLevels, navigation: { id: 'schedule', label: 'Schedule', section: 'overview', displayOrder: 20, mobileQuickOrder: 20 } },
@@ -98,7 +97,7 @@ export const ROLE_CATALOG: Record<StaffAccountRole, RoleDetails> = {
     selectionClassName: 'border-amber-400 bg-amber-50 ring-amber-200',
     access: {
       owner_overview: 'manage',
-      dashboard: 'view', enquiries: 'manage', bookings: 'manage', schedule: 'manage',
+      enquiries: 'manage', bookings: 'manage', schedule: 'manage',
       payments: 'manage', photos: 'manage', categories: 'manage',
       packages: 'manage', package_categories: 'manage', hero_slides: 'manage', story_scenes: 'manage',
       statistics: 'manage', testimonials: 'manage', behind_scenes: 'manage', staff_profiles: 'manage',
@@ -113,7 +112,7 @@ export const ROLE_CATALOG: Record<StaffAccountRole, RoleDetails> = {
     selectionClassName: 'border-blue-500 bg-blue-50 ring-blue-200',
     access: {
       owner_overview: 'none',
-      dashboard: 'none', enquiries: 'manage', bookings: 'manage', schedule: 'manage',
+      enquiries: 'manage', bookings: 'manage', schedule: 'manage',
       payments: 'none', photos: 'none', categories: 'none',
       packages: 'none', package_categories: 'none', hero_slides: 'none', story_scenes: 'none',
       statistics: 'none', testimonials: 'none', behind_scenes: 'none', staff_profiles: 'none',
@@ -128,7 +127,7 @@ export const ROLE_CATALOG: Record<StaffAccountRole, RoleDetails> = {
     selectionClassName: 'border-violet-500 bg-violet-50 ring-violet-200',
     access: {
       owner_overview: 'none',
-      dashboard: 'none', enquiries: 'view', bookings: 'manage', schedule: 'none',
+      enquiries: 'view', bookings: 'manage', schedule: 'none',
       payments: 'none', photos: 'none', categories: 'none',
       packages: 'none', package_categories: 'none', hero_slides: 'none', story_scenes: 'none',
       statistics: 'none', testimonials: 'none', behind_scenes: 'none', staff_profiles: 'none',
@@ -143,7 +142,7 @@ export const ROLE_CATALOG: Record<StaffAccountRole, RoleDetails> = {
     selectionClassName: 'border-emerald-500 bg-emerald-50 ring-emerald-200',
     access: {
       owner_overview: 'none',
-      dashboard: 'none', enquiries: 'none', bookings: 'none', schedule: 'none',
+      enquiries: 'none', bookings: 'none', schedule: 'none',
       payments: 'none', photos: 'none', categories: 'none',
       packages: 'none', package_categories: 'none', hero_slides: 'none', story_scenes: 'none',
       statistics: 'none', testimonials: 'none', behind_scenes: 'none', staff_profiles: 'none',
@@ -209,7 +208,6 @@ export function canViewBookingPricing(role: StaffAccountRole | null | undefined)
 
 export function getDefaultAdminRoute(user: StaffAccount | null | undefined): string {
   if (canView(user, 'owner_overview')) return '/admin/owner';
-  if (canView(user, 'dashboard')) return '/admin/dashboard';
   const first = FEATURE_ORDER.find((feature) => FEATURE_CATALOG[feature].routes.length > 0 && canView(user, feature));
   return (first ? FEATURE_CATALOG[first].routes[0] : undefined) ?? '/admin/access-denied';
 }
