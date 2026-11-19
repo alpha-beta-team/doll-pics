@@ -192,8 +192,8 @@ export function OwnerOverviewPage() {
               id="owner-finance-title"
               title="Financial health"
               description="Values for the selected period. Each card explains which date it uses."
-              to="/admin/payments"
-              linkLabel="Full finance report"
+              to="/admin/bookings"
+              linkLabel="View bookings"
             />
             <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
               <MetricCard
@@ -203,7 +203,7 @@ export function OwnerOverviewPage() {
                 detail={report.finance.summary.pricedShootBookings == null ? 'Shoot value is not available yet' : `${report.finance.summary.pricedShootBookings} priced bookings · Excludes drafts and cancellations`}
                 icon={CalendarCheck2}
                 tone="violet"
-                to="/admin/payments"
+                to="/admin/bookings"
               />
               <MetricCard
                 label="Payments received"
@@ -213,7 +213,7 @@ export function OwnerOverviewPage() {
                 comparison={preset === 'all' ? undefined : report.comparisons.paymentsReceived}
                 icon={Banknote}
                 tone="emerald"
-                to="/admin/payments"
+                to="/admin/bookings"
               />
               <MetricCard
                 label="Bookings confirmed value"
@@ -223,7 +223,7 @@ export function OwnerOverviewPage() {
                 comparison={preset === 'all' ? undefined : report.comparisons.bookedRevenue}
                 icon={TrendingUp}
                 tone="violet"
-                to="/admin/payments"
+                to="/admin/bookings"
               />
             </div>
           </section>
@@ -241,7 +241,7 @@ export function OwnerOverviewPage() {
                 detail={`${report.finance.summary.outstandingBookings} booking${report.finance.summary.outstandingBookings === 1 ? '' : 's'} with balance due`}
                 icon={WalletCards}
                 tone="amber"
-                to="/admin/payments"
+                to="/admin/bookings"
               />
               <MetricCard
                 label="Overdue now"
@@ -249,7 +249,7 @@ export function OwnerOverviewPage() {
                 detail={`${report.finance.summary.overdueBookings} overdue booking${report.finance.summary.overdueBookings === 1 ? '' : 's'}`}
                 icon={CalendarClock}
                 tone="rose"
-                to="/admin/payments"
+                to="/admin/bookings"
               />
             </div>
           </section>
@@ -377,11 +377,11 @@ function Comparison({ value }: { value: number | null }) {
 function AttentionGrid({ report }: { report: OwnerOverviewReport }) {
   const items = [
     { label: 'Untouched for 24h+', value: report.attention.untouchedNewEnquiries, detail: `${report.attention.newEnquiries} new enquiries open`, to: '/admin/enquiries', icon: Inbox, tone: 'bg-blue-50 text-blue-700' },
-    { label: 'Follow-ups overdue', value: report.attention.overdueFollowUps, detail: 'Enquiry and booking follow-ups', to: '/admin/today#today-followups', icon: Clock3, tone: 'bg-amber-50 text-amber-700' },
+    { label: 'Follow-ups overdue', value: report.attention.overdueFollowUps, detail: 'Enquiry and booking follow-ups', to: '/admin/enquiries', icon: Clock3, tone: 'bg-amber-50 text-amber-700' },
     { label: 'Drafts missing details', value: report.attention.draftsMissingDetails, detail: 'Incomplete booking records', to: '/admin/bookings', icon: FileWarning, tone: 'bg-violet-50 text-violet-700' },
-    { label: 'Payments overdue', value: report.attention.overdueBookings, detail: money(report.finance.summary.overdueNow), to: '/admin/payments', icon: CircleDollarSign, tone: 'bg-rose-50 text-rose-700' },
+    { label: 'Payments overdue', value: report.attention.overdueBookings, detail: money(report.finance.summary.overdueNow), to: '/admin/bookings', icon: CircleDollarSign, tone: 'bg-rose-50 text-rose-700' },
     ...(report.attention.overdueDeliveries !== undefined ? [{ label: 'Delivery overdue', value: report.attention.overdueDeliveries, detail: 'Completed shoots past their delivery date', to: '/admin/delivery?filter=overdue', icon: CalendarClock, tone: 'bg-rose-50 text-rose-700' }] : []),
-    { label: 'Finance records', value: report.attention.financeRecords, detail: 'Missing or inconsistent finance data', to: '/admin/payments', icon: AlertTriangle, tone: 'bg-orange-50 text-orange-700' },
+    { label: 'Finance records', value: report.attention.financeRecords, detail: 'Missing or inconsistent finance data', to: '/admin/bookings', icon: AlertTriangle, tone: 'bg-orange-50 text-orange-700' },
   ];
   return <div className="grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
     {items.map(({ label, value, detail, to, icon: Icon, tone }) => <Link key={label} to={to} className="group flex items-center gap-2.5 border-b border-admin-border p-3 last:border-b-0 sm:p-3.5 xl:border-b-0 xl:border-r xl:last:border-r-0"><span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${tone}`}><Icon className="h-3.5 w-3.5" /></span><div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold text-admin-text group-hover:text-admin-primary">{label}</p><p className="mt-0.5 truncate text-[10px] text-admin-subtle">{detail}</p></div><span className={value ? 'text-base font-semibold text-admin-text' : 'text-emerald-600'}>{value || <CheckCircle2 className="h-4 w-4" />}</span><ChevronRight className="h-3.5 w-3.5 text-admin-subtle" /></Link>)}
@@ -415,13 +415,13 @@ function BookingHealth({ report }: { report: OwnerOverviewReport }) {
 function CashTrend({ report }: { report: OwnerOverviewReport }) {
   const points = report.finance.paymentTrend.slice(-14);
   const max = Math.max(...points.map((point) => point.amount), 1);
-  return <AdminCard className="overflow-hidden"><CardHeader icon={Banknote} title="Cash received trend" description="Payments recorded during the selected period." to="/admin/payments" />{points.length ? <div className="p-4"><div className="flex h-40 items-end gap-1.5 border-b border-admin-border px-1">{points.map((point) => <div key={point.period} className="group flex min-w-0 flex-1 flex-col items-center justify-end gap-1.5"><div className="relative flex h-28 w-full items-end justify-center"><div className="w-full max-w-9 rounded-t bg-emerald-500 transition group-hover:bg-emerald-600" style={{ height: `${Math.max(5, (point.amount / max) * 100)}%` }} title={`${trendLabel(point.period)}: ${money(point.amount)}`} /></div><span className="max-w-full truncate text-[9px] text-admin-subtle">{trendLabel(point.period)}</span></div>)}</div><p className="mt-3 text-xs font-semibold text-emerald-700">{money(report.finance.summary.paymentsReceived)} received</p></div> : <AdminEmptyState title="No payments in this period" description="Recorded payments will appear as a trend here." />}</AdminCard>;
+  return <AdminCard className="overflow-hidden"><CardHeader icon={Banknote} title="Cash received trend" description="Payments recorded during the selected period." to="/admin/bookings" />{points.length ? <div className="p-4"><div className="flex h-40 items-end gap-1.5 border-b border-admin-border px-1">{points.map((point) => <div key={point.period} className="group flex min-w-0 flex-1 flex-col items-center justify-end gap-1.5"><div className="relative flex h-28 w-full items-end justify-center"><div className="w-full max-w-9 rounded-t bg-emerald-500 transition group-hover:bg-emerald-600" style={{ height: `${Math.max(5, (point.amount / max) * 100)}%` }} title={`${trendLabel(point.period)}: ${money(point.amount)}`} /></div><span className="max-w-full truncate text-[9px] text-admin-subtle">{trendLabel(point.period)}</span></div>)}</div><p className="mt-3 text-xs font-semibold text-emerald-700">{money(report.finance.summary.paymentsReceived)} received</p></div> : <AdminEmptyState title="No payments in this period" description="Recorded payments will appear as a trend here." />}</AdminCard>;
 }
 
 function RevenueByShootType({ report }: { report: OwnerOverviewReport }) {
   const items = report.finance.revenueByShootType.slice(0, 6);
   const max = Math.max(...items.map((item) => item.bookedRevenue), 1);
-  return <AdminCard className="overflow-hidden"><CardHeader icon={TrendingUp} title="Confirmed value by shoot type" description="Agreed value of priced bookings won in this period." to="/admin/payments" />{items.length ? <div className="space-y-3.5 p-4">{items.map((item) => <div key={item.shootType}><div className="mb-1.5 flex items-end justify-between gap-4"><div className="min-w-0"><p className="truncate text-xs font-medium text-admin-secondary">{item.shootType}</p><p className="text-[10px] text-admin-subtle">{item.bookings} booking{item.bookings === 1 ? '' : 's'}</p></div><p className="shrink-0 text-xs font-semibold text-admin-text">{money(item.bookedRevenue)}</p></div><div className="h-2 overflow-hidden rounded-full bg-admin-muted"><div className="h-full rounded-full bg-violet-500" style={{ width: `${(item.bookedRevenue / max) * 100}%` }} /></div></div>)}</div> : <AdminEmptyState title="No priced bookings confirmed in this period" description="Confirmed priced bookings will be grouped here." />}</AdminCard>;
+  return <AdminCard className="overflow-hidden"><CardHeader icon={TrendingUp} title="Confirmed value by shoot type" description="Agreed value of priced bookings won in this period." to="/admin/bookings" />{items.length ? <div className="space-y-3.5 p-4">{items.map((item) => <div key={item.shootType}><div className="mb-1.5 flex items-end justify-between gap-4"><div className="min-w-0"><p className="truncate text-xs font-medium text-admin-secondary">{item.shootType}</p><p className="text-[10px] text-admin-subtle">{item.bookings} booking{item.bookings === 1 ? '' : 's'}</p></div><p className="shrink-0 text-xs font-semibold text-admin-text">{money(item.bookedRevenue)}</p></div><div className="h-2 overflow-hidden rounded-full bg-admin-muted"><div className="h-full rounded-full bg-violet-500" style={{ width: `${(item.bookedRevenue / max) * 100}%` }} /></div></div>)}</div> : <AdminEmptyState title="No priced bookings confirmed in this period" description="Confirmed priced bookings will be grouped here." />}</AdminCard>;
 }
 
 function CardHeader({ icon: Icon, title, description, to }: { icon: LucideIcon; title: string; description: string; to: string }) {

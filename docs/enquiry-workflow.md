@@ -8,7 +8,7 @@ Opening an enquiry row shows a drawer on desktop and a full-width panel on small
 - Saving a call replaces the active reminder with the selected date, or completes/removes it when no next date is chosen. The form explains this before saving. All date shortcuts use India time.
 - Call history records the outcome, note, server timestamp, and authenticated staff identity. An operation UUID prevents a failed-response retry or concurrent duplicate submission from adding the same entry twice.
 - Save internal notes, edit the enquiry, and manage follow-ups from the panel. Unsaved panel notes and call entries prompt before closing or changing sections. Closed-lost enquiries can be reopened. Converted enquiries link to their booking.
-- Quotation requests are recorded for all managing staff. Accounts with quotation access can open the enquiry's quotation section; existing quotation permissions are retained.
+- Quotation requests are recorded as call outcomes for all managing staff.
 
 ## Duplicate warning
 

@@ -23,7 +23,7 @@ try {
       response.end(encoded.get(file));
     });
     await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-    const url = `http://127.0.0.1:${server.address().port}/admin/today`;
+    const url = `http://127.0.0.1:${server.address().port}/admin/enquiries`;
     const runs = [];
     try {
       for (let iteration = 0; iteration < 5; iteration++) {
@@ -51,5 +51,5 @@ try {
     report.push({ ...summary, runs });
     console.error(JSON.stringify(summary));
   }
-  console.log(JSON.stringify({ profile: '1.6 Mbps, 150 ms latency, 4x CPU; service workers blocked; login only; auth/Today timings not measured', results: report }, null, 2));
+  console.log(JSON.stringify({ profile: '1.6 Mbps, 150 ms latency, 4x CPU; service workers blocked; login only; authenticated page timings not measured', results: report }, null, 2));
 } finally { await browser.close(); }

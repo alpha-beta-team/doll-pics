@@ -13,8 +13,8 @@ import { EnquiryCallHistory, EnquiryCallOutcomeForm } from './EnquiryCallOutcome
 import { callTimeLabel } from './enquiryCall.utils';
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 
-export function EnquirySidePanel({ id, canManage, canViewPhone, canViewQuotations = false, canViewBookings = true, onClose, onChanged }: {
-  id: string; canManage: boolean; canViewPhone: boolean; canViewQuotations?: boolean; canViewBookings?: boolean; onClose: () => void; onChanged: (item: Enquiry) => void;
+export function EnquirySidePanel({ id, canManage, canViewPhone, canViewBookings = true, onClose, onChanged }: {
+  id: string; canManage: boolean; canViewPhone: boolean; canViewBookings?: boolean; onClose: () => void; onChanged: (item: Enquiry) => void;
 }) {
   const [item, setItem] = useState<Enquiry | null>(null);
   const [loading, setLoading] = useState(true);
@@ -75,7 +75,6 @@ export function EnquirySidePanel({ id, canManage, canViewPhone, canViewQuotation
         <section><label className="block text-sm font-semibold">Internal notes<textarea disabled={!canManage || busy} value={note} maxLength={2000} rows={3} onChange={event => setNote(event.target.value)} className="mt-2 w-full rounded-xl border border-admin-control bg-admin-surface p-3 text-base font-normal" /></label>{canManage && <button disabled={busy || note === item.notes} onClick={() => void saveNote()} className="mt-2 min-h-11 rounded-xl border border-admin-border px-4 text-sm font-semibold disabled:opacity-50">{busy ? 'Saving…' : 'Save notes'}</button>}</section>
         {canManage && canViewPhone && <CustomerLookupPanel phone={item.phone} current={{ type: 'enquiry', id }} />}
       </>}
-      {item.lastCall?.outcome === 'quotation_needed' && canViewQuotations && canManage && <Link to={`/admin/enquiries/${id}?tab=quotations`} onClick={event => { event.preventDefault(); void openPage(`/admin/enquiries/${id}?tab=quotations`); }} className="inline-flex min-h-11 items-center text-sm font-semibold text-admin-primary underline">Open quotations for this enquiry</Link>}
       <EnquiryCallHistory enquiry={item} />
     </div>}
   </BookingDialog>;

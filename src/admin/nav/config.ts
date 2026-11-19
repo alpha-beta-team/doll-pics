@@ -3,16 +3,12 @@ import {
   BarChart3,
   CalendarCheck2,
   CalendarDays,
-  CalendarHeart,
   CalendarRange,
   Camera,
-  CircleDollarSign,
   ClipboardCheck,
   Clock3,
-  FileSignature,
   FileText,
   FolderOpen,
-  HelpCircle,
   Home,
   Gauge,
   Image,
@@ -23,7 +19,6 @@ import {
   MessageSquareQuote,
   Package,
   PanelsTopLeft,
-  Plug,
   Tags,
   UserCog,
   Users,
@@ -104,7 +99,6 @@ export const PRIMARY_NAVIGATION: NavigationNode[] = [
     displayOrder: 10,
     children: [
       leaf('owner-overview', 'Owner Home', '/admin/owner', Gauge, 5, 'owner_overview', { mobileQuickOrder: 5 }),
-      leaf('today', 'Today', '/admin/today', Home, 10, 'today', { mobileQuickOrder: 10 }),
       leaf('schedule', 'Schedule', '/admin/schedule', CalendarRange, 20, 'schedule', { mobileQuickOrder: 20 }),
       leaf('reports-summary', 'Dashboard', '/admin/dashboard', BarChart3, 30, 'dashboard', { featureFlag: 'reports' }),
     ],
@@ -118,9 +112,6 @@ export const PRIMARY_NAVIGATION: NavigationNode[] = [
       leaf('enquiries', 'Enquiries', '/admin/enquiries', Mail, 10, 'enquiries', { mobileQuickOrder: 30 }),
       leaf('bookings', 'Bookings', '/admin/bookings', CalendarDays, 20, 'bookings', { mobileQuickOrder: 40 }),
       { id: 'delivery', label: 'Post-Shoot Tracking', route: '/admin/post-shoot', icon: FolderOpen, displayOrder: 25, access: { feature: 'bookings', level: 'view' } },
-      leaf('occasions', 'Occasions', '/admin/occasions', CalendarHeart, 30, 'occasions'),
-      leaf('quotations', 'Quotations', '/admin/quotations', FileSignature, 40, 'quotations'),
-      leaf('payments', 'Revenue & Payments', '/admin/payments', CircleDollarSign, 50, 'payments'),
     ],
   },
   {
@@ -173,8 +164,6 @@ export const PRIMARY_NAVIGATION: NavigationNode[] = [
 
 export const UTILITY_NAVIGATION: NavigationNode[] = [
   { id: 'deliverables', label: 'Deliverables', route: '/admin/deliverables', icon: Package, displayOrder: 15, access: { feature: 'owner_overview', level: 'manage' } },
-  leaf('integrations', 'Integrations', '/admin/integrations', Plug, 10, 'integrations', { featureFlag: 'integrations' }),
-  { ...leaf('help', 'Quick Guide / Help', '/admin/help', HelpCircle, 20), access: { feature: 'owner_overview', level: 'view' } },
 ];
 
 export const ADMIN_FEATURE_FLAGS: AdminFeatureFlags = {
@@ -182,7 +171,6 @@ export const ADMIN_FEATURE_FLAGS: AdminFeatureFlags = {
   portfolio: true,
   packages: true,
   website: true,
-  integrations: true,
 };
 
 function meetsAccess(user: StaffAccount | null | undefined, access?: NavigationAccess) {

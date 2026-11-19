@@ -43,6 +43,12 @@ async function bookingRequest(path: string, options?: RequestInit & { auth?: boo
 }
 
 export const bookingsApi = {
+  async retryBookingCalendarSync(id: string) {
+    const doc = await request<Record<string, unknown>>(`/admin/bookings/${id}/calendar-sync/retry`, {
+      method: 'POST', auth: true,
+    });
+    return mapBooking(doc);
+  },
   async getBookingListRows(): Promise<Booking[]> {
     const docs = await request<Record<string, unknown>[]>('/admin/lists/bookings', { auth: true });
     return docs.map(mapBooking);

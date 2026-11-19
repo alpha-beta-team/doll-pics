@@ -1,5 +1,5 @@
 import { formatCustomerName } from '../../shared/formatCustomerName';
-export type WhatsAppTemplateId = 'enquiry_follow_up' | 'booking_confirmation' | 'shoot_reminder' | 'payment_reminder' | 'booking_rescheduled' | 'booking_cancelled' | 'birthday' | 'anniversary' | 'review_request' | 'wedding_quotation' | 'custom';
+export type WhatsAppTemplateId = 'enquiry_follow_up' | 'booking_confirmation' | 'shoot_reminder' | 'payment_reminder' | 'booking_rescheduled' | 'booking_cancelled' | 'birthday' | 'anniversary' | 'review_request' | 'custom';
 
 export type ManualWhatsAppContext = {
   customerName: string;
@@ -16,7 +16,6 @@ export type ManualWhatsAppContext = {
   consentRecorded?: boolean;
   occasionName?: string;
   reviewUrl?: string;
-  quotationUrl?: string;
 };
 
 export const manualWhatsAppTemplates: Array<{ id: WhatsAppTemplateId; label: string }> = [
@@ -29,7 +28,6 @@ export const manualWhatsAppTemplates: Array<{ id: WhatsAppTemplateId; label: str
   { id: 'birthday', label: 'Birthday wish' },
   { id: 'anniversary', label: 'Anniversary wish' },
   { id: 'review_request', label: 'Review request' },
-  { id: 'wedding_quotation', label: 'Wedding quotation' },
   { id: 'custom', label: 'Blank / custom' },
 ];
 
@@ -68,7 +66,6 @@ function templateBody(id: WhatsAppTemplateId, context: ManualWhatsAppContext): s
   if (id === 'birthday') return `Hi ${name}, warm birthday wishes${context.occasionName ? ` to ${context.occasionName}` : ''} from everyone at Doll Pictures! We hope the day is full of wonderful moments.`;
   if (id === 'anniversary') return `Hi ${name}, happy anniversary${context.occasionName ? ` to ${context.occasionName}` : ''} from Doll Pictures! Wishing you many more beautiful years together.`;
   if (id === 'review_request') return `Hi ${name}, thank you for choosing Doll Pictures${context.service ? ` for your ${context.service} shoot` : ''}. We’d be grateful if you shared your experience: ${context.reviewUrl || ''}`.trim();
-  if (id === 'wedding_quotation') return `Hi ${name}, thank you for considering Doll Pictures for your wedding. Your personalized photography quotation is ready to view and download here: ${context.quotationUrl || ''}`.trim();
   const balance = context.balanceDue == null ? '' : new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(context.balanceDue);
   const due = day(context.paymentDueDate);
   const paymentDetails = [balance && `balance ${balance}`, due && `due ${due}`].filter(Boolean).join(', ');

@@ -43,18 +43,8 @@ export const occasionsApi = {
     const rows = await request<Record<string, unknown>[]>(`/admin/occasions?${params}`, { auth: true, signal });
     return rows.map(mapOccasion);
   },
-  async getUpcomingOccasions(date?: string, days = 30, includeInactive = false, signal?: AbortSignal) {
-    const params = new URLSearchParams({ days: String(days) });
-    if (date) params.set('date', date);
-    if (includeInactive) params.set('includeInactive', 'true');
-    const rows = await request<Record<string, unknown>[]>(`/admin/occasions/upcoming?${params}`, { auth: true, signal });
-    return rows.map(mapOccasion);
-  },
   createOccasion(data: OccasionInput) { return occasionRequest('/admin/occasions', { method: 'POST', body: JSON.stringify(data) }); },
   updateOccasion(id: string, data: Partial<OccasionInput> & { active?: boolean }) {
     return occasionRequest(`/admin/occasions/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
-  },
-  markOccasionContacted(id: string, occurrenceDate: string) {
-    return occasionRequest(`/admin/occasions/${id}/contacted`, { method: 'POST', body: JSON.stringify({ occurrenceDate }) });
   },
 };

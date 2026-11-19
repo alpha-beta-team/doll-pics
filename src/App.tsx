@@ -38,9 +38,6 @@ const CustomerBookingPage = lazy(() => import('./pages/CustomerBookingPage').the
 const AdminApp = lazy(() => import('./admin/AdminApp'));
 const EmployeeApp = lazy(() => import('./employee/EmployeeApp'));
 const KioskApp = lazy(() => import('./kiosk/KioskApp'));
-const QuotationPage = lazy(() =>
-  import('./pages/QuotationPage').then((m) => ({ default: m.QuotationPage })),
-);
 
 function AdminLoading() {
   return (
@@ -116,14 +113,6 @@ export function AppRoutes({ snapshot, PilotPage }: AppProps) {
           element={
             <Suspense fallback={<AdminLoading />}>
               <KioskApp />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/quotation/:token"
-          element={
-            <Suspense fallback={<PublicLoading />}>
-              <QuotationPage />
             </Suspense>
           }
         />

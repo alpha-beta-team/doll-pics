@@ -76,13 +76,13 @@ test('activation preserves current and previous release and unrelated caches', a
 test('preload is used without a second fetch and never overwrites release HTML', async () => {
   const h = harness({ network: async () => { throw new Error('Unexpected duplicate request'); } });
   await h.lifecycle('install');
-  assert.equal(await (await h.fetchEvent('/admin/today', { preloadResponse: Promise.resolve(new Response('new network shell')) })).text(), 'new network shell');
+  assert.equal(await (await h.fetchEvent('/admin/enquiries', { preloadResponse: Promise.resolve(new Response('new network shell')) })).text(), 'new network shell');
   assert.equal(await (await (await h.caches.open('doll-work-shell-200-new')).match('/assets/work-shell-new.html')).text(), 'release shell');
 });
 
 test('hanging navigation falls back at 3 seconds for all private apps', async () => {
   const h = harness(); await h.lifecycle('install');
-  for (const path of ['/admin/today', '/employee/', '/kiosk/']) {
+  for (const path of ['/admin/enquiries', '/employee/', '/kiosk/']) {
     assert.equal(await (await h.fetchEvent(path, { preloadResponse: new Promise(() => {}) })).text(), 'release shell');
   }
   assert.deepEqual(h.deadlines, [3000, 3000, 3000]);
@@ -90,14 +90,14 @@ test('hanging navigation falls back at 3 seconds for all private apps', async ()
 
 test('without a shell, a 15 second deadline returns a retry page', async () => {
   const h = harness();
-  const response = await h.fetchEvent('/admin/today', { preloadResponse: new Promise(() => {}) });
+  const response = await h.fetchEvent('/admin/enquiries', { preloadResponse: new Promise(() => {}) });
   assert.equal(response.status, 503); assert.match(await response.text(), /Retry/);
   assert.deepEqual(h.deadlines, [15000]);
 });
 
 test('offline navigation uses shell; APIs, authorization and public navigation bypass cache', async () => {
   const h = harness({ network: async () => { throw new Error('Offline'); } }); await h.lifecycle('install');
-  assert.equal(await (await h.fetchEvent('/admin/today')).text(), 'release shell');
+  assert.equal(await (await h.fetchEvent('/admin/enquiries')).text(), 'release shell');
   for (const path of ['/api/auth/me', '/api/admin/work/today', '/', '/administrator']) assert.equal(await h.fetchEvent(path), undefined);
   assert.equal(await h.fetchEvent('https://api.test/data', { destination: 'script', mode: 'cors' }), undefined);
   assert.equal(await h.fetchEvent('/private.js', { destination: 'script', mode: 'cors', headers: new Headers({ Authorization: 'Bearer test' }) }), undefined);

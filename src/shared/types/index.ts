@@ -642,19 +642,6 @@ export type Booking = {
   updatedAt: string;
 };
 
-export type GoogleCalendarIntegrationStatus = {
-  enabled: boolean;
-  dryRun: boolean;
-  configured: boolean;
-  health: 'disabled' | 'misconfigured' | 'needs_attention' | 'dry_run' | 'healthy';
-  timezone: string;
-  serviceAccountEmail: string;
-  failedBookings: number;
-  failedJobs: number;
-  jobCounts: Record<string, number>;
-  lastSyncedAt?: string;
-};
-
 export type WeeklyOwnerReport = {
   weekStart: string;
   weekEnd: string;
@@ -864,12 +851,9 @@ export type StaffAccountRole = 'owner' | 'sales' | 'content_manager' | 'employee
 export type StaffAccessArea =
   | 'owner_overview'
   | 'dashboard'
-  | 'today'
   | 'enquiries'
   | 'bookings'
   | 'schedule'
-  | 'occasions'
-  | 'quotations'
   | 'payments'
   | 'photos'
   | 'categories'
@@ -883,7 +867,6 @@ export type StaffAccessArea =
   | 'staff_profiles'
   | 'services'
   | 'site_content'
-  | 'integrations'
   | 'staff_accounts'
   | 'salary_management';
 
@@ -923,62 +906,6 @@ export type StaffAccountOption = {
   jobTitle: string;
 };
 
-export type TodayFollowUp = {
-  entityType: 'enquiry' | 'booking';
-  id: string;
-  name: string;
-  phone: string;
-  shootType: string;
-  dueAt?: string;
-  note: string;
-  overdue: boolean;
-  bookingDate?: string;
-  startTime?: string;
-  endTime?: string;
-  location?: string;
-  balanceDue?: number | null;
-  paymentDueDate?: string;
-  whatsappOptIn?: boolean;
-  whatsappOptOutAt?: string;
-};
-
-export type TodaySummaryItem = {
-  id: string;
-  name: string;
-  phone: string;
-  shootType: string;
-  bookingDate?: string;
-  location?: string;
-  status?: BookingStatus;
-  source?: EnquirySource;
-  createdAt?: string;
-  assignedStaffAccountName?: string;
-  startTime?: string;
-  endTime?: string;
-  whatsappOptIn?: boolean;
-  whatsappOptOutAt?: string;
-};
-
-export type TodayPaymentItem = TodaySummaryItem & {
-  paymentDueDate: string;
-  balanceDue: number;
-};
-
-export type TodayWork = {
-  date: string;
-  tomorrow: string;
-  timezone: string;
-  followUps: TodayFollowUp[];
-  newEnquiries: TodaySummaryItem[];
-  todayShoots: TodaySummaryItem[];
-  paymentsDue: TodayPaymentItem[];
-  tomorrowShoots: TodaySummaryItem[];
-  occasionsDue: TodayOccasionTask[];
-  reviewRequests: TodayReviewTask[];
-};
-
-export type TodayWorkspace = Pick<TodayWork, 'date' | 'tomorrow' | 'timezone' | 'followUps' | 'newEnquiries' | 'todayShoots' | 'tomorrowShoots'>;
-
 export type OccasionContactHistoryEntry = {
   id?: string;
   occurrenceDate: string;
@@ -1002,84 +929,6 @@ export type CustomerOccasion = {
   optedOut: boolean;
   source?: { type: 'enquiry' | 'booking'; id: string };
   contactHistory?: OccasionContactHistoryEntry[];
-};
-
-export type TodayOccasionTask = CustomerOccasion & { overdue: boolean };
-
-export type TodayReviewTask = {
-  bookingId: string;
-  customerName: string;
-  phone: string;
-  service: string;
-  deliveredAt: string;
-  dueAt: string;
-  status: BookingReviewStatus;
-  requestCount: number;
-  lastRequestedAt?: string;
-  reviewUrl: string;
-  consentRecorded: boolean;
-  optedOut: boolean;
-};
-
-export type WeddingQuotationStatus = 'draft' | 'published' | 'archived';
-export type QuotationPricingMode = 'fixed' | 'starting_from' | 'enquire';
-export type QuotationPalette = 'champagne' | 'blush' | 'midnight';
-
-export type QuotationEvent = { id: string; name: string; date: string; location: string; notes: string };
-export type QuotationLineItem = {
-  id: string; eventId: string; title: string; description: string;
-  quantity: number; unitPrice: number; amount: number;
-};
-export type QuotationOption = {
-  id: string; name: string; tagline: string; recommended: boolean;
-  lineItems: QuotationLineItem[]; inclusions: string[]; deliverables: string[];
-  discountAmount: number; subtotal: number; total: number; advanceAmount: number;
-};
-export type QuotationAddOn = {
-  id: string; name: string; description: string;
-  pricingMode: QuotationPricingMode; price?: number;
-};
-export type QuotationPaymentMilestone = { id: string; label: string; percentage: number };
-export type QuotationImage = { id: string; url: string; title: string; altText: string };
-export type QuotationMetrics = {
-  viewCount: number; downloadCount: number; firstViewedAt?: string; lastViewedAt?: string;
-  revisionViewCount: number; revisionDownloadCount: number;
-  revisionFirstViewedAt?: string; revisionLastViewedAt?: string;
-};
-export type QuotationDraft = {
-  customerName: string; customerPhone: string; customerEmail: string;
-  coupleNames: string; weddingTitle: string; validUntil: string;
-  events: QuotationEvent[]; options: QuotationOption[]; addOns: QuotationAddOn[];
-  paymentMilestones: QuotationPaymentMilestone[];
-  coverPhotoId: string; galleryPhotoIds: string[]; testimonialId: string;
-  introduction: string; whyDollPictures: string; deliveryInformation: string;
-  terms: string; closingMessage: string; palette: QuotationPalette;
-  visibleSections: string[]; sectionOrder: string[];
-};
-export type PublicWeddingQuotation = Omit<QuotationDraft,
-  'customerName' | 'customerPhone' | 'customerEmail' | 'coverPhotoId' | 'galleryPhotoIds' | 'testimonialId'> & {
-  quotationNumber: string; publishedRevision: number; publishedAt: string; expired: boolean;
-  coverPhoto: QuotationImage; galleryPhotos: QuotationImage[];
-  testimonial?: { id: string; name: string; role: string; text: string; rating: number };
-  brand: { name: string; tagline: string; logoUrl: string; phone: string; email: string; whatsapp: string; instagram: string; website: string };
-};
-export type WeddingQuotation = {
-  id: string; enquiryId: string; quotationNumber: string; status: WeddingQuotationStatus;
-  customerName: string; customerPhone: string; customerEmail: string; draft: QuotationDraft;
-  publishedRevision: number; publishedAt?: string; shareUrl: string; expired: boolean;
-  metrics: QuotationMetrics;
-  publishHistory: Array<{ revision: number; publishedAt: string; publishedBy: { id: string; name: string } }>;
-  createdAt: string; updatedAt: string;
-};
-export type QuotationAssets = {
-  packages: Array<{ id: string; name: string; description: string; inclusions: string[]; price: number | null; pricingMode: string; advanceAmount: number | null; categoryName: string }>;
-  photos: QuotationImage[];
-  testimonials: Array<{ id: string; name: string; role: string; text: string; rating: number }>;
-};
-export type QuotationSettings = {
-  defaultPalette: QuotationPalette; defaultValidityDays: number;
-  introduction: string; whyDollPictures: string; deliveryInformation: string;
-  terms: string; closingMessage: string; paymentMilestones: QuotationPaymentMilestone[];
 };
 
 export type AdminSearchItem = {

@@ -8,12 +8,12 @@ test('first installation caches executable shell; offline auth stays gated for a
   await page.evaluate(async () => { await navigator.serviceWorker.register('/admin-sw.js'); await navigator.serviceWorker.ready; });
   const cached = await page.evaluate(async () => { const names = await caches.keys(); return (await (await caches.open(names[0])).keys()).map(request => request.url); });
   for (const pattern of [/work-shell-.*\.html$/, /AdminApp-.*\.js$/, /EmployeeApp-.*\.js$/, /KioskApp-.*\.js$/]) expect(cached.some(url => pattern.test(url))).toBe(true);
-  expect(cached.some(url => /PhotosWorkspacePage|QuotationCanvasEditorPage|OwnerOverviewPage/.test(url))).toBe(false);
+  expect(cached.some(url => /PhotosWorkspacePage|OwnerOverviewPage/.test(url))).toBe(false);
   expect(cached.some(url => url.includes('/api/'))).toBe(false);
   await context.setOffline(true);
-  await page.goto('/admin/today');
+  await page.goto('/admin/enquiries');
   await expect(page.getByRole('button', { name: 'Retry', exact: true })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Today’s work', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Enquiries', exact: true })).toHaveCount(0);
   expect(await page.evaluate(() => localStorage.getItem('auth_token'))).toBe('test-only-token');
   await page.goto('/employee/'); await expect(page.locator('#root')).not.toBeEmpty();
   await page.goto('/kiosk/'); await expect(page.getByRole('heading', { name: 'Register office tablet' })).toBeVisible();

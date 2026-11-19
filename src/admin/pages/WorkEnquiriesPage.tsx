@@ -53,7 +53,6 @@ type OccasionContact = {
 
 export function WorkEnquiriesPage() {
   const { canManage, isReadOnly } = useFeatureAccess('enquiries');
-  const { canView: canViewQuotations } = useFeatureAccess('quotations');
   const { canView: canViewBookings } = useFeatureAccess('bookings');
   const { user } = useAuth();
   const canViewPhone = hasStaffPermission(user, 'mask_phone_number');
@@ -424,7 +423,7 @@ export function WorkEnquiriesPage() {
 
       </div>
 
-      {selectedEnquiryId && <EnquirySidePanel key={selectedEnquiryId} id={selectedEnquiryId} canViewBookings={canViewBookings} canViewQuotations={canViewQuotations} canManage={canManage} canViewPhone={canViewPhone} onClose={() => setSelectedEnquiryId('')} onChanged={applySavedEnquiry} />}
+      {selectedEnquiryId && <EnquirySidePanel key={selectedEnquiryId} id={selectedEnquiryId} canViewBookings={canViewBookings} canManage={canManage} canViewPhone={canViewPhone} onClose={() => setSelectedEnquiryId('')} onChanged={applySavedEnquiry} />}
       {followUp && canManage && !['booked', 'closed_lost'].includes(followUp.stage) && <EnquiryFollowUpDialog
         key={followUp.id}
         enquiry={followUp}

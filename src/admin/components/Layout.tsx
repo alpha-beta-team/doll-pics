@@ -16,9 +16,6 @@ import { MobileBottomNav } from "./MobileBottomNav";
 function AdminShell() {
   const { collapsed, isMobile } = useAdminShell();
   const location = useLocation();
-  const immersiveEditor = /^\/admin\/quotations\/[^/]+$/.test(
-    location.pathname,
-  );
   const salesList = /^\/admin\/(enquiries|bookings)\/?$/.test(location.pathname);
   const detailWorkspace = /^\/admin\/(bookings|enquiries)\/[^/]+$/.test(location.pathname);
   const sidebarWidth = isMobile
@@ -41,7 +38,7 @@ function AdminShell() {
           </RouteLoadBoundary>
         </div>
       </main>
-      {!immersiveEditor && <MobileBottomNav />}
+      <MobileBottomNav />
     </div>
   );
 }

@@ -4,7 +4,6 @@ import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { RequireAuth } from "./components/Layout";
 import { LoginPage } from "./pages/LoginPage";
-import { TodayPage } from "./pages/TodayPage";
 import { ChangePasswordPage } from "./pages/ChangePasswordPage";
 import { applyPageSeo } from "../lib/seo";
 import { ConfirmDialogProvider } from "./components/ConfirmDialog";
@@ -25,11 +24,9 @@ const ServicesPage = lazy(() => import('./pages/ServicesPage').then(module => ({
 const ServiceEditorPage = lazy(() => import('./pages/ServiceEditorPage').then(module => ({ default: module.ServiceEditorPage })));
 const WorkEnquiriesPage = lazy(() => import('./pages/WorkEnquiriesPage').then(module => ({ default: module.WorkEnquiriesPage })));
 const EnquiryDetailPage = lazy(() => import('./pages/EnquiryDetailPage').then(module => ({ default: module.EnquiryDetailPage })));
-const PaymentsPage = lazy(() => import('./pages/PaymentsPage').then(module => ({ default: module.PaymentsPage })));
 const StaffAccountsPage = lazy(() => import('./pages/StaffAccountsPage').then(module => ({ default: module.StaffAccountsPage })));
 const StaffAccountDetailPage = lazy(() => import('./pages/StaffAccountDetailPage').then(module => ({ default: module.StaffAccountDetailPage })));
 const SalaryManagementPage = lazy(() => import('./pages/SalaryManagementPage').then(module => ({ default: module.SalaryManagementPage })));
-const HelpPage = lazy(() => import('./pages/HelpPage').then(module => ({ default: module.HelpPage })));
 const BookingsPage = lazy(() => import('./pages/BookingsPage').then(module => ({ default: module.BookingsPage })));
 const BookingDetailPage = lazy(() => import('./pages/BookingDetailPage').then(module => ({ default: module.BookingDetailPage })));
 const HeroSlidesPage = lazy(() => import('./pages/HeroSlidesPage').then(module => ({ default: module.HeroSlidesPage })));
@@ -38,11 +35,7 @@ const StatsPage = lazy(() => import('./pages/StatsPage').then(module => ({ defau
 const TestimonialsPage = lazy(() => import('./pages/TestimonialsPage').then(module => ({ default: module.TestimonialsPage })));
 const BehindScenesPage = lazy(() => import('./pages/BehindScenesPage').then(module => ({ default: module.BehindScenesPage })));
 const StaffProfilesPage = lazy(() => import('./pages/StaffProfilesPage').then(module => ({ default: module.StaffProfilesPage })));
-const IntegrationsPage = lazy(() => import('./pages/IntegrationsPage').then(module => ({ default: module.IntegrationsPage })));
 const SchedulePage = lazy(() => import('./pages/SchedulePage').then(module => ({ default: module.SchedulePage })));
-const OccasionsPage = lazy(() => import('./pages/OccasionsPage').then(module => ({ default: module.OccasionsPage })));
-const QuotationsPage = lazy(() => import('./pages/QuotationsPage').then(module => ({ default: module.QuotationsPage })));
-const QuotationCanvasEditorPage = lazy(() => import('./pages/QuotationCanvasEditorPage').then(module => ({ default: module.QuotationCanvasEditorPage })));
 const AttendanceAdminPage = lazy(() => import('./pages/AttendanceAdminPage').then(module => ({ default: module.AttendanceAdminPage })));
 const AttendanceRequestsPage = lazy(() => import('./pages/AttendanceRequestsPage').then(module => ({ default: module.AttendanceRequestsPage })));
 const TeamLeaveCalendarPage = lazy(() => import('./pages/TeamLeaveCalendarPage').then(module => ({ default: module.TeamLeaveCalendarPage })));
@@ -104,9 +97,8 @@ export default function AdminApp() {
             <Route path="/" element={<RequireAuth />}>
               <Route index element={<DefaultAdminRedirect />} />
               <Route path="access-denied" element={<AccessDeniedPage />} />
-              <Route element={<AccessRoute feature="owner_overview" />}><Route path="help" element={<HelpPage />} /><Route path="deliverables" element={<DeliverablesPage />} /></Route>
+              <Route element={<AccessRoute feature="owner_overview" />}><Route path="deliverables" element={<DeliverablesPage />} /></Route>
               <Route element={<AccessRoute feature="owner_overview" />}><Route path="owner" element={<OwnerOverviewPage />} /><Route path="delivery" element={<DeliveryQueuePage />} /><Route path="sales" element={<SalesPage />} /><Route path="sales/:id" element={<SaleDetailsPage />} /></Route>
-              <Route element={<AccessRoute feature="today" />}><Route path="today" element={<TodayPage />} /></Route>
               <Route element={<AccessRoute feature="enquiries" />}>
                 <Route path="enquiries" element={<WorkEnquiriesPage />} />
                 <Route path="enquiries/:id" element={<EnquiryDetailPage />} />
@@ -116,12 +108,6 @@ export default function AdminApp() {
                 <Route path="bookings/:id" element={<BookingDetailPage />} />
               </Route>
               <Route element={<AccessRoute feature="schedule" />}><Route path="schedule" element={<SchedulePage />} /></Route>
-              <Route element={<AccessRoute feature="occasions" />}><Route path="occasions" element={<OccasionsPage />} /></Route>
-              <Route element={<AccessRoute feature="quotations" />}>
-                <Route path="quotations" element={<QuotationsPage />} />
-                <Route path="quotations/:id" element={<QuotationCanvasEditorPage />} />
-              </Route>
-              <Route element={<AccessRoute feature="payments" />}><Route path="payments" element={<PaymentsPage />} /></Route>
               <Route element={<AccessRoute feature="dashboard" />}>
                 <Route path="dashboard" element={<DashboardPage />} />
               </Route>
@@ -135,9 +121,6 @@ export default function AdminApp() {
                 <Route path="attendance/field-assignments" element={<FieldAssignmentsPage />} />
                 <Route path="attendance/reports" element={<AttendanceReportsPage />} />
                 <Route path="attendance/settings" element={<AttendanceSettingsPage />} />
-              </Route>
-              <Route element={<AccessRoute feature="integrations" />}>
-                <Route path="integrations" element={<IntegrationsPage />} />
               </Route>
               <Route element={<AccessRoute feature="photos" />}>
                 <Route path="photos" element={<PhotosPage />} />

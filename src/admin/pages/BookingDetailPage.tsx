@@ -120,7 +120,6 @@ export function BookingDetailPage() {
 function BookingDetailWorkspace() {
   const { canManage: canManageBooking, isReadOnly } = useFeatureAccess('bookings');
   const { canView: canViewPayments } = useFeatureAccess('payments');
-  const { canManage: canManageIntegrations } = useFeatureAccess('integrations');
   const { user } = useAuth();
   const canViewPhone = hasStaffPermission(user, 'mask_phone_number');
   const confirmDialog = useConfirmDialog();
@@ -677,7 +676,7 @@ function BookingDetailWorkspace() {
 
         <Card
           title="Google Calendar"
-          action={canManageIntegrations ? (
+          action={(user?.role === 'owner') ? (
             <button
               type="button"
               onClick={() => void retryCalendarSync()}
@@ -715,7 +714,7 @@ function BookingDetailWorkspace() {
           </div>
           {calendarStatus === 'failed' && (
             <AdminAlert as="span" className="mt-4">
-              Calendar could not be updated. {canManageIntegrations ? 'Use Retry after checking the integration.' : 'Please tell the owner.'}
+              Calendar could not be updated. {(user?.role === 'owner') ? 'Ask the owner to check the calendar configuration, then use Retry.' : 'Please tell the owner.'}
               {booking.calendarSyncErrorCode ? ` Code: ${booking.calendarSyncErrorCode}` : ''}
             </AdminAlert>
           )}
