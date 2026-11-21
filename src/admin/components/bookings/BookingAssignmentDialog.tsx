@@ -24,7 +24,7 @@ export function BookingAssignmentDialog({ booking, onClose, onSaved }: {
     setLoading(true);
     setLoadError('');
     void api.getAssignableStaffAccounts()
-      .then(rows => { if (active) setStaff(rows); })
+      .then(rows => { if (active) setStaff(rows.filter(account => account.canTakeShoots === true)); })
       .catch(error => { if (active) setLoadError(error instanceof Error ? error.message : 'Could not load staff'); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };

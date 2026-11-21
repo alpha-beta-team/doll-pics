@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Check, Copy } from "lucide-react";
-export function CustomerCode({ code }: { code?: string }) {
+export function CustomerCode({ code, copyIcon }: { code?: string; copyIcon?: ReactNode }) {
   const [message, setMessage] = useState("");
   if (!code) return null;
   return (
@@ -22,7 +22,7 @@ export function CustomerCode({ code }: { code?: string }) {
         {message === "Customer ID copied" ? (
           <Check className="h-3.5 w-3.5" />
         ) : (
-          <Copy className="h-3.5 w-3.5" />
+          copyIcon || <Copy className="h-3.5 w-3.5" />
         )}
       </button>
       <span role="status" className="sr-only">

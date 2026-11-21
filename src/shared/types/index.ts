@@ -32,6 +32,7 @@ export type PaymentMethod = 'cash' | 'upi' | 'bank_transfer' | 'card' | 'other';
 export type PaymentState = 'unpriced' | 'unpaid' | 'partial' | 'paid' | 'overpaid';
 
 export type BookingScheduleHistoryEntry = {
+  reason?: string;
   id: string;
   action: 'rescheduled' | 'cancelled' | 'restored';
   previous: BookingScheduleSnapshot;
@@ -56,6 +57,7 @@ export type BookingReviewHistoryEntry = {
 };
 
 export type ScheduleBookingItem = {
+  assignedStaffAccountId: string | null;
   id: string;
   customerName: string;
   customerPhone: string;
@@ -442,6 +444,8 @@ export type Enquiry = {
   lastFollowUpCompletedAt?: string;
   lastCall?: EnquiryCall;
   callHistory?: EnquiryCall[];
+  internalNotes?: { eventId: string; text: string; recordedAt: string; actorName: string; actorId: string }[];
+  stageHistory?: { from: EnquiryStage; to: EnquiryStage; cause: string; recordedAt: string; callId?: string; actorName?: string }[];
   convertedBookingId?: string;
   whatsappOptIn: boolean;
   whatsappOptInAt?: string;
@@ -568,6 +572,8 @@ export type WhatsAppMessageSummary = {
 };
 
 export type Booking = {
+  workflowActivity?: Array<{ who: { id: string; name: string }; what: string; when: string }>;
+  workflow?: import('../bookingWorkflow').BookingWorkflow;
   crewList?: BookingCrewMember[];
   deliverables?: BookingDeliverable[];
   baseAgreedTotal?: number | null;
@@ -726,6 +732,7 @@ export type CampaignReportRow = {
 };
 
 export type OwnerOverviewReport = {
+  dashboard?: import('./ownerDashboard').OwnerDashboard;
   campaigns?: CampaignReportRow[];
   period: {
     dateFrom: string;
@@ -867,6 +874,7 @@ export type StaffAccount = {
   id: string;
   email?: string;
   name: string;
+  canTakeShoots?: boolean;
   jobTitle?: string;
   role: StaffAccountRole;
   permissionOverrides?: StaffPermissionOverrides;
@@ -883,6 +891,7 @@ export type StaffAccount = {
 export type StaffAccountOption = {
   id: string;
   name: string;
+  canTakeShoots?: boolean;
   jobTitle: string;
 };
 

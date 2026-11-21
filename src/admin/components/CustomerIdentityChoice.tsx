@@ -13,12 +13,14 @@ export function CustomerIdentityChoice({
   reason,
   onSelect,
   onReason,
+  allowLookup = true,
 }: {
   options: CustomerIdentityOption[];
   selected: CustomerIdentityOption | null;
   reason: string;
   onSelect: (value: CustomerIdentityOption | null) => void;
   onReason: (value: string) => void;
+  allowLookup?: boolean;
 }) {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
@@ -46,14 +48,17 @@ export function CustomerIdentityChoice({
       setChecking(false);
     }
   };
+  if (!allowLookup && !options.length && !selected && !different) return null;
+
   return (
     <fieldset className="rounded-xl border border-admin-border p-3 sm:col-span-2">
       <legend className="px-1 text-sm font-semibold">Customer identity</legend>
       <p className="text-xs text-admin-subtle">
-        Repeat customer? Select their existing ID. A different shoot can belong
-        to the same customer.
+        {allowLookup
+          ? "Repeat customer? Select their existing ID. A different shoot can belong to the same customer."
+          : "Choose the matching customer. A different shoot can belong to the same customer."}
       </p>
-      <div className="mt-2 flex flex-wrap items-end gap-2">
+      {allowLookup && <div className="mt-2 flex flex-wrap items-end gap-2">
         <label className="flex-1 text-sm">
           Existing customer ID
           <input
@@ -71,7 +76,7 @@ export function CustomerIdentityChoice({
         >
           {checking ? "Finding…" : "Find customer"}
         </button>
-      </div>
+      </div>}
       {error && (
         <AdminAlert as="span" className="mt-2">
           {error}

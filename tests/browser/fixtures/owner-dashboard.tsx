@@ -1,0 +1,16 @@
+import { createRoot } from 'react-dom/client';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from '../../../src/admin/contexts/AuthContext';
+import { RequireAuth } from '../../../src/admin/components/Layout';
+import { OwnerOverviewPage } from '../../../src/admin/pages/OwnerOverviewPage';
+import { api } from '../../../src/admin/api/client';
+import type { StaffAccount } from '../../../src/admin/types';
+import '../../../src/index.css';
+import '@fontsource/public-sans/latin-400.css';
+import '@fontsource/public-sans/latin-500.css';
+import '@fontsource/public-sans/latin-600.css';
+import '@fontsource/public-sans/latin-700.css';
+document.documentElement.setAttribute('data-admin-theme', 'studio');
+localStorage.setItem('auth_token', 'owner-dashboard-test-only');
+api.getCurrentUser = async () => ({ id: 'owner', name: 'Sample Owner', email: 'owner@example.invalid', role: 'owner', isActive: true, permissions: [], permissionOverrides: {}, mustChangePassword: false }) as StaffAccount;
+createRoot(document.getElementById('root')!).render(<MemoryRouter initialEntries={['/admin/owner' + location.search]}><AuthProvider><span style={{position:"fixed",bottom:4,right:8,zIndex:10,fontSize:10,color:"#5B6766",background:"white"}}>Sample data · test fixture</span><Routes><Route element={<RequireAuth />}><Route path="/admin/owner" element={<OwnerOverviewPage />} /><Route path="/admin/bookings/:id" element={<p>Booking record destination</p>} /><Route path="/admin/enquiries/:id" element={<p>Enquiry record destination</p>} /></Route></Routes></AuthProvider></MemoryRouter>);

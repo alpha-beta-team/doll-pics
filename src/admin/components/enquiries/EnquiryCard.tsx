@@ -19,6 +19,7 @@ type EnquiryCardProps = {
   canViewPhone: boolean;
   onOpen: () => void;
   onFollowUp?: () => void;
+  bookingLink?: string;
   duplicateCount?: number;
 };
 
@@ -29,7 +30,7 @@ function stopCardNavigation(event: MouseEvent<HTMLAnchorElement | HTMLButtonElem
 function FollowUpLabel({ enquiry, editable = false }: { enquiry: Enquiry; editable?: boolean }) {
   if (!enquiry.nextFollowUpAt) {
     if (enquiry.stage === 'booked') return <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700"><CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />Booking confirmed</span>;
-    if (enquiry.stage !== 'follow_up') return <span className={editable ? 'text-xs font-semibold text-admin-primary underline decoration-dotted underline-offset-4' : 'text-xs text-admin-subtle'}>{editable ? 'Schedule follow-up' : 'No follow-up scheduled'}</span>;
+    if (enquiry.stage !== 'follow_up') return <span className={editable ? 'text-xs font-semibold text-admin-primary underline decoration-dotted underline-offset-4' : 'text-xs text-admin-subtle'}>{editable ? <><CalendarClock size={13} className="inline"/><span>Schedule</span><span className="sr-only"> follow-up</span></> : 'No follow-up scheduled'}</span>;
     return <span className="rounded-md bg-slate-100 px-2 py-1 text-xs text-slate-600">Follow-up required</span>;
   }
   const urgency = followUpUrgency(enquiry.nextFollowUpAt);
@@ -64,7 +65,7 @@ function receivedDetail(value: string) {
   if (minutes >= 0 && minutes < 1) return 'Just now';
   if (minutes >= 1 && minutes < 60) return `${minutes} mins ago`;
   if (minutes >= 60 && minutes < 1440) return `${Math.floor(minutes / 60)}h ${minutes % 60}m ago`;
-  return new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }).format(date);
+  return new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }).format(date);
 }
 
 function EnquiryActions({
@@ -122,7 +123,7 @@ function StatusBadge({ enquiry }: { enquiry: Enquiry }) {
   );
 }
 
-export function EnquiryCard({ enquiry, canContact, canViewPhone, onOpen, onFollowUp, duplicateCount = 0 }: EnquiryCardProps) {
+export function EnquiryCard({ enquiry, canContact, canViewPhone, onOpen, onFollowUp, bookingLink, duplicateCount = 0 }: EnquiryCardProps) {
   const service = enquiry.shootType || enquiry.preferredEvent || 'Service not decided';
   const customer = formatCustomerName(enquiry.name) || 'Unnamed customer';
   const canEditFollowUp = canContact && Boolean(onFollowUp) && !['booked', 'closed_lost'].includes(enquiry.stage);
@@ -133,7 +134,7 @@ export function EnquiryCard({ enquiry, canContact, canViewPhone, onOpen, onFollo
   };
 
   return (
-    <article role="link" tabIndex={0} aria-label={`Open enquiry from ${customer}`} onClick={onOpen} onKeyDown={openFromKeyboard}
+    <article data-stage={enquiry.stage} role="link" tabIndex={0} aria-label={`Open enquiry from ${customer}`} onClick={onOpen} onKeyDown={openFromKeyboard}
       className={`enquiry-row group cursor-pointer outline-none transition-colors hover:bg-emerald-50/40 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-admin-focus ${enquiry.stage === 'booked' ? 'enquiry-row-confirmed' : ''}`}>
       <div className="enquiry-customer flex min-w-0 items-center gap-3">
         <span aria-hidden="true" className={`enquiry-avatar flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold ring-1 ring-inset ${avatarColor}`}><span className="enquiry-avatar-desktop">{customer.charAt(0).toUpperCase()}</span><span className="enquiry-avatar-mobile hidden">{customer.trim().split(/\s+/).length > 1 ? customer.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase() : customer.slice(0, 2).toUpperCase()}</span></span>
@@ -153,13 +154,13 @@ export function EnquiryCard({ enquiry, canContact, canViewPhone, onOpen, onFollo
       </div>
       <div className="enquiry-received min-w-0">
         <time className="enquiry-received-mobile hidden" dateTime={enquiry.createdAt} title={formatReceivedAt(enquiry.createdAt)}>{formatReceivedAt(enquiry.createdAt).replace(/^Today, /, '').replace(/^Yesterday, .*/, 'Yesterday')}</time>
-        <div className="enquiry-received-desktop">
+        <div className="enquiry-received-desktop" title={receivedDetail(enquiry.createdAt)}>
         <p className="text-xs leading-5 text-admin-secondary">{formatReceivedAt(enquiry.createdAt)}</p>
         <p className="mt-0.5 text-[11px] text-slate-400">{receivedDetail(enquiry.createdAt)}</p>
       </div>
       </div>
       <div className={`enquiry-follow-up min-w-0 ${!canEditFollowUp && !enquiry.nextFollowUpAt && enquiry.stage !== 'follow_up' ? 'enquiry-follow-up-empty' : ''}`}>
-        {canEditFollowUp ? <button type="button" className="enquiry-follow-up-trigger max-w-full rounded-lg text-left outline-none hover:bg-admin-muted focus-visible:ring-2 focus-visible:ring-admin-focus" aria-label={`${enquiry.nextFollowUpAt ? 'Manage' : 'Schedule'} follow-up for ${customer}`} onClick={event => { stopCardNavigation(event); onFollowUp?.(); }}><FollowUpLabel enquiry={enquiry} editable /></button> : <FollowUpLabel enquiry={enquiry} />}
+        {bookingLink ? <a className="text-sm font-semibold text-admin-primary underline" href={bookingLink} onClick={stopCardNavigation}>Open booking</a> : canEditFollowUp ? <button type="button" className="enquiry-follow-up-trigger max-w-full rounded-lg text-left outline-none hover:bg-admin-muted focus-visible:ring-2 focus-visible:ring-admin-focus" aria-label={`${enquiry.nextFollowUpAt ? 'Manage' : 'Schedule'} follow-up for ${customer}`} onClick={event => { stopCardNavigation(event); onFollowUp?.(); }}><FollowUpLabel enquiry={enquiry} editable /></button> : <FollowUpLabel enquiry={enquiry} />}
       </div>
       <div className="enquiry-actions"><EnquiryActions enquiry={enquiry} customer={customer} canContact={canContact} canViewPhone={canViewPhone} onOpen={onOpen} /></div>
     </article>

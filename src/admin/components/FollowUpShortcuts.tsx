@@ -12,6 +12,7 @@ type Props = {
   value: string;
   onChange: (value: string) => void;
   allowNone?: boolean;
+  compact?: boolean;
   disabled?: boolean;
   onValidation?: (error: string | null) => void;
 };
@@ -23,7 +24,7 @@ const options: Array<{ id: Exclude<FollowUpShortcut, 'custom' | 'none'>; label: 
   { id: 'next_week', label: 'Next week' },
 ];
 
-export function FollowUpShortcuts({ value, onChange, allowNone, disabled, onValidation }: Props) {
+export function FollowUpShortcuts({ value, onChange, allowNone, disabled, onValidation, compact = false }: Props) {
   const [selected, setSelected] = useState<FollowUpShortcut>(value ? 'custom' : allowNone ? 'none' : 'custom');
   const [error, setError] = useState('');
   const choose = (choice: FollowUpShortcut) => {
@@ -40,12 +41,12 @@ export function FollowUpShortcuts({ value, onChange, allowNone, disabled, onVali
     setError(nextError || '');
     onValidation?.(nextError);
   };
-  const buttonClass = (active: boolean) => `flex min-h-12 items-center justify-center gap-2 rounded-xl border px-3 text-sm font-semibold outline-none transition ${active ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-sm' : 'border-slate-300 bg-white text-slate-600 hover:border-blue-400 hover:bg-blue-50/40'} focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60`;
+  const buttonClass = (active: boolean) => `flex ${compact ? "min-h-[34px] rounded-full text-[13px]" : "min-h-12 rounded-xl text-sm"} items-center justify-center gap-2 border px-3 font-semibold outline-none transition ${active ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-sm' : 'border-slate-300 bg-white text-slate-600 hover:border-blue-400 hover:bg-blue-50/40'} focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60`;
   return <div>
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-      {allowNone && <button type="button" disabled={disabled} onClick={() => choose('none')} className={buttonClass(selected === 'none')}><Check className="h-4 w-4" />No follow-up</button>}
-      {options.filter(option => option.id !== 'later' || canUseLaterToday()).map(option => <button key={option.id} type="button" disabled={disabled} onClick={() => choose(option.id)} className={buttonClass(selected === option.id)}>{option.id === 'later' ? <Clock3 className="h-4 w-4" /> : <CalendarClock className="h-4 w-4" />}{option.label}</button>)}
-      <button type="button" disabled={disabled} onClick={() => choose('custom')} className={buttonClass(selected === 'custom')}>Choose date/time</button>
+    <div className={compact ? "flex flex-wrap gap-1.5" : "grid grid-cols-2 gap-2 sm:grid-cols-3"}>
+      {allowNone && <button type="button" disabled={disabled} onClick={() => choose('none')} aria-pressed={selected === 'none'} className={buttonClass(selected === 'none')}>{!compact && <Check className="h-4 w-4" />}No follow-up</button>}
+      {options.filter(option => option.id !== 'later' || canUseLaterToday()).map(option => <button key={option.id} type="button" disabled={disabled} onClick={() => choose(option.id)} aria-pressed={selected === option.id} className={buttonClass(selected === option.id)}>{!compact && (option.id === 'later' ? <Clock3 className="h-4 w-4" /> : <CalendarClock className="h-4 w-4" />)}{compact && option.id === 'tomorrow' ? 'Tomorrow' : option.label}</button>)}
+      <button type="button" disabled={disabled} onClick={() => choose('custom')} aria-pressed={selected === 'custom'} className={buttonClass(selected === 'custom')}>{compact ? 'Pick date' : 'Choose date/time'}</button>
     </div>
     {selected === 'custom' && <label className="mt-4 block text-sm font-semibold text-slate-700">Date and time<input type="datetime-local" value={value} disabled={disabled} onChange={event => customChange(event.target.value)} className="mt-1.5 h-12 w-full rounded-xl border border-slate-300 bg-white px-3 text-base font-normal outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:opacity-60" aria-invalid={Boolean(error)} />{error && <AdminAlert as="span" className="mt-1">{error}</AdminAlert>}</label>}
   </div>;

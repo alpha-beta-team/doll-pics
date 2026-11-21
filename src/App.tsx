@@ -1,6 +1,8 @@
+import { BookingRecordLoaderProvider } from './admin/pages/BookingRecordLoaderProvider';
+import { WorkflowTrackerSkeleton } from './admin/components/bookings/WorkflowTracker';
 import type { PublicSnapshot } from './lib/publicSnapshot';
 import { Suspense, lazy, type ComponentType } from 'react';
-import { BrowserRouter, Routes, Route, Outlet, Navigate, useLocation } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Routes, Route, Outlet, Navigate, useLocation } from 'react-router-dom';
 import { RouteFocus } from './components/RouteFocus';
 import { GoogleAnalytics } from './components/GoogleAnalytics';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -184,7 +186,21 @@ export function AppRoutes({ snapshot, PilotPage }: AppProps) {
   );
 }
 
+// Create one router outside React's StrictMode render lifecycle.
+let appRouter: ReturnType<typeof createBrowserRouter> | undefined;
 function App(props: AppProps) {
-  return <BrowserRouter><AppRoutes {...props} /></BrowserRouter>;
+  appRouter ??= createBrowserRouter([{
+    path: '/', hydrateFallbackElement: <WorkflowTrackerSkeleton />,
+    element: <BookingRecordLoaderProvider><AppRoutes {...props} /></BookingRecordLoaderProvider>,
+    children: [
+      { id: 'booking-record', path: 'admin/bookings/:id', element: <></>,
+        lazy: async () => {
+          const { bookingRecordLoader, bookingRecordShouldRevalidate } = await import('./admin/pages/bookingRecordLoader');
+          return { loader: bookingRecordLoader, shouldRevalidate: bookingRecordShouldRevalidate };
+        } },
+      { path: '*', element: <></> },
+    ],
+  }]);
+  return <RouterProvider router={appRouter} />;
 }
 export default App;

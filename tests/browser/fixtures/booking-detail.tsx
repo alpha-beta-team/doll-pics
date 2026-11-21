@@ -1,3 +1,5 @@
+import { CrewServiceType } from '../../../src/shared/crew';
+import { RequireAuth } from '../../../src/admin/components/Layout';
 import { nextOrderStages, type OrderWorkflow, type OrderStage } from '../../../src/shared/orderWorkflow';
 import { orderWorkflowApi } from '../../../src/admin/api/orderWorkflow';
 import { bookingWorkspaceApi } from '../../../src/admin/api/bookingWorkspace';
@@ -14,6 +16,7 @@ import { mapBooking } from "../../../src/admin/api/mappers";
 import { ApiError } from "../../../src/admin/api/http";
 import type {
   Booking,
+  VoiceNoteSummary,
   StaffAccount,
   WhatsAppMessageSummary,
 } from "../../../src/admin/types";
@@ -52,7 +55,7 @@ localStorage.setItem("auth_token", "test-only");
 api.getCurrentUser = async () =>
   ({
     id: "staff",
-    name: "Staff",
+    name: desktop ? "Super Admin" : "Staff",
     email: "staff@example.invalid",
     role,
     isActive: true,
@@ -90,6 +93,64 @@ let booking = mapBooking({
   calendarSyncStatus: params.has("calendarFailed") ? "failed" : "synced",
   calendarSyncedAt: "2026-09-04T06:00:00Z",
 });
+if (params.has('record') || params.has('desktop')) {
+  booking = { ...booking, customerCode: 'DP-C202611-0052', source: 'website', packageName: 'Newborn Home Shoot – Half Day', preferredLanguage: 'en',
+    crewList: [{ staffAccountId: 'staff', memberName: 'Dinesh', serviceType: CrewServiceType.CandidPhoto }, { staffAccountId: 'team', memberName: 'Doll Marketing Team', serviceType: CrewServiceType.OutdoorVideo }],
+    deliverables: [
+      { id: 'photos', catalogId: 'photos', name: 'Edited photos', kind: 'digital', unit: 'images', quantity: 25, category: 'included', amount: 0, specifications: '' },
+      { id: 'frame', catalogId: 'frame', name: 'Frame', kind: 'physical', unit: 'items', quantity: 2, category: 'extra', amount: 500, specifications: '' },
+      { id: 'album', catalogId: 'album', name: 'Album', kind: 'physical', unit: 'items', quantity: 1, category: 'included', amount: 0, specifications: '6×18' },
+      { id: 'gift', catalogId: 'gift', name: 'Gift print', kind: 'physical', unit: 'items', quantity: 1, category: 'complimentary', amount: 0, specifications: '' },
+    ],
+  };
+}
+const desktop = params.has('desktop');
+if (desktop) {
+  Object.assign(booking, {
+    customerName: 'Kaarmuhilan KP', notes: '', customerPhone: '+91 90000 00052', location: 'Erode',
+    bookingDate: '2026-11-14', startTime: '17:42', endTime: '19:42', shootType: 'Newborn',
+    assignedStaffAccountName: 'Dinesh', agreedTotal: 15500,
+    paymentSummary: { amountPaid: 0, balanceDue: 15500, status: 'unpaid' },
+    driveGalleryUrl: 'http://localhost:5173/admin/gallery', driveEditedUrl: 'http://localhost:5173/admin/photos',
+    workflowActivity: [
+      { what: 'Shoot marked complete', when: '2026-11-14T14:20:00Z', who: { id: 'owner', name: 'Super Admin' } },
+      { what: 'Photos shared for selection', when: '2026-11-15T12:40:00Z', who: { id: 'owner', name: 'Super Admin' } },
+      { what: 'Customer finished selecting photos', when: '2026-11-16T04:58:00Z', who: { id: 'owner', name: 'Super Admin' } },
+    ],
+  });
+  const rows = booking.deliverables!; // The desktop fixture always starts with the four record rows above.
+  rows[3] = { ...rows[2], id: 'album-large', catalogId: 'album-large', specifications: '20 pages · 12 × 12 in' };
+  const catalog = rows.map(row => ({ ...row, id: row.catalogId, defaultQuantity: row.quantity, active: true, selectedByDefault: false, order: 0 }));
+  api.getDeliverables = async () => [...catalog, { ...catalog[1], id: 'calendar', name: 'Calendar', defaultQuantity: 1 }];
+  const base = rows.filter(row => row.category === 'included').map(row => ({ ...row, category: 'included' as const }));
+  api.getDeliverableConfiguration = async () => ({ revision: 1, base, seasonal: [{ id: 'christmas', name: 'Christmas', active: true, items: [{ ...base[0], id: 'calendar', name: 'Calendar', quantity: 1, category: 'complimentary' }] }] });
+}
+if (desktop && params.has('longRecord')) {
+  const name = 'LongCustomerName'.repeat(10);
+  booking.customerName = name;
+  booking.assignedStaffAccountName = name;
+  booking.location = name;
+  booking.deliverables = Array.from({ length: 35 }, (_, i) => ({
+    ...booking.deliverables![0], id: String(i), name: name + i,
+  }));
+}
+const paymentState = params.get('paymentState');
+if (paymentState) {
+  const received = paymentState === 'paid' ? 25000 : paymentState === 'overpaid' ? 27000 : 5000;
+  booking = { ...booking, paymentSummary: { amountPaid: received, balanceDue: 25000 - received, status: paymentState as Booking['paymentSummary']['status'] }, payments: [{ id: 'existing', amount: received, paidAt: '2026-11-18T06:00:00Z', method: 'upi', reference: '', note: '' }] };
+}
+// Detail responses include the compact workflow, independently of the legacy editor request.
+function fixtureWorkflow(): NonNullable<Booking['workflow']> {
+  const phase = !order ? booking.status === 'confirmed' || booking.status === 'draft' ? 0 : 1
+    : ['shoot_completed', 'awaiting_selection'].includes(order.stage) ? 1 : ['editing', 'photos_delivered'].includes(order.stage) ? 2 : ['edited_selected', 'printing', 'in_transit'].includes(order.stage) ? 3 : 4;
+  return { cancelledAt: booking.status === 'cancelled' ? '2026-11-18T04:30:00Z' : undefined, steps: ['Shoot', 'Selection', 'Editing', 'Printing', 'Delivery'].map((label, index) => ({ key: label.toLowerCase(), label,
+    status: order?.mode === 'digital' && index === 3 ? 'skipped' as const : order?.state === 'completed' || index < phase ? 'done' as const : index === phase ? 'current' as const : 'upcoming' as const,
+    dueAt: desktop && index === 2 ? '2026-11-21T04:58:00Z' : undefined,
+    completedAt: desktop && index === 0 ? '2026-11-14T14:20:00Z' : index < phase ? '2026-11-16T04:30:00Z' : undefined,
+    milestones: desktop && index === 2 ? [{ key: 'photos_delivered', label: 'Edited photos shared', done: false }, { key: 'edited_selected', label: 'Customer selected edited photos', done: false }] : [{ key: `${label.toLowerCase()}_fixture`, label: `${label} completed`, done: index < phase }],
+  })) };
+}
+booking.workflow = params.has('legacyDelivery') ? undefined : fixtureWorkflow();
 async function save(method: string, args: unknown[], patch: Partial<Booking>) {
   window.bookingTest.calls.push({ method, args });
   if (window.bookingTest.hold)
@@ -120,12 +181,17 @@ async function save(method: string, args: unknown[], patch: Partial<Booking>) {
 }
 api.getBooking = async (id) => ({
   ...booking,
+  workflow: params.has('legacyDelivery') ? undefined : fixtureWorkflow(),
   id,
   customerName: id === "two" ? "Second customer" : booking.customerName,
 });
 api.getPackages = async () => [];
 api.getPhotographyServices = async () => [];
-api.getAssignableStaffAccounts = async () => [
+api.getAssignableStaffAccounts = async () => desktop ? [
+  { id: 'staff', name: 'Dinesh', jobTitle: 'Senior Photographer' },
+  { id: 'new', name: 'Surya', jobTitle: 'Creative Head' },
+  { id: 'owner', name: 'Super Admin', jobTitle: 'Owner' },
+] : [
   { id: "staff", name: "Vignesh", jobTitle: "Photographer" },
   { id: "new", name: "Priya", jobTitle: "Photographer" },
 ];
@@ -200,7 +266,22 @@ api.getBookingWhatsAppMessages = async () =>
 api.retryBookingWhatsAppMessage = async (...args) => {
   await save("retryMessage", args, {});
 };
-api.listVoiceNotes = async () => [];
+let voiceNotes: VoiceNoteSummary[] = params.has('voiceNote') ? [{ id: 'voice-existing', recordType: 'booking', recordId: 'one', durationSeconds: 12, mimeType: 'audio/webm', sizeBytes: 2048, createdAt: '2026-11-19T06:00:00Z', createdBy: { id: 'staff', name: 'Staff' } }] : [];
+api.listVoiceNotes = async () => structuredClone(voiceNotes);
+api.getVoiceNoteContent = async id => {
+  await save('voiceContent', [id], {});
+  return new Blob(['test audio'], { type: 'audio/webm' });
+};
+api.createVoiceNote = async (target, blob, durationSeconds) => {
+  await save('createVoiceNote', [target, blob.type, durationSeconds], {});
+  const note: VoiceNoteSummary = { id: `voice-${voiceNotes.length + 1}`, ...target, durationSeconds, mimeType: blob.type, sizeBytes: blob.size, createdAt: new Date().toISOString(), createdBy: { id: 'staff', name: 'Staff' } };
+  voiceNotes = [note, ...voiceNotes];
+  return note;
+};
+api.deleteVoiceNote = async id => {
+  await save('deleteVoiceNote', [id], {});
+  voiceNotes = voiceNotes.filter(note => note.id !== id);
+};
 api.getOccasions = async () => [];
 api.lookupCustomer = async () => ({
   canonicalPhone: "919876543210",
@@ -209,6 +290,21 @@ api.lookupCustomer = async () => ({
 });
 let workspace: BookingWorkspace = { notes: [], followUps: [], pendingFollowUpCount: 0, nextFollowUpId: '', nextFollowUpAt: null, followUpNote: '' };
 const workspaceActor = { id: 'staff', name: 'Staff' };
+if (params.has('record')) workspace.notes = [
+  { id: 'new', body: 'Latest unpinned note', pinned: false, revision: 1, createdAt: '2026-11-19T12:00:00Z', updatedAt: '2026-11-19T12:00:00Z', createdBy: workspaceActor, updatedBy: workspaceActor, history: [] },
+  { id: 'pinned', body: 'Pinned customer preference', pinned: true, revision: 1, createdAt: '2026-11-17T12:00:00Z', updatedAt: '2026-11-17T12:00:00Z', createdBy: workspaceActor, updatedBy: workspaceActor, history: [] },
+  { id: 'old', body: 'Older internal note', pinned: false, revision: 1, createdAt: '2026-11-16T12:00:00Z', updatedAt: '2026-11-16T12:00:00Z', createdBy: workspaceActor, updatedBy: workspaceActor, history: [] },
+];
+if (desktop) {
+  const admin = { id: 'admin', name: 'admin' }, owner = { id: 'owner', name: 'Super Admin' };
+  workspace.notes = ['spoke to customer, they need to reshedule shoot', 'neeed to dicssss', 'need to discuss with team'].map((body, index) => {
+    const at = index === 1 ? '2026-11-16T15:21:00Z' : '2026-11-16T15:20:00Z';
+    return { id: String(index), body, pinned: index < 2, revision: index < 2 ? 2 : 1, createdAt: at, updatedAt: at, createdBy: index === 1 ? owner : admin, updatedBy: owner,
+      history: index < 2 ? [{ at, action: 'pinned', actor: owner }] : [] };
+  });
+  workspace.followUps = [{ id: 'call', title: 'Call follow-up', details: 'Need to call and enquiry', assigneeId: 'kavin', assigneeName: 'Kavin', dueAt: '2026-11-17T15:22:00Z', status: 'completed', outcome: '', revision: 2,
+    createdAt: '2026-11-16T15:23:00Z', updatedAt: '2026-11-16T16:02:00Z', createdBy: owner, updatedBy: owner, history: [{ action: 'completed', at: '2026-11-16T16:02:00Z', actor: owner }] }];
+}
 function workspaceResult(method: string, args: unknown[], update: () => void) {
   window.bookingTest.calls.push({ method, args });
   if (window.bookingTest.fail === 'workspace') throw new Error('Temporary workspace save failure');
@@ -218,10 +314,10 @@ function workspaceResult(method: string, args: unknown[], update: () => void) {
   booking = { ...booking, pendingFollowUpCount: pending.length, nextFollowUpAt: workspace.nextFollowUpAt || undefined, followUpNote: workspace.followUpNote };
   return structuredClone(workspace);
 }
-bookingWorkspaceApi.get = async () => structuredClone(workspace);
-bookingWorkspaceApi.createNote = async (_id, body, requestId) => workspaceResult('createNote', [body, requestId], () => {
+bookingWorkspaceApi.get = async () => { if (params.has('workspaceError') && window.bookingTest.fail !== 'recovered') throw new Error('Could not load notes'); return structuredClone(workspace); };
+bookingWorkspaceApi.createNote = async (_id, body, requestId, pinned = false) => workspaceResult('createNote', [body, requestId, pinned], () => {
   const now = new Date().toISOString();
-  if (!workspace.notes.some(row => row.id === requestId)) workspace.notes.push({ id: requestId, body, pinned: false, revision: 1, createdAt: now, updatedAt: now, createdBy: workspaceActor, updatedBy: workspaceActor, history: [] });
+  if (!workspace.notes.some(row => row.id === requestId)) workspace.notes.push({ id: requestId, body, pinned, revision: 1, createdAt: now, updatedAt: now, createdBy: workspaceActor, updatedBy: workspaceActor, history: [] });
 });
 bookingWorkspaceApi.updateNote = async (_id, id, data) => workspaceResult('updateNote', [id, data], () => {
   const note = workspace.notes.find(row => row.id === id)!;
@@ -233,10 +329,16 @@ bookingWorkspaceApi.createFollowUp = async (_id, data) => workspaceResult('creat
   if (!workspace.followUps.some(row => row.id === data.requestId)) workspace.followUps.push({ ...data, id: data.requestId, assigneeName: data.assigneeId ? 'Vignesh' : '', status: 'pending', outcome: '', revision: 1, createdAt: now, updatedAt: now, createdBy: workspaceActor, updatedBy: workspaceActor, history: [] });
 });
 bookingWorkspaceApi.updateFollowUp = async (_id, id, data) => workspaceResult('updateFollowUp', [id, data], () => { Object.assign(workspace.followUps.find(row => row.id === id)!, data, { revision: data.revision + 1 }); });
-bookingWorkspaceApi.finishFollowUp = async (_id, id, data) => workspaceResult('finishFollowUp', [id, data], () => { Object.assign(workspace.followUps.find(row => row.id === id)!, data, { revision: data.revision + 1, updatedAt: new Date().toISOString(), updatedBy: workspaceActor }); });
+bookingWorkspaceApi.finishFollowUp = async (_id, id, data) => workspaceResult('finishFollowUp', [id, data], () => { workspace.followUps.find(row => row.id === id)!.history.push({ at: new Date().toISOString(), actor: workspaceActor, action: data.status }); Object.assign(workspace.followUps.find(row => row.id === id)!, data, { revision: data.revision + 1, updatedAt: new Date().toISOString(), updatedBy: workspaceActor }); });
+bookingWorkspaceApi.reopenFollowUp = async (_id, id, data) => workspaceResult('reopenFollowUp', [id, data], () => {
+  const task = workspace.followUps.find(row => row.id === id)!;
+  task.history.push({ at: new Date().toISOString(), actor: workspaceActor, action: 'reopened', previous: { status: task.status, outcome: task.outcome } });
+  Object.assign(task, data, { status: 'pending', outcome: '', revision: task.revision + 1 });
+});
 export function Harness() {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  if (params.has('shell')) return <div className="admin-theme"><Routes><Route element={<RequireAuth />}><Route path="/admin/bookings/:id" element={<BookingDetailPage />} /></Route></Routes></div>;
   return (
     <div
       className="admin-theme"

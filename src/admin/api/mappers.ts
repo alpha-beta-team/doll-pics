@@ -190,6 +190,8 @@ export function mapEnquiry(doc: Record<string, unknown>): Enquiry {
     nextFollowUpAt: doc.nextFollowUpAt ? String(doc.nextFollowUpAt) : undefined,
     followUpNote: String(doc.followUpNote ?? ''),
     lastCall: doc.lastCall as Enquiry['lastCall'],
+    internalNotes: Array.isArray(doc.internalNotes) ? doc.internalNotes as Enquiry['internalNotes'] : undefined,
+    stageHistory: Array.isArray(doc.stageHistory) ? doc.stageHistory as Enquiry['stageHistory'] : undefined,
     callHistory: Array.isArray(doc.callHistory) ? doc.callHistory as Enquiry['callHistory'] : undefined,
     lastFollowUpCompletedAt: doc.lastFollowUpCompletedAt
       ? String(doc.lastFollowUpCompletedAt)
@@ -219,6 +221,8 @@ export function mapBooking(doc: Record<string, unknown>): Booking {
   return {
     id: base.id,
     customerId: doc.customerId ? String(doc.customerId) : undefined,
+    workflow: doc.workflow as Booking['workflow'],
+    workflowActivity: doc.workflowActivity as Booking['workflowActivity'],
     customerCode: doc.customerCode ? String(doc.customerCode) : undefined,
     customerName: (doc.customerName as string) ?? '',
     customerPhone: (doc.customerPhone as string) ?? '',
@@ -285,6 +289,7 @@ export function mapBooking(doc: Record<string, unknown>): Booking {
       const changedBy = (item.changedBy ?? {}) as Record<string, unknown>;
       return {
         id: String(item.id ?? item._id ?? ''),
+        reason: item.reason ? String(item.reason) : undefined,
         action: item.action as Booking['scheduleHistory'][number]['action'],
         previous: {
           bookingDate: String(previous.bookingDate ?? ''),

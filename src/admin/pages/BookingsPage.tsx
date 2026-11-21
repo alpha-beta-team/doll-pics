@@ -2,9 +2,10 @@ import { AdminAlert } from '../components/ui/AdminUi';
 import { formatCustomerName } from '../../shared/formatCustomerName';
 import './enquiries.css';
 import './bookings.css';
+import '@fontsource/dm-mono/latin-500.css';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { AlertCircle, ArrowDown, ArrowUp, ArrowUpDown, Inbox, SearchX, X } from 'lucide-react';
+import { AlertCircle, Clock3, Plus, RefreshCw, Inbox, Search, SearchX, X } from 'lucide-react';
 import { api } from '../api/client';
 import type {
   Booking,
@@ -25,12 +26,10 @@ import { canViewBookingPricing, hasStaffPermission } from '../access/roles';
 import { consumeNewBookingSearch } from './bookingsRoute';
 import { BookingCard, BookingCardSkeleton } from '../components/bookings/BookingCard';
 import { BookingAssignmentDialog } from '../components/bookings/BookingAssignmentDialog';
-import { BookingViewSelect } from '../components/bookings/BookingListHeader';
-import { BookingSortControl } from '../components/bookings/BookingStatusFilter';
-import { BookingToolbar } from '../components/bookings/BookingToolbar';
+import { BookingDesktopTable } from '../components/bookings/BookingDesktopTable';
+import { BookingListControls } from '../components/bookings/BookingListControls';
 import { SalesMobileHeader } from '../components/sales/SalesMobileHeader';
 import { SalesListPagination } from '../components/sales/SalesListPagination';
-import { SalesWorkspaceHeader } from '../components/sales/SalesWorkspaceHeader';
 import {
   buildServiceCategoryOptions,
   normalizeServiceCategory,
@@ -79,17 +78,18 @@ const defaultViewState: BookingViewState = {
 };
 
 function restoredViewState(): BookingViewState {
+  const defaults: BookingViewState = { ...defaultViewState, scope: window.matchMedia('(min-width: 640px)').matches ? 'all' : 'pending' };
   try {
-    if (sessionStorage.getItem(RESTORE_SCROLL_KEY) !== 'true') return defaultViewState;
+    if (sessionStorage.getItem(RESTORE_SCROLL_KEY) !== 'true') return defaults;
     const stored = JSON.parse(sessionStorage.getItem(VIEW_STATE_KEY) || '{}') as Partial<BookingViewState>;
-    const restored = { ...defaultViewState, ...stored };
-    if (restored.status === 'shoot_completed' || restored.status === 'delivered' || restored.status === 'cancelled') {
+    const restored = { ...defaults, ...stored };
+    if (restored.overdueOnly || restored.status === 'shoot_completed' || restored.status === 'delivered' || restored.status === 'cancelled') {
       restored.scope = 'all';
     }
     restored.page = Number.isInteger(restored.page) && restored.page > 0 ? restored.page : 1;
     return restored;
   } catch {
-    return defaultViewState;
+    return defaults;
   }
 }
 
@@ -134,17 +134,22 @@ export function BookingsPage() {
     },
   );
 
+  const latestLoad = useRef(0);
   const load = useCallback(async (refresh = false) => {
+    const requestId = ++latestLoad.current;
     if (refresh) setRefreshing(true);
     else setLoading(true);
     setError('');
     try {
-      setBookings(await api.getBookingListRows());
+      const rows = await api.getBookingListRows();
+      if (latestLoad.current === requestId) setBookings(rows);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load bookings');
+      if (latestLoad.current === requestId) setError(err instanceof Error ? err.message : 'Failed to load bookings');
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      if (latestLoad.current === requestId) {
+        setLoading(false);
+        setRefreshing(false);
+      }
     }
   }, []);
 
@@ -235,20 +240,33 @@ export function BookingsPage() {
     () => bookings.filter(booking => serviceCategoryMatches(booking, serviceCategory)),
     [bookings, serviceCategory],
   );
+  const assigneeOptions = useMemo(() => {
+    const options = new Map(staffAccounts.map(account => [account.id, account.name]));
+    for (const booking of bookings) {
+      const { assignedStaffAccountId: id, assignedStaffAccountName: name } = booking;
+      if (id && name && !options.has(id)) options.set(id, name);
+    }
+    return Array.from(options, ([id, name]) => ({ id, name }));
+  }, [staffAccounts, bookings]);
   const paymentFilter = canViewPayments ? payment : '';
 
+  const [now, setNow] = useState(Date.now);
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
+  const overdueIds = useMemo(() => new Set(bookings.filter(b => b.nextFollowUpAt && Date.parse(b.nextFollowUpAt) <= now).map(b => b.id)), [bookings, now]);
   const matching = useMemo(() => {
-    const now = Date.now();
     return bookings.filter(booking => {
       if (!bookingMatchesScope(booking, scope)) return false;
       if (status && booking.status !== status) return false;
       if (assignee === 'unassigned' && booking.assignedStaffAccountId) return false;
       if (assignee && assignee !== 'unassigned' && booking.assignedStaffAccountId !== assignee) return false;
       if (paymentFilter && booking.paymentSummary.status !== paymentFilter) return false;
-      if (overdueOnly && (!booking.nextFollowUpAt || new Date(booking.nextFollowUpAt).getTime() > now)) return false;
+      if (overdueOnly && !overdueIds.has(booking.id)) return false;
       return bookingMatchesSearch(booking, query);
     });
-  }, [assignee, bookings, overdueOnly, paymentFilter, query, scope, status]);
+  }, [assignee, bookings, overdueIds, overdueOnly, paymentFilter, query, scope, status]);
 
   const serviceCategories = useMemo(
     () => buildServiceCategoryOptions(bookings, matching),
@@ -280,14 +298,12 @@ export function BookingsPage() {
 
   const mobileCounts = useMemo(() => ({
     confirmed: bookings.filter(booking => booking.status === 'confirmed').length,
-    overdue: bookings.filter(booking => bookingMatchesScope(booking, 'pending') && booking.nextFollowUpAt && new Date(booking.nextFollowUpAt).getTime() <= Date.now()).length,
   }), [bookings]);
-
-  const selectedStatusLabel = BOOKING_STATUSES.find(item => item.value === status)?.label;
-  const selectedServiceLabel = serviceCategories.find(option => option.value === serviceCategory)?.label;
-  const listTitle = serviceCategory && selectedServiceLabel
-    ? `${selectedServiceLabel} · ${selectedStatusLabel || (scope === 'pending' ? 'Pending shoots' : 'All bookings')}`
-    : selectedStatusLabel || (scope === 'pending' ? 'Pending shoots' : 'All bookings');
+  const selectView = (view: string) => {
+    setScope(view === 'pending' || view === 'confirmed' ? 'pending' : 'all');
+    setStatus(view === 'confirmed' ? 'confirmed' : '');
+    setOverdueOnly(view === 'overdue');
+  };
   const activeFilterCount = Number(Boolean(status)) + Number(Boolean(assignee)) + Number(Boolean(paymentFilter)) + Number(overdueOnly);
   const hasAnyFilter = Boolean(status || assignee || paymentFilter || overdueOnly || query || serviceCategory);
 
@@ -350,14 +366,10 @@ export function BookingsPage() {
           { value: 'pending', label: 'Pending shoots', count: pendingBookingCount },
           { value: 'all', label: 'All', count: bookings.length },
           { value: 'confirmed', label: 'Confirmed', count: mobileCounts.confirmed },
-          { value: 'overdue', label: 'Follow-up overdue', count: mobileCounts.overdue },
+          { value: 'overdue', label: 'Follow-up overdue', count: overdueIds.size },
         ]}
         view={overdueOnly && !status ? 'overdue' : !overdueOnly && status === 'confirmed' ? 'confirmed' : !overdueOnly && !status ? scope : ''}
-        onViewChange={view => {
-          setScope(view === 'all' ? 'all' : 'pending');
-          setStatus(view === 'confirmed' ? 'confirmed' : '');
-          setOverdueOnly(view === 'overdue');
-        }}
+        onViewChange={selectView}
         query={query} onQueryChange={setQuery} filtersOpen={showFilters} activeFilterCount={activeFilterCount}
         onToggleFilters={() => setShowFilters(open => !open)} refreshing={refreshing} onRefresh={() => void load(true)}
         canManage={canManage} onAdd={() => void openCreateBooking()} services={visibleServiceCategories}
@@ -365,45 +377,13 @@ export function BookingsPage() {
         sortOptions={BOOKING_SORT_OPTIONS.map(option => ({ ...option, shortLabel: ({ shoot_date: 'Shoot ↑', shoot_date_desc: 'Shoot ↓', recent: 'Newest', customer: 'Name A–Z', follow_up: 'Follow-up' })[option.value] }))}
       />
       {isReadOnly && <div className="px-4 pt-3 sm:hidden"><ReadOnlyNotice /></div>}
-      <div className="hidden sm:block">
-      <SalesWorkspaceHeader
-        title="Bookings"
-        studioBadge
-        subtitle={<>{listTitle}<span className="mx-1.5 text-slate-300">•</span><span className="font-medium text-admin-secondary">{loading ? 'Loading bookings…' : `${visible.length} ${visible.length === 1 ? 'booking' : 'bookings'}`}</span></>}
-        viewControls={(
-          <BookingViewSelect
-            scope={scope}
-            pendingCount={pendingBookingCount}
-            totalCount={bookings.length}
-            onScopeChange={nextScope => {
-              setScope(nextScope);
-              if (nextScope === 'pending' && status && status !== 'draft' && status !== 'confirmed') setStatus('');
-            }}
-          />
-        )}
-        serviceCategories={visibleServiceCategories}
-        serviceCategory={serviceCategory}
-        onServiceCategoryChange={selectServiceCategory}
-        panelId="booking-list-panel"
-        readOnlyNotice={isReadOnly ? <ReadOnlyNotice /> : undefined}
-        listControls={<div className="flex items-center gap-3"><span className="text-xs text-admin-subtle">Sort by:</span><BookingSortControl value={sort} onChange={setSort} /></div>}
-        actions={(
-          <BookingToolbar
-            query={query}
-            onQueryChange={setQuery}
-            filtersOpen={showFilters}
-            onFiltersOpenChange={setShowFilters}
-            activeFilterCount={activeFilterCount}
-            refreshing={refreshing}
-            onRefresh={() => void load(true)}
-            canManage={canManage}
-            onAdd={() => void openCreateBooking()}
-          />
-        )}
-      />
-
-      </div>
       <div className="enquiry-list-content space-y-5">
+      <header className="bl-header hidden sm:block">
+        <div className="bl-heading"><div><h1>Bookings</h1><p>{loading ? 'Loading bookings…' : `${bookings.length} bookings · ${pendingBookingCount} pending shoots`}</p></div>
+
+        <div className="bl-actions"><label className="bl-search"><Search size={16}/><input type="search" aria-label="Search bookings" placeholder="Name, phone, package" value={query} onChange={e => setQuery(e.target.value)}/></label><button aria-label="Refresh bookings" disabled={refreshing || loading} onClick={() => void load(true)}><RefreshCw size={16} className={refreshing ? 'animate-spin' : ''}/></button>{canManage && <button className="bl-primary" onClick={() => void openCreateBooking()}><Plus size={16}/>Add booking</button>}</div></div>
+        {isReadOnly && <ReadOnlyNotice/>}
+      </header>
       {error && bookings.length > 0 && (
         <AdminAlert contentClassName="flex items-center gap-2">
 
@@ -414,7 +394,7 @@ export function BookingsPage() {
       )}
 
       {showFilters && (
-        <section id="booking-advanced-filters" aria-label="Booking filters" className="grid gap-3 rounded-xl border border-admin-border bg-admin-surface p-3 shadow-sm sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto_auto] xl:items-center">
+        <section id="booking-advanced-filters" aria-label="Booking filters" className="grid sm:hidden gap-3 rounded-xl border border-admin-border bg-admin-surface p-3 shadow-sm sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto_auto] xl:items-center">
           <label className="block">
             <span className="sr-only">Booking status</span>
             <select
@@ -437,7 +417,7 @@ export function BookingsPage() {
               <option value="">All assignees</option>
               <option value="unassigned">Unassigned</option>
               {staffLoadFailed && <option value="" disabled>Staff options unavailable</option>}
-              {staffAccounts.map(account => <option key={account.id} value={account.id}>{account.name}</option>)}
+              {assigneeOptions.map(account => <option key={account.id} value={account.id}>{account.name}</option>)}
             </select>
           </label>
           {canViewPayments ? (
@@ -450,25 +430,24 @@ export function BookingsPage() {
             </label>
           ) : <div className="hidden lg:block" />}
           <label className="flex min-h-11 items-center gap-2 rounded-xl px-1 text-sm font-medium text-admin-secondary">
-            <input type="checkbox" checked={overdueOnly} onChange={event => setOverdueOnly(event.target.checked)} className="h-4 w-4 rounded border-admin-control text-admin-primary focus:ring-admin-focus" />
+            <input type="checkbox" checked={overdueOnly} onChange={event => { setOverdueOnly(event.target.checked); if (event.target.checked) setScope('all'); }} className="h-4 w-4 rounded border-admin-control text-admin-primary focus:ring-admin-focus" />
             Overdue follow-ups
           </label>
           <button type="button" disabled={!activeFilterCount} onClick={clearAdvancedFilters} className="min-h-11 rounded-xl px-3 text-sm font-semibold text-admin-primary outline-none hover:bg-admin-muted focus-visible:ring-2 focus-visible:ring-admin-focus disabled:cursor-not-allowed disabled:text-admin-subtle disabled:opacity-60">Clear filters</button>
         </section>
       )}
 
-      <section id="booking-list-panel" aria-labelledby="booking-list-panel-title" aria-busy={loading || refreshing} className={`booking-list overflow-hidden rounded-xl border border-admin-border bg-admin-surface shadow-[0_4px_20px_rgba(15,23,42,0.04)] ${showBookingPricing ? 'booking-has-pricing' : ''}`}>
-        <div className="booking-table-heading text-[11px] font-semibold uppercase tracking-wide text-admin-subtle">
-          <span>Customer</span><span>Booking / Service</span>
-          <button type="button" onClick={() => setSort(sort === 'shoot_date' ? 'shoot_date_desc' : 'shoot_date')}
-            aria-label={`Sort by shoot date, ${sort === 'shoot_date' ? 'earliest first; show latest first' : sort === 'shoot_date_desc' ? 'latest first; show earliest first' : 'show earliest first'}`}
-            title={sort === 'shoot_date' ? 'Show latest shoots first' : 'Show earliest shoots first'}
-            className="-my-2 flex min-h-9 items-center gap-1.5 rounded text-left uppercase outline-none hover:text-admin-text focus-visible:ring-2 focus-visible:ring-admin-focus">
-            Shoot{sort === 'shoot_date' ? <ArrowUp className="h-3.5 w-3.5" aria-hidden="true" /> : sort === 'shoot_date_desc' ? <ArrowDown className="h-3.5 w-3.5" aria-hidden="true" /> : <ArrowUpDown className="h-3.5 w-3.5" aria-hidden="true" />}
-          </button>
-          <span>Created</span>{showBookingPricing && <span>Amount</span>}<span>Follow-up / Assigned</span><span className="text-right">Actions</span>
-        </div>
-
+      <section id="booking-list-panel" aria-label="Bookings list" aria-busy={loading || refreshing} className={`booking-list overflow-hidden rounded-xl border border-admin-border bg-admin-surface shadow-[0_4px_20px_rgba(15,23,42,0.04)] ${showBookingPricing ? 'booking-has-pricing' : ''}`}>
+        <BookingListControls views={<div className="bl-views" role="group" aria-label="Booking views">{[
+          { key: 'all', label: 'All bookings', count: bookings.length },
+          { key: 'pending', label: 'Pending shoots', count: pendingBookingCount },
+          { key: 'overdue', label: 'Follow-up overdue', count: overdueIds.size },
+        ].map(v => <button key={v.key} aria-pressed={(overdueOnly ? 'overdue' : scope) === v.key} onClick={() => selectView(v.key)}>{v.key === 'overdue' && <Clock3 size={15}/>} {v.label}<b>{v.count}</b></button>)}</div>} sort={sort} onSort={setSort}
+          filters={{ status, assignee, payment: paymentFilter, overdueOnly }} onApply={draft => {
+            setStatus(draft.status); setAssignee(draft.assignee); setPayment(draft.payment); setOverdueOnly(draft.overdueOnly);
+            if (draft.overdueOnly || ['shoot_completed', 'delivered', 'cancelled'].includes(draft.status)) setScope('all');
+          }} staff={assigneeOptions} staffFailed={staffLoadFailed} canViewPayments={canViewPayments} counts={counts}
+          overdueCount={overdueIds.size} services={serviceCategories} service={serviceCategory} onService={selectServiceCategory}/>
         {loading ? (
           <div className="booking-rows" aria-label="Loading bookings" role="status">
             {Array.from({ length: 4 }, (_, index) => <BookingCardSkeleton key={index} showPricing={showBookingPricing} />)}
@@ -482,7 +461,11 @@ export function BookingsPage() {
             action={<AdminButton onClick={() => void load()}>Try again</AdminButton>}
           />
         ) : visible.length > 0 ? (
-          <div className="booking-rows">
+          <>
+          <BookingDesktopTable rows={pageItems} sort={sort} onSort={setSort} showPricing={showBookingPricing}
+            canViewPayments={canViewPayments} canViewPhone={canViewPhone} onOpen={openBooking}
+            onAssign={canManage ? booking => { setAssignmentSuccess(''); setAssigningBooking(booking); } : undefined}/>
+          <div className="sm:hidden"><div className="booking-rows">
             {pageItems.map(booking => (
               <BookingCard
                 key={booking.id}
@@ -494,7 +477,7 @@ export function BookingsPage() {
                 onAssign={canManage ? () => { setAssignmentSuccess(''); setAssigningBooking(booking); } : undefined}
               />
             ))}
-          </div>
+          </div></div></>
         ) : bookings.length === 0 ? (
           <AdminEmptyState
             icon={Inbox}

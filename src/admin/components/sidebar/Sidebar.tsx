@@ -1,3 +1,7 @@
+import '@fontsource/public-sans/latin-400.css';
+import '@fontsource/public-sans/latin-500.css';
+import '@fontsource/public-sans/latin-600.css';
+import '@fontsource/public-sans/latin-700.css';
 import {
   useEffect,
   useRef,
@@ -7,9 +11,8 @@ import {
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   ChevronDown,
+  Settings,
   ChevronLeft,
-  KeyRound,
-  LogOut,
   Plus,
   UserRound,
   X,
@@ -18,7 +21,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useAdminShell } from '../../contexts/AdminShellContext';
 import {
   activeNavigationRoute,
-  APP_VERSION,
   PRIMARY_NAVIGATION,
   resolveNavigation,
   SIDEBAR_COLLAPSED_WIDTH,
@@ -27,9 +29,9 @@ import {
   UTILITY_NAVIGATION,
   type StudioWorkspace,
 } from '../../nav/config';
-import { SidebarSection } from './SidebarSection';
-import { SidebarItem } from './SidebarItem';
 import { SidebarGroup } from './SidebarGroup';
+import { SidebarSettings } from './SidebarSettings';
+import { SidebarItem } from './SidebarItem';
 import { canManage } from '../../access/roles';
 
 type SidebarProps = {
@@ -57,11 +59,11 @@ export function Sidebar({
   const visiblePrimary = resolveNavigation(PRIMARY_NAVIGATION, user);
   const visibleUtility = resolveNavigation(UTILITY_NAVIGATION, user);
   const allVisible = [...visiblePrimary, ...visibleUtility];
+  const primarySections = visiblePrimary.filter((group) => ['overview', 'bookings-sales'].includes(group.id));
+  const bookingRecord = /^\/admin\/bookings\/[^/]+$/.test(location.pathname);
+  const sidebarWebsite = visiblePrimary.find((group) => group.id === 'website');
+  const settingsGroups = visiblePrimary.filter((group) => !['overview', 'bookings-sales', 'website'].includes(group.id));
   const activeRoute = activeNavigationRoute(allVisible, location.pathname);
-  const activePrimaryGroupId = visiblePrimary.find((group) =>
-    group.children?.some((child) => child.route === activeRoute),
-  )?.id;
-  const [openPrimaryGroupId, setOpenPrimaryGroupId] = useState<string | null>('overview');
   const workspace = workspaces.find((item) => item.id === activeWorkspaceId) ?? workspaces[0];
   const displayName = user?.name || user?.email || 'Studio user';
   const initials = displayName
@@ -73,16 +75,13 @@ export function Sidebar({
   const width = showCollapsedChrome ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_EXPANDED_WIDTH;
 
   useEffect(() => {
-    if (activePrimaryGroupId) setOpenPrimaryGroupId(activePrimaryGroupId);
-  }, [activePrimaryGroupId]);
-
-  useEffect(() => {
     if (!isMobile || !mobileOpen) return;
     restoreFocusRef.current = document.activeElement as HTMLElement | null;
     requestAnimationFrame(() => mobileCloseRef.current?.focus());
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        if (profileRef.current?.querySelector('#sidebar-settings')) return;
         event.preventDefault();
         closeMobile();
         return;
@@ -90,9 +89,9 @@ export function Sidebar({
       if (event.key !== 'Tab' || !sidebarRef.current) return;
       const focusable = Array.from(
         sidebarRef.current.querySelectorAll<HTMLElement>(
-          'a[href], button:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+          'a[href], button:not([disabled]), summary, select:not([disabled]), [tabindex]:not([tabindex="-1"])',
         ),
-      ).filter((element) => !element.hasAttribute('hidden'));
+      ).filter((element) => !element.hasAttribute('hidden') && element.getClientRects().length > 0);
       if (!focusable.length) return;
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
@@ -125,8 +124,13 @@ export function Sidebar({
       if (!profileRef.current?.contains(event.target as Node)) setProfileOpen(false);
     };
     const escapeProfile = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setProfileOpen(false);
+      if (event.key === 'Escape') {
+        event.stopPropagation();
+        setProfileOpen(false);
+        profileRef.current?.querySelector<HTMLButtonElement>('button[aria-controls="sidebar-settings"]')?.focus();
+      }
     };
+    profileRef.current?.querySelector<HTMLElement>('#sidebar-settings a, #sidebar-settings button')?.focus();
     document.addEventListener('mousedown', closeProfile);
     document.addEventListener('keydown', escapeProfile);
     return () => {
@@ -187,23 +191,23 @@ export function Sidebar({
         aria-hidden={isMobile && !mobileOpen ? true : undefined}
         role={isMobile ? 'dialog' : undefined}
         className={[
-          'fixed left-0 top-0 z-50 flex h-dvh flex-col border-r border-admin-nav-border bg-admin-nav text-admin-nav-text shadow-[8px_0_30px_rgba(33,31,27,0.08)]',
+          'admin-sidebar fixed left-0 top-0 z-50 flex h-dvh flex-col bg-admin-nav text-admin-nav-text',
           'transition-[width,transform] duration-200 ease-out motion-reduce:transition-none',
           isMobile ? (mobileOpen ? 'translate-x-0' : '-translate-x-full') : 'translate-x-0',
         ].join(' ')}
         style={{ width }}
       >
-        <div className={`flex shrink-0 items-center border-b border-admin-nav-border ${showCollapsedChrome ? 'h-[72px] justify-center px-2' : 'h-[72px] gap-2 px-3'}`}>
+        <div className={`flex shrink-0 items-center ${showCollapsedChrome ? 'h-[64px] justify-center px-2' : 'h-[64px] gap-2 px-4'}`}>
           <div className={`flex min-w-0 flex-1 items-center ${showCollapsedChrome ? 'justify-center' : 'gap-2.5'}`}>
             <img
               src={workspace.logoUrl}
               alt=""
-              className="h-10 w-10 shrink-0 rounded-xl border border-white/10 object-cover shadow-sm"
+              className="h-[34px] w-[34px] shrink-0 rounded-lg object-cover"
             />
             {!showCollapsedChrome && (
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold tracking-tight text-admin-nav-text">{workspace.name}</p>
-                <p className="truncate text-[11px] text-admin-nav-muted">{workspace.descriptor}</p>
+                <p className="truncate text-[14.5px] font-semibold tracking-tight text-admin-nav-text">{workspace.name}</p>
+                <p className="truncate text-xs text-admin-nav-muted">{workspace.descriptor}</p>
               </div>
             )}
             {!showCollapsedChrome && workspaces.length > 1 && (
@@ -245,108 +249,62 @@ export function Sidebar({
           )}
         </div>
 
-        {canManage(user, 'bookings') && <div className={showCollapsedChrome ? 'px-2 py-3' : 'px-3 py-4'}>
+        {canManage(user, 'bookings') && <div className={showCollapsedChrome ? 'px-2 pb-2' : 'px-3 pb-2'}>
           <Link
             to="/admin/bookings?new=1"
             onClick={handleNavigate}
             data-sidebar-control="true"
             aria-label={showCollapsedChrome ? 'New Booking' : undefined}
-            className={`group relative flex h-11 items-center justify-center rounded-xl bg-admin-nav-cta font-semibold text-admin-nav-cta-text shadow-sm outline-none transition hover:bg-admin-nav-cta-hover focus-visible:ring-2 focus-visible:ring-admin-nav-focus focus-visible:ring-offset-2 focus-visible:ring-offset-admin-nav ${showCollapsedChrome ? 'w-full' : 'gap-2 px-4 text-sm'}`}
+            className={`group relative flex h-[38px] items-center justify-center rounded-lg bg-admin-nav-cta font-semibold text-admin-nav-cta-text shadow-sm outline-none transition hover:bg-admin-nav-cta-hover focus-visible:ring-2 focus-visible:ring-admin-nav-focus focus-visible:ring-offset-2 focus-visible:ring-offset-admin-nav ${showCollapsedChrome ? 'w-full' : 'gap-2 px-4 text-sm'}`}
           >
             <Plus className="h-[18px] w-[18px]" aria-hidden="true" />
-            {!showCollapsedChrome && <span>New Booking</span>}
+            {!showCollapsedChrome && <span>New booking</span>}
             {showCollapsedChrome && (
-              <span role="tooltip" className="pointer-events-none absolute left-full z-[70] ml-3 whitespace-nowrap rounded-lg border border-admin-border bg-admin-surface px-2.5 py-1.5 text-xs font-semibold text-admin-text opacity-0 shadow-xl transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">New Booking</span>
+              <span role="tooltip" className="pointer-events-none absolute left-full z-[70] ml-3 whitespace-nowrap rounded-lg border border-admin-border bg-admin-surface px-2.5 py-1.5 text-xs font-semibold text-admin-text opacity-0 shadow-xl transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">New booking</span>
             )}
           </Link>
         </div>}
 
         <nav
           id="admin-sidebar-nav"
-          className={`min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain pb-3 ${showCollapsedChrome ? 'px-2' : 'px-3'}`}
+          className={`min-h-0 flex-1 overscroll-contain pb-3 ${showCollapsedChrome ? 'overflow-visible px-2' : 'overflow-y-auto overflow-x-hidden px-3'}`}
           onKeyDown={handleNavigationKeys}
         >
-          <SidebarSection label="Primary navigation">
-            {visiblePrimary.map((group) => (
-              <SidebarGroup
-                key={group.id}
-                group={group}
-                activeRoute={activeRoute}
-                collapsed={showCollapsedChrome}
-                open={openPrimaryGroupId === group.id}
-                onOpenChange={(open) => setOpenPrimaryGroupId(open ? group.id : null)}
-                onNavigate={handleNavigate}
-              />
-            ))}
-          </SidebarSection>
+          {primarySections.map((section) => (
+            <section key={section.id} aria-label={section.label}>
+              {showCollapsedChrome ? <div className="mx-2 my-3 border-t border-admin-nav-border" /> : (
+                <h2 className="px-2.5 pb-1.5 pt-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#7F9897]">{section.label}</h2>
+              )}
+              <ul>
+                {section.children?.map((item) => item.route ? (
+                  <SidebarItem key={item.id} item={item as typeof item & { route: string }} activeRoute={activeRoute} collapsed={showCollapsedChrome} onNavigate={handleNavigate} />
+                ) : null)}
+              </ul>
+            </section>
+          ))}
+          {!bookingRecord && sidebarWebsite?.children?.length ? (
+            <ul className="mt-4">
+              <SidebarGroup group={sidebarWebsite} activeRoute={activeRoute} collapsed={showCollapsedChrome} onNavigate={handleNavigate} />
+            </ul>
+          ) : null}
         </nav>
 
-        <div className={`shrink-0 border-t border-admin-nav-border bg-admin-nav-deep ${showCollapsedChrome ? 'space-y-1 px-2 py-3' : 'space-y-1 px-3 py-3'}`} onKeyDown={handleNavigationKeys}>
-          <ul className="space-y-1">
-            {visibleUtility.map((item) => item.children ? (
-              <SidebarGroup key={item.id} group={item} activeRoute={activeRoute} collapsed={showCollapsedChrome} utility onNavigate={handleNavigate} />
-            ) : item.route ? (
-              <SidebarItem key={item.id} item={item as typeof item & { route: string }} activeRoute={activeRoute} collapsed={showCollapsedChrome} onNavigate={handleNavigate} />
-            ) : null)}
-          </ul>
-
-          <div ref={profileRef} className="relative pt-1">
-            {profileOpen && (
-              <div
-                role="menu"
-                aria-label="Staff account menu"
-                className={`absolute z-[75] min-w-60 rounded-xl border border-admin-border bg-admin-surface p-2 text-admin-text shadow-2xl ${showCollapsedChrome ? 'bottom-0 left-full ml-3' : 'bottom-full inset-x-0 mb-2'}`}
-              >
-                <div className="border-b border-admin-border px-3 py-2.5">
-                  <p className="truncate text-sm font-semibold">{displayName}</p>
-                  <p className="mt-0.5 truncate text-xs text-admin-subtle">{user?.email}</p>
-                  <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.14em] text-admin-primary">{user?.role}</p>
-                </div>
-                <Link
-                  role="menuitem"
-                  to="/admin/change-password"
-                  state={{ from: location.pathname }}
-                  onClick={handleNavigate}
-                  className="mt-1 flex h-10 items-center gap-2.5 rounded-lg px-3 text-sm font-medium text-admin-secondary outline-none hover:bg-admin-muted hover:text-admin-text focus-visible:ring-2 focus-visible:ring-admin-focus"
-                >
-                  <KeyRound className="h-4 w-4" aria-hidden="true" /> Change password
-                </Link>
-                <button
-                  type="button"
-                  role="menuitem"
-                  disabled={loggingOut}
-                  onClick={() => void handleLogout()}
-                  className="flex h-10 w-full items-center gap-2.5 rounded-lg px-3 text-sm font-medium text-red-700 outline-none hover:bg-red-50 focus-visible:ring-2 focus-visible:ring-admin-focus disabled:cursor-wait disabled:opacity-60"
-                >
-                  <LogOut className={`h-4 w-4 ${loggingOut ? 'animate-pulse' : ''}`} aria-hidden="true" />
-                  {loggingOut ? 'Signing out…' : 'Logout'}
-                </button>
-              </div>
-            )}
-            <button
-              type="button"
-              aria-label={showCollapsedChrome ? `Open profile for ${displayName}` : undefined}
-              aria-expanded={profileOpen}
-              aria-haspopup="menu"
-              data-sidebar-control="true"
-              onClick={() => setProfileOpen((current) => !current)}
-              className={`group flex min-h-11 w-full items-center rounded-xl text-admin-nav-secondary outline-none transition hover:bg-admin-nav-hover hover:text-admin-nav-text focus-visible:ring-2 focus-visible:ring-admin-nav-focus ${showCollapsedChrome ? 'justify-center' : 'gap-2.5 px-2'}`}
-            >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-admin-nav-active text-xs font-bold text-admin-nav-active-text">
-                {initials || <UserRound className="h-4 w-4" />}
+        <div ref={profileRef} className={`relative mx-3 mb-3 shrink-0 border-t border-admin-nav-border pt-3 ${showCollapsedChrome ? 'flex justify-center' : ''}`}>
+          {profileOpen && (
+            <SidebarSettings groups={settingsGroups} utility={bookingRecord && sidebarWebsite ? [sidebarWebsite, ...visibleUtility] : visibleUtility} activeRoute={activeRoute} collapsed={showCollapsedChrome} isMobile={isMobile} loggingOut={loggingOut} onNavigate={handleNavigate} onLogout={() => void handleLogout()} returnTo={location.pathname} />
+          )}
+          <div className="flex min-w-0 items-center gap-2.5 px-1">
+            {!showCollapsedChrome && <>
+              <span aria-hidden="true" className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full bg-admin-nav-cta text-xs font-bold text-white">{initials || <UserRound className="h-4 w-4" />}</span>
+              <span className="min-w-0 flex-1 text-left">
+                <span className="block truncate text-[13.5px] font-semibold text-white">{displayName}</span>
+                <span className="block truncate text-xs capitalize text-admin-nav-muted">{user?.role?.replace(/_/g, ' ')}</span>
               </span>
-              {!showCollapsedChrome && (
-                <>
-                  <span className="min-w-0 flex-1 text-left">
-                    <span className="block truncate text-sm font-semibold text-admin-nav-text">{displayName}</span>
-                    <span className="block truncate text-[11px] capitalize text-admin-nav-muted">{user?.role}</span>
-                  </span>
-                  <ChevronDown className={`h-4 w-4 text-admin-nav-muted transition-transform ${profileOpen ? 'rotate-180' : ''}`} />
-                </>
-              )}
+            </>}
+            <button type="button" aria-label="Settings" aria-expanded={profileOpen} aria-controls="sidebar-settings" data-sidebar-control="true" onClick={() => setProfileOpen((current) => !current)} className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#2A5558] text-[#DCE7E6] outline-none transition hover:bg-admin-nav-hover focus-visible:ring-2 focus-visible:ring-admin-nav-focus ${profileOpen ? 'bg-admin-nav-active' : ''}`}>
+              <Settings className="h-[18px] w-[18px]" />
             </button>
           </div>
-          {!showCollapsedChrome && <p className="px-2 pt-1 text-[10px] text-admin-nav-muted">{APP_VERSION}</p>}
         </div>
       </aside>
     </>

@@ -8,12 +8,13 @@ import {
   type BulkAction,
   type TrackingRow,
 } from "../postShootTracking";
-import type { OrderInput } from "../../../shared/orderWorkflow";
+import { reviewOrderStarts, type StartReview } from "./reviewOrderStarts";
+import { ORDER_STAGES, ORDER_STAGE_LABELS, supportsOrderStage, orderLocalInput, type OrderStage, type OrderInput } from "../../../shared/orderWorkflow";
 import { BookingDialog } from "./BookingDetailSections";
 const field =
-  "mt-1 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus:border-violet-600 focus:outline-none focus:ring-1 focus:ring-violet-600";
+  "mt-1 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus:border-teal-800 focus:outline-none focus:ring-1 focus:ring-teal-800";
 const button =
-  "rounded-md border border-slate-200 px-3 py-2 text-sm font-medium hover:bg-slate-50 focus-visible:outline-violet-600 disabled:opacity-50";
+  "rounded-md border border-slate-200 px-3 py-2 text-sm font-medium hover:bg-slate-50 focus-visible:outline-teal-800 disabled:opacity-50";
 type Result = {
   row: TrackingRow;
   input: OrderInput;
@@ -25,7 +26,9 @@ export function BulkOrderUpdate({
   staff,
   onClose,
   onUpdated,
+  start = false,
 }: {
+  start?: boolean;
   rows: TrackingRow[];
   staff: StaffAccountOption[];
   onClose: () => void;
@@ -41,7 +44,11 @@ export function BulkOrderUpdate({
     [busy, setBusy] = useState(false),
     [refreshError, setRefreshError] = useState("");
   const lock = useRef(false);
-  const eligible = rows.filter((row) => !exclusion(row, action));
+  const [startReviews, setStartReviews] = useState(new Map<string, StartReview>());
+  const [mode, setMode] = useState<"" | "digital" | "physical">("");
+  const [stage, setStage] = useState<OrderStage>("shoot_completed");
+  const reasonFor = (row: TrackingRow) => start ? startReviews.get(row.id)?.reason : exclusion(row, action);
+  const eligible = rows.filter((row) => !reasonFor(row));
   const mixed = eligible.length !== rows.length;
   const run = async (items: Result[]) => {
     if (lock.current) return;
@@ -89,7 +96,7 @@ export function BulkOrderUpdate({
       .filter((row) => chosen.has(row.id))
       .map((row) => ({
         row,
-        input: bulkInput(row, action, crypto.randomUUID(), {
+        input: start ? startReviews.get(row.id)!.input! : bulkInput(row, action, crypto.randomUUID(), {
           assigneeId,
           date,
           note,
@@ -104,7 +111,7 @@ export function BulkOrderUpdate({
   return (
     <BookingDialog
       className="admin-theme post-shoot-tracking"
-      title="Bulk update"
+      title={start ? "Start order tracking" : "Bulk update"}
       onClose={() => {
         if (!busy) onClose();
       }}
@@ -117,10 +124,24 @@ export function BulkOrderUpdate({
         {!results.length ? (
           <form
             className="space-y-4"
-            onSubmit={(event) => {
+            onSubmit={async (event) => {
               event.preventDefault();
               if (review) apply();
-              else {
+              else if (start) {
+                if (lock.current) return;
+                lock.current = true;
+                setBusy(true);
+                try {
+                  const reviews = await reviewOrderStarts(rows, { mode, stage, assigneeId, date, note });
+                  setStartReviews(reviews);
+                  const ready = rows.filter(row => reviews.get(row.id)?.input);
+                  setChosen(new Set(ready.length === rows.length ? ready.map(row => row.id) : []));
+                  setReview(true);
+                } finally {
+                  lock.current = false;
+                  setBusy(false);
+                }
+              } else {
                 setReview(true);
                 setChosen(
                   mixed ? new Set() : new Set(eligible.map((row) => row.id)),
@@ -128,8 +149,20 @@ export function BulkOrderUpdate({
               }
             }}
           >
-            <fieldset disabled={review} className="space-y-3">
-              <label className="block text-sm font-medium">
+            <fieldset disabled={review || busy} className="space-y-3">
+              {start && <>
+                <label className="block text-sm font-medium">Order type
+                  <select className={field} value={mode} onChange={e => { setMode(e.target.value as typeof mode); if (e.target.value === "digital" && !supportsOrderStage("digital", stage)) setStage("shoot_completed"); }}>
+                    <option value="">Keep each booking’s order type</option><option value="digital">Digital only</option><option value="physical">Physical prints</option>
+                  </select>
+                </label>
+                <label className="block text-sm font-medium">Actual stage
+                  <select className={field} value={stage} onChange={e => setStage(e.target.value as OrderStage)}>
+                    {ORDER_STAGES.filter(value => supportsOrderStage(mode || "physical", value)).map(value => <option value={value} key={value}>{ORDER_STAGE_LABELS[value]}</option>)}
+                  </select>
+                </label>
+              </>}
+              {!start && <label className="block text-sm font-medium">
                 Action
                 <select
                   aria-label="Action"
@@ -145,17 +178,17 @@ export function BulkOrderUpdate({
                     </option>
                   ))}
                 </select>
-              </label>
-              {action === "assign" ? (
+              </label>}
+              {(start || action === "assign") && (
                 <label className="block text-sm font-medium">
                   Responsible staff
                   <select
-                    required
+                    required={!start}
                     className={field}
                     value={assigneeId}
                     onChange={(event) => setAssignee(event.target.value)}
                   >
-                    <option value="">Choose staff</option>
+                    <option value="">{start ? "Keep each booking’s assigned staff" : "Choose staff"}</option>
                     {staff.map((person) => (
                       <option key={person.id} value={person.id}>
                         {person.name}
@@ -168,11 +201,13 @@ export function BulkOrderUpdate({
                     </span>
                   )}
                 </label>
-              ) : (
+              )}
+              {(start || action !== "assign") && (
                 <label className="block text-sm font-medium">
                   Action date & time · IST
                   <input
                     type="datetime-local"
+                    max={orderLocalInput(new Date().toISOString())}
                     className={field}
                     value={date}
                     onChange={(event) => setDate(event.target.value)}
@@ -220,13 +255,14 @@ export function BulkOrderUpdate({
                 </button>
                 <ul className="max-h-56 divide-y divide-slate-200 overflow-y-auto rounded-md border border-slate-200">
                   {rows.map((row) => {
-                    const reason = exclusion(row, action);
+                    const reason = reasonFor(row);
+                    const reviewed = startReviews.get(row.id);
                     return (
                       <li key={row.id} className="p-2 text-sm">
                         <label className="flex items-start gap-2">
                           <input
                             type="checkbox"
-                            className="mt-1 accent-violet-600"
+                            className="mt-1 accent-teal-800"
                             disabled={Boolean(reason)}
                             checked={chosen.has(row.id)}
                             onChange={(event) =>
@@ -246,7 +282,11 @@ export function BulkOrderUpdate({
                             <span
                               className={`block text-xs ${reason ? "text-rose-700" : "text-emerald-700"}`}
                             >
-                              {reason || "Eligible"}
+                              {reason || (reviewed?.input ? [
+                                reviewed.input.mode === 'digital' ? 'Digital only' : 'Physical prints',
+                                ORDER_STAGE_LABELS[stage],
+                                staff.find(person => person.id === reviewed.input?.assigneeId)?.name || reviewed.ownerName || reviewed.input.assigneeId,
+                              ].join(' · ') : "Eligible")}
                             </span>
                           </span>
                         </label>
@@ -268,28 +308,28 @@ export function BulkOrderUpdate({
               )}
               <button
                 type="submit"
-                disabled={review && !chosen.size}
-                className="rounded-md bg-violet-600 px-3 py-2 text-sm font-semibold text-white hover:bg-violet-700 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-violet-600 disabled:opacity-50"
+                disabled={busy || (review && !chosen.size)}
+                className="rounded-md bg-teal-800 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-900 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-teal-800 disabled:opacity-50"
               >
                 {review
                   ? `Apply to ${chosen.size} orders`
-                  : "Review eligibility"}
+                  : busy ? "Checking bookings…" : "Review eligibility"}
               </button>
-              <button type="button" className={button} onClick={onClose}>
+              <button type="button" className={button} disabled={busy} onClick={onClose}>
                 Cancel
               </button>
             </div>
           </form>
         ) : (
           <>
-            <p className="text-sm font-semibold">{bulkActions[action]}</p>
+            <p className="text-sm font-semibold">{start ? "Start order tracking" : bulkActions[action]}</p>
             <p role="status" className="text-sm">
               {busy
                 ? `Processing ${results.filter((item) => item.status !== "pending").length} of ${results.length}…`
                 : `${results.filter((item) => item.status === "success").length} successful · ${results.filter((item) => item.status === "failed").length} failed`}
             </p>
             <progress
-              className="w-full accent-violet-600"
+              className="w-full accent-teal-800"
               max={results.length}
               value={results.filter((item) => item.status !== "pending").length}
             />

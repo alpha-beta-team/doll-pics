@@ -64,7 +64,7 @@ test('booking editor retains unsaved changes after failure and submits the origi
     await view.click('Edit deliverables');
     await view.change('select[aria-label="Deliverable to add"]', 'frame');
     await view.click('Add item');
-    await view.change('input[maxlength="1000"]', 'Agreed with customer');
+    await view.change('textarea[maxlength="1000"]', 'Agreed with customer');
     await view.click('Save deliverables');
     assert.match(view.document.body.textContent!, /Temporary failure/);
     await view.click('Save deliverables');

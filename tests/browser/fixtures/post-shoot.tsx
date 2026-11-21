@@ -21,6 +21,12 @@ localStorage.setItem('auth_token', 'fixture');
 api.getCurrentUser = async () => ({ id: 'staff', name: 'Anitha', role: readonly ? 'operations' : 'owner', permissionOverrides: readonly ? { bookings: 'view' } : {}, isActive: true, mustChangePassword: false } as StaffAccount);
 api.getAssignableStaffAccounts = async () => [{ id: 'staff', name: 'Anitha', jobTitle: 'Studio manager' }, { id: 'editor', name: 'Priya', jobTitle: 'Editor' }];
 let rows = fixtureParams.has('stages') ? createStageFixtureRows() : createTrackingFixtureRows();
+const startFixture = fixtureParams.has('bulk-start');
+if (startFixture) rows = rows.map((row, index) => ({
+  ...row, order: index === 29 ? row.order : null,
+  bookingDate: index === 4 ? '2099-12-31' : row.bookingDate,
+  customerPhone: '******3210',
+}));
 const calls: { id: string; input: OrderInput }[] = [];
 let failed = false;
 const listCalls: TrackingFilters[] = [];
@@ -34,6 +40,7 @@ orderWorkflowApi.update = async (id, input) => {
   calls.push({ id, input: structuredClone(input) });
   if (id === 'order-1' && !failed) { failed = true; throw new Error('Printer temporarily unavailable'); }
   const row = rows.find(row => row.id === id)!;
+  if (startFixture && id === 'order-5') throw new Error('Order changed. Reload before saving.');
   if (input.revision !== (row.order?.revision ?? 0)) throw new Error('Order changed. Reload before saving.');
   const occurredAt = input.occurredAt || new Date().toISOString();
   if (!row.order) {
@@ -54,7 +61,9 @@ orderWorkflowApi.update = async (id, input) => {
 };
 api.getBooking = async id => {
   const row = rows.find(row => row.id === id)!;
-  return mapBooking({ _id: id, customerName: row.customerName, customerPhone: row.customerPhone, customerCode: row.customerCode, bookingDate: row.bookingDate, shootType: row.shootType, status: row.status });
+  return mapBooking({ _id: id,
+    ...(startFixture && { assignedStaffAccountId: id === 'order-2' ? undefined : 'staff',
+      assignedStaffAccountName: 'Anitha', deliverables: [{ kind: id === 'order-3' ? 'digital' : 'physical' }] }), customerName: row.customerName, customerPhone: row.customerPhone, customerCode: row.customerCode, bookingDate: row.bookingDate, shootType: row.shootType, status: row.status });
 };
 function App() { const { isAuthenticated } = useAuth(); return isAuthenticated ? <PostShootTrackingPage /> : <p>Loading session…</p>; }
 const Router = fixtureParams.has('browser') ? BrowserRouter : MemoryRouter;

@@ -23,23 +23,24 @@ export function SidebarItem({
     <li className="relative">
       <Link
         to={item.route}
+        title={collapsed ? item.label : undefined}
         onClick={onNavigate}
         aria-current={active ? 'page' : undefined}
         aria-label={collapsed ? item.label : undefined}
         data-sidebar-control="true"
         className={[
-          'group relative flex min-h-10 items-center gap-3 rounded-xl text-sm font-medium outline-none transition-colors duration-150',
+          'group relative flex min-h-9 items-center gap-2.5 rounded-lg text-sm font-normal outline-none transition-colors duration-150',
           'focus-visible:ring-2 focus-visible:ring-admin-nav-focus focus-visible:ring-offset-1 focus-visible:ring-offset-admin-nav',
-          collapsed ? 'justify-center px-0' : nested ? 'pl-10 pr-3' : 'px-3',
+          collapsed ? 'justify-center px-0' : nested ? 'pl-10 pr-3' : 'px-2.5',
           active
-            ? 'bg-admin-nav-active text-admin-nav-active-text'
+            ? 'bg-admin-nav-active font-semibold text-admin-nav-active-text'
             : 'text-admin-nav-secondary hover:bg-admin-nav-hover hover:text-admin-nav-text',
         ].join(' ')}
       >
         {active && (
           <span
             aria-hidden="true"
-            className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-admin-nav-indicator"
+            className="absolute left-0 inset-y-0 w-[3px] rounded-l-lg bg-admin-nav-indicator"
           />
         )}
         <Icon

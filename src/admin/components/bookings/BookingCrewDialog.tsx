@@ -64,19 +64,19 @@ export function BookingCrewDialog({ booking, onClose, onSaved }: {
     } finally { setSaving(false); }
   };
 
-  return <BookingDialog className="admin-theme booking-crew-dialog" title="Edit crew" onClose={() => { void close(); }}>
-    <p className="text-sm text-admin-subtle">{booking.customerName} · {booking.packageName || booking.shootType || 'Booking'}</p>
+  return <BookingDialog dismissOnBackdrop variant="drawer" className="admin-theme booking-crew-dialog bd-record-drawer" title="Edit crew" subtitle={[booking.customerName, booking.packageName || booking.shootType].filter(Boolean).join(' · ')} onClose={() => { void close(); }}>
     {loading && <p role="status" className="mt-3 text-sm text-admin-subtle">Loading staff…</p>}
     {loadError && <AdminAlert className="mt-3"><p>{loadError}</p><AdminButton variant="secondary" onClick={() => setAttempt(value => value + 1)}>Retry staff loading</AdminButton></AdminAlert>}
     <form className="flex min-h-0 flex-1 flex-col" onSubmit={event => { event.preventDefault(); void save(); }}>
-      <div role="region" aria-label="Crew list scroll area" className="min-h-0 min-w-0 overflow-y-auto overscroll-contain pb-4">
+      <div role="region" aria-label="Crew list scroll area" className="bd-drawer-body min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain">
       <fieldset disabled={loading || saving || Boolean(loadError)} className="min-w-0 disabled:opacity-60">
-        <CrewListEditor value={rows} staffAccounts={staff} onChange={setRows} showAddButton={false} />
+        <CrewListEditor record value={rows} staffAccounts={staff} onChange={setRows} showAddButton={false} />
+        <AdminButton type="button" variant="secondary" disabled={loading || saving || Boolean(loadError) || rows.length >= 100} onClick={() => setRows(current => [...current, { serviceType: CrewServiceType.CandidPhoto, staffAccountId: '', memberName: '' }])}>Add crew member</AdminButton>
       </fieldset>
       </div>
       {error && <AdminAlert as="span" className="shrink-0">{error}</AdminAlert>}
-      <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-admin-border bg-admin-surface pt-4" aria-label="Crew actions">
-        <AdminButton type="button" variant="secondary" disabled={loading || saving || Boolean(loadError) || rows.length >= 100} onClick={() => setRows(current => [...current, { serviceType: CrewServiceType.CandidPhoto, staffAccountId: '', memberName: '' }])}>Add crew member</AdminButton>
+      <div className="bd-drawer-footer" aria-label="Crew actions">
+
         <div className="ml-auto flex gap-2">
         <AdminButton type="button" variant="secondary" disabled={saving} onClick={() => { void close(); }}>Cancel</AdminButton>
         <AdminButton type="submit" disabled={loading || saving || Boolean(loadError)}>{saving ? 'Saving…' : 'Save crew'}</AdminButton>

@@ -18,6 +18,7 @@ export function normalizeStaffAccount(account: StaffAccountResponse): StaffAccou
     permissions: Array.isArray(account.permissions) ? account.permissions.filter((item): item is string => typeof item === 'string') : [],
     employeeCode: typeof account.employeeCode === 'string' ? account.employeeCode : undefined,
     attendanceEnabled: account.attendanceEnabled === true,
+    canTakeShoots: account.canTakeShoots === true,
     joiningDate: typeof account.joiningDate === 'string' ? account.joiningDate : '',
     employmentEndDate: typeof account.employmentEndDate === 'string' ? account.employmentEndDate : '',
     punchPinConfigured: account.punchPinConfigured === true,
@@ -49,6 +50,7 @@ export const staffAccountsApi = {
     permissions?: StaffAccount['permissions'];
     employeeCode?: string;
     attendanceEnabled?: boolean;
+    canTakeShoots?: boolean;
     joiningDate?: string;
     employmentEndDate?: string;
   }): Promise<StaffAccount> {
@@ -57,7 +59,7 @@ export const staffAccountsApi = {
     });
     return normalizeStaffAccount(account);
   },
-  async updateStaffAccount(id: string, data: Partial<Pick<StaffAccount, 'name' | 'jobTitle' | 'role' | 'permissionOverrides' | 'permissions' | 'isActive' | 'employeeCode' | 'attendanceEnabled' | 'joiningDate' | 'employmentEndDate'>>): Promise<StaffAccount> {
+  async updateStaffAccount(id: string, data: Partial<Pick<StaffAccount, 'name' | 'jobTitle' | 'role' | 'permissionOverrides' | 'permissions' | 'isActive' | 'canTakeShoots' | 'employeeCode' | 'attendanceEnabled' | 'joiningDate' | 'employmentEndDate'>>): Promise<StaffAccount> {
     const account = await request<StaffAccountResponse>(`/admin/staff-accounts/${id}`, {
       method: 'PATCH', auth: true, body: JSON.stringify(data),
     });

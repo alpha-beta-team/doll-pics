@@ -1,30 +1,21 @@
 import { AdminAlert } from '../components/ui/AdminUi';
 import './enquiries.css';
-import { LEAD_SOURCE_OPTIONS, leadSourceLabel } from '../components/leadSource';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { LEAD_SOURCE_OPTIONS } from '../components/leadSource';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { AlertCircle, Inbox, SearchX, X } from 'lucide-react';
+import { AlertCircle, Inbox, Plus, RefreshCw, X, Search, Filter, ListFilter } from 'lucide-react';
 import { api } from '../api/client';
 import { EnquiryFormModal } from '../components/EnquiryFormModal';
-import type { Enquiry, EnquiryStage } from '../types';
+import type { Enquiry } from '../types';
 import { AdminButton, AdminEmptyState } from '../components/ui';
 import { useFeatureAccess } from '../access/useFeatureAccess';
 import { useAuth } from '../contexts/AuthContext';
 import { ReadOnlyNotice } from '../components/ReadOnlyNotice';
-import { hasStaffPermission } from '../access/roles';
-import { EnquiryMobileHeader } from '../components/enquiries/EnquiryMobileHeader';
-import { EnquiryToolbar } from '../components/enquiries/EnquiryToolbar';
-import {
-  EnquirySortControl,
-} from '../components/enquiries/EnquiryStatusFilter';
-import { EnquiryPrioritySummary } from '../components/enquiries/EnquiryPrioritySummary';
-import { EnquiryServiceSelect, EnquiryViewSelect } from '../components/enquiries/EnquiryListHeader';
+import { ServiceFilterChips } from '../components/sales/ServiceFilterChips';
 import { EnquiryPagination } from '../components/enquiries/EnquiryPagination';
 import { EnquiryCard, EnquiryCardSkeleton } from '../components/enquiries/EnquiryCard';
-import { EnquirySidePanel } from '../components/enquiries/EnquirySidePanel';
 import { canonicalIndianPhone } from '../components/customerLookup.utils';
 import { EnquiryFollowUpDialog } from '../components/enquiries/EnquiryFollowUpDialog';
-import { SalesWorkspaceHeader } from '../components/sales/SalesWorkspaceHeader';
 import {
   buildServiceCategoryOptions,
   normalizeServiceCategory,
@@ -32,14 +23,8 @@ import {
 } from '../components/sales/serviceCategories';
 import {
   ENQUIRY_STAGES,
-  enquiryMatchesScope,
-  enquiryMatchesPriority,
-  enquiryMatchesSearch,
-  enquiryStageLabel,
-  followUpUrgency,
-  sortEnquiries,
-  type EnquiryListScope,
-  type EnquiryPriorityFilter,
+  ENQUIRY_SORT_OPTIONS, enquiryViews, matchesEnquiryView, receivedGroup, indiaDay,
+  enquiryMatchesSearch, sortEnquiries, type EnquiryView,
   type EnquirySort,
 } from '../components/enquiries/enquiryList';
 
@@ -53,9 +38,9 @@ type OccasionContact = {
 
 export function WorkEnquiriesPage() {
   const { canManage, isReadOnly } = useFeatureAccess('enquiries');
-  const { canView: canViewBookings } = useFeatureAccess('bookings');
+  const { canView: canViewBooking } = useFeatureAccess('bookings');
   const { user } = useAuth();
-  const canViewPhone = hasStaffPermission(user, 'mask_phone_number');
+  const canViewPhone = Boolean(user && (user.role === 'owner' || !user.permissions?.includes('mask_phone_number')));
   const navigate = useNavigate();
   const location = useLocation();
   const [params, setParams] = useSearchParams();
@@ -67,17 +52,26 @@ export function WorkEnquiriesPage() {
   const serviceParam = params.get('service') || '';
   const requestedServiceCategory = serviceParam ? normalizeServiceCategory(serviceParam) : '';
   const [items, setItems] = useState<Enquiry[]>([]);
-  const [scope, setScope] = useState<EnquiryListScope>(reportMode ? 'all' : 'active');
-  const [stage, setStage] = useState<EnquiryStage | 'all'>('all');
-  const [priority, setPriority] = useState<EnquiryPriorityFilter>('');
-  const [query, setQuery] = useState('');
-  const [sort, setSort] = useState<EnquirySort>('newest');
-  const [page, setPage] = useState(1);
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const rawView = params.get('view') || '';
+  const view: EnquiryView = Object.prototype.hasOwnProperty.call(enquiryViews, rawView) ? rawView as EnquiryView : reportMode ? 'all' : 'active';
+  const stage = params.get('stage') || '';
+  const query = params.get('q') || '';
+  const sort = (ENQUIRY_SORT_OPTIONS.find(option => option.value === params.get('sort'))?.value || 'newest') as EnquirySort;
+  const page = Math.max(1, Number.parseInt(params.get('page') || '1', 10) || 1);
+  const filters = { stage, source, dateFrom, dateTo };
+  const [draft, setDraft] = useState<typeof filters | null>(null);
+  const updateParams = (values: Record<string, string>) => {
+    const next = new URLSearchParams(params);
+    next.delete('page');
+    for (const [key, value] of Object.entries(values)) {
+      if (value) next.set(key, value);
+      else next.delete(key);
+    }
+    setParams(next, { replace: true });
+  };
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
-  const [selectedEnquiryId, setSelectedEnquiryId] = useState('');
   const [followUp, setFollowUp] = useState<Enquiry | null>(null);
   const [followUpSuccess, setFollowUpSuccess] = useState('');
   const [occasionContact] = useState<OccasionContact | undefined>(
@@ -96,22 +90,18 @@ export function WorkEnquiriesPage() {
     setError('');
     const version = ++requestVersion.current;
     try {
-      const rows = await api.getEnquiryListRows({ inbox: !reportMode, source, dateFrom, dateTo });
+      const rows = await api.getEnquiryListRows({ source, dateFrom, dateTo });
       if (version === requestVersion.current) setItems(rows);
     } catch (err) {
       if (version === requestVersion.current) { setItems([]); setError(err instanceof Error ? err.message : 'Could not load enquiries.'); }
     } finally {
       if (version === requestVersion.current) { setLoading(false); setRefreshing(false); }
     }
-  }, [source, dateFrom, dateTo, reportMode]);
+  }, [source, dateFrom, dateTo]);
 
-  useEffect(() => { setScope(reportMode ? 'all' : 'active'); setStage('all'); setPriority(''); setQuery(''); }, [source, dateFrom, dateTo, reportMode]);
   useEffect(() => { void load(); }, [load]);
 
-  const serviceCategory = requestedServiceCategory
-    && items.some(item => serviceCategoryMatches(item, requestedServiceCategory))
-    ? requestedServiceCategory
-    : '';
+  const serviceCategory = requestedServiceCategory;
   const duplicatePhones = useMemo(() => {
     const counts = new Map<string, number>();
     if (canViewPhone) items.filter(item => !['booked', 'closed_lost'].includes(item.stage)).forEach(item => {
@@ -125,99 +115,27 @@ export function WorkEnquiriesPage() {
     setRefreshing(false); setLoading(false); setError('');
     setItems(previous => previous.map(item => item.id === updated.id ? { ...item, ...updated } : item));
   };
-  const itemsForSelectedService = useMemo(
-    () => items.filter(item => serviceCategoryMatches(item, serviceCategory)),
-    [items, serviceCategory],
-  );
-
-  const counts = useMemo(() => Object.fromEntries(
-    ENQUIRY_STAGES.map(option => [
-      option.value,
-      itemsForSelectedService.filter(item => item.stage === option.value).length,
-    ]),
-  ) as Record<EnquiryStage, number>, [itemsForSelectedService]);
-
-  const priorityCounts = useMemo(() => {
-    const now = new Date();
-    let dueToday = 0;
-    let overdue = 0;
-    itemsForSelectedService.forEach(item => {
-      if (!item.nextFollowUpAt) return;
-      const urgency = followUpUrgency(item.nextFollowUpAt, now);
-      if (urgency === 'due_today') dueToday += 1;
-      if (urgency === 'overdue') overdue += 1;
-    });
-    return { dueToday, overdue };
-  }, [itemsForSelectedService]);
-
-  const matching = useMemo(() => {
-    const now = new Date();
-    return items.filter(item => {
-      if (!enquiryMatchesScope(item, scope)) return false;
-      if (stage !== 'all' && item.stage !== stage) return false;
-      if (!enquiryMatchesPriority(item, priority, now)) return false;
-      return enquiryMatchesSearch(item, query);
-    });
-  }, [items, priority, query, scope, stage]);
-
-  const serviceCategories = useMemo(
-    () => buildServiceCategoryOptions(items, matching),
-    [items, matching],
-  );
-  const visible = useMemo(
-    () => sortEnquiries(matching.filter(item => serviceCategoryMatches(item, serviceCategory)), sort),
-    [matching, serviceCategory, sort],
-  );
-
-  useEffect(() => { setPage(1); }, [scope, stage, priority, query, sort, serviceCategory, source, dateFrom, dateTo]);
+  const activeFilterLabels = [
+    ENQUIRY_STAGES.find(option => option.value === stage)?.label,
+    LEAD_SOURCE_OPTIONS.find(option => option.value === source)?.label || (source === 'not_recorded' ? 'Not recorded' : source),
+    dateFrom && 'From ' + dateFrom, dateTo && 'Through ' + dateTo,
+  ].filter(Boolean);
+  const today = indiaDay(new Date());
+  const pipelineCount = items.filter(item => matchesEnquiryView(item, 'active', today)).length;
+  const filtered = items.filter(item => (!stage || stage === item.stage) && enquiryMatchesSearch(item, query));
+  const matching = filtered.filter(item => matchesEnquiryView(item, view, today));
+  const scoped = filtered.filter(item => serviceCategoryMatches(item, serviceCategory));
+  const serviceCategories = buildServiceCategoryOptions(items, matching);
+  const visible = sortEnquiries(matching.filter(item => serviceCategoryMatches(item, serviceCategory)), sort);
   const pageCount = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
   const currentPage = Math.min(page, pageCount);
   const pageItems = visible.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const clearFilters = () => updateParams({ stage: '', source: '', dateFrom: '', dateTo: '', service: '', q: '', view: '' });
+  const chronological = sort === 'newest' || sort === 'oldest';
+  const groups = pageItems.map(item => receivedGroup(item.createdAt, today));
+  const groupCounts = new Map<string, number>();
+  groups.forEach(group => groupCounts.set(group, (groupCounts.get(group) || 0) + 1));
 
-  const activeEnquiryCount = useMemo(
-    () => items.filter(item => enquiryMatchesScope(item, 'active')).length,
-    [items],
-  );
-
-  const mobileCounts = useMemo(() => {
-    const now = new Date();
-    return {
-      newCount: items.filter(item => item.stage === 'new').length,
-      newTodayCount: items.filter(item => item.stage === 'new' && new Date(item.createdAt).toDateString() === now.toDateString()).length,
-      dueTodayCount: items.filter(item => item.nextFollowUpAt && followUpUrgency(item.nextFollowUpAt, now) === 'due_today').length,
-    };
-  }, [items]);
-
-  const activeFilterCount = Number(stage !== 'all') + Number(Boolean(priority)) + Number(Boolean(source)) + Number(Boolean(dateFrom || dateTo));
-  const hasStatusOrPriorityFilter = stage !== 'all' || Boolean(priority);
-  const hasAnyFilter = reportMode || hasStatusOrPriorityFilter || Boolean(query.trim()) || Boolean(serviceCategory);
-  const selectedServiceLabel = serviceCategories.find(option => option.value === serviceCategory)?.label;
-  const selectedListNameBase = priority === 'overdue'
-    ? 'Overdue follow-ups'
-    : priority === 'due_today'
-      ? 'Follow-ups due today'
-      : stage === 'all'
-        ? scope === 'active' ? 'Active enquiries' : 'All enquiries'
-        : `${enquiryStageLabel(stage)} enquiries`;
-  const selectedListName = serviceCategory && selectedServiceLabel
-    ? `${selectedServiceLabel} · ${selectedListNameBase}`
-    : selectedListNameBase;
-
-  const selectServiceCategory = (value: string) => {
-    const next = new URLSearchParams(params);
-    if (value) next.set('service', value);
-    else next.delete('service');
-    setParams(next, { replace: true });
-  };
-
-  const clearFilters = () => {
-    setStage('all');
-    setPriority('');
-    setQuery('');
-    const next = new URLSearchParams(params);
-    for (const key of ['source', 'dateFrom', 'dateTo', 'service']) next.delete(key);
-    setParams(next);
-  };
 
   const openForm = () => {
     const next = new URLSearchParams(params);
@@ -233,111 +151,43 @@ export function WorkEnquiriesPage() {
 
   return (
     <div className="enquiries-workspace">
-      <EnquiryMobileHeader
-        total={items.length}
-        activeCount={activeEnquiryCount}
-        {...mobileCounts}
-        view={priority === 'due_today' ? 'due_today' : !priority && stage === 'new' ? 'new' : !priority && stage === 'all' ? scope : ''}
-        onViewChange={view => {
-          setScope(view === 'all' ? 'all' : 'active');
-          setStage(view === 'new' ? 'new' : 'all');
-          setPriority(view === 'due_today' ? 'due_today' : '');
-        }}
-        query={query}
-        onQueryChange={setQuery}
-        filtersOpen={filtersOpen}
-        activeFilterCount={activeFilterCount}
-        onToggleFilters={() => setFiltersOpen(open => !open)}
-        refreshing={refreshing}
-        onRefresh={() => void load(true)}
-        canManage={canManage}
-        onAdd={openForm}
-        services={serviceCategories}
-        service={serviceCategory}
-        onServiceChange={selectServiceCategory}
-        sort={sort}
-        onSortChange={setSort}
-      />
-      {isReadOnly && <div className="px-4 pt-3 sm:hidden"><ReadOnlyNotice /></div>}
-      <div className="hidden sm:block">
-      <SalesWorkspaceHeader
-        title="Enquiries"
-        studioBadge
-        subtitle={<>{selectedListName}<span className="mx-1.5 text-slate-300">•</span><span className="font-medium text-admin-secondary">{loading ? 'Loading enquiries…' : `${visible.length} ${visible.length === 1 ? 'lead' : 'leads'} in pipeline`}</span></>}
-        viewControls={(
-          <EnquiryViewSelect
-            scope={scope}
-            activeCount={activeEnquiryCount}
-            totalCount={items.length}
-            onScopeChange={nextScope => {
-              setScope(nextScope);
-              if (nextScope === 'active' && stage === 'closed_lost') setStage('all');
-            }}
-          />
-        )}
-        serviceCategories={serviceCategories}
-        serviceControl={<EnquiryServiceSelect categories={serviceCategories} value={serviceCategory} onChange={selectServiceCategory} />}
-        serviceCategory={serviceCategory}
-        onServiceCategoryChange={selectServiceCategory}
-        panelId="enquiry-list-panel"
-        readOnlyNotice={isReadOnly ? <ReadOnlyNotice /> : undefined}
-        listControls={<div className="enquiry-sort-controls flex items-center gap-3"><span className="hidden whitespace-nowrap text-xs text-admin-subtle sm:inline">Sort by:</span><EnquirySortControl value={sort} onChange={setSort} /></div>}
-        actions={(
-          <EnquiryToolbar
-            query={query}
-            onQueryChange={setQuery}
-            filtersOpen={filtersOpen}
-            onFiltersOpenChange={setFiltersOpen}
-            activeFilterCount={activeFilterCount}
-            refreshing={refreshing}
-            onRefresh={() => void load(true)}
-            canManage={canManage}
-            onAdd={openForm}
-          />
-        )}
-      />
-
-      </div>
-      <div className="enquiry-list-content space-y-5">
-      {followUpSuccess && <AdminAlert tone="success" contentClassName="flex items-center gap-3"><span className="min-w-0 flex-1">{followUpSuccess}</span><button type="button" aria-label="Dismiss follow-up confirmation" onClick={() => setFollowUpSuccess('')} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-admin-focus"><X className="h-4 w-4" /></button></AdminAlert>}
-      {(reportMode || filtersOpen) && <section aria-label="Source reporting filters" className="rounded-xl border border-admin-border bg-admin-surface p-3">
-        <div className="flex flex-wrap items-end gap-3"><label className="min-w-0 flex-1 text-xs font-semibold text-admin-subtle">Source<select aria-label="Enquiry source" value={source} onChange={event => { const next = new URLSearchParams(params); if (event.target.value) next.set('source', event.target.value); else next.delete('source'); setParams(next); }} className="mt-1 min-h-11 w-full rounded-lg border border-admin-border bg-admin-surface px-2 text-sm text-admin-text"><option value="">All sources</option>{LEAD_SOURCE_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}<option value="not_recorded">Not recorded</option></select></label>{(['dateFrom', 'dateTo'] as const).map(key => <label key={key} className="text-xs font-semibold text-admin-subtle">{key === 'dateFrom' ? 'Created from' : 'Created through'}<input aria-label={key === 'dateFrom' ? 'Created from' : 'Created through'} type="date" value={key === 'dateFrom' ? dateFrom : dateTo} onChange={event => { const next = new URLSearchParams(params); if (event.target.value) next.set(key, event.target.value); else next.delete(key); setParams(next); }} className="mt-1 block min-h-11 max-w-full rounded-lg border border-admin-border bg-admin-surface px-2 text-sm text-admin-text" /></label>)}{reportMode && <button className="min-h-11 text-sm font-semibold text-admin-primary underline" onClick={clearFilters}>Clear filters</button>}</div>
-        {reportMode && <p className="mt-2 text-xs text-admin-subtle">{source === 'not_recorded' ? 'Not recorded' : source ? leadSourceLabel(source as Enquiry['source']) : 'All sources'} · Creation dates in India time. All stages included unless narrowed below.</p>}
-      </section>}
-
-      {filtersOpen && (
-        <section id="enquiry-advanced-filters" aria-label="Enquiry filters" className="space-y-2">
-          <div className="flex flex-col gap-2 rounded-xl border border-admin-border bg-admin-surface p-2 shadow-sm sm:flex-row sm:items-center">
-            <label className="block min-w-0 flex-1 sm:max-w-xs">
-              <span className="sr-only">Enquiry status</span>
-              <select aria-label="Enquiry status" value={stage} onChange={event => {
-                const nextStage = event.target.value as EnquiryStage | 'all';
-                setStage(nextStage);
-                if (nextStage === 'closed_lost') setScope('all');
-              }} className="h-11 w-full rounded-xl border border-admin-control bg-admin-surface px-3 text-sm text-admin-secondary outline-none focus-visible:ring-2 focus-visible:ring-admin-focus">
-                <option value="all">All statuses ({itemsForSelectedService.length})</option>
-                {ENQUIRY_STAGES.map(item => <option key={item.value} value={item.value}>{item.label} ({counts[item.value]})</option>)}
-              </select>
-            </label>
-            <button type="button" disabled={stage === 'all' && !priority} onClick={() => { setStage('all'); setPriority(''); }} className="min-h-11 rounded-xl px-3 text-sm font-semibold text-admin-primary outline-none hover:bg-admin-muted focus-visible:ring-2 focus-visible:ring-admin-focus disabled:cursor-not-allowed disabled:text-admin-subtle disabled:opacity-60">Clear status filters</button>
-          </div>
-          <EnquiryPrioritySummary
-            newCount={counts.new}
-            dueTodayCount={priorityCounts.dueToday}
-            overdueCount={priorityCounts.overdue}
-            newSelected={stage === 'new' && !priority}
-            priority={priority}
-            onNew={() => {
-              setPriority('');
-              setStage(current => current === 'new' ? 'all' : 'new');
-            }}
-            onPriorityChange={nextPriority => {
-              setStage('all');
-              setPriority(nextPriority);
-            }}
-          />
-        </section>
-      )}
+      <div className="lead-workbench">
+        <header className="lead-title"><div><h1>Enquiries</h1><p>{pipelineCount} {pipelineCount === 1 ? 'lead' : 'leads'} in the pipeline · {items.filter(item => indiaDay(item.createdAt) === today).length} new today</p></div>
+          <label className="lead-search"><Search size={15}/><input type="search" aria-label="Search enquiries" placeholder="Name or phone" value={query} onChange={e => updateParams({ q: e.target.value })}/></label>
+          <button aria-label="Refresh enquiries" disabled={refreshing} onClick={() => void load(true)}><RefreshCw size={16}/></button>
+          {canManage && <button className="lead-primary" onClick={openForm}><Plus size={16}/> Add enquiry</button>}</header>
+        {isReadOnly && <ReadOnlyNotice />}
+        <div className="lead-list-surface"><div className="lead-controls">
+        <div className="lead-chips lead-views" role="group" aria-label="Enquiry views">{(Object.keys(enquiryViews) as EnquiryView[]).map(key =>
+          <button key={key} aria-pressed={view === key} onClick={() => updateParams({ view: key })}>{enquiryViews[key]} <b>{scoped.filter(item => matchesEnquiryView(item,key,today)).length}</b></button>)}</div>
+          <button className="lead-filter-toggle" aria-label="Filter enquiries" title="Filters" aria-expanded={Boolean(draft)} onClick={() => setDraft(draft ? null : filters)}><Filter size={14}/></button>
+          <label className="lead-sort"><ListFilter size={15}/><select aria-label="Sort enquiries" value={sort} onChange={e => updateParams({ sort: e.target.value })}>{ENQUIRY_SORT_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+          {draft && <form className="lead-filters" aria-label="Filter enquiries" onKeyDown={e => { if (e.key === 'Escape') { e.preventDefault(); setDraft(null); } }} onSubmit={e => {
+            e.preventDefault();
+            updateParams({ ...draft, view: ['closed_lost', 'booked'].includes(draft.stage) ? 'all' : view });
+            setDraft(null);
+          }}>
+            <div className="lead-title"><h2>Filters</h2><button type="button" onClick={() => setDraft({ stage:'', source:'', dateFrom:'', dateTo:'' })}>Clear all</button></div>
+            <fieldset className="lead-filter-options"><legend>Stage</legend>
+              {[{value: '', label: 'Any stage'}, ...ENQUIRY_STAGES].map(option =>
+                <button type="button" key={option.value} aria-pressed={draft.stage === option.value} onClick={() => setDraft({ ...draft, stage: option.value })}>{option.label}</button>)}
+            </fieldset>
+            <fieldset className="lead-filter-options"><legend>Source</legend>
+              {[{value: '', label: 'Any source'}, ...LEAD_SOURCE_OPTIONS, {value: 'not_recorded', label: 'Not recorded'}].map(option =>
+                <button type="button" key={option.value} aria-pressed={draft.source === option.value} onClick={() => setDraft({ ...draft, source: option.value })}>{option.label}</button>)}
+            </fieldset>
+            <label>Received from<input type="date" max={draft.dateTo} value={draft.dateFrom} onChange={e => setDraft({ ...draft, dateFrom:e.target.value })}/></label>
+            <label>Received through<input type="date" min={draft.dateFrom} value={draft.dateTo} onChange={e => setDraft({ ...draft, dateTo:e.target.value })}/></label>
+            <footer><button type="button" onClick={() => setDraft(null)}>Cancel</button><button className="lead-primary">Show enquiries</button></footer>
+          </form>}
+        </div>
+        {activeFilterLabels.length > 0 && <div className="lead-applied"><span>Filtered by</span>
+          {activeFilterLabels.map(label => <strong key={label}>{label}</strong>)}
+          <button onClick={() => updateParams({stage:'',source:'',dateFrom:'',dateTo:'',view})}>Clear filters</button>
+        </div>}
+        <ServiceFilterChips className="lead-chips lead-services" services={serviceCategories} service={serviceCategory}
+          onService={service => updateParams({ service })} limit={7}/>
+        {followUpSuccess && <AdminAlert tone="success">{followUpSuccess}</AdminAlert>}
 
       {error && items.length > 0 && (
         <AdminAlert contentClassName="flex items-center gap-2">
@@ -350,80 +200,55 @@ export function WorkEnquiriesPage() {
         </AdminAlert>
       )}
 
-      <section id="enquiry-list-panel" aria-labelledby="enquiry-list-panel-title" className="enquiry-list overflow-hidden rounded-xl border border-admin-border bg-admin-surface shadow-[0_4px_20px_rgba(15,23,42,0.04)]" aria-busy={loading || refreshing}>
-        <div className="enquiry-table-heading text-[11px] font-semibold uppercase tracking-wide text-admin-subtle" aria-hidden="true">
-          <span>Customer</span><span>Enquiry / Service</span><span>Received</span><span>Follow-up</span><span className="text-right">Actions</span>
-        </div>
+      <section id="enquiry-list-panel" aria-label="Enquiry list" className="enquiry-list overflow-hidden rounded-xl border border-admin-border bg-admin-surface shadow-[0_4px_20px_rgba(15,23,42,0.04)]" aria-busy={loading || refreshing}>
+        <div className="enquiry-table-scroll" key={location.search} role="region" aria-label="Enquiry rows" tabIndex={0}>
+          <div className="enquiry-table-heading text-[11px] font-semibold uppercase tracking-wide text-admin-subtle">
+            <span>Customer</span><span>Service · source</span><button className="text-left uppercase" aria-label="Sort by received date" onClick={() => updateParams({ sort: sort === 'newest' ? 'oldest' : 'newest' })}>Received {sort === 'oldest' ? '↑' : sort === 'newest' ? '↓' : '↕'}</button><span>Follow-up</span><span className="sr-only">Actions</span>
+          </div>
 
-        {loading ? (
-          <div className="enquiry-rows" aria-label="Loading enquiries" role="status">
-            {Array.from({ length: 5 }, (_, index) => <EnquiryCardSkeleton key={index} />)}
-            <span className="sr-only">Loading enquiries…</span>
-          </div>
-        ) : error && items.length === 0 ? (
-          <AdminEmptyState
-            icon={AlertCircle}
-            title="Enquiries could not be loaded"
-            description={error}
-            action={<AdminButton onClick={() => void load()}>Try again</AdminButton>}
-          />
-        ) : visible.length > 0 ? (
-          <div className="enquiry-rows">
-            {pageItems.map(item => (
-          <EnquiryCard
-                key={item.id}
-                enquiry={item}
-                canContact={canManage}
-                canViewPhone={canViewPhone}
-                onFollowUp={canManage ? () => { setFollowUpSuccess(''); setFollowUp(item); } : undefined}
-                duplicateCount={!['booked', 'closed_lost'].includes(item.stage) ? duplicatePhones.get(canonicalIndianPhone(item.phone)) || 0 : 0}
-                onOpen={() => setSelectedEnquiryId(item.id)}
-              />
-            ))}
-          </div>
-        ) : items.length === 0 ? (
-          <AdminEmptyState
-            icon={Inbox}
-            title={reportMode ? "No enquiries match these filters" : "No enquiries yet"}
-            description={reportMode ? "Choose another source or creation-date range." : "New website submissions and enquiries added by the studio will appear here."}
-            action={canManage ? <AdminButton onClick={openForm}>Add enquiry</AdminButton> : undefined}
-          />
-        ) : query.trim() ? (
-          <AdminEmptyState
-            icon={SearchX}
-            title="No matching enquiries"
-            description="Try a different customer name, phone number, service, or enquiry source."
-            action={<AdminButton variant="secondary" onClick={clearFilters}>Clear search and filters</AdminButton>}
-          />
-        ) : hasStatusOrPriorityFilter || serviceCategory ? (
-          <AdminEmptyState
-            icon={Inbox}
-            title="No enquiries in this view"
-            description="Choose another service or status, or reset the active filters."
-            action={<AdminButton variant="secondary" onClick={clearFilters}>Reset filters</AdminButton>}
-          />
-        ) : scope === 'active' ? (
-          <AdminEmptyState
-            icon={Inbox}
-            title="No active enquiries"
-            description="Not interested enquiries remain available in the complete list."
-            action={<AdminButton variant="secondary" onClick={() => setScope('all')}>View all enquiries</AdminButton>}
-          />
-        ) : null}
-        {!loading && !error && visible.length > 0 && <EnquiryPagination page={currentPage} pageCount={pageCount} pageSize={PAGE_SIZE} total={visible.length} onChange={setPage} />}
-      </section>
+          {loading ? (
+            <div className="enquiry-rows" aria-label="Loading enquiries" role="status">
+              {Array.from({ length: 5 }, (_, index) => <EnquiryCardSkeleton key={index} />)}
+              <span className="sr-only">Loading enquiries…</span>
+            </div>
+          ) : error && items.length === 0 ? (
+            <AdminEmptyState
+              icon={AlertCircle}
+              title="Enquiries could not be loaded"
+              description={error}
+              action={<AdminButton onClick={() => void load()}>Try again</AdminButton>}
+            />
+          ) : visible.length > 0 ? (
+            <div className="enquiry-rows">
+              {pageItems.map((item, index) => (<Fragment key={item.id}>
+                {chronological && groups[index] !== groups[index-1] && <h2 className="lead-group">{groups[index]} <small>{groupCounts.get(groups[index])} {groupCounts.get(groups[index]) === 1 ? 'enquiry' : 'enquiries'}</small></h2>}
+            <EnquiryCard
+                  key={item.id}
+                  enquiry={item}
+                  bookingLink={canViewBooking && item.stage === 'booked' && item.convertedBookingId ? '/admin/bookings/' + item.convertedBookingId : undefined}
+                  canContact={canManage}
+                  canViewPhone={canViewPhone}
+                  onFollowUp={canManage ? () => { setFollowUpSuccess(''); setFollowUp(item); } : undefined}
+                  duplicateCount={!['booked', 'closed_lost'].includes(item.stage) ? duplicatePhones.get(canonicalIndianPhone(item.phone)) || 0 : 0}
+                  onOpen={() => navigate('/admin/enquiries/' + item.id, { state: { listSearch: location.search } })}
+                />
+              </Fragment>))}
+            </div>
+          ) : items.length === 0 ? (
+            <AdminEmptyState
+              icon={Inbox}
+              title={reportMode ? "No enquiries match these filters" : "No enquiries yet"}
+              description={reportMode ? "Choose another source or creation-date range." : "New website submissions and enquiries added by the studio will appear here."}
+              action={canManage ? <AdminButton onClick={openForm}>Add enquiry</AdminButton> : undefined}
+            />
+          ) : <AdminEmptyState icon={Inbox} title="No matching enquiries" description="Choose another view or adjust your filters." action={<AdminButton onClick={clearFilters}>Reset filters</AdminButton>} />}
+        </div>
+        {!loading && !error && visible.length > 0 && <EnquiryPagination page={currentPage} pageCount={pageCount} pageSize={PAGE_SIZE} total={visible.length} onChange={value => updateParams({ page:String(value) })} />}
+      </section></div>
 
       {refreshing && <p className="sr-only" role="status">Refreshing enquiries…</p>}
 
-      {hasAnyFilter && visible.length > 0 && (
-        <div className="flex justify-center md:hidden">
-          <button type="button" onClick={clearFilters} className="min-h-10 rounded-xl px-3 text-xs font-semibold text-admin-primary outline-none hover:bg-admin-muted focus-visible:ring-2 focus-visible:ring-admin-focus">Clear all filters</button>
-        </div>
-      )}
-
       </div>
-
-      {selectedEnquiryId && <EnquirySidePanel key={selectedEnquiryId} id={selectedEnquiryId} canViewBookings={canViewBookings} canManage={canManage} canViewPhone={canViewPhone} onClose={() => setSelectedEnquiryId('')} onChanged={applySavedEnquiry} />}
       {followUp && canManage && !['booked', 'closed_lost'].includes(followUp.stage) && <EnquiryFollowUpDialog
         key={followUp.id}
         enquiry={followUp}

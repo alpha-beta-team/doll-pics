@@ -52,13 +52,31 @@ export function deliveryUrlWarning(value: string): string {
   if (!value.trim()) return '';
   if (!validDeliveryUrl(normalizeDeliveryUrl(value))) return 'Enter a valid public http or https URL.';
   const url = new URL(normalizeDeliveryUrl(value));
-  const host = url.hostname.toLowerCase();
+  const host = url.hostname.toLowerCase().replace(/\.$/, '');
   let path: string;
   try { path = decodeURIComponent(url.pathname); } catch { return 'Enter a valid public URL.'; }
   if (!host.includes('.') || /(^|\.)(localhost|local|internal|test|invalid)$/.test(host)
     || /^(127\.|10\.|192\.168\.|169\.254\.|0\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host)
-    || host.includes(':') || /(^|[./-])(admin|staff|dashboard)([./-]|$)/i.test(`${host}${path}`)) {
+    || host.includes(':') || /^https?:\/\/(?:0x[0-9a-f]+|[0-9]+)(?:[/:?#]|$)/i.test(value) || /(^|[./-])(admin|staff|dashboard)([./-]|$)/i.test(`${host}${path}`)) {
     return 'This looks like a local or internal staff link. Use a customer-accessible link before sharing.';
   }
   return '';
+}
+
+export type DeliveryLinkKey = 'driveGalleryUrl' | 'driveEditedUrl' | 'driveRawsUrl';
+export const deliveryLinkFields: { key: DeliveryLinkKey; label: string; messageLabel: string; emoji: string }[] = [
+  { key: 'driveGalleryUrl', label: 'Gallery folder', messageLabel: 'Gallery', emoji: '📸' },
+  { key: 'driveEditedUrl', label: 'Edited photos', messageLabel: 'Edited photos', emoji: '✨' },
+  { key: 'driveRawsUrl', label: 'RAW files', messageLabel: 'RAW files', emoji: '📁' },
+];
+
+/** Eligibility is a local URL check, not proof of remote folder permissions. */
+export function eligibleDeliveryUrl(value: string): boolean {
+  return !!value.trim() && validDeliveryUrl(value.trim()) && !deliveryUrlWarning(value.trim());
+}
+
+export function validDeliveryMessage(message: string, links: { url: string }[]): boolean {
+  const urls = message.match(/https?:\/\/[^\s]+/gi) || [];
+  return links.length > 0 && urls.length > 0 && urls.every(url =>
+    eligibleDeliveryUrl(url) && links.some(link => link.url === url));
 }

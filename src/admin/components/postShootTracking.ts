@@ -144,7 +144,7 @@ export const bulkActions = {
 export type BulkAction = keyof typeof bulkActions;
 export function exclusion(row: TrackingRow, action: BulkAction): string {
   if (!row.order)
-    return "Initialize tracking individually with the actual stage and order type.";
+    return "Initialize tracking first with the actual stage and order type.";
   if (row.status === "cancelled" || row.order.state === "cancelled")
     return "Order is cancelled.";
   if (action === "assign") return "";

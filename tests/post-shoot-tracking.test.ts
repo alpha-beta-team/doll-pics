@@ -47,3 +47,15 @@ test('row actions follow valid workflow transitions, including courier, legacy a
   assert.deepEqual(trackingActions({ ...row(), status: 'cancelled', order: null }), []);
   assert.deepEqual(trackingActions({ ...row(), order: null }), [{ label: 'Start tracking' }]);
 });
+
+test('printing completion remains a milestone and dates use the IST calendar boundary', async () => {
+  const { subForRow, tabForQueue, shootAge } = await import('../src/admin/components/trackingStages');
+  const printing = row('printing');
+  printing.order!.dates.printing_completed = '2026-11-18T04:30:00Z';
+  assert.equal(subForRow(printing), 'printer_finished');
+  assert.equal(tabForQueue(queueFor(printing)).label, 'Printing');
+  printing.order!.stage = 'received';
+  assert.equal(subForRow(printing), 'handover');
+  assert.equal(shootAge('2026-11-20', Date.parse('2026-11-19T18:29:59Z')).label, 'In 1 day');
+  assert.equal(shootAge('2026-11-20', Date.parse('2026-11-19T18:30:00Z')).label, 'Shot today');
+});

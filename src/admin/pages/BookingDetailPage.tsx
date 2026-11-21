@@ -1,6 +1,21 @@
+import { BookingNoteComposer } from '../components/bookings/BookingNoteComposer';
+import { useBookingRecordLoader } from './bookingRecordContext';
+import { BookingHeader } from '../components/bookings/BookingHeader';
+import { WorkflowTracker, WorkflowTrackerSkeleton } from '../components/bookings/WorkflowTracker';
+import '@fontsource/dm-mono/latin-500.css';
+import { BookingRecordIcon as RecordIcon } from '../components/bookings/BookingRecordIcon';
+import { BookingRecordProperties } from '../components/bookings/BookingRecordProperties';
+import type { BookingWorkspace } from '../../shared/bookingWorkspace';
+import { ORDER_STAGE_LABELS, type OrderWorkflow } from '../../shared/orderWorkflow';
+import '@fontsource/public-sans/latin-400.css';
+import '@fontsource/public-sans/latin-500.css';
+import '@fontsource/public-sans/latin-600.css';
+import '@fontsource/public-sans/latin-700.css';
+import { FormInput, FormTextarea } from '../components/ui/FormControls';
 import { AdminAlert } from '../components/ui/AdminUi';
 import { OrderWorkflowPanel, type OrderWorkflowHandle } from '../components/bookings/OrderWorkflowPanel';
-import { BookingNotesFollowUps } from '../components/bookings/BookingNotesFollowUps';
+import { BookingNotesFollowUps, type BookingNotesHandle } from '../components/bookings/BookingNotesFollowUps';
+import { BookingPaymentDialog } from '../components/bookings/BookingPaymentDialog';
 import { BookingDueDateDialog } from '../components/bookings/BookingDueDateDialog';
 import { BookingCrewDialog } from '../components/bookings/BookingCrewDialog';
 import { CREW_SERVICE_LABELS } from '../../shared/crew';
@@ -9,22 +24,14 @@ import { BookingDeliverablesPanel } from '../components/BookingDeliverablesPanel
 import { formatCustomerName } from '../../shared/formatCustomerName';
 import './booking-detail.css';
 import { CustomerBookingPanel } from '../components/CustomerBookingPanel';
-import { CustomerCode } from '../components/CustomerCode';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft,
   CalendarCheck,
   CheckCircle,
-  ArrowUpRight,
   ExternalLink,
   MessageCircle,
-  MapPin,
-  UserRound,
-  MoreHorizontal,
-  Pencil,
-  Phone,
   RefreshCw,
   X,
 } from 'lucide-react';
@@ -35,7 +42,6 @@ import type {
   BookingStatus,
   BookingWritePayload,
   Package,
-  PaymentMethod,
   ServiceNavLink,
   StaffAccountOption,
   WhatsAppMessageSummary,
@@ -46,8 +52,9 @@ import { useFeatureAccess } from '../access/useFeatureAccess';
 import { useAuth } from '../contexts/AuthContext';
 import { ReadOnlyNotice } from '../components/ReadOnlyNotice';
 import { hasStaffPermission, canViewBookingPricing } from '../access/roles';
+import { bookingWorkflowApi } from '../api/bookingWorkflow';
 import { BookingDeliveryPanel } from '../components/bookings/BookingDeliveryPanel';
-import { normalizeDeliveryUrl, validDeliveryUrl } from '../components/bookings/deliverySharing';
+import { deliveryLinkFields, deliveryUrlWarning, eligibleDeliveryUrl, normalizeDeliveryUrl, validDeliveryUrl, type DeliveryLinkKey } from '../components/bookings/deliverySharing';
 import { bookingDurationLabel, formatTimeWindow } from '../../shared/bookingTime';
 import { CustomerLookupPanel } from '../components/CustomerLookupPanel';
 import { WhatsAppComposer } from '../components/WhatsAppComposer';
@@ -56,16 +63,8 @@ import { conflictRequirements, saveWithScheduleConfirmation, scheduleConfirmatio
 import type { WhatsAppTemplateId } from '../components/whatsappTemplates';
 import { ImportantDatesPanel } from '../components/ImportantDatesPanel';
 import { AdminTabs } from '../components/AdminTabs';
-import { BookingDialog, BookingSection, BookingTabPanel, BookingPaymentSummary, BookingCustomerDetails, BookingPaymentDetails } from '../components/bookings/BookingDetailSections';
+import { BookingDialog, BookingSection, BookingTabPanel, BookingCustomerDetails, BookingPaymentDetails } from '../components/bookings/BookingDetailSections';
 import { kolkataToday } from '../reports/reportingPeriod';
-
-const statusStyles: Record<BookingStatus, string> = {
-  draft: 'bg-slate-100 text-slate-700',
-  confirmed: 'bg-emerald-100 text-emerald-700',
-  shoot_completed: 'bg-blue-100 text-blue-700',
-  delivered: 'bg-violet-100 text-violet-700',
-  cancelled: 'bg-red-100 text-red-700',
-};
 
 const calendarStatusStyles = {
   not_applicable: 'bg-slate-100 text-slate-600',
@@ -89,6 +88,24 @@ function formatDay(value?: string) {
   return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat('en-IN', {
     day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata',
   }).format(date);
+}
+
+function formatShootDay(value: string) {
+  if (!value) return 'Not set';
+  const date = new Date(/^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T12:00:00+05:30` : value);
+  return Number.isNaN(date.getTime()) ? 'Not set' : date.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' });
+}
+
+function formatOverviewTimestamp(value: string) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? 'Date not recorded' : date.toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' });
+}
+
+function formatShootTime(startTime?: string, endTime?: string) {
+  const [start, end] = formatTimeWindow(startTime, endTime, '12h').toLowerCase().split('–');
+  if (!end) return formatTimeWindow(startTime, endTime);
+  const suffix = end.match(/ (am|pm)$/)?.[0];
+  return `${suffix && start.endsWith(suffix) ? start.slice(0, -suffix.length) : start} – ${end}`;
 }
 
 function formatDateTime(value?: string) {
@@ -124,37 +141,32 @@ function BookingDetailWorkspace() {
   const canViewPhone = hasStaffPermission(user, 'mask_phone_number');
   const confirmDialog = useConfirmDialog();
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
-  const [booking, setBooking] = useState<Booking | null>(null);
+  const loaderData = useBookingRecordLoader();
+  const [booking, setBooking] = useState<Booking | null>(loaderData?.booking || null);
+  const notesActions = useRef<BookingNotesHandle>(null);
+  const [addingOverviewNote, setAddingOverviewNote] = useState(false);
+  const [workspace, setWorkspace] = useState<BookingWorkspace | null>(null);
+  const [workspaceLoading, setWorkspaceLoading] = useState(true);
+  const [workspaceError, setWorkspaceError] = useState('');
+  const [orderSnapshot, setOrderSnapshot] = useState<OrderWorkflow | null>(null);
   const [hasOrderWorkflow, setHasOrderWorkflow] = useState(false);
   const [orderCompleted, setOrderCompleted] = useState(false);
   const [orderReady, setOrderReady] = useState(false);
   const [orderActionLabel, setOrderActionLabel] = useState('Loading order…');
   const orderActions = useRef<OrderWorkflowHandle>(null);
-  const tabs = [{ id: 'overview', label: 'Overview' }, ...(canViewPayments ? [{ id: 'payments', label: 'Payments' }] : []), ...(canManageBooking ? [{ id: 'delivery', label: 'Delivery' }] : []), { id: 'customer', label: 'Customer' }, { id: 'notes', label: `Notes & Follow-ups${booking?.pendingFollowUpCount ? ` · ${booking.pendingFollowUpCount}` : ''}` }, { id: 'activity', label: 'Activity' }];
+  const tabs = [{ id: 'overview', label: 'Overview' }, ...(canManageBooking ? [{ id: 'delivery', label: 'Delivery', badge: `${booking ? deliveryLinkFields.filter(field => eligibleDeliveryUrl(booking[field.key])).length : 0}/3 links` }] : []), { id: 'customer', label: user?.role === 'owner' ? 'Customer page' : 'Customer' }, { id: 'notes', label: 'Notes & follow-ups', badge: workspace ? String(workspace.notes.length) : undefined }];
   const tab = tabs.some(item => item.id === params.get('tab')) ? params.get('tab')! : 'overview';
-  const selectTab = (value: string) => setParams(previous => { const next = new URLSearchParams(previous); next.set('tab', value); return next; });
+  const selectTab = (value: string) => {
+    if (value === tab) return;
+    setParams(previous => { const next = new URLSearchParams(previous); next.set('tab', value); return next; }, { preventScrollReset: true });
+  };
   const deliveryReview = useRef<HTMLDivElement>(null);
   const orderTracking = useRef<HTMLDivElement>(null);
-  const [requestedSection, setRequestedSection] = useState<'delivery' | 'order' | null>(null);
-  const openSection = (section: 'delivery' | 'order') => {
-    const targetTab = section === 'delivery' ? 'delivery' : 'overview';
-    setRequestedSection(section);
-    if (section === 'delivery' && tab !== targetTab) selectTab(targetTab);
-  };
-  useEffect(() => {
-    if (!requestedSection || (requestedSection === 'delivery' && tab !== 'delivery')) return;
-    const target = requestedSection === 'delivery' ? deliveryReview.current : orderTracking.current;
-    if (!target) return;
-    target.focus({ preventScroll: true });
-    target.scrollIntoView({ block: 'start', behavior: 'auto' });
-    setRequestedSection(null);
-  }, [requestedSection, tab]);
   const [visited, setVisited] = useState<Set<string>>(() => new Set([tab]));
   useEffect(() => { setVisited(previous => new Set([...previous, tab])); }, [tab]);
-  const [editor, setEditor] = useState<'delivery' | 'assignment' | null>(null);
-  const [assignee, setAssignee] = useState('');
+  const [editor, setEditor] = useState<'delivery' | null>(null);
+  const [toolsPanel, setToolsPanel] = useState<'voice' | 'customer' | null>(null);
   const [success, setSuccess] = useState('');
   useEffect(() => { if (!success) return; const timer = window.setTimeout(() => setSuccess(''), 5000); return () => window.clearTimeout(timer); }, [success]);
   const [editorError, setEditorError] = useState('');
@@ -168,7 +180,7 @@ function BookingDetailWorkspace() {
   const [bookingServices, setBookingServices] = useState<ServiceNavLink[]>([]);
   const [staffAccounts, setStaffAccounts] = useState<StaffAccountOption[]>([]);
   const [messages, setMessages] = useState<WhatsAppMessageSummary[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!loaderData);
   const tabBar = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const list = tabBar.current?.querySelector<HTMLElement>('[role="tablist"]');
@@ -184,21 +196,31 @@ function BookingDetailWorkspace() {
     observer.observe(list);
     return () => observer.disconnect();
   }, [tab, loading]);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(loaderData?.error || '');
   const [editing, setEditing] = useState(false);
   const [editingCrew, setEditingCrew] = useState(false);
   const [editingDueDate, setEditingDueDate] = useState(false);
   const [showAllCrew, setShowAllCrew] = useState(false);
+  const [activityOpen, setActivityOpen] = useState(false);
+  const [paymentHistoryOpen, setPaymentHistoryOpen] = useState(false);
   const [paymentModal, setPaymentModal] = useState<BookingPayment | 'new' | null>(null);
   const [driveGalleryUrl, setDriveGalleryUrl] = useState('');
   const [driveEditedUrl, setDriveEditedUrl] = useState('');
   const [driveRawsUrl, setDriveRawsUrl] = useState('');
   const [driveNotes, setDriveNotes] = useState('');
+  const [deliveryFocus, setDeliveryFocus] = useState<DeliveryLinkKey>('driveGalleryUrl');
+  const deliveryField = useRef<HTMLInputElement>(null);
+  const editorBaseline = useRef<Booking | null>(null);
+  const deliveryConfirmLock = useRef(false);
+  const editorSaveLock = useRef(false);
+  useEffect(() => {
+    if (editor !== 'delivery') return;
+    const frame = requestAnimationFrame(() => deliveryField.current?.focus());
+    return () => cancelAnimationFrame(frame);
+  }, [editor, deliveryFocus]);
   const [saving, setSaving] = useState(false);
   const [messageOpen, setMessageOpen] = useState<WhatsAppTemplateId | null>(null);
   const [reviewUrl, setReviewUrl] = useState('');
-  const [actionMenuOpen, setActionMenuOpen] = useState(false);
-  const actionMenuRef = useRef<HTMLDivElement>(null);
 
   // Server responses update the record only. Editor drafts are initialized on open.
   const sync = useCallback((value: Booking) => { setBooking(value); }, []);
@@ -236,27 +258,9 @@ function BookingDetailWorkspace() {
   }, [id, sync]);
 
   useEffect(() => { void loadResources(); }, [loadResources]);
-  const activityVisited = visited.has('activity');
-  useEffect(() => { if (activityVisited) void loadMessages(); }, [activityVisited, loadMessages]);
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { if (activityOpen) void loadMessages(); }, [activityOpen, loadMessages]);
+  useEffect(() => { if (!loaderData) void load(); }, [load, loaderData]);
 
-  useEffect(() => {
-    if (!actionMenuOpen) return undefined;
-    const closeOnOutsideClick = (event: MouseEvent) => {
-      if (event.target instanceof Node && !actionMenuRef.current?.contains(event.target)) {
-        setActionMenuOpen(false);
-      }
-    };
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setActionMenuOpen(false);
-    };
-    document.addEventListener('mousedown', closeOnOutsideClick);
-    document.addEventListener('keydown', closeOnEscape);
-    return () => {
-      document.removeEventListener('mousedown', closeOnOutsideClick);
-      document.removeEventListener('keydown', closeOnEscape);
-    };
-  }, [actionMenuOpen]);
 
   const run = async (operation: () => Promise<Booking>, message = 'Booking updated') => {
     setSaving(true);
@@ -360,43 +364,60 @@ function BookingDetailWorkspace() {
     if (scheduleChanged) setMessageOpen('booking_rescheduled');
   };
 
-  const openEditor = (kind: 'delivery' | 'assignment') => {
+  const openEditor = (kind: 'delivery', field?: DeliveryLinkKey) => {
     if (!booking) return;
+    editorBaseline.current = booking;
+    setDeliveryFocus(field || deliveryLinkFields.find(item => !booking[item.key])?.key || 'driveGalleryUrl');
     setEditorError('');
-    setAssignee(booking.assignedStaffAccountId || '');
     setDriveGalleryUrl(booking.driveGalleryUrl); setDriveEditedUrl(booking.driveEditedUrl);
     setDriveRawsUrl(booking.driveRawsUrl); setDriveNotes(booking.driveNotes);
     setEditor(kind);
   };
   const closeEditor = async () => {
     if (saving || !booking) return;
-    const dirty = editor === 'assignment' ? assignee !== (booking.assignedStaffAccountId || '') : driveGalleryUrl !== booking.driveGalleryUrl || driveEditedUrl !== booking.driveEditedUrl || driveRawsUrl !== booking.driveRawsUrl || driveNotes !== booking.driveNotes;
+    const dirty = driveGalleryUrl !== booking.driveGalleryUrl || driveEditedUrl !== booking.driveEditedUrl || driveRawsUrl !== booking.driveRawsUrl || driveNotes !== booking.driveNotes;
     if (dirty && !await confirmDialog({ title: 'Discard unsaved changes?', description: 'Your changes have not been saved.', confirmLabel: 'Discard changes', variant: 'danger' })) return;
     setEditor(null);
   };
   const saveEditor = async () => {
-    if (!booking) return;
+    if (!booking || editorSaveLock.current) return;
     if (editor === 'delivery' && [driveGalleryUrl, driveEditedUrl, driveRawsUrl].some(url => url.trim() && !validDeliveryUrl(normalizeDeliveryUrl(url)))) {
       setEditorError('Enter a valid http:// or https:// link for each resource, or leave it empty.'); return;
     }
+    editorSaveLock.current = true;
     setSaving(true); setEditorError('');
+    const baseline = editorBaseline.current || booking;
+    const deliveryValues = { driveGalleryUrl: normalizeDeliveryUrl(driveGalleryUrl), driveEditedUrl: normalizeDeliveryUrl(driveEditedUrl), driveRawsUrl: normalizeDeliveryUrl(driveRawsUrl), driveNotes };
+    const deliveryPatch = Object.fromEntries(Object.entries(deliveryValues).filter(([key, value]) => value !== baseline[key as keyof typeof deliveryValues]));
     try {
-      const updated = editor === 'assignment'
-        ? await api.updateBooking(booking.id, { assignedStaffAccountId: assignee || null })
-        : await api.updateBooking(booking.id, { driveGalleryUrl: normalizeDeliveryUrl(driveGalleryUrl), driveEditedUrl: normalizeDeliveryUrl(driveEditedUrl), driveRawsUrl: normalizeDeliveryUrl(driveRawsUrl), driveNotes });
-      sync(updated); setSuccess(editor === 'assignment' ? 'Staff assignment saved' : 'Delivery links saved'); setEditor(null);
+      if (editor === 'delivery' && !Object.keys(deliveryPatch).length) { setEditor(null); return; }
+      const updated = await api.updateBooking(booking.id, { ...deliveryPatch, expectedUpdatedAt: baseline.updatedAt });
+      sync(updated); setSuccess('Delivery links saved'); setEditor(null);
     } catch (err) { setEditorError(err instanceof Error ? err.message : 'Could not save changes.'); }
-    finally { setSaving(false); }
+    finally { setSaving(false); editorSaveLock.current = false; }
   };
   const markDelivered = async () => {
-    if (!booking) return;
-    const confirmed = await confirmDialog({
-      title: 'Mark gallery as delivered?',
-      description: 'Confirm that the gallery was sent to the customer. The booking will move to delivered status.',
-      confirmLabel: 'Mark delivered',
-    });
-    if (!confirmed) return;
-    void run(() => api.completeBookingDelivery(booking.id));
+    if (!booking || saving || deliveryConfirmLock.current || !deliveryLinkFields.some(field => eligibleDeliveryUrl(booking[field.key]))) return;
+    deliveryConfirmLock.current = true;
+    try {
+      const confirmed = await confirmDialog({
+        title: 'Mark gallery as delivered?',
+        description: 'Confirm that the gallery was sent to the customer. The booking will move to delivered status.',
+        confirmLabel: 'Mark delivered',
+      });
+      if (!confirmed) return;
+      await run(() => api.completeBookingDelivery(booking.id));
+    } finally { deliveryConfirmLock.current = false; }
+  };
+  const confirmPhotoSharing = async () => {
+    if (!booking || saving || deliveryConfirmLock.current || !eligibleDeliveryUrl(booking.driveEditedUrl)) return;
+    const editingStep = booking.workflow?.steps.find(step => step.key === 'editing');
+    if (booking.status === 'cancelled' || booking.workflow?.cancelledAt || editingStep?.status !== 'current' || !editingStep.milestones.some(m => m.key === 'photos_delivered' && !m.done)) return;
+    deliveryConfirmLock.current = true;
+    try {
+      const confirmed = await confirmDialog({ title: 'Confirm edited photos shared?', description: 'Confirm that you sent the edited photos to the customer. This records the sharing milestone; other workflow steps remain separate.', confirmLabel: 'Confirm edited photos shared' });
+      if (confirmed) await run(() => bookingWorkflowApi.milestone(booking.id, 'photos_delivered', true), 'Edited photos sharing confirmed');
+    } finally { deliveryConfirmLock.current = false; }
   };
 
   const toggleNotifications = () => {
@@ -465,10 +486,17 @@ function BookingDetailWorkspace() {
     finally { setSaving(false); }
   };
 
-  if (loading) return <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" /></div>;
+  if (loading) return <WorkflowTrackerSkeleton />;
   if (!booking) return <div className="space-y-4"><Link to="/admin/bookings" className="inline-flex items-center gap-2 text-sm text-slate-600"><ArrowLeft className="h-4 w-4" />Back to bookings</Link><AdminAlert>{error || 'Booking not found'}</AdminAlert></div>;
 
-  const hasDeliveryLink = [booking.driveGalleryUrl, booking.driveEditedUrl, booking.driveRawsUrl].some(url => validDeliveryUrl(url.trim()));
+  const hasDeliveryLink = deliveryLinkFields.some(field => eligibleDeliveryUrl(booking[field.key]));
+  const editingStep = booking.workflow?.steps.find(step => step.key === 'editing');
+  const photoSharing = editingStep?.milestones.find(m => m.key === 'photos_delivered');
+  const sharingRecorded = !!photoSharing?.done || (!booking.workflow && !!booking.deliverySentAt);
+  const sharingAt = photoSharing?.doneAt || (sharingRecorded ? booking.deliverySentAt : undefined);
+  const canConfirmPhotoSharing = !!booking.workflow && editingStep?.status === 'current' && !!photoSharing && !photoSharing.done && booking.status !== 'draft' && booking.status !== 'cancelled' && !booking.workflow.cancelledAt;
+  const legacyDelivery = !booking.workflow && !hasOrderWorkflow && orderReady;
+
   const followUpOverdue = booking.nextFollowUpAt && new Date(booking.nextFollowUpAt).getTime() < Date.now();
   const calendarStatus = booking.calendarSyncStatus || 'not_applicable';
   const primaryAction = actions.find(action => 'primary' in action && action.primary);
@@ -476,118 +504,24 @@ function BookingDetailWorkspace() {
   const canRequestReview = booking.status === 'delivered' && !['received', 'skipped'].includes(booking.reviewStatus)
     && Boolean(reviewUrl) && !booking.whatsappOptOutAt;
   const canEdit = canManageBooking && !resourcesLoading && !resourcesError;
-  const deliveryLabel = booking.deliverySentAt ? `Delivered ${formatDay(booking.deliverySentAt)}`
-    : hasDeliveryLink ? 'Links ready · Not marked delivered' : 'No links added';
-  const paymentLabel = booking.agreedTotal == null ? 'Price not set'
-    : booking.paymentSummary.balanceDue == null ? 'Balance not recorded'
-    : booking.paymentSummary.balanceDue < 0 ? `${money(Math.abs(booking.paymentSummary.balanceDue))} overpaid`
-    : booking.paymentSummary.balanceDue === 0 ? 'Paid in full' : `${money(booking.paymentSummary.balanceDue)} outstanding`;
   return (
-    <div className="booking-detail mx-auto max-w-6xl space-y-4">
-      <button onClick={() => navigate('/admin/bookings')} className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900"><ArrowLeft className="h-4 w-4" />Back to bookings</button>
+    <div className="booking-detail bd-reference-record max-w-6xl">
+
       {error && <AdminAlert onDismiss={() => setError('')}>{error}</AdminAlert>}
 
       {success && <AdminAlert tone="success" className="fixed right-3 top-20 z-[80] max-w-[calc(100vw-1.5rem)] shadow-lg" contentClassName="flex items-center gap-3" aria-live="polite">{success}<button onClick={() => setSuccess('')} aria-label="Dismiss confirmation" className="flex h-8 w-8 items-center justify-center"><X className="h-4 w-4" /></button></AdminAlert>}
-      <header className="bd-header rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-start lg:justify-between">
-          <div className="min-w-0 lg:flex-1 lg:basis-96">
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <h1 className="bd-title min-w-0 break-words text-xl font-semibold tracking-tight text-slate-900 sm:text-3xl">{formatCustomerName(booking.customerName)}</h1>
-              <span className={`bd-status rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${statusStyles[booking.status]}`}>{booking.status.replace('_', ' ')}</span>
-            </div>
-            <div className="flex flex-wrap items-center gap-x-2 text-xs text-admin-subtle"><span>Customer ID:</span>{booking.customerCode ? <CustomerCode code={booking.customerCode} /> : <span>Not assigned</span>}</div>
-            <p className="mt-1 text-sm font-medium text-slate-700">{booking.shootType.trim().toLowerCase() === 'other' && booking.preferredEvent ? booking.preferredEvent : booking.packageName || booking.shootType || 'Photography session'}</p>
-            <div className="bd-meta mt-3 space-y-1.5 text-xs text-slate-500 sm:text-sm lg:flex lg:flex-wrap lg:gap-x-4 lg:gap-y-1 lg:space-y-0">
-              <div className="flex items-start gap-2">
-                <Phone className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" /><span className="bd-meta-label">Contact: </span>
-                {canViewPhone && booking.customerPhone ? (
-                  <a href={`tel:${booking.customerPhone}`} className="min-w-0 break-words rounded text-admin-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-focus">{booking.customerPhone}</a>
-                ) : <span>{booking.customerPhone || 'Not recorded'}</span>}
-              </div>
-              <div className="flex items-start gap-2"><CalendarCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" /><span className="bd-meta-label">Shoot: </span><div className="flex flex-wrap gap-x-2 gap-y-0.5"><span>{formatDay(booking.bookingDate)}</span>{booking.startTime && booking.endTime && <span>{[booking.startTime, booking.endTime].map(time => new Date(`2000-01-01T${time}:00+05:30`).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' })).join(' – ')}</span>}</div></div>
-              <div className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" /><span className="bd-meta-label">Location: </span><span className="min-w-0 break-words">{booking.location || 'Location not set'}</span></div>
-              <div className="flex items-start gap-2"><UserRound className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" /><span className="bd-meta-label">Assigned to: </span><span className="min-w-0 break-words">{booking.assignedStaffAccountName || 'No staff assigned'}</span>{canManageBooking && <button disabled={resourcesLoading || Boolean(resourcesError)} onClick={() => openEditor('assignment')} className="min-h-6 shrink-0 font-semibold text-admin-primary underline disabled:opacity-50">{booking.assignedStaffAccountId ? 'Change' : 'Assign'}</button>}</div>
-            </div>
-          </div>
+      <BookingHeader booking={booking} canViewPhone={canViewPhone} canManage={canManageBooking} canEdit={canEdit} saving={saving} onEdit={() => setEditing(true)} notify={setSuccess} onCancel={async reason => { const saved = await run(() => api.transitionBooking(booking.id, 'cancelled', undefined, undefined, { reason }), 'Booking cancelled'); if (saved) setMessageOpen('booking_cancelled'); return saved; }}>
+        <button type="button" role="menuitem" onClick={() => setToolsPanel('voice')}>Voice notes</button>
+        <button type="button" role="menuitem" onClick={() => setToolsPanel('customer')}>Customer details and records</button>
+                  {canRequestReview && <button type="button" role="menuitem" disabled={saving} onClick={() => { setMessageOpen('review_request'); }}>Request review</button>}
+                  {['shoot_completed', 'delivered'].includes(booking.status) && <button type="button" role="menuitem" disabled={!orderReady || saving} onClick={() => { orderActions.current?.openStatus(); }}>{orderCompleted ? 'Reopen order' : orderActionLabel}</button>}
+                  {hasOrderWorkflow && booking.status !== 'cancelled' && <><button type="button" role="menuitem" disabled={!orderReady || saving} onClick={() => orderActions.current?.openDetails()}>Edit order details</button><button type="button" role="menuitem" disabled={!orderReady || saving} onClick={() => orderActions.current?.openCorrection()}>Correct stage or date</button></>}
+                  {[...(primaryAction ? [primaryAction] : []), ...overflowActions].filter(action => action.status !== 'cancelled').map(action => <button key={action.label} type="button" role="menuitem" disabled={saving}  onClick={() => { void transition(action.status); }}>{action.status === 'shoot_completed' ? 'Mark shoot complete' : action.label}</button>)}
+      </BookingHeader>
+      {isReadOnly && <ReadOnlyNotice />}
+      <div ref={orderTracking} tabIndex={-1} aria-label="Booking workflow" className="rounded-xl focus-visible:outline-admin-focus"><WorkflowTracker booking={booking} canManage={canManageBooking} onSaved={sync} /></div>
 
-          {canManageBooking ? (
-            <div className="bd-header-actions grid w-full grid-cols-[minmax(0,1fr)_minmax(0,1fr)_2.75rem] gap-2 border-t border-slate-100 pt-3 lg:flex lg:w-auto lg:max-w-full lg:shrink-0 lg:flex-wrap lg:border-0 lg:pt-0">
-              {canRequestReview && <button type="button" disabled={saving} onClick={() => setMessageOpen('review_request')} className="bd-button bd-button-primary">Request review</button>}
-              {!orderCompleted && ['shoot_completed', 'delivered'].includes(booking.status) && <button type="button" disabled={!orderReady || saving} onClick={() => orderActions.current?.openStatus()} className="bd-button bd-button-primary col-span-3 min-h-11 rounded-lg bg-admin-primary px-4 text-sm font-semibold text-white lg:flex-none">{orderActionLabel}</button>}
-              {primaryAction && (
-                <button
-                  type="button"
-                  disabled={saving}
-                  onClick={() => void transition(primaryAction.status)}
-                  className="bd-button bd-button-primary col-span-3 inline-flex min-h-11 min-w-0 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold leading-5 text-white shadow-sm transition-colors hover:bg-blue-700 disabled:opacity-50 sm:px-4 sm:text-sm lg:flex-none"
-                >
-                  <CheckCircle className="h-4 w-4 shrink-0" />{primaryAction.status === 'shoot_completed' ? 'Mark shoot complete' : primaryAction.label}
-                </button>
-              )}
-              <button
-                type="button"
-                aria-label="Message customer on WhatsApp"
-                title="WhatsApp"
-                onClick={() => setMessageOpen('booking_confirmation')}
-                className="bd-button bd-button-whatsapp inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-emerald-300 px-3 text-sm bg-emerald-50 text-emerald-700 transition-colors hover:bg-emerald-100"
-              >
-                <MessageCircle className="h-4 w-4 shrink-0" /><span>WhatsApp</span>
-              </button>
-              <button
-                type="button"
-                aria-label="Edit booking"
-                title="Edit booking"
-                disabled={resourcesLoading || Boolean(resourcesError)}
-                onClick={() => setEditing(true)}
-                className="bd-button inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
-              >
-                <Pencil className="h-4 w-4 shrink-0" /><span>Edit</span>
-              </button>
-              {(overflowActions.length > 0 || orderCompleted) && (
-                <div ref={actionMenuRef} className="relative shrink-0">
-                  <button
-                    type="button"
-                    aria-label="More booking actions"
-                    aria-expanded={actionMenuOpen}
-                    aria-haspopup="menu"
-                    onClick={() => setActionMenuOpen(open => !open)}
-                    className="bd-button inline-flex h-11 w-11 items-center justify-center rounded-lg border border-slate-300 text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
-                  >
-                    <MoreHorizontal className="h-5 w-5" />
-                  </button>
-                  {actionMenuOpen && (
-                    <div role="menu" className="absolute right-0 z-20 mt-2 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg">
-                      {orderCompleted && <button type="button" role="menuitem" disabled={!orderReady || saving} onClick={() => { setActionMenuOpen(false); orderActions.current?.openStatus(); }} className="flex min-h-10 w-full items-center rounded-lg px-3 py-2 text-left text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50">Reopen order</button>}
-                      {overflowActions.map(action => (
-                        <button
-                          key={action.label}
-                          type="button"
-                          role="menuitem"
-                          disabled={saving}
-                          onClick={() => {
-                            setActionMenuOpen(false);
-                            void transition(action.status);
-                          }}
-                          className={`flex min-h-10 w-full items-center rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors disabled:opacity-50 ${action.status === 'cancelled' ? 'text-red-600 hover:bg-red-50' : 'text-slate-700 hover:bg-slate-50'}`}
-                        >
-                          {action.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          ) : isReadOnly ? <ReadOnlyNotice /> : null}
-        </div>
-        <dl className="bd-summary-strip">
-          <div><dt>Booking</dt><dd className="capitalize">{booking.status.replace(/_/g, ' ')}</dd></div>
-          {canViewPayments && <div className="bd-summary-payment"><dt>Payment</dt><dd>{paymentLabel}</dd></div>}
-          <div><dt>Delivery</dt><dd>{deliveryLabel}</dd></div>
-        </dl>
-      </header>
-
-        {['shoot_completed', 'delivered', 'cancelled'].includes(booking.status) && <div ref={orderTracking} tabIndex={-1} aria-label="Order tracking actions" className="scroll-mt-24 rounded-xl focus-visible:outline-admin-focus"><OrderWorkflowPanel ref={orderActions} onReadyChange={setOrderReady} onCompletedChange={setOrderCompleted} onActionLabelChange={setOrderActionLabel} onBookingSaved={sync} booking={booking} canManage={canManageBooking} staff={staffAccounts} onLoaded={setHasOrderWorkflow} onSaved={() => { void api.getBooking(booking.id).then(updated => { if (updated) sync(updated); }).catch(() => setError('Order saved. Reload the booking to refresh its details.')); }} /></div>}
+        {['shoot_completed', 'delivered', 'cancelled'].includes(booking.status) && <OrderWorkflowPanel dialogsOnly ref={orderActions} onOrderChange={setOrderSnapshot} onReadyChange={setOrderReady} onCompletedChange={setOrderCompleted} onActionLabelChange={setOrderActionLabel} onBookingSaved={sync} booking={booking} canManage={canManageBooking} staff={staffAccounts} onLoaded={setHasOrderWorkflow} onSaved={() => { void api.getBooking(booking.id).then(updated => { if (updated) sync(updated); }).catch(() => setError('Order saved. Reload the booking to refresh its details.')); }} />}
 
       {resourcesLoading && <p role="status" className="text-sm text-admin-subtle">Loading editing and assignment options…</p>}
       {resourcesError && <AdminAlert tone="warning" as="span">{resourcesError} <button className="underline" onClick={() => void loadResources()}>Retry</button></AdminAlert>}
@@ -596,68 +530,74 @@ function BookingDetailWorkspace() {
       </div>
       {((canManageBooking && followUpOverdue) || calendarStatus === 'failed' || (booking.status === 'confirmed' && booking.bookingDate && booking.bookingDate < kolkataToday())) && <AdminAlert tone="warning" contentClassName="flex flex-wrap gap-2">
         {canManageBooking && followUpOverdue && <button className="underline" onClick={() => selectTab('notes')}>Follow-up overdue</button>}
-        {calendarStatus === 'failed' && <button className="underline" onClick={() => selectTab('activity')}>Calendar needs attention</button>}
-        {booking.status === 'confirmed' && booking.bookingDate && booking.bookingDate < kolkataToday() && <span><strong>Shoot status needs updating.</strong> Scheduled for {formatDay(booking.bookingDate)}.{canManageBooking && ' Mark complete above if the session took place.'}</span>}
+        {calendarStatus === 'failed' && <button className="underline" onClick={() => setActivityOpen(true)}>Calendar needs attention</button>}
+        {booking.status === 'confirmed' && booking.bookingDate && booking.bookingDate < kolkataToday() && <span><strong>Shoot status needs updating.</strong> Scheduled for {formatDay(booking.bookingDate)}.{canManageBooking && ' Use More booking actions to mark complete if the session took place.'}</span>}
       </AdminAlert>}
+      <div className="bd-record-body bd-overview-body">
+      <div className="bd-record-main">
       <BookingTabPanel id="overview" active={tab === 'overview'}>
 
-        <div className="mb-4 grid items-start gap-4 lg:grid-cols-2">
-          <BookingDeliverablesPanel booking={booking} canManage={canManageBooking} canPrice={canViewBookingPricing(user?.role)} onSaved={updated => { sync(updated); setSuccess('Deliverables saved'); }} />
-          <section className="min-w-0 rounded-xl border border-admin-border bg-admin-surface p-4" aria-label="Crew List">
+        <div className="bd-overview-main bd-reference-overview">
+            <Card title="Shoot details"><dl className="bd-shoot-grid">
+              <div><span className="bd-field-icon"><RecordIcon name="Calendar" /></span><div><dt>Shoot date &amp; time</dt><dd>{formatShootDay(booking.bookingDate)}</dd><dd className="bd-field-secondary">{formatShootTime(booking.startTime, booking.endTime)}{bookingDurationLabel(booking.startTime, booking.endTime) && ` · ${bookingDurationLabel(booking.startTime, booking.endTime).replace(/\bhrs\b/, 'hours').replace(/\bhr\b/, 'hour')}`}</dd></div></div>
+              <div><span className="bd-field-icon"><RecordIcon name="Location" /></span><div><dt>Location</dt><dd>{booking.location || 'Location not set'}</dd></div></div>
+              <div><span className="bd-field-icon"><RecordIcon name="Camera" /></span><div><dt>Service &amp; package</dt><dd>{booking.shootType.trim().toLowerCase() === 'other' ? booking.preferredEvent || booking.shootType : booking.shootType || 'Not set'}</dd><dd className="bd-field-secondary">{booking.packageName || 'No package selected'}</dd></div></div>
+              <div><span className="bd-field-icon"><RecordIcon name="Package" /></span><div><dt>Order type</dt><dd>{orderSnapshot ? orderSnapshot.mode === 'physical' ? 'Physical order' : 'Digital order' : orderReady ? 'Not set' : 'Loading order…'}</dd>{orderSnapshot && <dd className="bd-field-secondary">{orderSnapshot.mode === 'physical' ? 'Edited photos + printed products' : 'Edited photos'}</dd>}</div></div>
+            </dl></Card>
+        <div className="bd-promises">
+          <BookingDeliverablesPanel confirm={confirmDialog} booking={booking} canManage={canManageBooking} canPrice={canViewBookingPricing(user?.role)} onSaved={updated => { sync(updated); setSuccess('Deliverables saved'); }} presentation="record" />
+          <section className="bd-record-section min-w-0" aria-label="Crew List">
             <div className="flex min-h-11 items-center justify-between gap-3">
               <h2 className="font-semibold">Crew <span className="ml-1 text-sm font-normal text-admin-subtle">· {booking.crewList?.length || 0}</span></h2>
-              {canManageBooking && <Menu>
-                <MenuButton aria-label="Crew actions" title="Crew actions" className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-admin-secondary hover:bg-admin-muted hover:text-admin-text focus-visible:outline-admin-focus">
-                  <MoreHorizontal className="h-5 w-5" aria-hidden="true" />
-                </MenuButton>
-                <MenuItems anchor={{ to: 'bottom end', gap: 4, padding: 8 }} modal={false} className="z-30 w-48 rounded-lg border border-slate-200 bg-white p-1 shadow-lg focus:outline-none">
-                  <MenuItem>
-                    <button type="button" onClick={() => setEditingCrew(true)} className="flex min-h-11 w-full items-center rounded-md px-3 py-2 text-left text-sm font-medium text-purple-700 data-[focus]:bg-purple-50 data-[focus]:text-purple-800">
-                      {booking.crewList?.length ? 'Edit crew' : 'Assign crew'}
-                    </button>
-                  </MenuItem>
-                </MenuItems>
-              </Menu>}
+              {canManageBooking && <button type="button" className="bd-small-action bd-crew-action" onClick={() => setEditingCrew(true)}><RecordIcon name="Crew" />Assign crew</button>}
             </div>
             {booking.crewList?.length ? <>
-              <ul className="divide-y divide-admin-border">{(showAllCrew ? booking.crewList : booking.crewList.slice(0, 3)).map((row, index) => <li key={index} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-2 text-sm"><span className="min-w-0 break-words font-medium">{row.memberName}</span><span className="text-admin-subtle">{CREW_SERVICE_LABELS[row.serviceType] || row.serviceType}</span></li>)}</ul>
+              <ul className="bd-crew-grid">{(showAllCrew ? booking.crewList : booking.crewList.slice(0, 3)).map((row, index) => <li key={`${row.staffAccountId}:${row.serviceType}:${index}`}><span aria-hidden="true" className={`bd-crew-avatar${index ? ' is-secondary' : ''}`}>{formatCustomerName(row.memberName).split(/\s+/).slice(0, 2).map(part => part[0]).join('')}</span><div><p>{formatCustomerName(row.memberName)}</p><span>{CREW_SERVICE_LABELS[row.serviceType] || row.serviceType}</span></div></li>)}</ul>
               {booking.crewList.length > 3 && <button type="button" aria-expanded={showAllCrew} onClick={() => setShowAllCrew(value => !value)} className="min-h-11 text-sm font-semibold text-admin-primary">{showAllCrew ? 'Show less' : `View all ${booking.crewList.length} crew members`}</button>}
             </> : <p className="py-2 text-sm text-admin-subtle">No crew assigned</p>}
           </section>
         </div>
-        <div className="bd-overview">
-          <div className="bd-overview-main">
-            <Card title="Shoot details"><dl className="bd-details-grid"><Field label="Service">{booking.shootType || 'Not set'}</Field>{booking.preferredEvent && booking.preferredEvent.trim().toLowerCase() !== booking.shootType.trim().toLowerCase() && <Field label="Event">{booking.preferredEvent}</Field>}<Field label="Package">{booking.packageName || 'No package selected'}</Field><Field label="Duration">{bookingDurationLabel(booking.startTime, booking.endTime) || 'Not set'}</Field></dl>{booking.notes && <div className="bd-notes"><p className="bd-eyebrow">Shoot notes</p><p className="whitespace-pre-wrap break-words text-sm">{booking.notes}</p></div>}</Card>
-            {canManageBooking && <Card title="Delivery readiness" action={<button className="bd-link" onClick={() => openSection('delivery')}>{hasDeliveryLink ? 'View delivery links' : 'Add delivery links'}<ArrowUpRight className="h-4 w-4" /></button>}><p className="text-sm">{deliveryLabel}</p><p className="bd-helper">Save your delivery links, preview the message, then confirm delivery separately.</p></Card>}
-            <Card title="Recent schedule changes"><ScheduleHistory booking={booking} limit={3} />{!!booking.scheduleHistory.length && <button className="bd-link" onClick={() => selectTab('activity')}>View activity<ArrowUpRight className="h-4 w-4" /></button>}</Card>
-          </div>
-          <aside className="bd-overview-side" aria-label="Payment and follow-up">
-            {canViewPayments && <Card title="Payment summary" action={<button className="bd-button bd-button-primary" onClick={() => setPaymentModal('new')}>Record payment</button>}>{booking.pricingSnapshot?.campaignId && <div className="mb-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm"><p className="font-semibold">{booking.pricingSnapshot.campaignName}</p><p>Original: <del>{money(booking.pricingSnapshot.basePrice)}</del> · Sale: {money(booking.pricingSnapshot.salePrice)} · {booking.pricingSnapshot.isStartingFrom ? 'Estimated saving' : 'Campaign saving'}: {money(booking.pricingSnapshot.discountAmount)}</p>{booking.pricingSnapshot.adjustmentAmount !== 0 && <p>Final price adjustment: {money(booking.pricingSnapshot.adjustmentAmount)} · {booking.pricingSnapshot.overrideReason}</p>}<p className="mt-1 text-xs">Booked prices are preserved after the sale ends.</p></div>}<BookingPaymentSummary booking={booking} onEditDueDate={canEdit ? () => setEditingDueDate(true) : undefined} /><button className="bd-link ml-4" onClick={() => selectTab('payments')}>View payments</button></Card>}
-            <Card title="Next follow-up" action={<button className="bd-link" onClick={() => selectTab('notes')}>View all</button>}><p className="text-sm">{booking.nextFollowUpAt ? formatDateTime(booking.nextFollowUpAt) : 'No follow-up scheduled'}</p>{booking.followUpNote && <p className="mt-2 whitespace-pre-wrap text-sm text-admin-subtle">{booking.followUpNote}</p>}</Card>
-          </aside>
+
+          <section className="bd-overview-notes" aria-labelledby="bd-notes-heading">
+            <div className="bd-overview-section-heading"><h2 id="bd-notes-heading">Notes <span>· staff only</span></h2>{canManageBooking && <button type="button" className="bd-small-action" disabled={workspaceLoading || !!workspaceError || !workspace} onClick={() => setAddingOverviewNote(true)} aria-expanded={addingOverviewNote}><RecordIcon name="Note" />Add note</button>}</div>
+            {addingOverviewNote && canManageBooking && <BookingNoteComposer key={booking.id} overview bookingId={booking.id} onSaved={state => { notesActions.current?.receive(state); setAddingOverviewNote(false); setSuccess('Note saved'); }} onFollowUp={note => notesActions.current?.openFollowUp(note)} onCancel={async dirty => { if (!dirty || await confirmDialog({ title: 'Discard unsaved changes?', description: 'Your note has not been saved.', confirmLabel: 'Discard changes', variant: 'danger' })) setAddingOverviewNote(false); }} />}
+            {!addingOverviewNote && (workspaceLoading ? <p role="status" className="bd-muted">Loading notes…</p> : workspaceError ? <AdminAlert>{workspaceError} <button type="button" className="underline" onClick={() => notesActions.current?.retry()}>Retry</button></AdminAlert> : <>
+              {workspace?.notes.length ? <ul className="bd-overview-note-list">{[...workspace.notes].sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.createdAt.localeCompare(a.createdAt)).slice(0, 2).map(note => <li key={note.id}>{note.pinned && <RecordIcon name="Pin" />}<div><p>{note.body}</p><span>{note.createdBy.name} · {formatOverviewTimestamp(note.createdAt)}</span></div></li>)}</ul> : <p className="bd-muted">No internal notes yet.</p>}
+              <button type="button" className="bd-record-link" onClick={() => selectTab('notes')}>All {workspace?.notes.length || 0} notes · {workspace?.pendingFollowUpCount ? `${workspace.pendingFollowUpCount} pending follow-up${workspace.pendingFollowUpCount === 1 ? '' : 's'}` : 'no pending follow-ups'}<RecordIcon name="Next" /></button>
+            </>)}
+            {booking.notes && <div className="bd-legacy-shoot-notes"><h3>Original shoot notes</h3><p>{booking.notes}</p></div>}
+          </section>
+
         </div>
       </BookingTabPanel>
       <BookingTabPanel id="notes" active={tab === 'notes'}>
-        {visited.has('notes') && <BookingNotesFollowUps booking={booking} canManage={canManageBooking} staff={staffAccounts} staffLoading={resourcesLoading} staffError={staffOptionsError} retryStaff={() => void loadResources()} onSummary={(state, changed) => { setBooking(current => current ? { ...current, pendingFollowUpCount: state.pendingFollowUpCount, nextFollowUpId: state.nextFollowUpId, nextFollowUpAt: state.nextFollowUpAt || undefined, followUpNote: state.followUpNote, lastFollowUpCompletedAt: state.lastFollowUpCompletedAt } : current); if (changed) void api.getBooking(booking.id).then(updated => { if (updated) sync(updated); }).catch(() => setSuccess('Changes saved. Reload the booking to refresh its other details.')); }} />}
+        {<BookingNotesFollowUps key={booking.id} ref={notesActions} onLoadingChange={setWorkspaceLoading} onErrorChange={setWorkspaceError} booking={booking} canManage={canManageBooking} staff={staffAccounts} staffLoading={resourcesLoading} staffError={staffOptionsError} retryStaff={() => void loadResources()} onSummary={(state, changed) => { setWorkspace(state); setBooking(current => current ? { ...current, pendingFollowUpCount: state.pendingFollowUpCount, nextFollowUpId: state.nextFollowUpId, nextFollowUpAt: state.nextFollowUpAt || undefined, followUpNote: state.followUpNote, lastFollowUpCompletedAt: state.lastFollowUpCompletedAt } : current); if (changed) void api.getBooking(booking.id).then(updated => { if (updated) sync(updated); }).catch(() => setSuccess('Changes saved. Reload the booking to refresh its other details.')); }} />}
       </BookingTabPanel>
-      {canViewPayments && <BookingTabPanel id="payments" active={tab === 'payments'}><BookingPaymentDetails booking={booking} onAdd={() => setPaymentModal('new')} onEdit={setPaymentModal} onDelete={payment => void deletePayment(payment)} onEditDueDate={canEdit ? () => setEditingDueDate(true) : undefined} /></BookingTabPanel>}
       {canManageBooking && <BookingTabPanel id="delivery" active={tab === 'delivery'}>
-        <div ref={deliveryReview} tabIndex={-1} aria-label="Delivery review" className="scroll-mt-24 rounded-xl focus-visible:outline-admin-focus"><BookingDeliveryPanel key={booking.id} booking={booking} saving={saving} onEdit={() => openEditor('delivery')} confirmation={<>
-          <h3 className="font-semibold text-sm">Delivery confirmation</h3>
-          {hasOrderWorkflow && <p className="bd-helper">After sharing, confirm edited-photo delivery in Order tracking.<button type="button" onClick={() => openSection('order')} className="bd-button mt-3">Open order tracking</button></p>}
-          {booking.deliverySentAt && <p className="inline-flex items-center gap-2 text-sm"><CheckCircle className="h-4 w-4" />Delivered {formatDateTime(booking.deliverySentAt)}</p>}
-          <p className="bd-helper">Confirm delivery after you have shared the files with the customer.</p>
-          {booking.status === 'shoot_completed' && !hasOrderWorkflow && <button onClick={() => void markDelivered()} disabled={!hasDeliveryLink || saving} className="bd-button bd-button-primary mt-3">Mark delivered</button>}
-          {!['shoot_completed', 'delivered'].includes(booking.status) && <p className="bd-helper">The shoot must be marked complete before confirming delivery.</p>}
-          {!hasDeliveryLink && <p className="bd-helper">Save at least one delivery link before marking delivered.</p>}
+        <div ref={deliveryReview} tabIndex={-1} aria-label="Delivery review" className="scroll-mt-24 rounded-xl focus-visible:outline-admin-focus"><BookingDeliveryPanel key={booking.id} booking={booking} sharingRecorded={sharingRecorded} saving={saving} onEdit={key => openEditor('delivery', key)} confirmation={<>
+          {sharingRecorded ? <p className="bd-delivery-recorded"><CheckCircle size={16} />Photos shared{sharingAt ? ` · ${formatDateTime(sharingAt)} IST` : ''}</p> : booking.status === 'cancelled' || booking.workflow?.cancelledAt ? <p className="bd-helper">Cancelled bookings cannot confirm photo sharing.</p> : !['shoot_completed', 'delivered'].includes(booking.status) ? <p className="bd-helper">The shoot must be marked complete before confirming delivery.</p> : booking.workflow ? <>
+            {canConfirmPhotoSharing ? <><button type="button" disabled={saving || !eligibleDeliveryUrl(booking.driveEditedUrl)} onClick={() => void confirmPhotoSharing()} className="bd-button bd-confirm-sharing"><RecordIcon name="Confirm" />Confirm edited photos shared</button>{!eligibleDeliveryUrl(booking.driveEditedUrl) && <p className="bd-helper">Save a customer-accessible edited photos link before confirming sharing.</p>}</> : <p className="bd-helper">Complete the preceding workflow steps before confirming edited photos shared.</p>}
+          </> : legacyDelivery ? <>
+            {booking.status === 'shoot_completed' ? <button type="button" onClick={() => void markDelivered()} disabled={!hasDeliveryLink || saving} className="bd-button bd-confirm-sharing"><RecordIcon name="Confirm" />Confirm delivered</button> : booking.status === 'delivered' ? <p className="bd-delivery-recorded">Photos shared</p> : <p className="bd-helper">The shoot must be marked complete before confirming delivery.</p>}
+            {!hasDeliveryLink && <p className="bd-helper">Save at least one customer-accessible delivery link before confirming delivery.</p>}
+          </> : <p className="bd-helper">{!orderReady ? 'Delivery confirmation is unavailable until the workflow loads. Reload the booking if it does not appear.' : 'Workflow unavailable. Reload the booking before confirming sharing.'}</p>}
         </>} /></div>
       </BookingTabPanel>}
-      <BookingTabPanel id="customer" active={tab === 'customer'}>{user?.role === 'owner' && (visited.has('customer') || tab === 'customer') && <CustomerBookingPanel booking={booking} />}        <BookingCustomerDetails booking={booking} canViewPhone={canViewPhone} />
-
-{(visited.has('customer') || tab === 'customer') && <>      {canManageBooking && canViewPhone && <CustomerLookupPanel phone={booking.customerPhone} current={{ type: 'booking', id: booking.id }} />}
-      {canManageBooking && canViewPhone && <ImportantDatesPanel compact phone={booking.customerPhone} customerName={booking.customerName} email={booking.customerEmail} source={{ type: 'booking', id: booking.id }} />}
-</>}</BookingTabPanel>
-      <BookingTabPanel id="activity" active={tab === 'activity'}>
+      <BookingTabPanel id="customer" active={tab === 'customer'}>
+        {user?.role === 'owner'
+          ? (visited.has('customer') || tab === 'customer') && <CustomerBookingPanel booking={booking} record />
+          : <BookingCustomerDetails booking={booking} canViewPhone={canViewPhone} />}
+      </BookingTabPanel>
+      {canManageBooking && toolsPanel && <BookingDialog className="bd-tools-dialog" title={toolsPanel === 'voice' ? 'Booking voice notes' : 'Customer details and records'} onClose={() => setToolsPanel(null)}>
+        {toolsPanel === 'voice' ? <VoiceNotesPanel compact recordType="booking" recordId={booking.id} /> : <>
+          <BookingCustomerDetails booking={booking} canViewPhone={canViewPhone} />
+          {canViewPhone && <><CustomerLookupPanel phone={booking.customerPhone} current={{ type: 'booking', id: booking.id }} />
+          <ImportantDatesPanel compact phone={booking.customerPhone} customerName={booking.customerName} email={booking.customerEmail} source={{ type: 'booking', id: booking.id }} /></>}
+        </>}
+      </BookingDialog>}
+      <>{activityOpen && <BookingDialog title="Booking activity" className="booking-detail booking-detail-dialog" onClose={() => setActivityOpen(false)}><div className="space-y-4">
+        <Card title="Workflow activity"><ol className="space-y-3">{[...(booking.workflowActivity || [])].reverse().map((event, index) => <li key={`${event.when}:${index}`}><p>{event.what}</p><small>{event.who.name} · {formatDateTime(event.when)} IST</small></li>)}{!booking.workflowActivity?.length && <li>No workflow activity recorded.</li>}</ol></Card>
+        {orderSnapshot?.history.length ? <Card title="Order history"><ul>{[...orderSnapshot.history].reverse().map(entry => <li key={entry.id}>{ORDER_STAGE_LABELS[entry.next.stage]} · {formatDateTime(entry.recordedAt)} IST</li>)}</ul></Card> : null}
         <Card title="Schedule history"><ScheduleHistory booking={booking} /></Card>
         {canManageBooking && <Card title="Message history" action={<button onClick={() => void loadMessages()} className="bd-button" aria-label="Refresh messages"><RefreshCw className="h-4 w-4" />Refresh</button>}>
           {messagesLoading && <p role="status" className="bd-helper">Loading messages…</p>}
@@ -666,7 +606,7 @@ function BookingDetailWorkspace() {
           {!messagesLoading && !messagesError && !messages.length && <p className="bd-helper">No automated messages recorded.</p>}
           {messages.length > visibleMessages && <button className="bd-link" onClick={() => setVisibleMessages(count => count + 8)}>Show more messages ({messages.length - visibleMessages} remaining)</button>}
         </Card>}
-        {canManageBooking && (visited.has('activity') || tab === 'activity') && <VoiceNotesPanel compact recordType="booking" recordId={booking.id} hidden={tab !== 'activity'} />}
+
 
         {booking.separateShootDecision && <Card title="Different shoot confirmed"><p className="whitespace-pre-wrap break-words text-sm">{booking.separateShootDecision.reason}</p><p className="mt-2 text-xs text-admin-subtle">Staff: {booking.separateShootDecision.actorId} · {formatDateTime(booking.separateShootDecision.decidedAt)}</p><p className="mt-1 text-xs text-admin-subtle">{booking.separateShootDecision.reviewedRecordIds.length} matching records reviewed</p></Card>}        {canManageBooking && <Card title="Communication settings">
           <div className="bd-switch-row"><div><p className="font-semibold text-sm">Automated WhatsApp updates</p><p className="bd-helper">{booking.whatsappNotificationsEnabled ? 'Enabled' : 'Disabled'} · Requires customer consent</p></div><button type="button" role="switch" aria-label="Automated WhatsApp updates" aria-checked={booking.whatsappNotificationsEnabled} onClick={toggleNotifications} disabled={!booking.whatsappOptIn || Boolean(booking.whatsappOptOutAt) || saving} className="bd-switch"><span /></button></div>
@@ -730,42 +670,44 @@ function BookingDetailWorkspace() {
           {!!booking.reviewHistory.length && <div className="mt-4 divide-y divide-slate-100 border-t border-slate-100">{booking.reviewHistory.slice(0, 5).map(entry => <p key={entry.id || entry.changedAt} className="py-2 text-xs text-slate-500"><span className="capitalize">{entry.action}</span> · {formatDateTime(entry.changedAt)} · {entry.changedBy.name}</p>)}</div>}
         </Card>}
 
-</BookingTabPanel>
-      {editor && <BookingDialog className="booking-detail booking-detail-dialog" title={editor === 'assignment' ? 'Assign staff' : 'Edit delivery links'} onClose={() => void closeEditor()}>
+</div></BookingDialog>}</>
+      </div>
+          <BookingRecordProperties booking={booking} canViewPayments={canViewPayments} canManage={canManageBooking} canEdit={canEdit} canViewPhone={canViewPhone} followUpReady={!workspaceLoading && !workspaceError && !!workspace} onPayment={() => setPaymentModal('new')} onPaymentHistory={() => setPaymentHistoryOpen(true)} onDueDate={() => setEditingDueDate(true)} staff={staffAccounts} onReturning={() => setToolsPanel('customer')} onAssignment={async staffId => { sync(await api.updateBooking(booking.id, { assignedStaffAccountId: staffId || null })); setSuccess('Staff assignment saved'); }} onFollowUp={() => notesActions.current?.openFollowUp()} onEdit={() => setEditing(true)} onNavigate={selectTab} onActivity={() => setActivityOpen(true)} activity={<RecentBookingActivity booking={booking} order={orderSnapshot} />} />
+      </div>
+      {editor && <BookingDialog className="booking-detail booking-detail-dialog" title="Edit delivery links" onClose={() => void closeEditor()}>
         {editorError && <AdminAlert as="span" className="mb-3">{editorError}</AdminAlert>}
-        {editor === 'assignment' ? <><label className="block text-sm">Assigned staff<select value={assignee} onChange={event => setAssignee(event.target.value)} className="mt-2 min-h-11 w-full rounded-lg border border-admin-border bg-admin-surface px-3"><option value="">No staff assigned</option>{booking.assignedStaffAccountId && !staffAccounts.some(staff => staff.id === booking.assignedStaffAccountId) && <option value={booking.assignedStaffAccountId}>{booking.assignedStaffAccountName || 'Current assignee'}</option>}{staffAccounts.map(staff => <option key={staff.id} value={staff.id}>{staff.name}</option>)}</select></label>{!staffAccounts.length && <p className="mt-2 text-sm text-admin-subtle">No assignable staff available.</p>}<button disabled={saving} onClick={() => void saveEditor()} className="mt-4 min-h-11 rounded-lg bg-admin-primary px-4 text-sm font-semibold text-white">{saving ? 'Saving…' : 'Save assignment'}</button></> : <><div>        <div className="grid gap-4">{[['Gallery folder', driveGalleryUrl, setDriveGalleryUrl], ['Edited photos', driveEditedUrl, setDriveEditedUrl], ['RAW files', driveRawsUrl, setDriveRawsUrl]].map(([label, value, setter]) => <label key={label as string} className="text-sm text-slate-700">{label as string}<div className="mt-1 flex gap-2"><input type="url" inputMode="url" placeholder="https://drive.google.com/…" value={value as string} onChange={e => (setter as (value: string) => void)(e.target.value)} className="min-h-11 min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm" />{validDeliveryUrl(normalizeDeliveryUrl(value as string)) && <a aria-label={`Open ${label as string}`} href={normalizeDeliveryUrl(value as string)} target="_blank" rel="noreferrer" className="flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-slate-300 p-2"><ExternalLink className="h-4 w-4" /></a>}</div></label>)}</div>
-        <label className="mt-3 block text-sm">Delivery note<textarea value={driveNotes} onChange={e => setDriveNotes(e.target.value)} placeholder="Delivery note" className="mt-3 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" rows={2} /></label>
-</div><button disabled={saving} onClick={() => void saveEditor()} className="mt-4 min-h-11 rounded-lg bg-admin-primary px-4 text-sm font-semibold text-white">{saving ? 'Saving…' : 'Save links'}</button></>}
+        <div><div className="grid gap-4">{deliveryLinkFields.map(({ key, label }) => {
+          const value = key === 'driveGalleryUrl' ? driveGalleryUrl : key === 'driveEditedUrl' ? driveEditedUrl : driveRawsUrl;
+          const setter = key === 'driveGalleryUrl' ? setDriveGalleryUrl : key === 'driveEditedUrl' ? setDriveEditedUrl : setDriveRawsUrl;
+          const normalized = normalizeDeliveryUrl(value);
+          const warning = deliveryUrlWarning(normalized);
+          return <div key={key}><label htmlFor={`edit-${key}`} className="text-sm text-slate-700">{label}</label><div className="mt-1 flex gap-2"><FormInput id={`edit-${key}`} ref={key === deliveryFocus ? deliveryField : undefined} type="text" inputMode="url" maxLength={500} disabled={saving} placeholder="https://drive.google.com/…" value={value} aria-describedby={warning ? `warning-${key}` : undefined} onChange={event => setter(event.target.value)} className="min-h-11 min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm" />{eligibleDeliveryUrl(normalized) && <a aria-label={`Open ${label}`} href={normalized} target="_blank" rel="noreferrer" className="flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-slate-300 p-2"><ExternalLink className="h-4 w-4" /></a>}</div>{warning && <p id={`warning-${key}`} className="bd-resource-warning">{warning} This link cannot be included in a customer message.</p>}</div>;
+        })}</div>
+        <label className="mt-3 block text-sm">Delivery note<FormTextarea disabled={saving} value={driveNotes} onChange={e => setDriveNotes(e.target.value)} placeholder="Delivery note" className="mt-3 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" rows={2} /></label>
+</div><button disabled={saving} onClick={() => void saveEditor()} className="mt-4 min-h-11 rounded-lg bg-admin-primary px-4 text-sm font-semibold text-white">{saving ? 'Saving…' : 'Save links'}</button>
         <button disabled={saving} onClick={() => void closeEditor()} className="mt-3 min-h-11 px-3 text-sm">Cancel</button>
       </BookingDialog>}
+      {canViewPayments && paymentHistoryOpen && <BookingDialog title="Payment history" className="booking-detail booking-detail-dialog" onClose={() => setPaymentHistoryOpen(false)}><BookingPaymentDetails booking={booking} onAdd={() => setPaymentModal('new')} onEdit={setPaymentModal} onDelete={payment => void deletePayment(payment)} onEditDueDate={canEdit ? () => setEditingDueDate(true) : undefined} /></BookingDialog>}
       {canEdit && canViewPayments && editingDueDate && <BookingDueDateDialog key={booking.id} booking={booking} onClose={() => setEditingDueDate(false)} onSaved={updated => { sync(updated); setEditingDueDate(false); setSuccess('Payment due date saved'); }} />}
       {canManageBooking && editingCrew && <BookingCrewDialog key={booking.id} booking={booking} onClose={() => setEditingCrew(false)} onSaved={updated => { sync(updated); setEditingCrew(false); setSuccess('Crew saved'); }} />}
       {canManageBooking && editing && <BookingFormModal booking={booking} packages={packages} services={bookingServices} staffAccounts={staffAccounts} onClose={() => setEditing(false)} onSave={saveEdit} />}
       {canManageBooking && messageOpen && <WhatsAppComposer initialTemplate={messageOpen} context={{ customerName: booking.customerName, customerCode: booking.customerCode, phone: booking.customerPhone, service: booking.shootType || booking.packageName, bookingDate: booking.bookingDate, startTime: booking.startTime, endTime: booking.endTime, location: booking.location, balanceDue: canViewPayments ? booking.paymentSummary.balanceDue : undefined, paymentDueDate: canViewPayments ? booking.paymentDueDate : undefined, reviewUrl, consentRecorded: booking.whatsappOptIn, optedOut: Boolean(booking.whatsappOptOutAt) }} onOpened={messageOpen === 'review_request' ? () => updateReview('requested') : undefined} onClose={() => setMessageOpen(null)} />}
-      {canViewPayments && paymentModal && <PaymentModal payment={paymentModal === 'new' ? null : paymentModal} onClose={() => setPaymentModal(null)} onSave={async data => { const updated = paymentModal === 'new' ? await api.addBookingPayment(booking.id, data) : await api.updateBookingPayment(booking.id, paymentModal.id, data); sync(updated); setSuccess('Payment saved'); setPaymentModal(null); }} />}
+      {canViewPayments && paymentModal && <BookingPaymentDialog booking={booking} payment={paymentModal === 'new' ? null : paymentModal} onClose={() => setPaymentModal(null)} onSave={async data => { const updated = paymentModal === 'new' ? await api.addBookingPayment(booking.id, data) : await api.updateBookingPayment(booking.id, paymentModal.id, data); sync(updated); setSuccess('Payment saved'); setPaymentModal(null); }} />}
     </div>
   );
-}
-
-function PaymentModal({ payment, onClose, onSave }: { payment: BookingPayment | null; onClose: () => void; onSave: (data: { amount: number; paidAt: string; method: PaymentMethod; reference?: string; note?: string }) => Promise<void> }) {
-  const [amount, setAmount] = useState(payment ? String(payment.amount) : '');
-  const [paidAt, setPaidAt] = useState(payment?.paidAt?.slice(0, 10) || new Date().toISOString().slice(0, 10));
-  const [method, setMethod] = useState<PaymentMethod>(payment?.method || 'upi');
-  const [reference, setReference] = useState(payment?.reference || '');
-  const [note, setNote] = useState(payment?.note || '');
-  const [error, setError] = useState('');
-  const [saving, setSaving] = useState(false);
-  const submit = async () => {
-    if (!Number(amount) || Number(amount) <= 0) return setError('Enter a positive payment amount.');
-    setSaving(true); setError('');
-    try { await onSave({ amount: Number(amount), paidAt: new Date(`${paidAt}T12:00:00`).toISOString(), method, reference, note }); }
-    catch (err) { setError(err instanceof Error ? err.message : 'Failed to save payment'); setSaving(false); }
-  };
-  return <BookingDialog className="booking-detail booking-detail-dialog" title={payment ? 'Edit payment' : 'Record payment'} onClose={() => { if (!saving) onClose(); }}>{error && <AdminAlert as="span" className="mt-3">{error}</AdminAlert>}<div className="mt-4 grid gap-3 sm:grid-cols-2"><label className="text-sm">Amount (₹)<input type="number" min="1" value={amount} onChange={e => setAmount(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label><label className="text-sm">Payment date<input type="date" value={paidAt} onChange={e => setPaidAt(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label><label className="text-sm">Method<select value={method} onChange={e => setMethod(e.target.value as PaymentMethod)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2">{['cash', 'upi', 'bank_transfer', 'card', 'other'].map(item => <option key={item} value={item}>{item.replace('_', ' ')}</option>)}</select></label><label className="text-sm">Reference<input value={reference} onChange={e => setReference(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label><label className="text-sm sm:col-span-2">Note<input value={note} onChange={e => setNote(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label></div><div className="mt-5 flex justify-end gap-2"><button onClick={onClose} className="rounded-lg border border-slate-300 px-4 py-2 text-sm">Cancel</button><button onClick={() => void submit()} disabled={saving} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">Save payment</button></div></BookingDialog>;
 }
 
 function ScheduleHistory({ booking, limit }: { booking: Booking; limit?: number }) {
   const sorted = [...booking.scheduleHistory].sort((a, b) => (Date.parse(b.changedAt) || 0) - (Date.parse(a.changedAt) || 0));
   const history = limit ? sorted.slice(0, limit) : sorted;
-  return <div className="bd-history">{history.map(entry => <div key={entry.id || entry.changedAt} className="bd-history-event"><div className="flex flex-wrap items-center justify-between gap-2"><span className="text-sm font-semibold capitalize">{entry.action}</span><span className="bd-helper">{formatDateTime(entry.changedAt)} · {entry.changedBy.name}</span></div><div className="mt-2 grid gap-2 text-sm sm:grid-cols-[1fr_auto_1fr]"><span>{formatDay(entry.previous.bookingDate)} · {formatTimeWindow(entry.previous.startTime, entry.previous.endTime)} · {entry.previous.status.replace(/_/g, ' ')}</span><span aria-hidden="true">→</span><span>{formatDay(entry.next.bookingDate)} · {formatTimeWindow(entry.next.startTime, entry.next.endTime)} · {entry.next.status.replace(/_/g, ' ')}</span></div></div>)}{!history.length && <p className="bd-helper">No schedule changes recorded.</p>}</div>;
+  return <div className="bd-history">{history.map(entry => <div key={entry.id || entry.changedAt} className="bd-history-event"><div className="flex flex-wrap items-center justify-between gap-2"><span className="text-sm font-semibold capitalize">{entry.action}</span><span className="bd-helper">{formatDateTime(entry.changedAt)} · {entry.changedBy.name}</span></div>{entry.reason && <p className="mt-2 text-sm">{entry.reason}</p>}<div className="mt-2 grid gap-2 text-sm sm:grid-cols-[1fr_auto_1fr]"><span>{formatDay(entry.previous.bookingDate)} · {formatTimeWindow(entry.previous.startTime, entry.previous.endTime)} · {entry.previous.status.replace(/_/g, ' ')}</span><span aria-hidden="true">→</span><span>{formatDay(entry.next.bookingDate)} · {formatTimeWindow(entry.next.startTime, entry.next.endTime)} · {entry.next.status.replace(/_/g, ' ')}</span></div></div>)}{!history.length && <p className="bd-helper">No schedule changes recorded.</p>}</div>;
+}
+
+function RecentBookingActivity({ booking, order }: { booking: Booking; order: OrderWorkflow | null }) {
+  const events = [
+    ...(booking.workflowActivity || []).map((entry, index) => ({ id: `workflow:${index}`, title: `${entry.what} · ${entry.who.name}`, at: entry.when })),
+    ...booking.scheduleHistory.map(entry => ({ id: `schedule:${entry.id || entry.changedAt}`, title: entry.action.replace(/_/g, ' '), at: entry.changedAt })),
+    ...(order?.history || []).map(entry => ({ id: `order:${entry.id}`, title: `${ORDER_STAGE_LABELS[entry.next.stage]}${entry.action === 'correct' ? ' (corrected)' : entry.action === 'reopen' ? ' (reopened)' : ''}`, at: entry.recordedAt })),
+  ].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 3);
+  return events.length ? <ul className="bd-recent-activity">{events.map(event => <li key={event.id}><p>{event.title}</p><span>{formatOverviewTimestamp(event.at)}</span></li>)}</ul> : <p className="bd-muted">No activity recorded.</p>;
 }

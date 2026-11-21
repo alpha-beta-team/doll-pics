@@ -3,6 +3,7 @@ import { AlertTriangle, type LucideIcon } from 'lucide-react';
 export type AdminTab = {
   id: string;
   label: string;
+  badge?: string;
   icon?: LucideIcon;
   warning?: string;
 };
@@ -42,7 +43,7 @@ export function AdminTabs({
         event.preventDefault();
         onChange(nextTab.id);
         window.requestAnimationFrame(() => {
-          tablist.querySelector<HTMLButtonElement>(`[data-admin-tab="${nextTab.id}"]`)?.focus();
+          tablist.querySelector<HTMLButtonElement>(`[data-admin-tab="${nextTab.id}"]`)?.focus({ preventScroll: true });
         });
       }}
     >
@@ -65,6 +66,7 @@ export function AdminTabs({
             >
               {Icon && <Icon className="h-4 w-4" aria-hidden="true" />}
               {tab.label}
+              {tab.badge && <span aria-hidden="true" className="bd-tab-count">{tab.badge}</span>}
               {tab.warning && (
                 <span
                   className="inline-flex text-amber-600"

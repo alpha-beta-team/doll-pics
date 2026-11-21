@@ -91,9 +91,7 @@ export function sortEnquiries(enquiries: Enquiry[], sort: EnquirySort) {
 }
 
 function isSameLocalDay(left: Date, right: Date) {
-  return left.getFullYear() === right.getFullYear()
-    && left.getMonth() === right.getMonth()
-    && left.getDate() === right.getDate();
+  return indiaDay(left) === indiaDay(right);
 }
 
 export function followUpUrgency(value: string, now = new Date()): FollowUpUrgency | null {
@@ -118,7 +116,7 @@ export function formatReceivedAt(value: string, now = new Date()) {
   if (Number.isNaN(date.getTime())) return value || 'Date unavailable';
 
   const time = new Intl.DateTimeFormat('en-IN', {
-    hour: 'numeric',
+    timeZone: 'Asia/Kolkata', hour: 'numeric',
     minute: '2-digit',
   }).format(date);
   if (isSameLocalDay(date, now)) return `Today, ${time}`;
@@ -131,7 +129,7 @@ export function formatReceivedAt(value: string, now = new Date()) {
   if (elapsedDays > 1 && elapsedDays < 7) return `${elapsedDays} days ago`;
 
   return new Intl.DateTimeFormat('en-IN', {
-    day: 'numeric',
+    timeZone: 'Asia/Kolkata', day: 'numeric',
     month: 'short',
     year: date.getFullYear() === now.getFullYear() ? undefined : 'numeric',
   }).format(date);
@@ -143,7 +141,37 @@ export function formatFollowUpAt(value: string) {
   return new Intl.DateTimeFormat('en-IN', {
     day: 'numeric',
     month: 'short',
-    hour: 'numeric',
+    timeZone: 'Asia/Kolkata', hour: 'numeric',
     minute: '2-digit',
   }).format(date);
+}
+
+export const enquiryViews = { active: 'Active', new: 'New · not contacted', due: 'Follow-up due', all: 'All' } as const;
+export type EnquiryView = keyof typeof enquiryViews;
+const indiaDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' });
+
+export function indiaDay(value: string | Date) {
+  const date = new Date(value);
+  return Number.isFinite(date.getTime()) ? indiaDate.format(date) : '';
+}
+
+export function matchesEnquiryView(item: Enquiry, view: EnquiryView, today: string) {
+  if (view === 'all') return true;
+  if (item.stage === 'booked' || item.stage === 'closed_lost') return false;
+  if (view === 'new') return item.stage === 'new' && !item.lastCall;
+  if (view === 'due') {
+    const due = item.nextFollowUpAt && indiaDay(item.nextFollowUpAt);
+    return Boolean(due && due <= today);
+  }
+  return true;
+}
+
+export function receivedGroup(value: string, today: string) {
+  const day = indiaDay(value);
+  if (!day) return 'Date unavailable';
+  const now = new Date(today + 'T00:00:00Z');
+  now.setUTCDate(now.getUTCDate() - (now.getUTCDay() + 6) % 7);
+  if (day >= now.toISOString().slice(0, 10) && day <= today) return 'This week';
+  const month = new Date(value).toLocaleDateString('en-IN', { month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' });
+  return day.slice(0, 7) === today.slice(0, 7) ? 'Earlier in ' + month : month;
 }

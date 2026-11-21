@@ -1,3 +1,5 @@
+import './booking-form-modal.css';
+import { FormInput, FormTextarea } from './ui/FormControls';
 import { AdminAlert } from './ui/AdminUi';
 import { DeliverablePresetPicker } from './DeliverablePresetPicker';
 import { DeliverablesEditor } from './DeliverablesEditor';
@@ -10,7 +12,7 @@ import {
   CustomerIdentityChoice,
   type CustomerIdentityOption,
 } from "./CustomerIdentityChoice";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   Check,
   ChevronRight,
@@ -70,6 +72,7 @@ import { BOOKING_DISCOUNTS, changeBookingDiscount } from "./bookingDiscount";
 type Props = {
   booking?: Booking | null;
   enquiry?: Enquiry | null;
+  lockEnquiry?: boolean;
   packages: Package[];
   services: ServiceNavLink[];
   staffAccounts: StaffAccountOption[];
@@ -160,6 +163,7 @@ export function BookingFormModal(props: Props) {
 function BookingWizard({
   booking,
   enquiry: initialEnquiry,
+  lockEnquiry = false,
   packages,
   services,
   staffAccounts,
@@ -167,6 +171,8 @@ function BookingWizard({
   onSave,
   initialSchedule,
 }: Props) {
+  // Existing booking edits and enquiry conversion retain their established wizard.
+  const compact = !booking && !initialEnquiry && !lockEnquiry;
   const [enquiry, setEnquiry] = useState<Enquiry | null>(
     initialEnquiry || null,
   );
@@ -209,13 +215,13 @@ function BookingWizard({
   const restoredStep =
     stored?.step && stored.step >= 0 && stored.step <= 3 ? stored.step : 0;
   const [customerName, setCustomerName] = useState(
-    stored?.customerName ?? booking?.customerName ?? enquiry?.name ?? "",
+    lockEnquiry && initialEnquiry ? initialEnquiry.name : stored?.customerName ?? booking?.customerName ?? enquiry?.name ?? "",
   );
   const [customerPhone, setCustomerPhone] = useState(
-    stored?.customerPhone ?? booking?.customerPhone ?? enquiry?.phone ?? "",
+    lockEnquiry && initialEnquiry ? initialEnquiry.phone : stored?.customerPhone ?? booking?.customerPhone ?? enquiry?.phone ?? "",
   );
   const [customerEmail, setCustomerEmail] = useState(
-    stored?.customerEmail ?? booking?.customerEmail ?? enquiry?.email ?? "",
+    lockEnquiry && initialEnquiry ? initialEnquiry.email : stored?.customerEmail ?? booking?.customerEmail ?? enquiry?.email ?? "",
   );
   const [source, setSource] = useState<EnquirySource | "">(
     stored?.source ?? booking?.source ?? enquiry?.source ?? "website",
@@ -458,9 +464,9 @@ function BookingWizard({
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     window.setTimeout(() => {
-      const initialField = dialogRef.current?.querySelector<HTMLElement>(
+      const initialField = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(
         "[data-wizard-autofocus]",
-      );
+      ) || []).find(element => element.getClientRects().length > 0);
       const closeButton = dialogRef.current?.querySelector<HTMLElement>(
         '[aria-label="Close"]',
       );
@@ -478,9 +484,9 @@ function BookingWizard({
       if (event.key !== "Tab" || !dialogRef.current) return;
       const focusable = Array.from(
         dialogRef.current.querySelectorAll<HTMLElement>(
-          'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])',
+          'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], summary, [tabindex]:not([tabindex="-1"])',
         ),
-      );
+      ).filter(element => element.getClientRects().length > 0);
       if (!focusable.length) return;
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
@@ -500,6 +506,12 @@ function BookingWizard({
       restoreFocusRef.current?.focus();
     };
   }, []);
+
+  useEffect(() => {
+    if (!compact || !error) return;
+    dialogRef.current?.querySelectorAll('details').forEach(details => { details.open = true; });
+    dialogRef.current?.querySelector('.booking-form-body')?.scrollTo({ top: 0 });
+  }, [compact, error]);
 
   useEffect(() => {
     const draft: BookingDraft = {
@@ -891,14 +903,207 @@ function BookingWizard({
           : wizardStep,
       );
 
+  const bookingDateField = (
+    <label className="text-sm text-slate-700">
+      {BOOKING_WIZARD_FIELD_LABELS.bookingDate}
+      <FormInput
+        id="booking-date"
+        type="date"
+        className={`${input} mt-1 ${fieldErrors.time && !bookingDate ? "border-red-400 focus:border-red-500 focus:ring-red-100" : ""}`}
+        value={bookingDate}
+        aria-invalid={Boolean(fieldErrors.time && !bookingDate)}
+        aria-describedby={
+          fieldErrors.time
+            ? "booking-time-error booking-time-hint"
+            : "booking-time-hint"
+        }
+        onChange={(e) => {
+          setBookingDate(e.target.value);
+          setError("");
+          setFieldErrors((current) => ({
+            ...current,
+            time: undefined,
+          }));
+          invalidateStep(1);
+        }}
+      />
+    </label>
+  );
+  const preferredEventField = (
+    <label className="text-sm text-slate-700">
+      {BOOKING_WIZARD_FIELD_LABELS.preferredEvent}
+      <FormInput
+        className={`${input} mt-1`}
+        value={preferredEvent}
+        onChange={(e) => setPreferredEvent(e.target.value)}
+      />
+    </label>
+  );
+  const locationField = (
+    <label className="text-sm text-slate-700">
+      {BOOKING_WIZARD_FIELD_LABELS.location}
+      <FormInput
+        className={`${input} mt-1`}
+        value={location}
+        onChange={(e) => setLocation(e.target.value)}
+      />
+    </label>
+  );
+  const customerNameField = (
+    <label className="text-sm text-slate-700">
+      {BOOKING_WIZARD_FIELD_LABELS.customerName}{" "}
+      <span
+        className="font-semibold text-red-600"
+        aria-hidden="true"
+      >
+        *
+      </span>
+      <span className="sr-only"> required</span>
+      <FormInput
+        id="booking-customer-name"
+        readOnly={lockEnquiry}
+        data-wizard-autofocus={!compact || undefined}
+        required
+        placeholder={compact ? "Customer name" : undefined}
+        className={`${input} mt-1 ${fieldErrors.customerName ? "border-red-400 focus:border-red-500 focus:ring-red-100" : ""}`}
+        value={customerName}
+        aria-invalid={Boolean(fieldErrors.customerName)}
+        aria-describedby={
+          fieldErrors.customerName
+            ? "booking-customer-name-error"
+            : undefined
+        }
+        onChange={(e) => {
+          setCustomerName(e.target.value);
+          setFieldErrors((current) => ({
+            ...current,
+            customerName: undefined,
+          }));
+          invalidateStep(0);
+        }}
+      />
+      {fieldErrors.customerName && (
+        <span
+          id="booking-customer-name-error"
+          className="mt-1 block text-xs font-medium text-red-600"
+        >
+          {fieldErrors.customerName}
+        </span>
+      )}
+    </label>
+  );
+  const customerPhoneField = (
+    <label className="text-sm text-slate-700">
+      {BOOKING_WIZARD_FIELD_LABELS.customerPhone}{" "}
+      <span
+        className="font-semibold text-red-600"
+        aria-hidden="true"
+      >
+        *
+      </span>
+      <span className="sr-only"> required</span>
+      <FormInput
+        id="booking-customer-phone"
+        data-wizard-autofocus={compact || undefined}
+        placeholder={compact ? "Mobile number" : undefined}
+        readOnly={lockEnquiry}
+        required
+        type="tel"
+        inputMode="tel"
+        maxLength={20}
+        className={`${input} mt-1 ${fieldErrors.customerPhone ? "border-red-400 focus:border-red-500 focus:ring-red-100" : ""}`}
+        value={customerPhone}
+        aria-invalid={Boolean(fieldErrors.customerPhone)}
+        aria-describedby={
+          fieldErrors.customerPhone
+            ? "booking-customer-phone-error"
+            : undefined
+        }
+        onChange={(e) => {
+          setCustomerPhone(e.target.value);
+          setEnquiry(null);
+          selectionVersion.current += 1;
+          setSelectingEnquiry(false);
+          setCustomerLookup(null);
+          setNewShootConfirmed(false);
+          setSeparateShootReason("");
+          setFieldErrors((current) => ({
+            ...current,
+            customerPhone: undefined,
+          }));
+          invalidateStep(0);
+        }}
+      />
+      {fieldErrors.customerPhone && (
+        <span
+          id="booking-customer-phone-error"
+          className="mt-1 block text-xs font-medium text-red-600"
+        >
+          {fieldErrors.customerPhone}
+        </span>
+      )}
+    </label>
+  );
+  const contactFields = (
+    <>
+      <label className="text-sm text-slate-700">
+        {BOOKING_WIZARD_FIELD_LABELS.customerEmail}
+        <FormInput
+          type="email"
+          className={`${input} mt-1`}
+          readOnly={lockEnquiry}
+          value={customerEmail}
+          onChange={(e) => setCustomerEmail(e.target.value)}
+        />
+      </label>
+      <LeadSourceSelect
+        compact={compact}
+        value={source}
+        onChange={setSource}
+        allowUnrecorded={source === ""}
+        labelClassName="font-normal"
+      />
+    </>
+  );
+  const whatsappConsent = (
+    <label className="flex items-start gap-3 text-sm text-emerald-950">
+      <input
+        type="checkbox"
+        className="mt-1"
+        checked={whatsappOptIn}
+        onChange={(e) => {
+          setWhatsappOptIn(e.target.checked);
+          if (!e.target.checked)
+            setWhatsappNotificationsEnabled(false);
+        }}
+      />
+      <span>
+        {compact ? "Customer agreed to WhatsApp updates" : "Customer has explicitly agreed to receive booking and photoshoot updates through WhatsApp."}
+      </span>
+    </label>
+  );
+  const whatsappNotifications = (
+    <label className="flex items-start gap-3 text-sm text-emerald-950">
+      <input
+        type="checkbox"
+        className="mt-1"
+        checked={whatsappNotificationsEnabled}
+        disabled={!whatsappOptIn}
+        onChange={(e) =>
+          setWhatsappNotificationsEnabled(e.target.checked)
+        }
+      />
+      <span>Enable automated booking notifications (English).</span>
+    </label>
+  );
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 sm:items-center sm:p-4">
+    <div className={`${compact ? "booking-create-overlay" : ""} fixed inset-0 z-50 flex justify-center bg-black/50 sm:items-center sm:p-4 ${lockEnquiry ? "items-center p-2" : "items-end"}`}>
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="booking-wizard-title"
-        className="flex max-h-[96dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-2xl bg-white shadow-xl sm:max-h-[92dvh] sm:rounded-2xl"
+        className={`${compact ? "booking-create-modal" : ""} flex max-h-[96dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-2xl bg-white shadow-xl sm:max-h-[92dvh] sm:rounded-2xl`}
       >
         <div className="border-b border-slate-200 px-4 py-4 sm:px-5">
           <div className="flex items-center justify-between">
@@ -907,10 +1112,10 @@ function BookingWizard({
                 id="booking-wizard-title"
                 className="text-lg font-semibold text-slate-900"
               >
-                {booking ? "Edit booking" : "Create booking"}
+                {booking ? "Edit booking" : lockEnquiry ? "Convert to booking" : compact ? "New booking" : "Create booking"}
               </h2>
               <p className="mt-0.5 text-xs font-medium text-slate-500">
-                Step {step + 1} of {wizardSteps.length}
+                {compact ? "Add customer and shoot details. Other details can be added now or later." : `Step ${step + 1} of ${wizardSteps.length}`}
               </p>
             </div>
             <button
@@ -922,7 +1127,7 @@ function BookingWizard({
               <X className="h-5 w-5" />
             </button>
           </div>
-          <nav className="mt-4" aria-label="Booking progress">
+          {!compact && <nav className="mt-4" aria-label="Booking progress">
             <ol className="grid grid-cols-4 gap-1.5 sm:gap-3">
               {wizardSteps.map((wizardStep, index) => {
                 const current = index === step;
@@ -961,17 +1166,17 @@ function BookingWizard({
                 );
               })}
             </ol>
-          </nav>
+          </nav>}
         </div>
-        <div className="space-y-5 overflow-y-auto p-4 sm:p-5">
-          <div className="rounded-xl bg-slate-50 p-3">
+        <div className="booking-form-body space-y-5 overflow-y-auto p-4 sm:p-5">
+          {!compact && <div className="rounded-xl bg-slate-50 p-3">
             <p className="text-sm font-medium text-slate-700">
               {wizardSteps[step].description}
             </p>
             <p className="mt-1 text-xs text-slate-500">
               Fields marked * are required. Other details can be added later.
             </p>
-          </div>
+          </div>}
           {error && (
             <AdminAlert contentClassName="flex gap-2">
 
@@ -979,113 +1184,19 @@ function BookingWizard({
             </AdminAlert>
           )}
 
-          {step === 0 && (
+          {compact && deliverablesError && <AdminAlert>
+            {deliverablesError}
+            <button type="button" className="ml-3 underline" onClick={() => setDeliverablesRetry(value => value + 1)}>Retry</button>
+          </AdminAlert>}
+
+          {(compact || step === 0) && (
             <section className="space-y-3">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                 Customer details
               </h3>
               <div className="grid gap-3 sm:grid-cols-2">
-                <label className="text-sm text-slate-700">
-                  {BOOKING_WIZARD_FIELD_LABELS.customerName}{" "}
-                  <span
-                    className="font-semibold text-red-600"
-                    aria-hidden="true"
-                  >
-                    *
-                  </span>
-                  <span className="sr-only"> required</span>
-                  <input
-                    id="booking-customer-name"
-                    data-wizard-autofocus
-                    required
-                    className={`${input} mt-1 ${fieldErrors.customerName ? "border-red-400 focus:border-red-500 focus:ring-red-100" : ""}`}
-                    value={customerName}
-                    aria-invalid={Boolean(fieldErrors.customerName)}
-                    aria-describedby={
-                      fieldErrors.customerName
-                        ? "booking-customer-name-error"
-                        : undefined
-                    }
-                    onChange={(e) => {
-                      setCustomerName(e.target.value);
-                      setFieldErrors((current) => ({
-                        ...current,
-                        customerName: undefined,
-                      }));
-                      invalidateStep(0);
-                    }}
-                  />
-                  {fieldErrors.customerName && (
-                    <span
-                      id="booking-customer-name-error"
-                      className="mt-1 block text-xs font-medium text-red-600"
-                    >
-                      {fieldErrors.customerName}
-                    </span>
-                  )}
-                </label>
-                <label className="text-sm text-slate-700">
-                  {BOOKING_WIZARD_FIELD_LABELS.customerPhone}{" "}
-                  <span
-                    className="font-semibold text-red-600"
-                    aria-hidden="true"
-                  >
-                    *
-                  </span>
-                  <span className="sr-only"> required</span>
-                  <input
-                    id="booking-customer-phone"
-                    required
-                    type="tel"
-                    inputMode="tel"
-                    maxLength={20}
-                    className={`${input} mt-1 ${fieldErrors.customerPhone ? "border-red-400 focus:border-red-500 focus:ring-red-100" : ""}`}
-                    value={customerPhone}
-                    aria-invalid={Boolean(fieldErrors.customerPhone)}
-                    aria-describedby={
-                      fieldErrors.customerPhone
-                        ? "booking-customer-phone-error"
-                        : undefined
-                    }
-                    onChange={(e) => {
-                      setCustomerPhone(e.target.value);
-                      setEnquiry(null);
-                      selectionVersion.current += 1;
-                      setSelectingEnquiry(false);
-                      setCustomerLookup(null);
-                      setNewShootConfirmed(false);
-                      setSeparateShootReason("");
-                      setFieldErrors((current) => ({
-                        ...current,
-                        customerPhone: undefined,
-                      }));
-                      invalidateStep(0);
-                    }}
-                  />
-                  {fieldErrors.customerPhone && (
-                    <span
-                      id="booking-customer-phone-error"
-                      className="mt-1 block text-xs font-medium text-red-600"
-                    >
-                      {fieldErrors.customerPhone}
-                    </span>
-                  )}
-                </label>
-                <label className="text-sm text-slate-700">
-                  {BOOKING_WIZARD_FIELD_LABELS.customerEmail}
-                  <input
-                    type="email"
-                    className={`${input} mt-1`}
-                    value={customerEmail}
-                    onChange={(e) => setCustomerEmail(e.target.value)}
-                  />
-                </label>
-                <LeadSourceSelect
-                  value={source}
-                  onChange={setSource}
-                  allowUnrecorded={source === ""}
-                  labelClassName="font-normal"
-                />
+                {compact ? <>{customerPhoneField}{customerNameField}</> : <>{customerNameField}{customerPhoneField}</>}
+                {!compact && contactFields}
               </div>
               {enquiry && (
                 <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
@@ -1093,7 +1204,7 @@ function BookingWizard({
                   <p className="mt-1">
                     This booking will be linked to the enquiry when you save.
                   </p>
-                  <button
+                  {lockEnquiry ? <p>Edit the enquiry to update these contact details.</p> : <button
                     type="button"
                     onClick={() => {
                       setEnquiry(null);
@@ -1103,7 +1214,7 @@ function BookingWizard({
                     className="mt-1 min-h-10 font-semibold underline"
                   >
                     Change enquiry
-                  </button>
+                  </button>}
                 </div>
               )}
               {selectingEnquiry && (
@@ -1113,6 +1224,7 @@ function BookingWizard({
               )}
               {!booking && (
                 <CustomerIdentityChoice
+                  allowLookup={!compact}
                   key={`${customerName}:${customerPhone}:${enquiry?.id || ""}`}
                   options={identityOptions}
                   selected={selectedCustomer}
@@ -1157,10 +1269,11 @@ function BookingWizard({
                   onChecking={setCustomerLookupChecking}
                 />
               )}
+              {compact && whatsappConsent}
             </section>
           )}
 
-          {step === 1 && (
+          {(compact || step === 1) && (
             <section className="space-y-3">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                 Shoot details
@@ -1176,6 +1289,7 @@ function BookingWizard({
                   </span>
                   <span className="sr-only"> required</span>
                   <Select
+                    compact={compact}
                     id="booking-shoot-type"
                     data-wizard-autofocus
                     required
@@ -1185,48 +1299,12 @@ function BookingWizard({
                     options={serviceOptions.map(type => ({ value: type, label: type }))}
                   />
                 </label>
-                <label className="text-sm text-slate-700">
-                  {BOOKING_WIZARD_FIELD_LABELS.preferredEvent}
-                  <input
-                    className={`${input} mt-1`}
-                    value={preferredEvent}
-                    onChange={(e) => setPreferredEvent(e.target.value)}
-                  />
-                </label>
-                <label className="text-sm text-slate-700">
-                  {BOOKING_WIZARD_FIELD_LABELS.bookingDate}
-                  <input
-                    id="booking-date"
-                    type="date"
-                    className={`${input} mt-1 ${fieldErrors.time && !bookingDate ? "border-red-400 focus:border-red-500 focus:ring-red-100" : ""}`}
-                    value={bookingDate}
-                    aria-invalid={Boolean(fieldErrors.time && !bookingDate)}
-                    aria-describedby={
-                      fieldErrors.time
-                        ? "booking-time-error booking-time-hint"
-                        : "booking-time-hint"
-                    }
-                    onChange={(e) => {
-                      setBookingDate(e.target.value);
-                      setError("");
-                      setFieldErrors((current) => ({
-                        ...current,
-                        time: undefined,
-                      }));
-                      invalidateStep(1);
-                    }}
-                  />
-                </label>
-                <label className="text-sm text-slate-700">
-                  {BOOKING_WIZARD_FIELD_LABELS.location}
-                  <input
-                    className={`${input} mt-1`}
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                  />
-                </label>
+                {compact ? locationField : preferredEventField}
+                {!compact && bookingDateField}
+                {!compact && locationField}
                 <div className="sm:col-span-2">
                   <ShootDurationSelector
+                    dateField={compact ? bookingDateField : undefined}
                     bookingDate={bookingDate}
                     startTime={startTime}
                     endTime={endTime}
@@ -1264,10 +1342,19 @@ function BookingWizard({
                   />
                 </div>
               </div>
+              {compact && <fieldset className="booking-create-assignee">
+                <legend>Assigned staff account</legend>
+                {!staffAccounts.some(account => account.canTakeShoots === true) && <p className="text-sm text-admin-subtle">No staff enabled to take shoots. Enable Can take shoots in Staff settings, or assign later.</p>}
+                <div>
+                  {staffAccounts.filter(account => account.canTakeShoots === true).map(account => <button key={account.id} type="button" aria-pressed={assignedStaffAccountId === account.id} onClick={() => setAssignedStaffAccountId(account.id)}>{account.name}</button>)}
+                  <button type="button" aria-pressed={!assignedStaffAccountId} onClick={() => setAssignedStaffAccountId("")}>Later</button>
+                </div>
+              </fieldset>}
             </section>
           )}
 
-          {step === 2 && (
+          {(compact || step === 2) && (
+            <BookingOptionalSection compact={compact} title={canEditBookingPricing ? "Package & price" : "Package"} hint={canEditBookingPricing && agreedTotal !== '' ? `₹${Number(agreedTotal).toLocaleString('en-IN')}` : 'Optional'}>
             <section className="space-y-3">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                 Package and ownership
@@ -1276,6 +1363,7 @@ function BookingWizard({
                 <label className="text-sm text-slate-700">
                   {BOOKING_WIZARD_FIELD_LABELS.package}
                   <Select
+                    compact={compact}
                     id="booking-package"
                     data-wizard-autofocus
                     className="mt-1"
@@ -1295,6 +1383,7 @@ function BookingWizard({
                   <label className="text-sm text-slate-700">
                     Discount (₹)
                     <Select
+                      compact={compact}
                       id="booking-discount"
                       className="mt-1"
                       value={String(discount)}
@@ -1316,7 +1405,7 @@ function BookingWizard({
                 {canEditBookingPricing && (
                   <label className="text-sm text-slate-700">
                     Base agreed amount after discount (₹)
-                    <input
+                    <FormInput
                       id="booking-agreed-total"
                       type="number"
                       min="0"
@@ -1327,24 +1416,25 @@ function BookingWizard({
                     />
                   </label>
                 )}
-                <label className="text-sm text-slate-700">
+                {!compact && <label className="text-sm text-slate-700">
                   {BOOKING_WIZARD_FIELD_LABELS.assignedStaffAccount}
                   <Select
+                    compact={compact}
                     className="mt-1"
                     value={assignedStaffAccountId}
                     onChange={setAssignedStaffAccountId}
                     options={[
                       { value: '', label: 'Unassigned' },
-                      ...(booking?.assignedStaffAccountId && !staffAccounts.some(account => account.id === booking.assignedStaffAccountId)
+                      ...(booking?.assignedStaffAccountId && !staffAccounts.some(account => account.canTakeShoots === true && account.id === booking.assignedStaffAccountId)
                         ? [{ value: booking.assignedStaffAccountId, label: `${booking.assignedStaffAccountName || 'Previous assignee'} (current)` }] : []),
-                      ...staffAccounts.map(account => ({ value: account.id, label: `${account.name}${account.jobTitle ? ` · ${account.jobTitle}` : ''}` })),
+                      ...staffAccounts.filter(account => account.canTakeShoots === true).map(account => ({ value: account.id, label: `${account.name}${account.jobTitle ? ` · ${account.jobTitle}` : ''}` })),
                     ]}
                   />
-                </label>
+                </label>}
                 {canViewPayments && (
                   <label className="text-sm text-slate-700">
                     {BOOKING_WIZARD_FIELD_LABELS.paymentDueDate}
-                    <input
+                    <FormInput
                       type="date"
                       className={`${input} mt-1`}
                       value={paymentDueDate}
@@ -1355,7 +1445,7 @@ function BookingWizard({
                 {canViewPayments && enquiry && (
                   <label className="text-sm text-slate-700">
                     {BOOKING_WIZARD_FIELD_LABELS.advanceAmount}
-                    <input
+                    <FormInput
                       type="number"
                       min="0"
                       className={`${input} mt-1`}
@@ -1368,6 +1458,7 @@ function BookingWizard({
                   <label className="text-sm text-slate-700">
                     {BOOKING_WIZARD_FIELD_LABELS.advanceMethod}
                     <Select
+                      compact={compact}
                       className="mt-1"
                       value={advanceMethod}
                       onChange={value => setAdvanceMethod(value as PaymentMethod)}
@@ -1383,28 +1474,36 @@ function BookingWizard({
                 )}
               </div>
             </section>
+            </BookingOptionalSection>
           )}
 
-          {step === 2 && <CrewListEditor value={crewList} staffAccounts={staffAccounts} onChange={setCrewList} />}
-          {step === 2 && <div className="mt-4 space-y-3" aria-label="Booking deliverables fields">
+          {compact && <BookingOptionalSection compact title="Email & source" hint={customerEmail || 'Optional'}>
+            <div className="grid gap-3 sm:grid-cols-2">{contactFields}</div>
+            <div className="mt-3">{whatsappNotifications}</div>
+          </BookingOptionalSection>}
+          {!compact && step === 2 && <>
+          <CrewListEditor value={crewList} staffAccounts={staffAccounts} onChange={setCrewList} />
+          <div className="mt-4 space-y-3" aria-label="Booking deliverables fields">
             {deliverablesLoading ? <p role="status">Loading deliverables…</p> : deliverablesError ? <AdminAlert as="span">{deliverablesError}<button type="button" className="ml-3 underline" onClick={() => setDeliverablesRetry(value => value + 1)}>Retry</button></AdminAlert> : <>{deliverableConfiguration && <DeliverablePresetPicker configuration={deliverableConfiguration} rows={deliverables} onApply={setDeliverables} />}<DeliverablesEditor catalog={deliverableCatalog} rows={deliverables} onChange={setDeliverables} canPrice={canEditBookingPricing} showExtrasTotal={false} /></>}
-            {booking && <label className="block text-sm">Reason for changing deliverables<input className="mt-1 min-h-11 w-full rounded-lg border px-3" value={deliverablesChangeReason} maxLength={1000} onChange={e => setDeliverablesChangeReason(e.target.value)} /></label>}
+            {booking && <label className="block text-sm">Reason for changing deliverables<FormInput className="mt-1 min-h-11 w-full rounded-lg border px-3" value={deliverablesChangeReason} maxLength={1000} onChange={e => setDeliverablesChangeReason(e.target.value)} /></label>}
             {canEditBookingPricing && <dl aria-label="Booking pricing summary" className="grid grid-cols-3 divide-x divide-admin-border rounded-lg border border-admin-border bg-admin-canvas py-2.5 text-xs">
               <div className="min-w-0 px-3"><dt className="text-[10px] text-admin-subtle">Base after discount</dt><dd className="mt-1 font-medium text-admin-text">{agreedTotal === '' ? '—' : `₹${Number(agreedTotal).toLocaleString('en-IN')}`}</dd></div>
               <div className="min-w-0 px-3"><dt className="text-[10px] text-admin-subtle">Extras</dt><dd className="mt-1 font-medium text-admin-text">₹{extras.toLocaleString('en-IN')}</dd></div>
               <div className="min-w-0 px-3"><dt className="text-[10px] text-admin-subtle">Booking total</dt><dd className="mt-1 font-semibold text-admin-primary">{agreedTotal === '' ? '—' : `₹${(Math.round((Number(agreedTotal) + extras) * 100) / 100).toLocaleString('en-IN')}`}</dd></div>
             </dl>}
-          </div>}
-          {step === 3 && (
+          </div></>}
+          {(compact || step === 3) && (
+            <BookingOptionalSection compact={compact} title="Notes & follow-up" hint="Optional">
             <section className="space-y-3">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                 Next action
               </h3>
+              {compact && preferredEventField}
               {!booking ? (
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="text-sm text-slate-700">
                   {BOOKING_WIZARD_FIELD_LABELS.followUpAt}
-                  <input
+                  <FormInput
                     data-wizard-autofocus
                     type="datetime-local"
                     className={`${input} mt-1`}
@@ -1414,7 +1513,7 @@ function BookingWizard({
                 </label>
                 <label className="text-sm text-slate-700">
                   {BOOKING_WIZARD_FIELD_LABELS.followUpNote}
-                  <input
+                  <FormInput
                     className={`${input} mt-1`}
                     value={followUpNote}
                     onChange={(e) => setFollowUpNote(e.target.value)}
@@ -1424,7 +1523,7 @@ function BookingWizard({
               ) : <p className="text-sm text-slate-500">Manage follow-ups in the booking’s Notes &amp; Follow-ups tab.</p>}
               <label className="block text-sm text-slate-700">
                 {BOOKING_WIZARD_FIELD_LABELS.notes}
-                <textarea
+                <FormTextarea
                   rows={3}
                   className={`${input} mt-1 resize-y`}
                   value={notes}
@@ -1432,49 +1531,24 @@ function BookingWizard({
                 />
               </label>
             </section>
+            </BookingOptionalSection>
           )}
 
-          {step === 3 && (
+          {!compact && step === 3 && (
             <section className="space-y-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-emerald-800">
                 {BOOKING_WIZARD_FIELD_LABELS.whatsapp}
               </h3>
-              <label className="flex items-start gap-3 text-sm text-emerald-950">
-                <input
-                  type="checkbox"
-                  className="mt-1"
-                  checked={whatsappOptIn}
-                  onChange={(e) => {
-                    setWhatsappOptIn(e.target.checked);
-                    if (!e.target.checked)
-                      setWhatsappNotificationsEnabled(false);
-                  }}
-                />
-                <span>
-                  Customer has explicitly agreed to receive booking and
-                  photoshoot updates through WhatsApp.
-                </span>
-              </label>
-              <label className="flex items-start gap-3 text-sm text-emerald-950">
-                <input
-                  type="checkbox"
-                  className="mt-1"
-                  checked={whatsappNotificationsEnabled}
-                  disabled={!whatsappOptIn}
-                  onChange={(e) =>
-                    setWhatsappNotificationsEnabled(e.target.checked)
-                  }
-                />
-                <span>Enable automated booking notifications (English).</span>
-              </label>
+              {whatsappConsent}
+              {whatsappNotifications}
             </section>
           )}
         </div>
-        <div className="grid grid-cols-2 gap-2 border-t border-slate-200 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-5">
+        <div className="booking-form-footer grid grid-cols-2 gap-2 border-t border-slate-200 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-5">
           <button
             type="button"
             onClick={
-              step === 0
+              compact || step === 0
                 ? closeAndDiscardDraft
                 : () => {
                     setError("");
@@ -1484,9 +1558,9 @@ function BookingWizard({
             }
             className="h-12 rounded-xl border border-slate-300 px-4 text-sm font-semibold text-slate-700 outline-none hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-blue-500"
           >
-            {step === 0 ? "Cancel" : "Back"}
+            {compact || step === 0 ? "Cancel" : "Back"}
           </button>
-          {step < 3 ? (
+          {!compact && step < 3 ? (
             <button
               type="button"
               onClick={() => void nextStep()}
@@ -1521,9 +1595,20 @@ function BookingWizard({
   );
 }
 
+function BookingOptionalSection({ compact, title, hint, children }: {
+  compact: boolean; title: string; hint: string; children: ReactNode;
+}) {
+  if (!compact) return <>{children}</>;
+  return <details className="booking-create-optional">
+    <summary><span>{title}</span><span className="booking-create-optional-hint">{hint}</span><ChevronRight size={16} aria-hidden="true" /></summary>
+    <div className="booking-create-optional-body">{children}</div>
+  </details>;
+}
+
 type PresetDuration = 1 | 2 | 3;
 
 function ShootDurationSelector({
+  dateField,
   bookingDate,
   startTime,
   endTime,
@@ -1533,6 +1618,7 @@ function ShootDurationSelector({
   onEndTimeChange,
   onClear,
 }: {
+  dateField?: ReactNode;
   bookingDate: string;
   startTime: string;
   endTime: string;
@@ -1588,62 +1674,70 @@ function ShootDurationSelector({
     setCustomError("");
   };
 
-  return (
-    <section
-      className="rounded-xl border border-slate-200 bg-slate-50 p-3 sm:p-4"
-      aria-labelledby="shoot-duration-title"
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h4
-            id="shoot-duration-title"
-            className="text-sm font-semibold text-slate-800"
-          >
-            Choose shoot duration
-          </h4>
-          <p className="mt-0.5 text-xs text-slate-500">
-            Choose when the shoot starts, then select its duration.
-          </p>
-        </div>
-        {(startTime || endTime) && (
-          <button
-            type="button"
-            onClick={() => {
-              setCustomOpen(false);
-              setCustomError("");
-              onClear();
-            }}
-            className="shrink-0 text-xs font-semibold text-slate-600 underline-offset-2 hover:underline"
-          >
-            Clear time
-          </button>
-        )}
+  const durationHeader = (
+    <div className="booking-duration-header flex items-start justify-between gap-3">
+      <div>
+        <h4
+          id="shoot-duration-title"
+          className="text-sm font-semibold text-slate-800"
+        >
+          Choose shoot duration
+        </h4>
+        <p className="mt-0.5 text-xs text-slate-500">
+          Choose when the shoot starts, then select its duration.
+        </p>
       </div>
-
-      <label className="mt-3 block text-sm text-slate-700">
-        Shoot start
-        <input
-          id="booking-start-time"
-          type="time"
-          disabled={!bookingDate}
-          className={`mt-1 h-11 w-full rounded-lg border bg-white px-3 text-sm text-slate-900 outline-none focus:ring-2 ${error ? "border-red-400 focus:border-red-500 focus:ring-red-100" : "border-slate-300 focus:border-blue-500 focus:ring-blue-100"} disabled:bg-slate-100 disabled:text-slate-400`}
-          value={startTime}
-          aria-invalid={Boolean(error)}
-          aria-describedby={
-            error ? "booking-time-error booking-time-hint" : "booking-time-hint"
-          }
-          onChange={(event) => {
+      {(startTime || endTime) && (
+        <button
+          type="button"
+          onClick={() => {
             setCustomOpen(false);
             setCustomError("");
-            onStartTimeChange(event.target.value);
+            onClear();
           }}
-        />
-      </label>
+          className="shrink-0 text-xs font-semibold text-slate-600 underline-offset-2 hover:underline"
+        >
+          Clear time
+        </button>
+      )}
+    </div>
+  );
+  const startField = (
+    <label className={`${dateField ? "" : "mt-3"} block text-sm text-slate-700`}>
+      Shoot start
+      <FormInput
+        id="booking-start-time"
+        type="time"
+        disabled={!bookingDate}
+        className={`mt-1 h-11 w-full rounded-lg border bg-white px-3 text-sm text-slate-900 outline-none focus:ring-2 ${error ? "border-red-400 focus:border-red-500 focus:ring-red-100" : "border-slate-300 focus:border-blue-500 focus:ring-blue-100"} disabled:bg-slate-100 disabled:text-slate-400`}
+        value={startTime}
+        aria-invalid={Boolean(error)}
+        aria-describedby={
+          error ? "booking-time-error booking-time-hint" : "booking-time-hint"
+        }
+        onChange={(event) => {
+          setCustomOpen(false);
+          setCustomError("");
+          onStartTimeChange(event.target.value);
+        }}
+      />
+    </label>
+  );
+
+  return (
+    <section
+      className="booking-duration rounded-xl border border-slate-200 bg-slate-50 p-3 sm:p-4"
+      aria-labelledby="shoot-duration-title"
+    >
+      {!dateField && durationHeader}
+      {dateField ? <div className="grid gap-3 sm:grid-cols-2">{dateField}{startField}</div> : startField}
+
       <p id="booking-time-hint" className="mt-1 text-xs text-slate-500">
         {bookingDate
           ? "Leave the shoot time blank if it is not decided yet."
           : "Choose a booking date before setting the shoot time."}
       </p>
+      {dateField && durationHeader}
       {earlyMorningStart && (
         <AdminAlert tone="warning" className="mt-3" contentClassName="flex items-start gap-2">
 
@@ -1666,7 +1760,7 @@ function ShootDurationSelector({
         </AdminAlert>
       )}
 
-      <div className="mt-3 grid gap-2">
+      <div className="booking-duration-options mt-3 grid gap-2">
         {([1, 2, 3] as const).map((hours) => {
           const crossesMidnight = startTime
             ? timeToMinutes(startTime) + hours * 60 >= 24 * 60
@@ -1737,7 +1831,7 @@ function ShootDurationSelector({
         <div className="mt-2 rounded-xl border border-slate-200 bg-white p-3">
           <label className="text-sm text-slate-700">
             Shoot ends at
-            <input
+            <FormInput
               id="booking-end-time"
               autoFocus
               type="time"

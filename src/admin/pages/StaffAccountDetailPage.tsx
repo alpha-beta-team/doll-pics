@@ -90,6 +90,7 @@ export function StaffAccountDetailPage() {
           <DetailRow label="Role" value={account.role} />
           <DetailRow label="Status" value={account.isActive ? 'Active' : 'Inactive'} />
           <DetailRow label="CMS login" value={account.email || 'Not set'} />
+          <DetailRow label="Can take shoots" value={account.canTakeShoots ? 'Yes' : 'No'} />
           <DetailRow label="Attendance login" value={account.attendanceEnabled ? 'Enabled' : 'Disabled'} />
           <DetailRow label="Phone policy" value={hasStaffPermission(account, MASK_CLIENT_PHONE_PERMISSION) ? 'Masked' : 'Visible'} />
         </AdminCard>

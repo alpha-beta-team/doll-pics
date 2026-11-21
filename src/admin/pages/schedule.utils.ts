@@ -70,11 +70,11 @@ export function slotHasConflict(
 
 export function visibleHourBounds(bookings: ScheduleBookingItem[]) {
   const timed = bookings.filter(item => item.startTime && item.endTime);
-  if (!timed.length) return { startHour: DEFAULT_START_HOUR, endHour: DEFAULT_END_HOUR };
+  if (!timed.length) return { startHour: 6, endHour: DEFAULT_END_HOUR };
   const starts = timed.map(item => Math.floor(timeToMinutes(item.startTime) / 60));
   const ends = timed.map(item => Math.ceil(timeToMinutes(item.endTime) / 60));
   return {
-    startHour: Math.max(0, Math.min(DEFAULT_START_HOUR, ...starts)),
+    startHour: Math.max(0, Math.min(6, ...starts)),
     endHour: Math.min(24, Math.max(DEFAULT_END_HOUR, ...ends)),
   };
 }
@@ -153,4 +153,27 @@ export function layoutScheduleBookings(bookings: ScheduleBookingItem[], minimumM
   }
   finish();
   return result;
+}
+
+export function photographerClash(a: ScheduleBookingItem, b: ScheduleBookingItem) {
+  return a.id !== b.id && Boolean(a.assignedStaffAccountId)
+    && a.assignedStaffAccountId === b.assignedStaffAccountId && a.bookingDate === b.bookingDate
+    && occupiesSchedule(a) && occupiesSchedule(b) && Boolean(a.startTime && b.startTime && a.endTime && b.endTime)
+    && windowsOverlap(a.startTime, a.endTime, b.startTime, b.endTime);
+}
+
+export function photographerColor(id: string | null) {
+  if (!id) return '#64748b';
+
+  let hash = 0;
+  for (const char of id) hash = (31 * hash + char.charCodeAt(0)) >>> 0;
+  return `hsl(${hash % 360} 57% 31%)`;
+}
+
+export function shootTiming(item: ScheduleBookingItem, now: string) {
+  if (item.status === 'shoot_completed' || item.status === 'delivered') return 'Done';
+  if (!occupiesSchedule(item) || !item.startTime || !item.endTime) return '';
+  if (now >= `${item.bookingDate}T${item.endTime}`) return 'Past, not closed';
+  if (item.status === 'confirmed' && now >= `${item.bookingDate}T${item.startTime}`) return 'Shooting now';
+  return '';
 }

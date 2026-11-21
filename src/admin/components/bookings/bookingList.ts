@@ -74,15 +74,16 @@ export function formatBookingMoney(value: number | null | undefined) {
   }).format(value);
 }
 
-export function bookingPriceLabel(booking: Booking, canViewPayments: boolean) {
+export function bookingPriceDisplay(booking: Booking, canViewPayments: boolean) {
   const total = booking.agreedTotal ?? booking.packageListedPrice;
-  if (!canViewPayments) return formatBookingMoney(total);
+  const balance = canViewPayments ? booking.paymentSummary.balanceDue : null;
+  if (balance != null && balance > 0) return { amount: formatBookingMoney(balance), caption: 'due' };
+  return { amount: formatBookingMoney(total), caption: total != null && balance != null ? 'paid' : '' };
+}
 
-  const balance = booking.paymentSummary.balanceDue;
-  if (balance != null && balance > 0) return `${formatBookingMoney(balance)} due`;
-  if (total == null) return 'Price not set';
-  if (balance != null && balance <= 0) return `${formatBookingMoney(total)} paid`;
-  return formatBookingMoney(total);
+export function bookingPriceLabel(booking: Booking, canViewPayments: boolean) {
+  const { amount, caption } = bookingPriceDisplay(booking, canViewPayments);
+  return caption ? `${amount} ${caption}` : amount;
 }
 
 function sortableDate(value?: string) {

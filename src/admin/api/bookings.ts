@@ -101,7 +101,7 @@ export const bookingsApi = {
     status: BookingStatus,
     acknowledgeUntimedConflict?: boolean,
     acknowledgeTimedConflict?: boolean,
-    pricing?: { expectedPricingToken?: string; agreedTotal?: number },
+    pricing?: { expectedPricingToken?: string; agreedTotal?: number; reason?: string },
   ): Promise<Booking> {
     return bookingRequest(`/admin/bookings/${id}/status`, {
       method: 'PATCH',

@@ -1,3 +1,4 @@
+import { FormInput } from '../ui/FormControls';
 import { AdminAlert } from '../ui/AdminUi';
 import { useState } from 'react';
 import { api } from '../../api/client';
@@ -29,7 +30,7 @@ export function BookingDueDateDialog({ booking, onClose, onSaved }: {
     <form onSubmit={event => { event.preventDefault(); void save(); }}>
       <label className="block text-sm font-medium">
         Payment due date
-        <input type="date" value={date} disabled={saving} onChange={event => setDate(event.target.value)} className="mt-2 min-h-11 w-full rounded-lg border border-admin-border bg-admin-surface px-3 outline-none focus-visible:ring-2 focus-visible:ring-admin-focus" />
+        <FormInput type="date" value={date} disabled={saving} onChange={event => setDate(event.target.value)} className="mt-2 min-h-11 w-full rounded-lg border border-admin-border bg-admin-surface px-3 outline-none focus-visible:ring-2 focus-visible:ring-admin-focus" />
       </label>
       <p className="mt-2 text-sm text-admin-subtle">Leave blank to remove the due date.</p>
       {error && <AdminAlert as="span" className="mt-3">{error}</AdminAlert>}

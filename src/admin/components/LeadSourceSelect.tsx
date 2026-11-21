@@ -10,11 +10,13 @@ export function LeadSourceSelect({
   onChange,
   allowUnrecorded = false,
   labelClassName = 'font-medium',
+  compact = false,
 }: {
   value: LeadSourceValue;
   onChange: (value: LeadSourceValue) => void;
   allowUnrecorded?: boolean;
   labelClassName?: string;
+  compact?: boolean;
 }) {
   const id = useId();
   const options = allowUnrecorded
@@ -25,6 +27,7 @@ export function LeadSourceSelect({
     <div className={`text-sm text-slate-700 ${labelClassName}`}>
       <label htmlFor={id}>Came from</label>
       <Select
+        compact={compact}
         id={id}
         className="mt-1"
         value={value}

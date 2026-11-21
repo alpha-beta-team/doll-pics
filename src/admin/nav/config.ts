@@ -54,7 +54,7 @@ export type StudioWorkspace = {
 };
 
 export const SIDEBAR_COLLAPSED_KEY = 'admin_sidebar_collapsed';
-export const SIDEBAR_EXPANDED_WIDTH = 256;
+export const SIDEBAR_EXPANDED_WIDTH = 248;
 export const SIDEBAR_COLLAPSED_WIDTH = 72;
 export const APP_VERSION = 'v1.0.0';
 

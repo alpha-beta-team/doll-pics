@@ -119,3 +119,19 @@ test('an overdue follow-up can be completed without a future replacement date', 
     assert.equal(completed, enquiry.id); assert.deepEqual(results, ['completed']);
   } finally { api.completeEnquiryFollowUp = original; await view.close(); }
 });
+
+test('pipeline, uncalled and due views use India dates and exclude converted leads', async () => {
+  const { matchesEnquiryView, indiaDay } = await import('../src/admin/components/enquiries/enquiryList');
+  const today = indiaDay('2026-11-19T19:00:00Z');
+  assert.equal(today, '2026-11-20');
+  for (const when of ['2026-11-19T12:00:00Z', '2026-11-20T18:29:59Z']) {
+    const pending = { ...enquiry, nextFollowUpAt: when };
+    assert.equal(matchesEnquiryView(pending, 'due', today), true);
+    for (const stage of ['booked', 'closed_lost'] as const) {
+      for (const view of ['active', 'new', 'due', 'all'] as const)
+        assert.equal(matchesEnquiryView({ ...pending, stage }, view, today), view === 'all');
+    }
+  }
+  assert.equal(matchesEnquiryView({ ...enquiry, nextFollowUpAt: '2026-11-20T18:30:00Z' }, 'due', today), false);
+  assert.equal(matchesEnquiryView({ ...enquiry, lastCall: {} as Enquiry['lastCall'] }, 'new', today), false);
+});

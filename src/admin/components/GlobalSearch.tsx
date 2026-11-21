@@ -28,7 +28,7 @@ import { useFeatureAccess } from "../access/useFeatureAccess";
 
 type SearchState = "idle" | "loading" | "success" | "error";
 
-export function GlobalSearch() {
+export function GlobalSearch({ presentation = 'default' }: { presentation?: 'default' | 'booking-record' | 'shortcut' }) {
   const { canView: canViewEnquiries } = useFeatureAccess("enquiries");
   const { canView: canViewBookings } = useFeatureAccess("bookings");
   const navigate = useNavigate();
@@ -190,14 +190,15 @@ export function GlobalSearch() {
 
   return (
     <>
+      {presentation !== 'shortcut' && <>
       <button
         type="button"
         onClick={show}
-        className="hidden h-10 w-full max-w-sm items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-500 transition-colors hover:border-slate-300 hover:bg-white md:flex"
+        className={presentation === 'booking-record' ? 'booking-record-search hidden items-center gap-2 transition-colors md:flex' : 'hidden h-10 w-full max-w-sm items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-500 transition-colors hover:border-slate-300 hover:bg-white md:flex'}
         aria-haspopup="dialog"
       >
         <Search className="h-4 w-4" aria-hidden="true" />
-        <span className="flex-1 text-left">Search customer or phone</span>
+        <span className="flex-1 text-left">{presentation === 'booking-record' ? 'Search customers, phone, bookings' : 'Search customer or phone'}</span>
         <kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-semibold text-slate-400">
           ⌘K
         </kbd>
@@ -211,7 +212,7 @@ export function GlobalSearch() {
       >
         <Search className="h-5 w-5" aria-hidden="true" />
       </button>
-
+      </>}
       {open && (
         <div
           className="fixed inset-0 z-[80] flex bg-slate-950/55 sm:items-start sm:justify-center sm:p-6 sm:pt-[10vh]"

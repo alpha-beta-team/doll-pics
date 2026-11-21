@@ -15,7 +15,7 @@ const params = new URLSearchParams(location.search);
 localStorage.setItem('auth_token', 'test-only');
 api.getCurrentUser = async () => ({ id: 'staff', name: 'Staff', email: 'staff@example.invalid', role: params.has('readonly') ? 'sales' : 'owner', isActive: true, permissions: [], permissionOverrides: params.has('readonly') ? { schedule: 'view' } : {}, mustChangePassword: false }) as StaffAccount;
 const item = (id: string, date: string, start: string, end: string, patch: Partial<ScheduleBookingItem> = {}): ScheduleBookingItem => ({
-  id, customerName: id, customerPhone: '9876543210', service: 'Maternity', bookingDate: date, startTime: start, endTime: end, status: 'confirmed', location: 'Studio', assignedStaffAccountName: 'Photographer', whatsappOptIn: true, ...patch,
+  id, customerName: id, customerPhone: '9876543210', service: 'Maternity', bookingDate: date, startTime: start, endTime: end, status: 'confirmed', location: 'Studio', assignedStaffAccountId: 'photographer', assignedStaffAccountName: 'Photographer', whatsappOptIn: true, ...patch,
 });
 let bookings = [
   item('Long shoot', '2026-11-11', '07:00', '13:00'),
@@ -27,6 +27,11 @@ let bookings = [
   item('Sunday first', '2026-11-15', '16:00', '17:00'),
   item('Sunday second', '2026-11-15', '16:00', '18:00'),
   item('Cancelled shoot', '2026-11-14', '15:00', '18:00', { status: 'cancelled' }),
+  ...(params.has('workflow') ? [
+    item('Legacy draft', '2026-11-14', '08:00', '09:00', { status: 'draft', assignedStaffAccountId: null, assignedStaffAccountName: 'Historic name' }),
+    item('Future one', '2026-11-14', '15:00', '16:00'),
+    item('Future two', '2026-11-14', '15:00', '17:00', { assignedStaffAccountId: 'second', assignedStaffAccountName: 'Second photographer' }),
+  ] : []),
   ...(params.has('full') ? [item('All day session', '2026-11-12', '11:00', '20:00')] : []),
   ...(params.has('untimed') ? [item('Needs time', '2026-11-14', '', '')] : []),
 ];
@@ -36,9 +41,29 @@ api.getSchedule = async (dateFrom, dateTo, includeCancelled) => {
 };
 api.getPackages = async () => [];
 api.getPhotographyServices = async () => [];
-api.getAssignableStaffAccounts = async () => [];
-api.checkScheduleConflicts = async () => ({ timedConflicts: [], untimedConflicts: [], blocked: false, requiresTimedConfirmation: false, requiresUntimedConfirmation: false });
+api.getAssignableStaffAccounts = async () => [
+  { id: 'photographer', name: 'Photographer', jobTitle: '' },
+  { id: 'second', name: 'Second photographer', jobTitle: '' },
+];
+async function saved(id: string) {
+  const { mapBooking } = await import('../../../src/admin/api/mappers');
+  return mapBooking({ ...bookings.find(row => row.id === id), _id: id, shootType: 'Maternity' });
+}
+api.updateBooking = async (id, patch) => {
+  const account = (await api.getAssignableStaffAccounts()).find(person => person.id === patch.assignedStaffAccountId);
+  bookings = bookings.map(row => row.id === id ? { ...row, assignedStaffAccountId: account?.id || null, assignedStaffAccountName: account?.name || '' } : row);
+  return saved(id);
+};
+api.transitionBooking = async (id, status) => {
+  bookings = bookings.map(row => row.id === id ? { ...row, status } : row);
+  return saved(id);
+};
+api.checkScheduleConflicts = async input => {
+  const timedConflicts = params.has('warnings') ? bookings.filter(row => row.bookingDate === input.bookingDate && row.id !== input.excludeBookingId && row.status === 'confirmed' && row.startTime < input.endTime && row.endTime > input.startTime) : [];
+  return { timedConflicts, untimedConflicts: [], blocked: Boolean(timedConflicts.length), requiresTimedConfirmation: Boolean(timedConflicts.length), requiresUntimedConfirmation: false };
+};
 api.rescheduleBooking = async (id, input) => {
+  if (params.has('warnings') && !input.acknowledgeTimedConflict) throw new Error('Missing overlap acknowledgement');
   bookings = bookings.map(row => row.id === id ? { ...row, ...input } : row);
   // Reuse the real mapper for the return shape expected by the page's WhatsApp handler.
   const { mapBooking } = await import('../../../src/admin/api/mappers');

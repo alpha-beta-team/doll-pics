@@ -393,6 +393,7 @@ function AccountStatus({ account }: { account: StaffAccount }) {
         {account.isActive ? 'Active' : 'Inactive'}
       </AdminBadge>
       {account.mustChangePassword && <AdminBadge className="bg-orange-100 text-orange-800">Password change pending</AdminBadge>}
+      {account.canTakeShoots && <AdminBadge className="bg-teal-100 text-teal-800">Can take shoots</AdminBadge>}
       {account.attendanceEnabled && <AdminBadge className="bg-blue-100 text-blue-800">Attendance enabled</AdminBadge>}
       {account.attendanceEnabled && <AdminBadge className={account.punchPinConfigured ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-orange-800'}>{account.punchPinConfigured ? 'Kiosk PIN ready' : 'PIN setup needed'}</AdminBadge>}
     </div>
@@ -420,6 +421,7 @@ function StaffAccountDrawer({
   const [permissionOverrides, setPermissionOverrides] = useState<StaffPermissionOverrides>(
     account?.role === 'owner' ? {} : account?.permissionOverrides ?? {},
   );
+  const [canTakeShoots, setCanTakeShoots] = useState(account?.canTakeShoots === true);
   const [isActive, setIsActive] = useState(account?.isActive ?? true);
   const [employeeCode, setEmployeeCode] = useState(account?.employeeCode ?? '');
   const [attendanceEnabled, setAttendanceEnabled] = useState(account?.role === 'employee' ? true : account?.attendanceEnabled ?? false);
@@ -458,6 +460,7 @@ function StaffAccountDrawer({
           permissionOverrides: savedOverrides,
           ...(employeeCode.trim() ? { employeeCode: employeeCode.trim().toUpperCase() } : {}),
           attendanceEnabled,
+          canTakeShoots,
           ...(joiningDate ? { joiningDate } : {}),
           ...(employmentEndDate ? { employmentEndDate } : {}),
         })
@@ -469,6 +472,7 @@ function StaffAccountDrawer({
           isActive,
           ...(employeeCode.trim() ? { employeeCode: employeeCode.trim().toUpperCase() } : {}),
           attendanceEnabled,
+          canTakeShoots,
           ...(joiningDate ? { joiningDate } : {}),
           employmentEndDate,
         });
@@ -605,6 +609,14 @@ function StaffAccountDrawer({
             <div className="rounded-xl border border-admin-border bg-admin-surface p-3 text-sm"><p className="font-semibold text-admin-text">Kiosk PIN</p><p className="mt-1 text-admin-subtle">{account?.punchPinConfigured ? 'Configured by employee' : 'Employee must set it after signing in'}</p></div>
           </div>}
         </fieldset>
+
+        <label className="flex items-center justify-between gap-4 rounded-xl border border-admin-border bg-admin-muted/40 p-4">
+          <span>
+            <span className="block text-sm font-semibold text-admin-text">Can take shoots</span>
+            <span className="mt-1 block text-sm text-admin-subtle">Allow this staff member to be assigned to a shoot.</span>
+          </span>
+          <input type="checkbox" checked={canTakeShoots} onChange={(event) => setCanTakeShoots(event.target.checked)} className="h-5 w-5 rounded border-admin-control text-admin-primary focus:ring-admin-focus" />
+        </label>
 
         <AccessPreview role={role} overrides={permissionOverrides} />
 

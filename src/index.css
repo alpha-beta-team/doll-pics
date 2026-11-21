@@ -656,21 +656,21 @@
   --admin-violet-text: 104 67 123;
   --admin-violet-muted: 228 216 235;
 
-  --admin-nav: 45 43 39;
-  --admin-nav-deep: 39 37 33;
-  --admin-nav-border: 68 64 57;
-  --admin-nav-text: 247 243 234;
-  --admin-nav-secondary: 205 199 186;
-  --admin-nav-muted: 155 149 137;
-  --admin-nav-icon: 172 166 153;
-  --admin-nav-hover: 57 55 49;
-  --admin-nav-active: 62 77 65;
-  --admin-nav-active-text: 240 247 241;
-  --admin-nav-icon-active: 173 203 179;
-  --admin-nav-indicator: 184 207 188;
-  --admin-nav-focus: 202 170 113;
-  --admin-nav-cta: 112 139 117;
-  --admin-nav-cta-hover: 128 155 133;
+  --admin-nav: 16 42 44;
+  --admin-nav-deep: 16 42 44;
+  --admin-nav-border: 31 69 71;
+  --admin-nav-text: 255 255 255;
+  --admin-nav-secondary: 195 210 209;
+  --admin-nav-muted: 143 166 165;
+  --admin-nav-icon: 143 166 165;
+  --admin-nav-hover: 26 59 61;
+  --admin-nav-active: 31 79 82;
+  --admin-nav-active-text: 255 255 255;
+  --admin-nav-icon-active: 255 255 255;
+  --admin-nav-indicator: 127 196 194;
+  --admin-nav-focus: 127 196 194;
+  --admin-nav-cta: 47 127 130;
+  --admin-nav-cta-hover: 38 108 111;
   --admin-nav-cta-text: 255 255 255;
 }
 
@@ -1291,3 +1291,6 @@ body:has(.public-skip-link) :where(a, button, input, select, textarea):focus-vis
 }
 .admin-theme .post-shoot-tracking .bg-indigo-50 { background-color: theme('colors.indigo.50'); }
 .admin-theme .post-shoot-tracking .text-indigo-700 { color: theme('colors.indigo.700'); }
+
+/* Keep the reference typography scoped to admin navigation. */
+.admin-sidebar { font-family: "Public Sans", system-ui, sans-serif; }

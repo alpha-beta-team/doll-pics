@@ -22,7 +22,7 @@ export function scheduleConfirmationOptions(conflicts: ScheduleConflictResponse,
   return {
     title: timed.length ? 'This time has existing bookings' : 'Another booking has no time',
     description: [...timed, ...untimed, 'Would you like to proceed with this booking?'].join('\n'),
-    confirmLabel: restoring ? 'Restore with overlap' : 'Proceed with overlap',
+    confirmLabel: restoring ? 'Restore with overlap' : 'Save anyway',
     cancelLabel: restoring ? 'Keep cancelled' : 'Change time',
   };
 }

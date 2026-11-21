@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { Check, ChevronDown } from 'lucide-react';
 import { milestoneLabel, orderDate, type OrderMilestone, type OrderWorkflow } from '../../../shared/orderWorkflow';
 
@@ -18,6 +18,13 @@ const headlines: Record<OrderWorkflow['stage'], string> = {
   handed_over: 'Handed over · awaiting delivery confirmation', delivered: 'Delivered', collected: 'Collected',
 };
 export function OrderJourney({ order, actions }: { order: OrderWorkflow; actions: ReactNode }) {
+  const trackRef = useRef<HTMLOListElement>(null);
+  useEffect(() => {
+    const track = trackRef.current;
+    const current = track?.querySelector<HTMLElement>('[aria-current="step"]');
+    if (!track || !current || track.scrollWidth <= track.clientWidth) return;
+    track.scrollLeft += current.getBoundingClientRect().left - track.getBoundingClientRect().left - (track.clientWidth - current.offsetWidth) / 2;
+  }, [order.stage, order.state]);
   const digital = order.mode === 'digital';
   const complete = order.state === 'completed';
   const cancelled = order.state === 'cancelled';
@@ -40,7 +47,7 @@ export function OrderJourney({ order, actions }: { order: OrderWorkflow; actions
       </div>
       <p className="order-journey-owner">Responsible: <strong>{order.assigneeName || 'Not assigned'}</strong></p>
     </div>
-    <ol className="order-journey-track" aria-label="Order progress">
+    <ol ref={trackRef} className="order-journey-track" aria-label="Order progress">
       {phases.filter(phase => !digital || phase.name !== 'Printing').map(phase => {
         const index = phases.indexOf(phase);
         const status = complete ? 'completed' : index < current ? 'completed' : index === current && !cancelled ? 'current' : 'upcoming';

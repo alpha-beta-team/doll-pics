@@ -116,6 +116,7 @@ export function VoiceNotesPanel({ recordType, recordId, hidden = false, compact 
       closeRecorder();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload failed. Your recording is still available to retry.');
+    } finally {
       setUploading(false);
     }
   };
@@ -148,7 +149,7 @@ export function VoiceNotesPanel({ recordType, recordId, hidden = false, compact 
   };
 
   const supported = typeof MediaRecorder !== 'undefined' && Boolean(navigator.mediaDevices?.getUserMedia);
-  return <section hidden={hidden} className={`rounded-2xl border border-slate-200 bg-white ${compact ? 'p-4' : 'p-5'} shadow-sm`}>
+  return <section aria-label="Voice notes" hidden={hidden} className={`rounded-2xl border border-slate-200 bg-white ${compact ? 'p-4' : 'p-5'} shadow-sm`}>
     <div className="flex items-center justify-between gap-3"><div><h2 className="font-semibold text-slate-900">Voice notes</h2><p className="mt-1 text-sm text-slate-500">Private recordings for internal context.</p></div><button type="button" disabled={!supported} onClick={() => setRecorderOpen(true)} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-600 px-3 text-sm font-semibold text-white disabled:bg-slate-300"><Mic className="h-4 w-4" />Record</button></div>
     {!supported && <p className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">Voice recording is not supported in this browser.</p>}
     {error && !recorderOpen && <AdminAlert className="mt-3" contentClassName="flex gap-2">{error}<button type="button" onClick={() => void load()} className="ml-auto"><RefreshCw className="h-4 w-4" /></button></AdminAlert>}

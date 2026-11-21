@@ -10,6 +10,11 @@ import { request } from './http';
 import { mapBooking, mapEnquiry } from './mappers';
 
 export const enquiriesApi = {
+  async addEnquiryNote(id: string, text: string, eventId: string): Promise<Enquiry> {
+    return mapEnquiry(await request<Record<string, unknown>>(`/admin/enquiries/${id}/notes`, {
+      method: 'POST', auth: true, body: JSON.stringify({ text, eventId }),
+    }));
+  },
   async recordEnquiryCall(id: string, data: RecordEnquiryCallPayload): Promise<Enquiry> {
     return mapEnquiry(await request<Record<string, unknown>>(`/admin/enquiries/${id}/calls`, { method: 'POST', auth: true, body: JSON.stringify(data) }));
   },
