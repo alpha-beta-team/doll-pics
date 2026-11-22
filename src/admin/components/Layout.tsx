@@ -22,7 +22,8 @@ function AdminShell() {
   const detailWorkspace = /^\/admin\/(bookings|enquiries)\/[^/]+$/.test(location.pathname);
   const enquiryDetail = detailWorkspace && !bookingDetail;
   const postShoot = /^\/admin\/post-shoot\/?$/.test(location.pathname);
-  const desktopSchedule = /^\/admin\/schedule\/?$/.test(location.pathname) && !isMobile;
+  const schedulePage = /^\/admin\/schedule\/?$/.test(location.pathname);
+  const desktopSchedule = schedulePage && !isMobile;
   const desktopList = (salesList && !isMobile) || desktopSchedule;
   const desktopOwner = /^\/admin\/owner\/?$/.test(location.pathname) && !isMobile;
   const headerlessWorkspace = desktopList || desktopOwner;
@@ -33,7 +34,7 @@ function AdminShell() {
       : SIDEBAR_EXPANDED_WIDTH;
 
   return (
-    <div className={`min-h-screen ${detailWorkspace ? 'overflow-x-clip' : 'overflow-x-hidden'} ${bookingDetail ? 'bd-record-shell relative bg-white' : enquiryDetail || desktopSchedule || postShoot ? 'bg-[#fbfcfc]' : salesList ? 'bg-[#f8faf7]' : 'bg-admin-canvas'} text-admin-text`}>
+    <div className={`min-h-screen ${detailWorkspace ? 'overflow-x-clip' : 'overflow-x-hidden'} ${bookingDetail ? 'bd-record-shell relative bg-white' : enquiryDetail || schedulePage || postShoot ? 'bg-[#fbfcfc]' : salesList ? 'bg-[#f8faf7]' : 'bg-admin-canvas'} text-admin-text`}>
       <Sidebar />
       {headerlessWorkspace ? <GlobalSearch presentation="shortcut" /> : <TopBar sidebarWidth={sidebarWidth} bookingRecord={bookingDetail} enquiryDetail={enquiryDetail} />}
       <main

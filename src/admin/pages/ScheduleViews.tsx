@@ -1,9 +1,9 @@
 import { formatCustomerName } from '../../shared/formatCustomerName';
-import { useEffect, useRef } from 'react';
-import { AlertTriangle, CalendarDays, ChevronRight, Plus } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { AlertTriangle, CalendarDays, Check, Circle, Clock3, ChevronRight, Plus } from 'lucide-react';
 import type { ScheduleBookingItem } from '../types';
 import {
-  photographerClash, photographerColor, shootTiming, formatScheduleDay, formatScheduleTime,
+  photographerClash, shootTiming, formatScheduleDay, formatScheduleTime,
   kolkataToday, layoutScheduleBookings, minutesToTime,
   scheduleDates, timeToMinutes, unbookedWindows, visibleHourBounds,
 } from './schedule.utils';
@@ -14,13 +14,6 @@ type ScheduleActions = {
   canManage: boolean;
   onBooking: (item: ScheduleBookingItem) => void;
   onEmptySlot: (slot: SlotChoice) => void;
-};
-const STATUS_CLASS: Record<ScheduleBookingItem['status'], string> = {
-  draft: 'border-slate-400 bg-slate-100 text-slate-800',
-  confirmed: 'border-emerald-500 bg-emerald-50 text-emerald-950',
-  shoot_completed: 'border-blue-500 bg-blue-50 text-blue-950',
-  delivered: 'border-violet-500 bg-violet-50 text-violet-950',
-  cancelled: 'border-red-400 bg-red-50 text-red-800 opacity-70',
 };
 const shortTime = (time: string) => formatScheduleTime(time).replace(':00', '');
 const statusLabel = (item: ScheduleBookingItem) => item.status.replace(/_/g, ' ');
@@ -52,7 +45,7 @@ function UntimedBookings({ bookings, onBooking, highlight = '' }: Pick<ScheduleA
   </div>;
 }
 
-export function ScheduleAgenda({ date, bookings, canManage, onBooking, onEmptySlot }: ScheduleActions & { date: string }) {
+export function ScheduleAgenda({ date, bookings, canManage, onBooking, onEmptySlot, now, highlight }: ScheduleActions & { date: string; now: string; highlight: string }) {
   const dayBookings = bookings.filter(item => item.bookingDate === date);
   const timed = dayBookings.filter(item => item.startTime && item.endTime);
   const gaps = unbookedWindows(bookings, date);
@@ -66,9 +59,9 @@ export function ScheduleAgenda({ date, bookings, canManage, onBooking, onEmptySl
     <UntimedBookings bookings={dayBookings} onBooking={onBooking} />
     {!shootCount(dayBookings) && <p className="sc-empty">No shoots scheduled for this day.</p>}
     <div className="sc-agenda-entries">{entries.map(entry => entry.kind === 'booking' ?
-      <button key={entry.item.id} type="button" className={`sc-agenda-booking ${STATUS_CLASS[entry.item.status]}`} onClick={() => onBooking(entry.item)}>
+      <button key={entry.item.id} type="button" data-status={entry.item.status} data-timing={shootTiming(entry.item, now)} data-dimmed={Boolean(highlight && highlight !== (entry.item.assignedStaffAccountId || 'unassigned'))} className={`sc-agenda-booking ${hasOverlap(entry.item, dayBookings) ? 'sc-event-overlap' : ''}`} onClick={() => onBooking(entry.item)}>
         <span className="sc-agenda-time"><strong>{shortTime(entry.item.startTime)}</strong><span>to {shortTime(entry.item.endTime)}</span></span>
-        <span className="sc-agenda-detail"><strong>{formatCustomerName(entry.item.customerName)}</strong><span>{entry.item.service || 'Service not set'}</span><small className="capitalize">{statusLabel(entry.item)}{entry.item.assignedStaffAccountName ? ` · ${entry.item.assignedStaffAccountName}` : ''}</small>{entry.item.location && <small>{entry.item.location}</small>}{hasOverlap(entry.item, dayBookings) && <span className="sc-overlap-label"><AlertTriangle className="h-3 w-3" />Photographer clash</span>}</span>
+        <span className="sc-agenda-detail"><strong>{formatCustomerName(entry.item.customerName)}</strong><span>{entry.item.service || 'Service not set'}</span><small className="capitalize">{statusLabel(entry.item)}{` · ${entry.item.assignedStaffAccountId ? entry.item.assignedStaffAccountName || 'Assigned photographer' : 'Unassigned'}`}</small>{entry.item.location && <small>{entry.item.location}</small>}{hasOverlap(entry.item, dayBookings) && <span className="sc-overlap-label"><AlertTriangle className="h-3 w-3" />Photographer clash</span>}</span>
         <ChevronRight className="h-4 w-4 shrink-0" />
       </button> :
       <div className="sc-agenda-gap" key={`gap-${entry.gap.startTime}`}>
@@ -79,24 +72,41 @@ export function ScheduleAgenda({ date, bookings, canManage, onBooking, onEmptySl
   </section>;
 }
 
-export function ScheduleCalendar({ dates, bookings, canManage, compact, focusTime, highlight, now, children, onDay, onBooking, onEmptySlot }: ScheduleActions & {
-  dates: string[]; children: React.ReactNode; highlight: string; now: string; compact: boolean; focusTime?: string; onDay: (date: string, startTime?: string) => void;
+export function ScheduleCalendar({ dates, bookings, canManage, compact, focusTime, highlight, now, onDay, onBooking, onEmptySlot }: ScheduleActions & {
+  dates: string[]; highlight: string; now: string; compact: boolean; focusTime?: string; onDay: (date: string, startTime?: string) => void;
 }) {
   const { startHour, endHour } = visibleHourBounds(bookings);
   const rowHeight = compact ? 48 : 72;
   const height = (endHour - startHour) * rowHeight;
   const timed = bookings.filter(item => item.startTime && item.endTime);
   const week = dates.length === 7;
-  const columnsForDate = (date: string) => Math.max(1, ...layoutScheduleBookings(timed.filter(item => item.bookingDate === date), 46 / rowHeight * 60).map(entry => entry.columns));
+  const columnsForDate = (date: string) => {
+    const items = timed.filter(item => item.bookingDate === date);
+    return Math.max(1, ...layoutScheduleBookings(items, 94 / rowHeight * 60)
+      .filter(({ item }) => !week || items.some(other => other.id !== item.id && Math.abs(timeToMinutes(other.startTime) - timeToMinutes(item.startTime)) * rowHeight / 60 < 32))
+      .map(entry => entry.columns));
+  };
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [horizontalScroll, setHorizontalScroll] = useState(false);
+  useEffect(() => {
+    const element = scrollRef.current;
+    if (!element) return;
+    const measure = () => setHorizontalScroll(element.scrollWidth > element.clientWidth + 1);
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    if (element.firstElementChild) observer.observe(element.firstElementChild);
+    measure();
+    return () => observer.disconnect();
+  }, []);
   const [today, currentTime] = now.split('T');
   useEffect(() => {
     if (!focusTime || !scrollRef.current) return;
     scrollRef.current.scrollTop = Math.max(0, (timeToMinutes(focusTime) / 60 - startHour) * rowHeight - 36);
   }, [focusTime, startHour, rowHeight]);
-  const gridColumns = `60px ${dates.map(date => `minmax(${Math.max(84, columnsForDate(date) * 36)}px, 1fr)`).join(' ')}`;
+  const gridColumns = `60px ${dates.map(date => `minmax(${Math.max(144, columnsForDate(date) * 96)}px, 1fr)`).join(' ')}`;
   return <section className={`sc-calendar ${week ? 'sc-week' : 'sc-day'}`} aria-label={week ? 'Week calendar' : 'Day calendar'}>
     <UntimedBookings highlight={highlight} bookings={bookings} onBooking={onBooking} />
+    {horizontalScroll && <p className="sc-scroll-hint">Scroll horizontally to see every day and shoot <ChevronRight size={13} /></p>}
     <div className="sc-calendar-scroll" ref={scrollRef} tabIndex={0} aria-label="Scrollable schedule">
       <div className="sc-calendar-grid" style={{ gridTemplateColumns: gridColumns }}>
         <div className="sc-calendar-corner" aria-hidden="true" />
@@ -105,24 +115,24 @@ export function ScheduleCalendar({ dates, bookings, canManage, compact, focusTim
 
           return <button key={`header-${date}`} type="button" className="sc-day-header" aria-current={date === today ? 'date' : undefined} aria-label={`View ${formatScheduleDay(date)}, ${shootsLabel(shootCount(items))}`} onClick={() => onDay(date)}>
             <span className="sc-day-heading"><span>{formatScheduleDay(date, { weekday: 'short' })}</span><strong>{formatScheduleDay(date, { day: 'numeric' })}</strong></span>
-            <span className="sc-day-stats"><span>{shootsLabel(shootCount(items))}</span>{items.some(item => hasOverlap(item, items)) && <b className="sc-clash">Clash</b>}{items.some(item => shootTiming(item, now) === 'Past, not closed') && <b className="sc-past">To close</b>}</span>
+            <span className="sc-day-stats"><span>{shootsLabel(shootCount(items))}</span>{items.some(item => hasOverlap(item, items)) && <b className="sc-clash"><AlertTriangle size={10} />Clash</b>}{items.some(item => shootTiming(item, now) === 'Past, not closed') && <b className="sc-past"><Clock3 size={10} />To close</b>}</span>
           </button>;
         })}
         <div className="sc-time-column" style={{ height }}>{Array.from({ length: endHour - startHour }, (_, index) => <span key={index} style={{ top: index * rowHeight }}>{shortTime(minutesToTime((startHour + index) * 60))}</span>)}</div>
         {dates.map(date => <DayLane key={date} date={date} week={week} bookings={timed.filter(item => item.bookingDate === date)} now={now} highlight={highlight} canManage={canManage} startHour={startHour} endHour={endHour} rowHeight={rowHeight} height={height} currentTime={date === today ? currentTime : undefined} onBooking={onBooking} onEmptySlot={onEmptySlot} />)}
       </div>
     </div>
-    <div className="sc-calendar-footer">{children}<span>✓ Done</span><span className="sc-live">● Shooting now</span><span className="sc-past">◷ Past, not closed</span><span className="sc-clash">⚠ Same photographer, overlapping</span>{canManage && <span>Click an empty slot to add</span>}</div>
+    <div className="sc-calendar-footer"><span className="sc-shoot-key"><i />Shoot (photographer named on card)</span><span><Check size={12} />Done</span><span className="sc-live"><Circle size={8} fill="currentColor" />Shooting now</span><span className="sc-past"><Clock3 size={12} />Past, not closed</span><span className="sc-clash"><AlertTriangle size={12} />Same photographer, overlapping</span>{canManage && <span>Click an empty slot to add</span>}</div>
   </section>;
 }
 
 function EventContent({ item, overlap, timing }: { item: ScheduleBookingItem; overlap: boolean; timing: string }) {
-  const marker = overlap ? '⚠' : timing === 'Done' ? '✓' : timing === 'Shooting now' ? '●' : timing ? '◷' : '';
+  const Marker = overlap ? AlertTriangle : timing === 'Done' ? Check : timing === 'Shooting now' ? Circle : timing ? Clock3 : null;
   return <span className="sc-event-content">
-    <strong>{marker && <i aria-hidden="true">{marker}</i>}<span>{formatCustomerName(item.customerName)}</span></strong>
+    <strong>{Marker && <Marker className="sc-event-marker" size={12} aria-hidden="true" fill={timing === 'Shooting now' && !overlap ? 'currentColor' : 'none'} />}<span>{formatCustomerName(item.customerName)}</span></strong>
     <span className="sc-event-service">{item.service || 'Service not set'}</span>
     <span>{shortTime(item.startTime)}–{shortTime(item.endTime)}</span>
-    <small>{item.assignedStaffAccountId ? item.assignedStaffAccountName : 'Unassigned'}</small>
+    <small>{item.assignedStaffAccountId ? item.assignedStaffAccountName || 'Assigned photographer' : 'Unassigned'}</small>
   </span>;
 }
 
@@ -138,17 +148,16 @@ function DayLane({ date, week, bookings, now, highlight, canManage, startHour, e
       const startTime = minutesToTime(startHour * 60 + index * 30);
       return <button key={startTime} type="button" className="sc-slot" style={{ top: index * rowHeight / 2, height: rowHeight / 2 }} onClick={() => onEmptySlot({ bookingDate: date, startTime })} aria-label={`Create booking ${formatScheduleDay(date)} at ${formatScheduleTime(startTime)}`}><span>+ Add</span></button>;
     })}
-    {layoutScheduleBookings(bookings, 46 / rowHeight * 60).map(({ item, column, columns }) => {
-      const eventHeight = Math.max(42, (timeToMinutes(item.endTime) - timeToMinutes(item.startTime)) / 60 * rowHeight - 4);
+    {layoutScheduleBookings(bookings, 94 / rowHeight * 60).map(({ item, column, columns }) => {
+      const eventHeight = Math.max(90, (timeToMinutes(item.endTime) - timeToMinutes(item.startTime)) / 60 * rowHeight - 4);
       const overlap = hasOverlap(item, bookings);
-      const color = photographerColor(item.assignedStaffAccountId);
       const timing = shootTiming(item, now);
       // Stagger successive starts. Adjacent headings need separate lanes to stay readable.
       const stagger = week && !bookings.some(other => other.id !== item.id
         && Math.abs(timeToMinutes(other.startTime) - timeToMinutes(item.startTime)) * rowHeight / 60 < 32);
       const left = stagger ? Math.min(column * 22, 60) : column * 100 / columns;
       const width = stagger ? 100 - left : 100 / columns;
-      return <button key={item.id} type="button" data-timing={timing} data-dimmed={Boolean(highlight && highlight !== (item.assignedStaffAccountId || 'unassigned'))} className={`sc-event ${STATUS_CLASS[item.status]} ${overlap ? 'sc-event-overlap' : ''}`} title={`${formatCustomerName(item.customerName)} · ${shortTime(item.startTime)}–${shortTime(item.endTime)} · ${item.service} · ${statusLabel(item)}`} aria-label={`${formatCustomerName(item.customerName)}, ${shortTime(item.startTime)}–${shortTime(item.endTime)}${overlap ? ', photographer clash' : ''}`} onClick={() => onBooking(item)} style={{ borderLeftColor: color, backgroundColor: `color-mix(in srgb, ${color} 12%, white)`, top: topFor(timeToMinutes(item.startTime)) + 2, height: eventHeight, left: `calc(${left}% + 2px)`, width: `calc(${width}% - 4px)` }}><EventContent item={item} overlap={overlap} timing={timing} /></button>;
+      return <button key={item.id} type="button" data-status={item.status} data-timing={timing} data-dimmed={Boolean(highlight && highlight !== (item.assignedStaffAccountId || 'unassigned'))} className={`sc-event ${overlap ? 'sc-event-overlap' : ''}`} title={`${formatCustomerName(item.customerName)} · ${shortTime(item.startTime)}–${shortTime(item.endTime)} · ${item.service} · ${statusLabel(item)}`} aria-label={`${formatCustomerName(item.customerName)}, ${shortTime(item.startTime)}–${shortTime(item.endTime)} · ${item.service || 'Service not set'} · ${item.assignedStaffAccountName || 'Unassigned'} · ${timing || statusLabel(item)}${overlap ? ', photographer clash' : ''}`} onClick={() => onBooking(item)} style={{ top: topFor(timeToMinutes(item.startTime)) + 2, height: eventHeight, left: `calc(${left}% + 2px)`, width: `calc(${width}% - 4px)` }}><EventContent item={item} overlap={overlap} timing={timing} /></button>;
     })}
     {currentMinute >= startHour * 60 && currentMinute < endHour * 60 && <div className="sc-current-time" style={{ top: topFor(currentMinute) }} aria-label={`Current time ${shortTime(currentTime!)}`}><span /></div>}
   </div>;

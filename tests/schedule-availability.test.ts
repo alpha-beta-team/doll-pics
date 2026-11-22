@@ -36,7 +36,7 @@ test('shoot indicators change at the scheduled start and end', () => {
   assert.equal(shootTiming(a, date + 'T09:29'), '');
   assert.equal(shootTiming(a, date + 'T09:30'), 'Shooting now');
   assert.equal(shootTiming(a, date + 'T10:30'), 'Past, not closed');
-  assert.equal(shootTiming({ ...a, status: 'draft' }, date + 'T10:30'), 'Past, not closed');
+  assert.equal(shootTiming({ ...a, status: 'draft' }, date + 'T10:30'), '');
   assert.equal(shootTiming({ ...a, status: 'cancelled' }, date + 'T10:30'), '');
   assert.equal(shootTiming({ ...a, endTime: '' }, date + 'T10:30'), '');
   assert.equal(shootTiming({ ...a, status: 'delivered' }, date + 'T10:30'), 'Done');

@@ -172,7 +172,7 @@ export function photographerColor(id: string | null) {
 
 export function shootTiming(item: ScheduleBookingItem, now: string) {
   if (item.status === 'shoot_completed' || item.status === 'delivered') return 'Done';
-  if (!occupiesSchedule(item) || !item.startTime || !item.endTime) return '';
+  if (item.status !== 'confirmed' || !item.startTime || !item.endTime) return '';
   if (now >= `${item.bookingDate}T${item.endTime}`) return 'Past, not closed';
   if (item.status === 'confirmed' && now >= `${item.bookingDate}T${item.startTime}`) return 'Shooting now';
   return '';

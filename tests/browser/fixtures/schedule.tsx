@@ -6,7 +6,10 @@ import { SchedulePage } from '../../../src/admin/pages/SchedulePage';
 import { api } from '../../../src/admin/api/client';
 import type { ScheduleBookingItem, StaffAccount } from '../../../src/admin/types';
 import '../../../src/index.css';
-import '@fontsource/inter/latin-400.css';
+import '@fontsource/public-sans/latin-400.css';
+import '@fontsource/public-sans/latin-500.css';
+import '@fontsource/public-sans/latin-600.css';
+import '@fontsource/public-sans/latin-700.css';
 import '@fontsource/inter/latin-500.css';
 import '@fontsource/inter/latin-600.css';
 import '@fontsource/inter/latin-700.css';
@@ -42,8 +45,8 @@ api.getSchedule = async (dateFrom, dateTo, includeCancelled) => {
 api.getPackages = async () => [];
 api.getPhotographyServices = async () => [];
 api.getAssignableStaffAccounts = async () => [
-  { id: 'photographer', name: 'Photographer', jobTitle: '' },
-  { id: 'second', name: 'Second photographer', jobTitle: '' },
+  { id: 'photographer', name: 'Photographer', jobTitle: '', canTakeShoots: true },
+  { id: 'second', name: 'Second photographer', jobTitle: '', canTakeShoots: true },
 ];
 async function saved(id: string) {
   const { mapBooking } = await import('../../../src/admin/api/mappers');

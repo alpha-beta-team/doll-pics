@@ -4,7 +4,7 @@ import { formatCustomerName } from '../../shared/formatCustomerName';
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, SlidersHorizontal,
-  MessageCircle, Phone, Search, RefreshCw, X,
+  MessageCircle, Phone, Search, RefreshCw, X, AlertTriangle, Clock3, Plus, ExternalLink, MapPin,
 } from 'lucide-react';
 import { api } from '../api/client';
 import type {
@@ -21,7 +21,7 @@ import { bookingDurationLabel, bookingTimeWindowError } from '../../shared/booki
 import {
   addScheduleDays, endTimeFor, formatScheduleDay, formatScheduleTime, kolkataToday,
   minutesToTime, scheduleDates, slotHasConflict, timeToMinutes,
-  photographerClash, photographerColor, shootTiming,
+  photographerClash, shootTiming,
 } from './schedule.utils';
 import { AdminIconButton } from '../components/ui';
 import { ScheduleAgenda, ScheduleCalendar, ScheduleWeekStrip } from './ScheduleViews';
@@ -210,6 +210,7 @@ export function SchedulePage() {
     <label className="sc-date"><span className="sr-only">Choose date</span><input type="date" value={anchorDate} onChange={event => { if (event.target.value) { setAnchorDate(event.target.value); setFocusTime(undefined); } }} /></label>
   );
   const displayControls = <>
+    <label className="sc-highlight">Highlight photographer<select value={activeHighlight} onChange={event => setHighlight(event.target.value)}><option value="">All photographers</option>{Array.from(photographers, ([id, name]) => <option key={id} value={id}>{name}</option>)}</select></label>
     <label><input type="checkbox" checked={showCancelled} onChange={event => setShowCancelled(event.target.checked)} /> Show cancelled</label>
     <label className="sc-density"><input type="checkbox" checked={compact} onChange={event => setCompact(event.target.checked)} /> Compact calendar</label>
     <AdminIconButton label="Refresh schedule" onClick={() => void loadSchedule(true)} disabled={refreshing || loading}><RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} /></AdminIconButton>
@@ -243,25 +244,20 @@ export function SchedulePage() {
           <summary className="sc-control" aria-label="Display options"><SlidersHorizontal className="h-4 w-4" /><span>Display{showCancelled ? ' •' : ''}</span></summary>
           <div className="sc-filter-panel">{displayControls}</div>
         </details>}
-        {canManage && <button type="button" className="sc-primary" onClick={() => setCreatingAt({ bookingDate: anchorDate, startTime: '11:00', endTime: '12:00' })}>+ New booking</button>}
+        {canManage && <button type="button" className="sc-primary" onClick={() => setCreatingAt({ bookingDate: anchorDate, startTime: '11:00', endTime: '12:00' })}><Plus size={15} />New booking</button>}
       </section>
-      {!loading && !error && <div className="sc-summary">
-        {dates.includes(today) && <><strong className="sc-now">Now {time}</strong>{shooting.length ? shooting.map(item => <button key={item.id} onClick={() => openBooking(item)}><i style={{ background: photographerColor(item.assignedStaffAccountId) }} /><b>{formatCustomerName(item.customerName)}</b> <small>till {formatScheduleTime(item.endTime)}</small></button>) : <span>No shoots now</span>}
-          <span className="sc-next">Next</span>{upcoming.length ? upcoming.filter(item => item.startTime === nextTime).map(item => <button key={item.id} onClick={() => openBooking(item)}><i style={{ background: photographerColor(item.assignedStaffAccountId) }} /><b>{formatCustomerName(item.customerName)}</b> <small>{formatScheduleTime(nextTime)}</small></button>) : <span>No more today</span>}</>}
-        <div className="sc-reviews"><button className="sc-overlap-badge" disabled={!existingOverlaps.length} onClick={() => setReviewOverlaps(true)}>{existingOverlaps.length} {existingOverlaps.length === 1 ? 'clash' : 'clashes'}</button>
-        <button className="sc-past-badge" disabled={!overdue.length} onClick={() => setReviewPast(true)}>{overdue.length} to close</button></div>
+      {!loading && !error && <div className="sc-summary" role="region" aria-label="Today and alerts">
+        {dates.includes(today) && <><strong className="sc-now">Now {time}</strong>{shooting.length ? shooting.map(item => <button key={item.id} onClick={() => openBooking(item)}><i aria-hidden="true" /><b>{formatCustomerName(item.customerName)}</b> <small>till {formatScheduleTime(item.endTime)}</small></button>) : <span>No shoots now</span>}
+          <span className="sc-next">Next</span>{upcoming.length ? upcoming.filter(item => item.startTime === nextTime).map(item => <button key={item.id} onClick={() => openBooking(item)}><i aria-hidden="true" /><b>{formatCustomerName(item.customerName)}</b> <small>{formatScheduleTime(nextTime)}</small></button>) : <span>No more today</span>}</>}
+        <div className="sc-reviews"><button className="sc-overlap-badge" disabled={!existingOverlaps.length} onClick={() => setReviewOverlaps(true)}><AlertTriangle size={13} />{existingOverlaps.length} {existingOverlaps.length === 1 ? 'clash' : 'clashes'}</button>
+        <button className="sc-past-badge" disabled={!overdue.length} onClick={() => setReviewPast(true)}><Clock3 size={13} />{overdue.length} to close</button></div>
       </div>}
       {isMobile && <ScheduleWeekStrip anchorDate={anchorDate} bookings={bookings} onDate={date => openDay(date)} />}
 
       {error && <AdminAlert contentClassName="flex items-center gap-2">{error}</AdminAlert>}
       {loading ? <div className="flex h-72 items-center justify-center" role="status" aria-label="Loading schedule"><div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" /></div> : error ? <p className="p-4 text-sm text-slate-600">Schedule unavailable. Refresh to try again.</p> : <>
-        {(isMobile || view === 'agenda') ? <ScheduleAgenda date={anchorDate} bookings={bookings} canManage={canManage} onBooking={openBooking} onEmptySlot={setSlot} /> :
-          <ScheduleCalendar key={`${view}-${anchorDate}`} dates={dates} bookings={bookings} canManage={canManage} now={now} highlight={activeHighlight} compact={compact} focusTime={focusTime} onDay={openDay} onBooking={openBooking} onEmptySlot={choice => setCreatingAt({ ...choice, endTime: endTimeFor(choice.startTime, 1) })}>
-          <div className="sc-photographers" aria-label="Highlight photographer">
-          <button aria-pressed={!activeHighlight} onClick={() => setHighlight('')}>All</button>
-          {Array.from(photographers, ([id, name]) => <button key={id} aria-pressed={activeHighlight === id} onClick={() => setHighlight(activeHighlight === id ? '' : id)}><i style={{ backgroundColor: photographerColor(id === 'unassigned' ? null : id) }} />{name}</button>)}
-          </div>
-          </ScheduleCalendar>}
+        {(isMobile || view === 'agenda') ? <ScheduleAgenda date={anchorDate} now={now} highlight={activeHighlight} bookings={bookings} canManage={canManage} onBooking={openBooking} onEmptySlot={setSlot} /> :
+          <ScheduleCalendar key={`${view}-${anchorDate}`} dates={dates} bookings={bookings} canManage={canManage} now={now} highlight={activeHighlight} compact={compact} focusTime={focusTime} onDay={openDay} onBooking={openBooking} onEmptySlot={choice => setCreatingAt({ ...choice, endTime: endTimeFor(choice.startTime, 1) })} />}
       </>}
       {reviewPast && <Sheet title="To close" subtitle={title} onClose={() => setReviewPast(false)}><div className="sc-review-rows">{overdue.map(item => <button key={item.id} onClick={() => openBooking(item)}><strong>{item.customerName}</strong><span>{formatScheduleDay(item.bookingDate)} · {formatScheduleTime(item.endTime)} · {item.status}</span></button>)}</div></Sheet>}
       {reviewOverlaps && <Sheet title="Photographer clashes" subtitle="Overlapping shoots assigned to the same photographer." onClose={() => setReviewOverlaps(false)} wide>
@@ -332,13 +328,13 @@ function BookingActionSheet({ item, now, staff, staffError, canManage, canOpen, 
     <div className="sc-drawer-content">
       <div className="sc-drawer-actions">
         {canViewPhone && item.customerPhone && <><button className="sc-whatsapp" onClick={onWhatsApp}><MessageCircle size={15} />WhatsApp</button><a href={`tel:${item.customerPhone}`}><Phone size={15} />Call</a></>}
-        {canOpen && <button onClick={onOpen}>Booking ↗</button>}
+        {canOpen && <button onClick={onOpen}><ExternalLink size={14} />Booking</button>}
       </div>
       <dl><dt>Photographer</dt><dd>{item.assignedStaffAccountId ? item.assignedStaffAccountName : 'Unassigned'}{!item.assignedStaffAccountId && item.assignedStaffAccountName && <small>Previous name: {item.assignedStaffAccountName}</small>}
         {editable && <button disabled={busy} onClick={() => setEditing(!editing)} aria-expanded={editing}>Change</button>}
         {editing && <><select aria-label="Change photographer" disabled={busy || Boolean(staffError)} value={item.assignedStaffAccountId || ''} onChange={e => { const id = e.target.value; void save(() => api.updateBooking(item.id, { assignedStaffAccountId: id || null })); }}>
           <option value="">Unassigned</option>{item.assignedStaffAccountId && !staff.some(person => person.canTakeShoots === true && person.id === item.assignedStaffAccountId) && <option value={item.assignedStaffAccountId}>{item.assignedStaffAccountName}</option>}{staff.filter(person => person.canTakeShoots === true).map(person => <option key={person.id} value={person.id}>{person.name}</option>)}</select>{staffError && <small role="alert">{staffError}</small>}</>}
-      </dd>{canViewPhone && <><dt>Phone</dt><dd>{item.customerPhone || '—'}</dd></>}<dt>Shoot type</dt><dd>{item.service || '—'}</dd><dt>Location</dt><dd>{item.location || '—'}</dd><dt>Status</dt><dd className="capitalize">{item.status.replace('_', ' ')}</dd></dl>
+      </dd>{canViewPhone && <><dt>Phone</dt><dd>{item.customerPhone || '—'}</dd></>}<dt>Shoot type</dt><dd>{item.service || '—'}</dd><dt>Location</dt><dd className="sc-location"><MapPin size={14} />{item.location || '—'}</dd><dt>Status</dt><dd className="capitalize">{item.status.replace(/_/g, ' ')}</dd></dl>
       {error && <AdminAlert>{error}</AdminAlert>}
       {editable && <details><summary>More actions</summary><button disabled={busy} onClick={onCancel}>Cancel booking</button></details>}
     </div>
@@ -421,19 +417,23 @@ function Sheet({ title, subtitle, onClose, children, wide = false, drawer = fals
   closeRef.current = onClose;
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
     sheetRef.current?.focus();
-    return () => { if (previous?.isConnected) previous.focus(); };
-  }, []);
-  return <div ref={sheetRef} tabIndex={-1} className={`fixed inset-0 z-[80] flex items-end bg-slate-950/50 sm:items-center sm:justify-center sm:p-4 ${drawer ? 'sc-drawer' : ''}`} role="dialog" aria-modal="true" aria-labelledby={titleId} onKeyDown={event => {
-    // Leave nested confirmation dialogs in control of their own keyboard events.
-    if ((event.target as HTMLElement).closest('[role="dialog"]') !== sheetRef.current) return;
-    if (event.key === 'Escape') { event.stopPropagation(); closeRef.current(); }
-    if (event.key === 'Tab') {
+    const onKey = (event: KeyboardEvent) => {
+      // Saving can remove the focused action. Keep dismissal working from the document.
+      const dialogs = document.querySelectorAll('[role="dialog"], [role="alertdialog"]');
+      if (dialogs[dialogs.length - 1] !== sheetRef.current) return;
+      if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); closeRef.current(); }
+      if (event.key !== 'Tab') return;
       const controls = Array.from(sheetRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex="0"]') || []).filter(element => element.getClientRects().length > 0);
       const first = controls[0], last = controls[controls.length - 1];
       if (!first) { event.preventDefault(); return; }
       if (event.shiftKey && (document.activeElement === first || document.activeElement === sheetRef.current)) { event.preventDefault(); last.focus(); }
-      else if (!event.shiftKey && (document.activeElement === last || document.activeElement === sheetRef.current)) { event.preventDefault(); first.focus(); }
-    }
-  }}><div className={`flex max-h-[94dvh] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl ${wide ? 'sm:max-w-2xl' : 'sm:max-w-md'}`}><header className="flex items-center justify-between border-b border-slate-200 p-4"><div className="min-w-0">{badge && <strong className="sc-timing" data-state={badge}>{badge}</strong>}<h2 id={titleId} className="truncate font-semibold text-slate-900">{title}</h2>{subtitle && <p className="mt-0.5 text-sm text-slate-500">{subtitle}</p>}</div><button type="button" onClick={onClose} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl hover:bg-slate-100" aria-label="Close"><X className="h-5 w-5" /></button></header>{children}</div></div>;
+      else if (!event.shiftKey && (document.activeElement === last || document.activeElement === sheetRef.current || !sheetRef.current?.contains(document.activeElement))) { event.preventDefault(); first.focus(); }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = overflow; if (previous?.isConnected) previous.focus(); };
+  }, []);
+  return <div ref={sheetRef} tabIndex={-1} className={`fixed inset-0 z-[80] flex items-end bg-slate-950/50 sm:items-center sm:justify-center sm:p-4 ${drawer ? 'sc-drawer' : ''}`} role="dialog" aria-modal="true" aria-labelledby={titleId}><div className={`flex max-h-[94dvh] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl ${wide ? 'sm:max-w-2xl' : 'sm:max-w-md'}`}><header className="flex items-center justify-between border-b border-slate-200 p-4"><div className="min-w-0">{badge && <strong className="sc-timing" data-state={badge}>{badge}</strong>}<h2 id={titleId} className="truncate font-semibold text-slate-900">{title}</h2>{subtitle && <p className="mt-0.5 text-sm text-slate-500">{subtitle}</p>}</div><button type="button" onClick={onClose} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl hover:bg-slate-100" aria-label="Close"><X className="h-5 w-5" /></button></header>{children}</div></div>;
 }
