@@ -57,10 +57,11 @@ import { BookingDeliveryPanel } from '../components/bookings/BookingDeliveryPane
 import { deliveryLinkFields, deliveryUrlWarning, eligibleDeliveryUrl, normalizeDeliveryUrl, validDeliveryUrl, type DeliveryLinkKey } from '../components/bookings/deliverySharing';
 import { bookingDurationLabel, formatTimeWindow } from '../../shared/bookingTime';
 import { CustomerLookupPanel } from '../components/CustomerLookupPanel';
-import { WhatsAppComposer } from '../components/WhatsAppComposer';
+import { BookingWhatsAppComposer } from '../components/bookings/BookingWhatsAppComposer';
+import { bookingMessageLabel, type BookingWhatsAppTemplateId } from '../components/bookings/bookingWhatsApp';
+import { bookingWorkspaceApi } from '../api/bookingWorkspace';
 import { VoiceNotesPanel } from '../components/VoiceNotesPanel';
 import { conflictRequirements, saveWithScheduleConfirmation, scheduleConfirmationOptions } from '../components/scheduleConfirmation';
-import type { WhatsAppTemplateId } from '../components/whatsappTemplates';
 import { ImportantDatesPanel } from '../components/ImportantDatesPanel';
 import { AdminTabs } from '../components/AdminTabs';
 import { BookingDialog, BookingSection, BookingTabPanel, BookingCustomerDetails, BookingPaymentDetails } from '../components/bookings/BookingDetailSections';
@@ -219,7 +220,7 @@ function BookingDetailWorkspace() {
     return () => cancelAnimationFrame(frame);
   }, [editor, deliveryFocus]);
   const [saving, setSaving] = useState(false);
-  const [messageOpen, setMessageOpen] = useState<WhatsAppTemplateId | null>(null);
+  const [messageOpen, setMessageOpen] = useState<BookingWhatsAppTemplateId | 'suggested' | null>(null);
   const [reviewUrl, setReviewUrl] = useState('');
 
   // Server responses update the record only. Editor drafts are initialized on open.
@@ -510,7 +511,7 @@ function BookingDetailWorkspace() {
       {error && <AdminAlert onDismiss={() => setError('')}>{error}</AdminAlert>}
 
       {success && <AdminAlert tone="success" className="fixed right-3 top-20 z-[80] max-w-[calc(100vw-1.5rem)] shadow-lg" contentClassName="flex items-center gap-3" aria-live="polite">{success}<button onClick={() => setSuccess('')} aria-label="Dismiss confirmation" className="flex h-8 w-8 items-center justify-center"><X className="h-4 w-4" /></button></AdminAlert>}
-      <BookingHeader booking={booking} canViewPhone={canViewPhone} canManage={canManageBooking} canEdit={canEdit} saving={saving} onEdit={() => setEditing(true)} notify={setSuccess} onCancel={async reason => { const saved = await run(() => api.transitionBooking(booking.id, 'cancelled', undefined, undefined, { reason }), 'Booking cancelled'); if (saved) setMessageOpen('booking_cancelled'); return saved; }}>
+      <BookingHeader booking={booking} canViewPhone={canViewPhone} canManage={canManageBooking} canEdit={canEdit} saving={saving} onEdit={() => setEditing(true)} onMessage={canManageBooking ? () => setMessageOpen('suggested') : undefined} notify={setSuccess} onCancel={async reason => { const saved = await run(() => api.transitionBooking(booking.id, 'cancelled', undefined, undefined, { reason }), 'Booking cancelled'); if (saved) setMessageOpen('booking_cancelled'); return saved; }}>
         <button type="button" role="menuitem" onClick={() => setToolsPanel('voice')}>Voice notes</button>
         <button type="button" role="menuitem" onClick={() => setToolsPanel('customer')}>Customer details and records</button>
                   {canRequestReview && <button type="button" role="menuitem" disabled={saving} onClick={() => { setMessageOpen('review_request'); }}>Request review</button>}
@@ -691,7 +692,13 @@ function BookingDetailWorkspace() {
       {canEdit && canViewPayments && editingDueDate && <BookingDueDateDialog key={booking.id} booking={booking} onClose={() => setEditingDueDate(false)} onSaved={updated => { sync(updated); setEditingDueDate(false); setSuccess('Payment due date saved'); }} />}
       {canManageBooking && editingCrew && <BookingCrewDialog key={booking.id} booking={booking} onClose={() => setEditingCrew(false)} onSaved={updated => { sync(updated); setEditingCrew(false); setSuccess('Crew saved'); }} />}
       {canManageBooking && editing && <BookingFormModal booking={booking} packages={packages} services={bookingServices} staffAccounts={staffAccounts} onClose={() => setEditing(false)} onSave={saveEdit} />}
-      {canManageBooking && messageOpen && <WhatsAppComposer initialTemplate={messageOpen} context={{ customerName: booking.customerName, customerCode: booking.customerCode, phone: booking.customerPhone, service: booking.shootType || booking.packageName, bookingDate: booking.bookingDate, startTime: booking.startTime, endTime: booking.endTime, location: booking.location, balanceDue: canViewPayments ? booking.paymentSummary.balanceDue : undefined, paymentDueDate: canViewPayments ? booking.paymentDueDate : undefined, reviewUrl, consentRecorded: booking.whatsappOptIn, optedOut: Boolean(booking.whatsappOptOutAt) }} onOpened={messageOpen === 'review_request' ? () => updateReview('requested') : undefined} onClose={() => setMessageOpen(null)} />}
+      {canManageBooking && messageOpen && <BookingWhatsAppComposer booking={booking} order={orderSnapshot} canViewPayments={canViewPayments} reviewUrl={reviewUrl} messages={messages} initialTemplate={messageOpen} onClose={() => setMessageOpen(null)} onLog={async (template, message, requestId) => {
+        const state = await bookingWorkspaceApi.createNote(booking.id, `WhatsApp · ${bookingMessageLabel(template)} sent (staff confirmed)\n\n${message}`, requestId);
+        setWorkspace(state);
+        notesActions.current?.receive(state);
+        if (template === 'review_request') await updateReview('requested');
+        setSuccess('WhatsApp message logged in Notes & follow-ups');
+      }} />}
       {canViewPayments && paymentModal && <BookingPaymentDialog booking={booking} payment={paymentModal === 'new' ? null : paymentModal} onClose={() => setPaymentModal(null)} onSave={async data => { const updated = paymentModal === 'new' ? await api.addBookingPayment(booking.id, data) : await api.updateBookingPayment(booking.id, paymentModal.id, data); sync(updated); setSuccess('Payment saved'); setPaymentModal(null); }} />}
     </div>
   );

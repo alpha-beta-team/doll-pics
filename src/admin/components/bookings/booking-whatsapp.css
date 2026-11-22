@@ -1,0 +1,39 @@
+.booking-wa [role="dialog"] { max-width: 600px; padding: 20px 22px 0; border-radius: 16px; font-family: 'Public Sans', sans-serif; color: #14201f; }
+.booking-wa h2 { font-size: 18px; font-weight: 700; }
+.bwa-recipient { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding-bottom:14px; border-bottom:1px solid #e8ecec; color:#5b6766; font-size:13px; }
+.bwa-consent { border-radius:12px; background:#f2f5f5; padding:3px 8px; font-size:12px; font-weight:600; }
+.bwa-consent.is-consented { background:#e6f4ec; color:#1e7a4c; }
+.bwa-body { min-width:0; margin:0; padding:16px 0 4px; }
+.bwa-controls { min-width:0; border:0; margin:0; padding:0; }
+.bwa-section-label { font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:#5b6766; font-weight:700; }
+.bwa-suggestions { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:8px; }
+.bwa-suggestions button { display:flex; flex-direction:column; align-items:flex-start; text-align:left; gap:3px; border:1px solid #c9d1d1; border-radius:12px; padding:9px 12px; font-size:13px; }
+.bwa-suggestions small { font-size:11.5px; color:#5b6766; }
+.bwa-suggestions button[aria-pressed="true"], .bwa-date-options button[aria-pressed="true"] { border-color:#1e7a4c; background:#f1f9f4; box-shadow:inset 0 0 0 1px #1e7a4c; color:#1e7a4c; }
+.bwa-template { display:flex; align-items:center; gap:10px; margin-top:12px; font-size:13px; font-weight:600; }
+.bwa-template select { min-width:0; flex:1; height:40px; border:1px solid #c9d1d1; border-radius:8px; padding:0 10px; background:white; font-weight:400; }
+.bwa-date-options { display:flex; gap:8px; margin-top:10px; }
+.bwa-date-options button { flex:1; min-height:40px; border:1px solid #c9d1d1; border-radius:10px; padding:6px; font-size:13px; }
+.bwa-fields, .bwa-warning { margin-top:12px; padding:10px 12px; background:#fdf6ea; border:1px solid #f3ddb5; border-radius:10px; font-size:13px; color:#7a4105; }
+.bwa-fields label { display:block; margin-top:8px; font-size:12.5px; font-weight:600; }
+.bwa-fields input { display:block; width:100%; height:38px; margin-top:4px; padding:0 10px; border:1px solid #e5c98f; border-radius:8px; background:white; color:#14201f; font-weight:400; }
+.bwa-auto { margin-top:12px; padding:10px 12px; border-radius:10px; background:#e2effa; color:#1d5a8c; font-size:13px; }
+.bwa-message-label { display:flex; justify-content:space-between; align-items:baseline; margin-top:14px; font-size:13px; font-weight:600; }
+.bwa-message-label button { color:#0b5c60; font-size:12.5px; }
+.bwa-body textarea { display:block; width:100%; box-sizing:border-box; margin-top:6px; padding:12px 14px; border:1px solid #c9d1d1; border-radius:10px; font:inherit; font-size:14px; line-height:1.5; resize:vertical; }
+.bwa-footer { background:white; display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin:14px -22px 0; padding:14px 22px; border-top:1px solid #e8ecec; }
+.bwa-footer > span { flex:1 1 160px; color:#5b6766; font-size:12.5px; }
+.bwa-footer > div { display:flex; gap:8px; }
+.bwa-footer button, .bwa-footer a { display:inline-flex; justify-content:center; align-items:center; gap:7px; min-height:40px; padding:0 15px; border:1px solid #c9d1d1; border-radius:22px; font-size:13px; font-weight:600; white-space:nowrap; }
+.bwa-footer .bwa-primary { background:#1e7a4c; border-color:#1e7a4c; color:white; text-decoration:none; }
+.bwa-footer .bwa-missing { color:#8a4b06; font-weight:600; }
+.bwa-confirm { background:#f1f9f4; }
+.bwa-confirm strong { flex:1; font-size:13.5px; color:#1e7a4c; }
+.bwa-error { color:#b42318; font-size:13px; margin-top:10px; }
+.booking-wa button:disabled, .booking-wa .is-disabled { opacity:.45; cursor:not-allowed; }
+.booking-wa fieldset:disabled { opacity:.75; }
+.booking-wa :is(button,a,input,select,textarea):focus-visible { outline:2px solid #0b5c60; outline-offset:2px; }
+@media (max-width: 480px) { .bwa-suggestions { grid-template-columns:1fr; } .bwa-suggestions button { gap:0; } .bwa-footer > div { width:100%; } .bwa-footer > div > * { flex:1; } .bwa-template { align-items:flex-start; flex-direction:column; gap:5px; } .bwa-template select { width:100%; flex:auto; } }
+.booking-wa [role="dialog"] { display:flex; flex-direction:column; overflow:hidden; }
+.booking-wa [role="dialog"] > div:first-child, .bwa-recipient, .bwa-footer, .bwa-error, .bwa-warning { flex-shrink:0; }
+.bwa-body { min-height:0; overflow-y:auto; overscroll-behavior:contain; }

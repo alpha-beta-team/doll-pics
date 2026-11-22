@@ -6,9 +6,9 @@ import { formatCustomerName } from '../../../shared/formatCustomerName';
 import { leadSourceLabel } from '../leadSource';
 import type { Booking, BookingStatus } from '../../types';
 const labels: Record<BookingStatus, string> = { draft: 'Draft', confirmed: 'Confirmed', shoot_completed: 'In progress', delivered: 'Delivered', cancelled: 'Cancelled' };
-export function BookingHeader({ booking, canViewPhone, canManage, canEdit, saving, onEdit, onCancel, notify, children }: {
+export function BookingHeader({ booking, canViewPhone, canManage, canEdit, saving, onEdit, onMessage, onCancel, notify, children }: {
   booking: Booking; canViewPhone: boolean; canManage: boolean; canEdit: boolean; saving: boolean;
-  onEdit: () => void; onCancel: (reason: string) => Promise<boolean | undefined>; notify: (text: string) => void; children?: ReactNode;
+  onEdit: () => void; onMessage?: () => void; onCancel: (reason: string) => Promise<boolean | undefined>; notify: (text: string) => void; children?: ReactNode;
 }) {
   const [open, setOpen] = useState(false), [cancel, setCancel] = useState(false);
   const menu = useRef<HTMLDivElement>(null);
@@ -48,7 +48,7 @@ export function BookingHeader({ booking, canViewPhone, canManage, canEdit, savin
       </div>
     </div>
     <div className="bd-header-actions bd-reference-actions">
-      {canViewPhone && phone && <><a href={`tel:${booking.customerPhone}`} className="bd-header-icon" aria-label="Call customer" title="Call"><Icon name="Call" /></a><a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noreferrer" className="bd-header-icon" aria-label="Message customer on WhatsApp" title="WhatsApp"><Icon name="WhatsApp" /></a></>}
+      {canViewPhone && phone && <><a href={`tel:${booking.customerPhone}`} className="bd-header-icon" aria-label="Call customer" title="Call"><Icon name="Call" /></a>{onMessage ? <button type="button" onClick={onMessage} className="bd-header-icon" aria-label="Message customer on WhatsApp" title="WhatsApp"><Icon name="WhatsApp" /></button> : <a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noreferrer" className="bd-header-icon" aria-label="Message customer on WhatsApp" title="WhatsApp"><Icon name="WhatsApp" /></a>}</>}
       {canManage && <><button type="button" className="bd-header-icon" aria-label="Edit booking" title="Edit booking" disabled={!canEdit} onClick={onEdit}><Icon name="Edit" /></button>
         <div ref={menu} className="relative"><button ref={trigger} type="button" className="bd-header-icon" aria-label="More booking actions" title="More" aria-expanded={open} aria-haspopup="menu" onClick={() => setOpen(!open)}><Icon name="More" /></button>
         {open && <div role="menu" aria-label="Booking actions" className="bd-header-menu" onClick={() => { setOpen(false); trigger.current?.focus(); }} onKeyDown={event => {
