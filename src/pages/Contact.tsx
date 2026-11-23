@@ -150,7 +150,7 @@ function ContactContent() {
             <div>
               <p className="section-label mb-6">Contact the studio</p>
               <h1 className="font-display text-6xl font-light leading-[0.92] text-ink-50 sm:text-7xl md:text-8xl lg:text-[7.5rem]">
-                Let&apos;s create
+                Let&apos;s create{' '}
                 <span className="block italic text-gradient-gold">something timeless.</span>
               </h1>
               <p className="mt-8 max-w-xl text-base font-light leading-relaxed text-ink-100/70 sm:text-lg">

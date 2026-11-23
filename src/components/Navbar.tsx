@@ -119,26 +119,38 @@ export function Navbar() {
       onMouseEnter={() => setIsOpen(true)}
       onMouseLeave={() => setIsOpen(false)}
     >
-      <button
-        type="button"
-        data-cursor="hover"
-        aria-expanded={isOpen}
-        aria-haspopup="true"
-        onClick={() => setIsOpen((v) => !v)}
-        onFocus={() => setIsOpen(true)}
-        className={`relative flex items-center gap-1 text-sm font-medium tracking-wide transition-colors duration-300 group ${
-          active ? 'text-ink-50' : 'text-ink-100/80 hover:text-ink-50'
-        }`}
-      >
-        {label}
-        <ChevronDown
-          className={`h-3.5 w-3.5 transition-transform duration-300 ${
-            isOpen ? 'rotate-180' : ''
+      <div className="flex items-center gap-1">
+        <Link
+          to={showAllLink?.path ?? items[0]?.path ?? '/'}
+          data-cursor="hover"
+          onFocus={() => setIsOpen(true)}
+          onClick={() => setIsOpen(false)}
+          className={`relative text-sm font-medium tracking-wide transition-colors duration-300 group ${
+            active ? 'text-ink-50' : 'text-ink-100/80 hover:text-ink-50'
           }`}
-          aria-hidden="true"
-        />
-        <span className="absolute -bottom-1 left-0 h-px w-0 bg-gold-400 transition-all duration-400 group-hover:w-full" />
-      </button>
+        >
+          {label}
+          <span className="absolute -bottom-1 left-0 h-px w-0 bg-gold-400 transition-all duration-400 group-hover:w-full" />
+        </Link>
+        <button
+          type="button"
+          data-cursor="hover"
+          aria-expanded={isOpen}
+          aria-haspopup="true"
+          aria-label={`Show ${label.toLowerCase()} menu`}
+          onClick={() => setIsOpen((v) => !v)}
+          className={`flex items-center transition-colors duration-300 ${
+            active ? 'text-ink-50' : 'text-ink-100/80 hover:text-ink-50'
+          }`}
+        >
+          <ChevronDown
+            className={`h-3.5 w-3.5 transition-transform duration-300 ${
+              isOpen ? 'rotate-180' : ''
+            }`}
+            aria-hidden="true"
+          />
+        </button>
+      </div>
 
       {isOpen ? (
         <div className="absolute left-1/2 top-full z-50 pt-3 -translate-x-1/2">
@@ -289,9 +301,12 @@ export function Navbar() {
                   <Moon className="h-5 w-5" aria-hidden="true" />
                 )}
               </button>
-              <button
-                type="button"
-                onClick={openBookingModal}
+              <a
+                href="/booking"
+                onClick={(event) => {
+                  event.preventDefault();
+                  openBookingModal();
+                }}
                 data-cursor="hover"
                 className={`hidden items-center rounded-full px-6 py-2.5 text-xs font-medium uppercase tracking-widest transition-all duration-400 hover:shadow-lg sm:inline-flex ${
                   editorialPackageRoute
@@ -300,7 +315,7 @@ export function Navbar() {
                 }`}
               >
                 Book Now
-              </button>
+              </a>
               <button
                 type="button"
                 ref={toggleRef}
@@ -435,9 +450,12 @@ export function Navbar() {
             )}
             {theme === 'dark' ? 'Light theme' : 'Dark theme'}
           </button>
-          <button
-            type="button"
-            onClick={openBookingModal}
+          <a
+            href="/booking"
+            onClick={(event) => {
+              event.preventDefault();
+              openBookingModal();
+            }}
             className={`mt-4 rounded-full px-8 py-4 text-sm uppercase tracking-widest ${
               editorialPackageRoute
                 ? 'package-primary-action'
@@ -446,7 +464,7 @@ export function Navbar() {
             style={{ animation: 'fadeInUp 0.5s 0.4s ease-out both' }}
           >
             Book Now
-          </button>
+          </a>
           </div>
         </div>, document.body,
       )}

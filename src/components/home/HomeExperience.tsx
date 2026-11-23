@@ -368,7 +368,7 @@ function StudioManifesto() {
         <Reveal delay={120}>
           <SectionEyebrow>More than photographs</SectionEyebrow>
           <h2 className="max-w-3xl font-display text-[clamp(3.1rem,6.2vw,6.7rem)] font-light leading-[0.9] tracking-[-0.035em] text-ink-50">
-            Your day as it
+            Your day as it{' '}
             <span className="block italic text-gold-300">truly felt.</span>
           </h2>
           <div className="mt-9 grid gap-8 border-t border-hairline/10 pt-8 sm:grid-cols-[1fr_1fr]">
@@ -552,7 +552,7 @@ function ServiceJournal() {
         <Reveal className="lg:sticky lg:top-32 lg:self-start">
           <SectionEyebrow>Ways to remember</SectionEyebrow>
           <h2 className="font-display text-[clamp(3.1rem,5.6vw,6rem)] font-light leading-[0.9] tracking-[-0.035em] text-ink-50">
-            Every season
+            Every season{' '}
             <span className="block italic text-gold-300">deserves a story.</span>
           </h2>
           <p className="mt-7 max-w-lg text-sm leading-7 text-ink-300 sm:text-base">
@@ -681,7 +681,7 @@ function ClosingInvitation() {
             Now booking 2026–2027
           </p>
           <h2 className="font-display text-[clamp(3.6rem,8vw,8.4rem)] font-light leading-[0.84] tracking-[-0.045em]">
-            Let’s make something
+            Let’s make something{' '}
             <span className="block italic text-gold-300">you can feel.</span>
           </h2>
           <div className="mt-9 flex flex-col gap-7 border-l border-white/25 pl-5 sm:flex-row sm:items-center sm:justify-between sm:pl-7">

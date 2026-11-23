@@ -159,7 +159,7 @@ function GalleryIntroduction({ photoCount }: { photoCount: number }) {
             <span className="h-px w-16 bg-gold-400/60" aria-hidden="true" />
           </div>
           <h1 className="max-w-6xl font-display text-[3.45rem] font-light leading-[0.88] tracking-[-0.035em] text-ink-50 sm:text-7xl md:text-8xl lg:text-[7.8rem]">
-            Every frame,
+            Every frame,{' '}
             <span className="block italic text-gold-300">a feeling held.</span>
           </h1>
         </div>

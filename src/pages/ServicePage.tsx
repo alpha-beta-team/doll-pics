@@ -45,7 +45,7 @@ import {
   normalizePathname,
 } from '../lib/navigation';
 import { NotFound } from './NotFound';
-import { BUSINESS_NAME, OPENING_HOURS } from '../lib/businessIdentity';
+import { BUSINESS_NAME, OPENING_HOURS_SUMMARY } from '../lib/businessIdentity';
 import { STUDIO_ADDRESS, STUDIO_MAPS_URL } from '../lib/studioLocation';
 
 const HERO_SIZES = '100vw';
@@ -723,7 +723,7 @@ function ServiceExperience({
           <div className="lg:col-span-8">
             <p className="section-label mb-5">The experience</p>
             <h2 className="font-display text-[clamp(3rem,6vw,6.5rem)] font-light leading-[0.9] tracking-[-0.04em] text-ink-50">
-              Thoughtful from the
+              Thoughtful from the{' '}
               <span className="block italic text-gold-300">first conversation.</span>
             </h2>
           </div>
@@ -848,7 +848,7 @@ function ServiceLocation({
                 Visit the studio
               </p>
               <p className="mt-4 font-display text-4xl font-light leading-tight text-ink-50 sm:text-5xl">
-                At the heart of
+                At the heart of{' '}
                 <span className="block italic text-gold-300">Erode.</span>
               </p>
               <span className="mt-6 inline-flex items-center gap-2 border-b border-gold-300/70 pb-1 text-sm font-medium text-ink-50 transition-colors group-hover:text-gold-300">
@@ -871,10 +871,8 @@ function ServiceLocation({
           </address>
           <p className="mt-5 max-w-xl text-[0.95rem] leading-7 text-ink-200/75">
             We photograph across Tamil Nadu, including Salem, Namakkal,
-            Coimbatore and Chennai. Studio hours: {OPENING_HOURS[0].day}{' '}
-            {OPENING_HOURS[0].hours}; Saturday {OPENING_HOURS[1].hours}; Sunday{' '}
-            {OPENING_HOURS[2].hours}; Monday {OPENING_HOURS[3].hours}; Tuesday–Thursday{' '}
-            {OPENING_HOURS[4].hours}. Please contact us before visiting; travel fees are
+            Coimbatore and Chennai. Studio hours: {OPENING_HOURS_SUMMARY}. Please
+            contact us before visiting; travel fees are
             confirmed during your free consultation.
           </p>
           {phoneHref && phone ? (
@@ -912,7 +910,7 @@ function ServiceFaq({
         <div className="lg:col-span-5">
           <p className="section-label mb-5">Questions, answered</p>
           <h2 className="font-display text-[clamp(3rem,5vw,5.6rem)] font-light leading-[0.9] tracking-[-0.035em] text-ink-50">
-            A little clarity
+            A little clarity{' '}
             <span className="block italic text-gold-300">before we begin.</span>
           </h2>
         </div>
@@ -974,7 +972,7 @@ function ServiceClosingCta({
       <div className="relative mx-auto max-w-5xl text-center">
         <p className="section-label mb-6">Your story starts here</p>
         <h2 className="font-display text-[clamp(3.5rem,8vw,8.2rem)] font-light leading-[0.84] tracking-[-0.045em] text-ink-50">
-          Let’s create something
+          Let’s create something{' '}
           <span className="block italic text-gold-300">you can feel.</span>
         </h2>
         <p className="mx-auto mt-8 max-w-xl text-sm leading-7 text-ink-200/75 sm:text-base">

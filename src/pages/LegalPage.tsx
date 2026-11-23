@@ -48,7 +48,7 @@ function LegalPageContent({ path, children }: LegalPageProps) {
           </div>
           <p className="mt-16 text-sm text-ink-200/50">
             Questions?{' '}
-            <Link to="/booking" className="text-gold-400 hover:text-gold-300">
+            <Link to="/contact" className="text-gold-400 hover:text-gold-300">
               Contact us
             </Link>
             {siteContent.contactEmail ? (

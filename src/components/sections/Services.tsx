@@ -66,7 +66,7 @@ export function Services() {
                 <span className="h-px w-16 bg-gold-400/60" aria-hidden="true" />
               </p>
               <h1 className="max-w-6xl font-display text-[clamp(3.5rem,8vw,8.4rem)] font-light leading-[0.84] tracking-[-0.045em] text-ink-50">
-                Wedding, Baby &amp; Family
+                Wedding, Baby &amp; Family{' '}
                 <span className="block italic text-gold-300">
                   Photography Services in Erode
                 </span>

@@ -204,7 +204,7 @@ export function BookingCTA() {
           className={`font-display text-6xl md:text-8xl font-light text-white leading-[0.95] text-shadow-cinematic ${inView ? 'fade-in-up stagger-2' : ''}`}
           style={{ opacity: inView ? undefined : 0.001 }}
         >
-          Let's create
+          Let's create{' '}
           <br />
           <span className="italic text-gradient-gold">your story.</span>
         </h2>

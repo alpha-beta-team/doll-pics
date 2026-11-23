@@ -25,21 +25,55 @@
     "longitude": 77.7172
   },
   "openingHours": [
-    { "dayOfWeek": ["Friday"], "opens": "10:00", "closes": "00:00" },
-    { "dayOfWeek": ["Saturday"], "opens": "00:00", "closes": "08:30" },
-    { "dayOfWeek": ["Saturday"], "opens": "10:00", "closes": "20:30" },
-    { "dayOfWeek": ["Sunday"], "opens": "10:00", "closes": "20:30" },
-    { "dayOfWeek": ["Monday"], "opens": "11:00", "closes": "20:30" },
-    { "dayOfWeek": ["Tuesday", "Wednesday", "Thursday"], "opens": "10:00", "closes": "20:30" }
+    {
+      "dayOfWeek": [
+        "Monday"
+      ],
+      "opens": "11:00",
+      "closes": "20:30"
+    },
+    {
+      "dayOfWeek": [
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "opens": "10:00",
+      "closes": "20:30"
+    }
   ],
   "openingHoursDisplay": [
-    { "day": "Friday", "hours": "10 am–12 am" },
-    { "day": "Saturday", "hours": "12–8:30 am, 10 am–8:30 pm" },
-    { "day": "Sunday", "hours": "10 am–8:30 pm" },
-    { "day": "Monday", "hours": "11 am–8:30 pm" },
-    { "day": "Tuesday", "hours": "10 am–8:30 pm" },
-    { "day": "Wednesday", "hours": "10 am–8:30 pm" },
-    { "day": "Thursday", "hours": "10 am–8:30 pm" }
+    {
+      "day": "Monday",
+      "hours": "11 am–8:30 pm"
+    },
+    {
+      "day": "Tuesday",
+      "hours": "10 am–8:30 pm"
+    },
+    {
+      "day": "Wednesday",
+      "hours": "10 am–8:30 pm"
+    },
+    {
+      "day": "Thursday",
+      "hours": "10 am–8:30 pm"
+    },
+    {
+      "day": "Friday",
+      "hours": "10 am–8:30 pm"
+    },
+    {
+      "day": "Saturday",
+      "hours": "10 am–8:30 pm"
+    },
+    {
+      "day": "Sunday",
+      "hours": "10 am–8:30 pm"
+    }
   ],
   "officialProfileUrls": [
     "https://dollpictures.in/"

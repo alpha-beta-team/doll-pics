@@ -15,6 +15,20 @@ export const BUSINESS_SOCIALS: Record<string, string> = {
 };
 export const OPENING_HOURS = BUSINESS_IDENTITY.openingHoursDisplay;
 
+/** One-line hours summary, grouping consecutive days that share the same hours. */
+export const OPENING_HOURS_SUMMARY = OPENING_HOURS.reduce<
+  Array<{ first: string; last: string; hours: string }>
+>((groups, { day, hours }) => {
+  const previous = groups[groups.length - 1];
+  if (previous && previous.hours === hours) previous.last = day;
+  else groups.push({ first: day, last: day, hours });
+  return groups;
+}, [])
+  .map(({ first, last, hours }) =>
+    `${first === last ? first : `${first}–${last}`} ${hours}`,
+  )
+  .join('; ');
+
 /** Adds the canonical identity to route/content SEO data. */
 export function withCanonicalBusinessIdentity(
   seoPages: Omit<

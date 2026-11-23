@@ -163,7 +163,8 @@ export function resolveMetaDescription(
   pathname: string,
   description: string,
 ): string {
-  const authored = description.trim();
+  // CMS copy sometimes carries the brand in capitals; normalise it for snippets.
+  const authored = description.trim().replace(/\bDOLL PICTURES\b/g, 'Doll Pictures');
   const candidate =
     authored.length > META_DESCRIPTION_MAX_LENGTH
       ? META_DESCRIPTION_OVERRIDES[normalizePathname(pathname)] ?? authored

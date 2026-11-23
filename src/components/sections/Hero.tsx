@@ -212,7 +212,7 @@ export function Hero() {
         </div>
 
         <h1 className="font-display text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-light leading-[0.95] text-white text-shadow-cinematic max-w-5xl hero-enter hero-enter-delay-2">
-          We don't take
+          We don't take{' '}
           <br />
           <span className="italic text-gradient-gold font-normal">photographs.</span>
         </h1>
